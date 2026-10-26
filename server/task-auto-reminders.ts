@@ -23,30 +23,40 @@ export async function checkAndSendAutoReminders() {
     // Filtrar tareas que:
     // 1. No están completadas
     // 2. Tienen fecha límite
-    // 3. La fecha límite es mañana o antes (pero no pasada hace más de 1 día)
+    // 3. Vencen hoy o mañana (recordatorio previo)
+    // 4. O vencieron ayer (máximo 1 día de retraso, 1 sola notificación de vencimiento)
     const tasksToRemind = allTasks.filter(task => {
       if (task.status === "completada" || !task.dueDate) return false;
       
       const dueDate = new Date(task.dueDate);
-      const oneDayBefore = new Date(dueDate);
-      oneDayBefore.setDate(oneDayBefore.getDate() - 1);
-      oneDayBefore.setHours(0, 0, 0, 0);
+      dueDate.setHours(23, 59, 59, 999);
       
       const todayStart = new Date(now);
       todayStart.setHours(0, 0, 0, 0);
       
-      // La tarea está próxima a vencer si:
-      // - Hoy es el día anterior a la fecha límite
-      // - O la fecha límite es hoy
-      // - O la fecha límite ya pasó (pero no más de 3 días)
-      const threeDaysAgo = new Date(now);
-      threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+      const yesterdayStart = new Date(todayStart);
+      yesterdayStart.setDate(yesterdayStart.getDate() - 1);
       
-      return dueDate >= threeDaysAgo && dueDate <= tomorrow;
+      // Solo recordar si:
+      // - Vence hoy o mañana (recordatorio próxima a vencer)
+      // - O venció ayer exactamente (1 sola notificación de tarea vencida)
+      // Tareas con más de 1 día de retraso NO reciben más notificaciones automáticas
+      return dueDate >= yesterdayStart && dueDate <= tomorrow;
     });
+
+    // Obtener proyectos entregados para excluir sus tareas
+    const allProjects = await db.getAllProjects();
+    const deliveredProjectIds = new Set(
+      allProjects.filter(p => p.status === "entregado" || p.deliveredAt).map(p => p.id)
+    );
 
     // Enviar recordatorios automáticos
     for (const task of tasksToRemind) {
+      // No recordar tareas de proyectos ya entregados
+      if (task.projectId && deliveredProjectIds.has(task.projectId)) {
+        continue;
+      }
+
       // Verificar si ya se envió un recordatorio automático hoy
       if (task.lastReminderSentAt) {
         const lastReminder = new Date(task.lastReminderSentAt);

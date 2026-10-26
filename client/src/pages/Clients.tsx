@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   Users, Phone, Mail, MapPin, Plus, Search, Edit2, Trash2,
-  CheckCircle, X, UserPlus, Copy, Check,
+  CheckCircle, X, UserPlus, Copy, Check, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -30,21 +30,39 @@ type Client = {
   createdAt: string;
   internalManagement: number;
   userId: number | null;
+  identificationNumber: string | null;
 };
 
 type FormState = {
   name: string;
   email: string;
   whatsappPhone: string;
+  countryCode: string;
   address: string;
   internalManagement: boolean;
+  identificationNumber: string;
 };
 
+const COUNTRY_CODES = [
+  { code: "57",  flag: "🇨🇴", label: "Colombia (+57)" },
+  { code: "1",   flag: "🇺🇸", label: "EEUU (+1)" },
+  { code: "34",  flag: "🇪🇸", label: "España (+34)" },
+  { code: "41",  flag: "🇨🇭", label: "Suiza (+41)" },
+  { code: "54",  flag: "🇦🇷", label: "Argentina (+54)" },
+  { code: "52",  flag: "🇲🇽", label: "México (+52)" },
+  { code: "44",  flag: "🇬🇧", label: "Reino Unido (+44)" },
+  { code: "49",  flag: "🇩🇪", label: "Alemania (+49)" },
+  { code: "33",  flag: "🇫🇷", label: "Francia (+33)" },
+  { code: "39",  flag: "🇮🇹", label: "Italia (+39)" },
+];
+
 const EMPTY_FORM: FormState = {
-  name: "", email: "", whatsappPhone: "", address: "", internalManagement: false,
+  name: "", email: "", whatsappPhone: "", countryCode: "57", address: "", internalManagement: false, identificationNumber: "",
 };
 
 // ── Página principal ──────────────────────────────────────────────────────────
+const PAGE_SIZE = 50;
+
 export default function Clients() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -53,15 +71,21 @@ export default function Clients() {
   const [deleteTarget, setDeleteTarget] = useState<Client | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [createdCreds, setCreatedCreds] = useState<{ email: string; password: string } | null>(null);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 350);
     return () => clearTimeout(t);
   }, [search]);
 
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch]);
+
   const { data, isLoading, refetch } = trpc.clients.listPaginated.useQuery({
     search: debouncedSearch || undefined,
-    limit: 200,
+    limit: PAGE_SIZE,
+    page,
   });
 
   const createMutation = trpc.clients.createQuick.useMutation({
@@ -100,12 +124,14 @@ export default function Clients() {
       email: c.email ?? "",
       whatsappPhone: c.whatsappPhone,
       address: c.address ?? "",
+      identificationNumber: c.identificationNumber ?? "",
       internalManagement: c.internalManagement === 1,
     });
   };
 
   const clients: Client[] = (data?.clients ?? []) as Client[];
   const total = data?.total ?? 0;
+  const totalPages = Math.ceil(total / PAGE_SIZE);
 
   const now = new Date();
   const newThisMonth = clients.filter((c) => {
@@ -158,7 +184,7 @@ export default function Clients() {
         {search && (
           <button
             onClick={() => setSearch("")}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-muted-foreground"
           >
             <X className="h-4 w-4" />
           </button>
@@ -169,7 +195,7 @@ export default function Clients() {
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-36 rounded-xl bg-slate-100 animate-pulse" />
+            <div key={i} className="h-36 rounded-xl bg-white/[0.06] animate-pulse" />
           ))}
         </div>
       ) : clients.length === 0 ? (
@@ -196,6 +222,31 @@ export default function Clients() {
           ))}
         </div>
       )}
+      {/* ── Paginación ── */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-3 mt-6">
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="p-2 rounded-lg disabled:opacity-30 hover:bg-white/10 transition-colors"
+            style={{ color: "#1DB5A8" }}
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <span className="text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
+            Página <strong style={{ color: "#fff" }}>{page}</strong> de <strong style={{ color: "#fff" }}>{totalPages}</strong>
+            <span style={{ color: "rgba(255,255,255,0.35)", fontSize: "0.75rem", marginLeft: "6px" }}>({clients.length} de {total})</span>
+          </span>
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+            className="p-2 rounded-lg disabled:opacity-30 hover:bg-white/10 transition-colors"
+            style={{ color: "#1DB5A8" }}
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        </div>
+      )}
 
       {/* ── Dialog: Nuevo Cliente ── */}
       <Dialog open={newOpen} onOpenChange={setNewOpen}>
@@ -207,7 +258,7 @@ export default function Clients() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setNewOpen(false)}>Cancelar</Button>
             <Button
-              onClick={() => createMutation.mutate({ ...form, email: form.email || undefined })}
+              onClick={() => createMutation.mutate({ ...form, email: form.email || undefined, whatsappPhone: ((p) => p.length > 10 ? p : `${form.countryCode}${p}`)(form.whatsappPhone.replace(/\D/g, "")), identificationNumber: form.identificationNumber || undefined })}
               disabled={createMutation.isPending || !form.name.trim() || !form.whatsappPhone.trim()}
               className="text-white"
               style={{ background: "linear-gradient(135deg, #1DB5A8, #0D9B8F)" }}
@@ -234,7 +285,7 @@ export default function Clients() {
                   id: editTarget.id,
                   name: form.name,
                   email: form.email || undefined,
-                  whatsappPhone: form.whatsappPhone,
+                  whatsappPhone: ((p) => p.length > 10 ? p : `${form.countryCode}${p}`)(form.whatsappPhone.replace(/\D/g, "")),
                   address: form.address || undefined,
                 })
               }
@@ -274,12 +325,12 @@ export default function Clients() {
       <Dialog open={!!createdCreds} onOpenChange={(v) => !v && setCreatedCreds(null)}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-teal-700">
+            <DialogTitle className="flex items-center gap-2 text-teal-300">
               <CheckCircle className="h-5 w-5" /> Credenciales generadas
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-2">
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-muted-foreground">
               Se creó una cuenta para el cliente. Comparte estas credenciales de acceso al portal:
             </p>
             <CredRow label="Email" value={createdCreds?.email ?? ""} />
@@ -311,7 +362,10 @@ function ClientCard({
     .slice(0, 2)
     .toUpperCase();
 
-  const waNumber = `57${client.whatsappPhone.replace(/\D/g, "")}`;
+  const rawPhone = (client.whatsappPhone || "").replace(/\D/g, "");
+  const waNumber = rawPhone.startsWith("57") || rawPhone.startsWith("1") || rawPhone.length > 10
+    ? rawPhone
+    : `57${rawPhone}`;
 
   return (
     <Card className="hover:shadow-md transition-all" style={{ borderColor: "rgba(106,207,199,0.15)" }}>
@@ -357,6 +411,11 @@ function ClientCard({
                 <p className="flex items-center gap-1.5 text-xs truncate" style={{ color: "rgba(255,255,255,0.50)" }}>
                   <Mail className="h-3 w-3 shrink-0" />
                   {client.email}
+                </p>
+              )}
+              {client.identificationNumber && (
+                <p className="text-xs text-slate-400">
+                  📋 {client.identificationNumber}
                 </p>
               )}
               {client.address && (
@@ -428,12 +487,27 @@ function ClientForm({
       </div>
       <div className="space-y-1.5">
         <Label>WhatsApp *</Label>
-        <Input
-          value={form.whatsappPhone}
-          onChange={(e) => update("whatsappPhone", e.target.value)}
-          placeholder="Ej: 3001234567"
-          type="tel"
-        />
+        <div className="flex gap-2">
+          <select
+            value={form.countryCode}
+            onChange={(e) => update("countryCode", e.target.value)}
+            className="rounded-md border border-input bg-background px-2 py-2 text-sm w-40 shrink-0"
+            style={{ borderColor: "rgba(106,207,199,0.25)", background: "rgba(255,255,255,0.05)", color: "white" }}
+          >
+            {COUNTRY_CODES.map(c => (
+              <option key={c.code} value={c.code} style={{ background: "#1a1a2e" }}>
+                {c.flag} {c.label}
+              </option>
+            ))}
+          </select>
+          <Input
+            value={form.whatsappPhone}
+            onChange={(e) => update("whatsappPhone", e.target.value)}
+            placeholder="Ej: 3001234567"
+            type="tel"
+            className="flex-1"
+          />
+        </div>
       </div>
       <div className="space-y-1.5">
         <Label>Email</Label>
@@ -455,13 +529,22 @@ function ClientForm({
           placeholder="Ej: Calle 15 # 32-10, Pereira"
         />
       </div>
+      <div className="space-y-1.5">
+        <Label>Número de Identificación</Label>
+        <Input
+          value={form.identificationNumber}
+          onChange={(e) => update("identificationNumber", e.target.value)}
+          placeholder="Ej: CC 1234567890"
+        />
+        <p className="text-[11px] text-slate-400">Cédula, NIT u otro documento. Opcional.</p>
+      </div>
       <div className="flex items-center gap-2 pt-1">
         <Checkbox
           id="internalMgmt"
           checked={form.internalManagement}
           onCheckedChange={(v) => update("internalManagement", !!v)}
         />
-        <Label htmlFor="internalMgmt" className="text-sm font-normal cursor-pointer text-slate-600">
+        <Label htmlFor="internalMgmt" className="text-sm font-normal cursor-pointer text-muted-foreground">
           Gestión interna (no crear cuenta de usuario aunque tenga email)
         </Label>
       </div>
@@ -486,7 +569,7 @@ function CredRow({ label, value }: { label: string; value: string }) {
         <p className="text-sm font-mono font-medium text-white/80 truncate">{value}</p>
       </div>
       <button onClick={copy} className="text-white/35 hover:text-teal-400 shrink-0 transition-colors">
-        {copied ? <Check className="h-4 w-4 text-teal-600" /> : <Copy className="h-4 w-4" />}
+        {copied ? <Check className="h-4 w-4 text-teal-400" /> : <Copy className="h-4 w-4" />}
       </button>
     </div>
   );

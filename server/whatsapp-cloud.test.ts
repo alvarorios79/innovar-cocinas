@@ -245,7 +245,7 @@ describe("WhatsApp Cloud Service", () => {
         "Carlos López",
         "COT-2026-002",
         "8000000",
-        "https://innovar.manus.space/portal/cotizacion/123"
+        "https://innovar-cocinas.onrender.com/portal/cotizacion/123"
       );
       
       expect(result).toHaveProperty("success");
@@ -305,7 +305,7 @@ describe("WhatsApp Cloud Service", () => {
         "Ana Martínez",
         "Cocina Integral",
         "en_diseno",
-        "https://innovar.manus.space/portal/proyecto/456"
+        "https://innovar-cocinas.onrender.com/portal/proyecto/456"
       );
       
       expect(result).toHaveProperty("success");

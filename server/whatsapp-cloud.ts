@@ -151,17 +151,12 @@ export function formatPhoneForWhatsApp(phone: string): string {
   // Eliminar todos los caracteres no numéricos
   let cleanPhone = phone.replace(/\D/g, "");
   
-  // Si empieza con 57, ya tiene código de país
-  if (cleanPhone.startsWith("57")) {
+  // Si ya tiene código de país (>10 dígitos), usar tal cual
+  if (cleanPhone.length > 10) {
     return cleanPhone;
   }
   
-  // Si empieza con 3 (celular colombiano), agregar 57
-  if (cleanPhone.startsWith("3") && cleanPhone.length === 10) {
-    return `57${cleanPhone}`;
-  }
-  
-  // Si tiene otro formato, intentar agregar 57
+  // Número local colombiano (10 dígitos), agregar 57
   return `57${cleanPhone}`;
 }
 
@@ -438,7 +433,8 @@ export async function sendAppointmentConfirmation(
   clientPhone: string,
   clientName: string,
   appointmentDate: Date,
-  workType: string
+  workType: string,
+  citaLink?: string
 ): Promise<WhatsAppMessageResponse> {
   const workTypeLabels: Record<string, string> = {
     cocina: "Cocina Integral",
@@ -494,8 +490,16 @@ export async function sendAppointmentConfirmation(
   // Si la plantilla falla (no aprobada aún), usar texto libre como fallback
   if (!templateResult.success) {
     console.log(`[WhatsApp] Plantilla falló (${templateResult.error}), usando texto libre como fallback`);
-    const message = `✅ *Cita Confirmada - INNOVAR Cocinas*\n\nHola ${clientName},\n\nTu cita ha sido agendada exitosamente:\n\n📅 *Fecha:* ${dateStr}\n⏰ *Hora:* ${timeStr}\n🛠️ *Tipo:* ${workTypeLabel}\n\n📍 *Dirección:* K9 vía Cerritos a Pereira\n\nSi necesitas reagendar, contáctanos con anticipación.\n\n¡Te esperamos! 🏠`;
+    const linkLine = citaLink ? `\n\n🔗 Gestiona tu cita (ver, cancelar o reagendar):\n${citaLink}` : '';
+    const message = `✅ *Cita Confirmada - INNOVAR Cocinas*\n\nHola ${clientName},\n\nTu cita ha sido agendada exitosamente:\n\n📅 *Fecha:* ${dateStr}\n⏰ *Hora:* ${timeStr}\n🛠️ *Tipo:* ${workTypeLabel}\n\n📍 *Dirección:* K9 vía Cerritos a Pereira${linkLine}\n\n¡Te esperamos! 🏠`;
     return sendTextMessage(clientPhone, message);
+  }
+
+  // Si el template tuvo éxito, enviar segundo mensaje con el link de gestión
+  if (templateResult.success && citaLink) {
+    try {
+      await sendTextMessage(clientPhone, `🔗 Gestiona tu cita (ver, cancelar o reagendar):\n${citaLink}`);
+    } catch (_) { /* no bloquear si falla el segundo mensaje */ }
   }
 
   return templateResult;

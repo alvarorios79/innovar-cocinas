@@ -4,9 +4,7 @@
  */
 
 import { drizzle } from "drizzle-orm/node-postgres";
-import pg from "pg";
 
-let pool: pg.Pool | null = null;
 let testDb: ReturnType<typeof drizzle> | null = null;
 
 export async function getTestDb() {
@@ -17,15 +15,10 @@ export async function getTestDb() {
     throw new Error("DATABASE_URL environment variable is not set");
   }
 
-  pool = new pg.Pool({ connectionString: databaseUrl });
-  testDb = drizzle(pool);
+  testDb = drizzle(databaseUrl);
   return testDb;
 }
 
 export async function closeTestDb() {
-  if (pool) {
-    await pool.end();
-    pool = null;
-    testDb = null;
-  }
+  testDb = null;
 }

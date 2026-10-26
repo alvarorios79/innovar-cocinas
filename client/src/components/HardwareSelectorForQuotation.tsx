@@ -83,7 +83,7 @@ export function HardwareSelectorForQuotation({ selectedHardware, onHardwareChang
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 selectedCategory === "cocinas"
                   ? "bg-slate-700 text-white"
-                  : "bg-[#0F2222] text-white/85 hover:bg-slate-200"
+                  : "bg-[#0F2222] text-white/85 hover:bg-white/[0.10]"
               }`}
               onClick={() => setSelectedCategory("cocinas")}
             >
@@ -94,7 +94,7 @@ export function HardwareSelectorForQuotation({ selectedHardware, onHardwareChang
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 selectedCategory === "closets"
                   ? "bg-slate-700 text-white"
-                  : "bg-[#0F2222] text-white/85 hover:bg-slate-200"
+                  : "bg-[#0F2222] text-white/85 hover:bg-white/[0.10]"
               }`}
               onClick={() => setSelectedCategory("closets")}
             >
@@ -105,7 +105,7 @@ export function HardwareSelectorForQuotation({ selectedHardware, onHardwareChang
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 selectedCategory === "puertas"
                   ? "bg-slate-700 text-white"
-                  : "bg-[#0F2222] text-white/85 hover:bg-slate-200"
+                  : "bg-[#0F2222] text-white/85 hover:bg-white/[0.10]"
               }`}
               onClick={() => setSelectedCategory("puertas")}
             >
@@ -171,7 +171,7 @@ export function HardwareSelectorForQuotation({ selectedHardware, onHardwareChang
                               </p>
                             )}
                           </div>
-                          <Badge className="ml-2 bg-slate-200 text-white/85 hover:bg-slate-200">
+                          <Badge className="ml-2 bg-white/[0.10] text-white/85 hover:bg-white/[0.10]">
                             ${price.toLocaleString('es-CO')}
                           </Badge>
                         </div>
@@ -206,7 +206,7 @@ export function HardwareSelectorForQuotation({ selectedHardware, onHardwareChang
 
           {/* Resumen Total */}
           {selectedHardware.length > 0 && (
-            <div className="bg-slate-200 p-4 rounded-lg border border-slate-400">
+            <div className="bg-white/[0.10] p-4 rounded-lg border border-slate-400">
               <h5 className="font-semibold text-white/90 mb-3">Resumen del Precio</h5>
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between">
@@ -214,8 +214,8 @@ export function HardwareSelectorForQuotation({ selectedHardware, onHardwareChang
                   <span className="font-medium">${totalPrice.toLocaleString('es-CO')}</span>
                 </div>
                 <div className="border-t border-slate-400 pt-2 mt-2 flex justify-between">
-                  <span className="font-bold text-slate-900">TOTAL:</span>
-                  <span className="text-2xl font-bold text-slate-900">${totalPrice.toLocaleString('es-CO')}</span>
+                  <span className="font-bold text-foreground">TOTAL:</span>
+                  <span className="text-2xl font-bold text-foreground">${totalPrice.toLocaleString('es-CO')}</span>
                 </div>
               </div>
             </div>

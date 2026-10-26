@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Wrench, ChevronRight, ChevronLeft, Scissors, Layers,
-  Package, Truck, CheckCircle2, RefreshCw, User,
+  Package, Truck, CheckCircle2, RefreshCw, User, Flame, MapPin,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -112,6 +112,7 @@ export default function Production() {
     PROD_STATUS_KEYS.includes(p.status as ProdStageKey)
   );
 
+  // Proyectos en diseño — visibles para jefe_taller como "próximos trabajos"
   const byStage = (stage: ProdStageKey) =>
     prodProjects.filter((p) => p.status === stage);
 
@@ -141,13 +142,14 @@ export default function Production() {
             variant="outline"
             size="sm"
             onClick={() => refetch()}
-            className="gap-2 text-slate-600"
+            className="gap-2 text-muted-foreground"
           >
             <RefreshCw className="h-3.5 w-3.5" />
             Actualizar
           </Button>
         }
       />
+
 
       {/* Contador rápido */}
       <div className="flex flex-wrap gap-2 mb-5">

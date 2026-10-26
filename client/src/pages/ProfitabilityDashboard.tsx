@@ -106,7 +106,7 @@ export default function ProfitabilityDashboard() {
   if (!isAuthenticated || (user?.role !== "admin" && user?.role !== "super_admin")) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p className="text-red-600">
+        <p className="text-red-400">
           No tienes permiso para acceder a este dashboard
         </p>
       </div>
@@ -135,8 +135,8 @@ export default function ProfitabilityDashboard() {
   const scale = maxValue > 0 ? 100 / maxValue : 1;
 
   return (
-    <div className="pb-20 md:pb-0">
-      <div>
+    <div className="min-h-screen pb-20 md:pb-0 bg-background p-6">
+      <div className="max-w-7xl mx-auto">
         <Breadcrumbs
           items={[
             { label: "Panel Admin", href: "/admin" },
@@ -226,7 +226,7 @@ export default function ProfitabilityDashboard() {
                   {/* Barras de Ingresos y Gastos */}
                   <div className="flex gap-2 h-8">
                     {/* Ingresos */}
-                    <div className="flex-1 bg-gray-200 rounded overflow-hidden">
+                    <div className="flex-1 bg-white/[0.10] rounded overflow-hidden">
                       <div
                         className="bg-green-500 h-full rounded transition-all"
                         style={{
@@ -237,7 +237,7 @@ export default function ProfitabilityDashboard() {
                     </div>
 
                     {/* Gastos */}
-                    <div className="flex-1 bg-gray-200 rounded overflow-hidden">
+                    <div className="flex-1 bg-white/[0.10] rounded overflow-hidden">
                       <div
                         className="bg-red-500 h-full rounded transition-all"
                         style={{
@@ -260,7 +260,7 @@ export default function ProfitabilityDashboard() {
                       Margen:{" "}
                       <strong
                         className={
-                          month.margen >= 0 ? "text-green-600" : "text-red-600"
+                          month.margen >= 0 ? "text-green-400" : "text-red-400"
                         }
                       >
                         {formatPrice(month.margen)}
@@ -315,17 +315,17 @@ export default function ProfitabilityDashboard() {
                       <td className="py-3 px-3 font-medium text-white/85">
                         {monthNames[month.month]} {month.year}
                       </td>
-                      <td className="text-right py-3 px-3 text-green-600 font-semibold">
+                      <td className="text-right py-3 px-3 text-green-400 font-semibold">
                         {formatPrice(month.ingresos)}
                       </td>
-                      <td className="text-right py-3 px-3 text-red-600 font-semibold">
+                      <td className="text-right py-3 px-3 text-red-400 font-semibold">
                         {formatPrice(month.gastos)}
                       </td>
                       <td
                         className={`text-right py-3 px-3 font-semibold ${
                           month.margen >= 0
-                            ? "text-blue-600"
-                            : "text-red-600"
+                            ? "text-blue-400"
+                            : "text-red-400"
                         }`}
                       >
                         {formatPrice(month.margen)}

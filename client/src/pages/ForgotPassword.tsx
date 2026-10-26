@@ -51,10 +51,9 @@ export default function ForgotPassword() {
             <div className="mx-auto w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mb-2">
               <Mail className="text-white h-8 w-8 md:h-10 md:w-10" />
             </div>
-            <CardTitle className="text-xl md:text-2xl font-bold text-gray-800">Revisa tu correo</CardTitle>
-            <CardDescription className="text-sm md:text-base text-gray-600">
-              Si existe una cuenta con el email <strong>{email}</strong>, recibirás un correo con instrucciones para restablecer tu contraseña.
-              {whatsappLink && " También te enviamos el enlace por WhatsApp."}
+            <CardTitle className="text-xl md:text-2xl font-bold text-foreground">Revisa tu WhatsApp</CardTitle>
+            <CardDescription className="text-sm md:text-base text-muted-foreground">
+              Si existe una cuenta con el email <strong>{email}</strong>, recibirás un mensaje con instrucciones para restablecer tu contraseña.
             </CardDescription>
           </CardHeader>
           <CardContent className="p-4 md:p-6 pt-0 space-y-4">
@@ -78,14 +77,14 @@ export default function ForgotPassword() {
                   setSubmitted(false);
                   setWhatsappLink(null);
                 }}
-                className="text-teal-600 hover:text-teal-700"
+                className="text-teal-400 hover:text-teal-300"
               >
                 Intentar de nuevo
               </Button>
             </div>
 
             <div className="text-center pt-4 border-t">
-              <Link href="/login" className="text-sm text-gray-500 hover:text-teal-600 transition-colors inline-flex items-center gap-1">
+              <Link href="/login" className="text-sm text-gray-500 hover:text-teal-400 transition-colors inline-flex items-center gap-1">
                 <ArrowLeft className="h-4 w-4" />
                 Volver a iniciar sesión
               </Link>
@@ -103,9 +102,9 @@ export default function ForgotPassword() {
           <div className="mx-auto w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-teal-600 to-teal-500 rounded-2xl flex items-center justify-center mb-2">
             <Mail className="text-white h-8 w-8 md:h-10 md:w-10" />
           </div>
-          <CardTitle className="text-xl md:text-2xl font-bold text-gray-800">¿Olvidaste tu contraseña?</CardTitle>
-          <CardDescription className="text-sm md:text-base text-gray-600">
-            Ingresa tu email y te enviaremos instrucciones para restablecer tu contraseña.
+          <CardTitle className="text-xl md:text-2xl font-bold text-foreground">¿Olvidaste tu contraseña?</CardTitle>
+          <CardDescription className="text-sm md:text-base text-muted-foreground">
+            Ingresa tu email y te enviaremos instrucciones por WhatsApp para restablecer tu contraseña.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-4 md:p-6 pt-0">
@@ -143,15 +142,15 @@ export default function ForgotPassword() {
           </form>
 
           <div className="mt-6 text-center space-y-2">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               ¿Recordaste tu contraseña?{" "}
-              <Link href="/login" className="text-teal-600 hover:text-teal-700 font-medium">
+              <Link href="/login" className="text-teal-400 hover:text-teal-300 font-medium">
                 Inicia sesión
               </Link>
             </p>
             <button
               onClick={() => window.history.back()}
-              className="text-sm text-gray-500 hover:text-teal-600 transition-colors"
+              className="text-sm text-gray-500 hover:text-teal-400 transition-colors"
             >
               ← Volver a la página principal
             </button>

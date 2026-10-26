@@ -1,4 +1,5 @@
 import { Toaster } from "sonner";
+import CitaPublica from "@/pages/CitaPublica";
 import React from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
@@ -24,11 +25,12 @@ import ResetPassword from "./pages/ResetPassword";
 import ProjectDetail from "./pages/ProjectDetail";
 import Comercial from "./pages/Comercial";
 import PublicGallery from "./pages/PublicGallery";
+import PublicQuotation from "./pages/PublicQuotation";
 import PricingConfig from "./pages/PricingConfig";
 import Accounting from "./pages/Accounting";
 import AppointmentsCalendar from "./pages/AppointmentsCalendar";
 import { CEODashboard } from "./pages/CEODashboard";
-import ProfitabilityDashboard from "./pages/ProfitabilityDashboard";
+import { Redirect } from "wouter";
 import LimpiezaSistema from "./pages/LimpiezaSistema";
 // ── Nuevos módulos (Fase 1 — placeholders) ───────────────────────────────────
 import Clients from "./pages/Clients";
@@ -37,7 +39,9 @@ import Production from "./pages/Production";
 import Postventa from "./pages/Postventa";
 import Herrajes from "./pages/Herrajes";
 import GalleryAdmin from "./pages/GalleryAdmin";
+import Contador from "./pages/Contador";
 import Medidor from "./pages/Medidor";
+import Agendar from "./pages/Agendar";
 import VisitasTecnicas from "./pages/VisitasTecnicas";
 
 
@@ -46,18 +50,14 @@ function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
 
   // Rutas siempre públicas (nunca usan DashboardLayout)
-  const alwaysPublicRoutes = ["/login", "/register", "/forgot-password", "/reset-password", "/portal", "/gallery"];
-  // Rutas con layout propio (autenticadas pero sin DashboardLayout)
-  const customLayoutRoutes = ["/medidor"];
-  const isCustomLayout = customLayoutRoutes.some(route => location === route || location.startsWith(route));
+  const alwaysPublicRoutes = ["/login", "/register", "/forgot-password", "/reset-password", "/portal", "/gallery", "/cotizacion", "/agendar", "/cita"];
   const isAlwaysPublic = alwaysPublicRoutes.some(
-    route => location === route || location.startsWith("/portal") || location.startsWith("/gallery")
+    route => location === route || location.startsWith("/portal") || location.startsWith("/gallery") || location.startsWith("/cotizacion") || location.startsWith("/agendar") || location.startsWith("/cita")
   );
-  if (isCustomLayout) return <>{children}</>;
   if (isAlwaysPublic) return <>{children}</>;
 
-  // "/" solo es pública para usuarios no autenticados
-  if (location === "/" && !user && !loading) return <>{children}</>;
+  // "/" sin sesión → redirigir a /login
+  if (location === "/" && !user && !loading) return <Redirect to="/login" />;
 
   // Todo lo demás (incluye "/" para usuarios autenticados) usa DashboardLayout
   return <DashboardLayout>{children}</DashboardLayout>;
@@ -82,11 +82,14 @@ function Router() {
         <Route path={"/forgot-password"} component={ForgotPassword} />
         <Route path={"/reset-password"} component={ResetPassword} />
         <Route path={"/gallery"}><PublicGallery /></Route>
+        <Route path={"/agendar"} component={Agendar} />
+        <Route path={"/cita"}><CitaPublica /></Route>
+        <Route path={"/cotizacion"}><PublicQuotation /></Route>
         <Route path={"/pricing-config"}><PricingConfig /></Route>
         <Route path={"/herrajes"}><Herrajes /></Route>
         <Route path={"/accounting"}><Accounting /></Route>
         <Route path={"/ceo-dashboard"}><CEODashboard /></Route>
-        <Route path={"/profitability-dashboard"}><ProfitabilityDashboard /></Route>
+        <Route path={"/profitability-dashboard"}><Redirect to="/ceo-dashboard" /></Route>
         <Route path={"/limpieza-sistema"} component={LimpiezaSistema} />
         {/* Nuevos módulos */}
         <Route path={"/clients"}><Clients /></Route>
@@ -94,10 +97,9 @@ function Router() {
         <Route path={"/production"}><Production /></Route>
         <Route path={"/postventa"}><Postventa /></Route>
         <Route path={"/galerias"}><GalleryAdmin /></Route>
-        {/* Portal del Medidor */}
+        <Route path={"/contador"}><Contador /></Route>
         <Route path={"/medidor"}><Medidor /></Route>
-        {/* Admin: Visitas Técnicas */}
-        <Route path={"/visitas-tecnicas"}><VisitasTecnicas /></Route>
+        <Route path={"/levantamientos"}><VisitasTecnicas /></Route>
         <Route path={"/404"} component={NotFound} />
         <Route component={NotFound} />
       </Switch>
@@ -108,14 +110,22 @@ function Router() {
 function App() {
   React.useEffect(() => {
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker
-        .register('/service-worker.js')
-        .then((registration) => {
-          console.log('[App] Service Worker registrado:', registration);
-        })
-        .catch((error) => {
-          console.error('[App] Error al registrar Service Worker:', error);
-        });
+      // Desregistrar el service-worker.js antiguo: interceptaba fetch con caché agresivo
+      // y competía con sw.js por el scope /, causando que cookies de sesión no se
+      // enviaran correctamente en iOS Safari (ITP). El sw.js moderno (registrado
+      // en index.html) maneja push notifications de forma segura sin cachear APIs.
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        for (const registration of registrations) {
+          const scriptUrl =
+            registration.active?.scriptURL ||
+            registration.installing?.scriptURL ||
+            registration.waiting?.scriptURL ||
+            '';
+          if (scriptUrl.includes('service-worker.js')) {
+            registration.unregister();
+          }
+        }
+      });
     }
   }, []);
 

@@ -12,8 +12,10 @@ import { hashPassword, validatePasswordStrength, authenticateWithPassword } from
 import { prepareWhatsAppNotification, generateTeamWhatsAppLink } from "../whatsapp-notifications";
 import { createRemindersForStatusChange } from "../reminders-service";
 import * as whatsappCloud from "../whatsapp-cloud";
+import { createAndSendNotification, sendPushToRole } from "../push-notifications";
 import { addBusinessDays, calculateEstimatedDeliveryDate } from "../business-days";
 import { sanitizeText, sanitizeHtml, sanitizeForEmail, sanitizePhone, sanitizeEmail } from "../sanitize";
+import { randomBytes } from "crypto";
 
 
 export const publicGalleryRouter = router({
@@ -26,7 +28,7 @@ export const publicGalleryRouter = router({
       }))
       .query(async ({ input }) => {
         // Obtener proyecto y validar token público
-        const project = await db.getProjectById(input.projectId);
+        const project = await db.getProjectByIdPublic(input.projectId);
         if (!project) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
         }
@@ -42,10 +44,11 @@ export const publicGalleryRouter = router({
         let photos = allPhotos;
         
         if (input.type) {
+          // Modo aprobación: solo fotos del tipo solicitado
           photos = allPhotos.filter(p => p.subcategory === input.type);
         } else {
-          // Por defecto, mostrar modelado y renders
-          photos = allPhotos.filter(p => p.subcategory === "modelado_3d" || p.subcategory === "renders");
+          // Portal completo: todas las fotos excepto privadas (stage inicial)
+          photos = allPhotos.filter(p => p.stage !== "inicial");
         }
 
         return {
@@ -53,6 +56,7 @@ export const publicGalleryRouter = router({
             id: project.id,
             name: project.name,
             workType: project.workType,
+            status: project.status,
           },
           client: client ? {
             name: client.name,
@@ -61,6 +65,8 @@ export const publicGalleryRouter = router({
             id: p.id,
             photoUrl: p.photoUrl,
             subcategory: p.subcategory,
+            stage: p.stage,
+            category: p.category,
             description: p.description,
             createdAt: p.createdAt,
           })),
@@ -79,7 +85,7 @@ export const publicGalleryRouter = router({
       }))
       .mutation(async ({ input }) => {
         // Obtener proyecto con cliente y validar token
-        const project = await db.getProjectById(input.projectId);
+        const project = await db.getProjectByIdPublic(input.projectId);
         if (!project) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
         }
@@ -215,7 +221,7 @@ export const publicGalleryRouter = router({
           if (jefesTaller.length > 0) {
             const jefePhone = (jefesTaller[0] as any).phone;
             const phoneToUse = jefePhone ? (jefePhone.startsWith('57') ? jefePhone : `57${jefePhone}`) : '573136802025';
-            const message = encodeURIComponent(`🏭 *NUEVO PROYECTO LISTO PARA PRODUCCIÓN*\n\nHola, te informo que el proyecto "${project.name}" ha sido aprobado por el cliente ${input.clientName}.\n\n✅ El diseño fue aprobado y está listo para iniciar producción.\n\nPor favor revisa los despieces y materiales para programar el corte.\n\nVer proyecto: https://innovarcitas.manus.space/projects/${input.projectId}`);
+            const message = encodeURIComponent(`🏭 *NUEVO PROYECTO LISTO PARA PRODUCCIÓN*\n\nHola, te informo que el proyecto "${project.name}" ha sido aprobado por el cliente ${input.clientName}.\n\n✅ El diseño fue aprobado y está listo para iniciar producción.\n\nPor favor revisa los despieces y materiales para programar el corte.\n\nVer proyecto: https://innovar-cocinas.onrender.com/projects/${input.projectId}`);
             jefeTallerWhatsAppLink = `https://wa.me/${phoneToUse}?text=${message}`;
           }
         }
@@ -241,7 +247,7 @@ export const publicGalleryRouter = router({
       }))
       .mutation(async ({ input }) => {
         // Obtener proyecto y validar token
-        const project = await db.getProjectById(input.projectId);
+        const project = await db.getProjectByIdPublic(input.projectId);
         if (!project) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
         }
@@ -327,7 +333,7 @@ export const publicGalleryRouter = router({
                   <p style="color: #666; font-size: 14px;">Fecha de solicitud: ${new Date().toLocaleString('es-CO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
                   
                   <div style="margin-top: 25px; text-align: center;">
-                    <a href="https://innovarcitas.manus.space/projects/${input.projectId}" 
+                    <a href="https://innovar-cocinas.onrender.com/projects/${input.projectId}" 
                        style="display: inline-block; background: linear-gradient(135deg, #f97316, #ea580c); color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; font-weight: bold;">
                       Ver Proyecto
                     </a>
@@ -347,7 +353,7 @@ export const publicGalleryRouter = router({
             if (designerUser?.phone) {
               const phoneToUse = designerUser.phone.startsWith('57') ? designerUser.phone : `57${designerUser.phone}`;
               const tipoTexto = input.type === "modelado_3d" ? "Modelado 3D" : "Renders";
-              const message = encodeURIComponent(`📝 *CAMBIOS SOLICITADOS POR CLIENTE*\n\nHola ${designerUser.name}, el cliente ${input.clientName} ha solicitado cambios en el ${tipoTexto.toLowerCase()} del proyecto "${project.name}".\n\n*Cambios solicitados:*\n${input.changes}\n\nPor favor revisa el proyecto: https://innovarcitas.manus.space/projects/${input.projectId}`);
+              const message = encodeURIComponent(`📝 *CAMBIOS SOLICITADOS POR CLIENTE*\n\nHola ${designerUser.name}, el cliente ${input.clientName} ha solicitado cambios en el ${tipoTexto.toLowerCase()} del proyecto "${project.name}".\n\n*Cambios solicitados:*\n${input.changes}\n\nPor favor revisa el proyecto: https://innovar-cocinas.onrender.com/projects/${input.projectId}`);
               designerWhatsAppLink = `https://wa.me/${phoneToUse}?text=${message}`;
             }
           }
@@ -411,7 +417,7 @@ export const publicGalleryRouter = router({
         token: z.string().min(1),
       }))
       .query(async ({ input }) => {
-        const project = await db.getProjectById(input.projectId);
+        const project = await db.getProjectByIdPublic(input.projectId);
         if (!project || !project.publicToken || project.publicToken !== input.token) {
           return { modeladoApproved: false, rendersApproved: false };
         }
@@ -423,86 +429,6 @@ export const publicGalleryRouter = router({
           rendersApproved: !!project.rendersApprovedAt,
           rendersApprovedAt: project.rendersApprovedAt,
           rendersApprovedBy: project.rendersApprovedBy,
-        };
-      }),
-
-    // Portal de trazabilidad completa para el cliente (sin autenticación)
-    getProjectStatus: publicProcedure
-      .input(z.object({
-        projectId: z.number(),
-        token: z.string().min(1),
-      }))
-      .query(async ({ input }) => {
-        const project = await db.getProjectById(input.projectId);
-        if (!project || !project.publicToken || project.publicToken !== input.token) {
-          throw new TRPCError({ code: "FORBIDDEN", message: "Enlace inválido o expirado" });
-        }
-        const client = project.clientId ? await db.getClientById(project.clientId) : null;
-        const allPhotos = await db.getProjectPhotosByProjectId(input.projectId);
-
-        const STATUS_ORDER = [
-          "cotizacion_enviada","cotizacion_aprobada","adelanto_recibido",
-          "en_diseno","pendiente_modelado","pendiente_render","aprobacion_final",
-          "despiece","corte","enchape","ensamble","listo_instalacion","entregado",
-        ];
-        const STATUS_LABELS: Record<string, string> = {
-          cotizacion_enviada: "Cotización Enviada",
-          cotizacion_aprobada: "Cotización Aprobada",
-          adelanto_recibido: "Anticipo Recibido",
-          en_diseno: "En Diseño",
-          pendiente_modelado: "Revisión Modelado 3D",
-          pendiente_render: "Revisión Renders",
-          aprobacion_final: "Diseño Aprobado",
-          despiece: "Preparando Materiales",
-          corte: "En Corte",
-          enchape: "En Enchape",
-          ensamble: "En Ensamble",
-          listo_instalacion: "En Instalación",
-          entregado: "Entregado ✅",
-        };
-
-        const currentIdx = STATUS_ORDER.indexOf(project.status);
-
-        return {
-          project: {
-            id: project.id,
-            name: project.name,
-            workType: project.workType,
-            status: project.status,
-            statusLabel: STATUS_LABELS[project.status] ?? project.status,
-            estimatedInstallDate: project.estimatedInstallDate,
-            modeladoApprovedAt: project.modeladoApprovedAt,
-            rendersApprovedAt: project.rendersApprovedAt,
-            clientApprovedAt: project.clientApprovedAt,
-            deliveredAt: project.deliveredAt,
-          },
-          client: client ? { name: client.name } : null,
-          stages: STATUS_ORDER.map((s, idx) => ({
-            status: s,
-            label: STATUS_LABELS[s] ?? s,
-            done: idx <= currentIdx,
-            current: idx === currentIdx,
-          })),
-          // Fotos de producción visibles al cliente
-          productionPhotos: allPhotos
-            .filter((p: any) => ["avance","instalacion","entrega"].includes(p.category))
-            .map((p: any) => ({
-              id: p.id,
-              photoUrl: p.photoUrl,
-              category: p.category,
-              subcategory: p.subcategory,
-              description: p.description,
-              createdAt: p.createdAt,
-            })),
-          // Modelado y renders (para que pueda revisarlos)
-          designPhotos: allPhotos
-            .filter((p: any) => p.subcategory === "modelado_3d" || p.subcategory === "renders")
-            .map((p: any) => ({
-              id: p.id,
-              photoUrl: p.photoUrl,
-              subcategory: p.subcategory,
-              description: p.description,
-            })),
         };
       }),
 
@@ -518,7 +444,7 @@ export const publicGalleryRouter = router({
           throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden solicitar nueva aprobación" });
         }
 
-        const project = await db.getProjectById(input.projectId);
+        const project = await db.getProjectByIdPublic(input.projectId);
         if (!project) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
         }
@@ -561,7 +487,7 @@ export const publicGalleryRouter = router({
         const client = project.clientId ? await db.getClientById(project.clientId) : null;
         
         // Generar enlace de la galería pública (sin login)
-        const baseUrl = process.env.VITE_APP_URL || "https://innovarcitas.manus.space";
+        const baseUrl = process.env.VITE_APP_URL || "https://innovar-cocinas.onrender.com";
         const portalLink = `${baseUrl}/gallery?project=${input.projectId}&token=${project.publicToken ?? ""}&type=renders`;
 
         // Generar enlace de WhatsApp si se debe notificar
@@ -602,7 +528,7 @@ export const publicGalleryRouter = router({
           throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden solicitar nueva aprobación" });
         }
 
-        const project = await db.getProjectById(input.projectId);
+        const project = await db.getProjectByIdPublic(input.projectId);
         if (!project) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
         }
@@ -645,7 +571,7 @@ export const publicGalleryRouter = router({
         const client = project.clientId ? await db.getClientById(project.clientId) : null;
         
         // Generar enlace de la galería pública (sin login)
-        const baseUrl = process.env.VITE_APP_URL || "https://innovarcitas.manus.space";
+        const baseUrl = process.env.VITE_APP_URL || "https://innovar-cocinas.onrender.com";
         const portalLink = `${baseUrl}/gallery?project=${input.projectId}&token=${project.publicToken ?? ""}&type=modelado_3d`;
 
         // Generar enlace de WhatsApp si se debe notificar
@@ -673,21 +599,201 @@ export const publicGalleryRouter = router({
         };
       }),
 
+
+    // Notificar avance de etapa al cliente — crea tarea + push para admin/super_admin
+    // para que envíen el mensaje desde el número oficial de WhatsApp
+    notifyStageAdvance: protectedProcedure
+      .input(z.object({
+        projectId: z.number(),
+        stageName: z.enum(["corte", "enchape", "ensamble", "listo_instalacion", "trabajando_instalacion", "entregado"]),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const project = await db.getProjectByIdPublic(input.projectId);
+        if (!project) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
+        }
+
+        // Obtener cliente
+        const client = project.clientId ? await db.getClientById(project.clientId) : null;
+        const clientName = client?.name || "el cliente";
+        const clientPhone = (client as any)?.whatsappPhone || null;
+
+        // URL del portal del cliente (sin ?type= → portal completo de avances)
+        const baseUrl = process.env.VITE_APP_URL || "https://innovar-cocinas.onrender.com";
+        let publicToken = project.publicToken;
+        if (!publicToken) {
+          publicToken = randomBytes(24).toString('hex');
+          await db.updateProject(input.projectId, { publicToken });
+        }
+        const portalLink = `${baseUrl}/gallery?project=${input.projectId}&token=${publicToken}`;
+
+        const stageLabels: Record<string, string> = {
+          corte: "Corte de materiales",
+          enchape: "Enchape",
+          ensamble: "Ensamble / Armado",
+          listo_instalacion: "Listo para instalación",
+          trabajando_instalacion: "Trabajando en Instalación",
+        };
+
+        const stageLabel = stageLabels[input.stageName];
+
+        // Mensajes aprobados por etapa — se envían desde el WhatsApp oficial de Innovar
+        const stageMessages: Record<string, string> = {
+          corte:
+            `🔧 Hola ${clientName}! Excelentes noticias!
+
+` +
+            `Hemos iniciado el corte de todos los materiales de tu proyecto *"${project.name}"*. Tu cocina está tomando forma!
+
+` +
+            `Puedes seguir el avance aquí:
+${portalLink}
+
+` +
+            `— INNOVAR Cocinas de Diseño ✨`,
+
+          enchape:
+            `🚪 Hola ${clientName}! Tu proyecto avanza muy bien.
+
+` +
+            `Estamos en la etapa de enchape, cada detalle cuidado con dedicación.
+
+` +
+            `Avance:
+${portalLink}
+
+` +
+            `— INNOVAR Cocinas de Diseño ✨`,
+
+          ensamble:
+            `🔨 Hola ${clientName}! Las piezas están tomando su forma final.
+
+` +
+            `Tu proyecto está en ensamble y se ve increíble!
+
+` +
+            `Avance:
+${portalLink}
+
+` +
+            `— INNOVAR Cocinas de Diseño ✨`,
+
+          listo_instalacion:
+            `🚚 Hola ${clientName}! Gran noticia!
+
+` +
+            `Tu proyecto *"${project.name}"* está completamente fabricado y listo para instalación. Pronto coordinaremos contigo la fecha perfecta.
+
+` +
+            `— INNOVAR Cocinas de Diseño 🌟`,
+
+          trabajando_instalacion:
+            `🏠 Hola ${clientName}! Ya estamos instalando tu espacio!
+
+` +
+            `Nuestro equipo está trabajando con dedicación para que todo quede perfecto.
+
+` +
+            `Puedes ver el avance aquí:
+${portalLink}
+
+` +
+            `— INNOVAR Cocinas de Diseño ✨`,
+
+          entregado:
+            `🎉 ¡Hola ${clientName}! Tu proyecto está terminado y listo para disfrutar — aquí tienes las fotos finales de tu nuevo espacio:
+${portalLink}
+
+` +
+            `Fue un placer trabajar para ti y esperamos que lo disfrutes por muchos años. Recuerda que cuentas con nuestra garantía y que ante cualquier detalle estamos a una llamada al 313 680 2025. Y si conoces a alguien que quiera transformar su cocina o closet, ¡con gusto los atendemos! 🏠✨
+
+— INNOVAR Cocinas de Diseño`,
+        };
+
+        const waMessage = stageMessages[input.stageName] ||
+          `Hola ${clientName}! Tu proyecto *"${project.name}"* avanzó a la etapa de *${stageLabel}*.
+` +
+          `Avance: ${portalLink}
+— INNOVAR Cocinas de Diseño`;
+
+        // Enlace directo wa.me para que admin toque y envíe desde el celular oficial
+        let whatsAppLink: string | null = null;
+        if (clientPhone) {
+          const phone = clientPhone.replace(/\D/g, '');
+          const phoneWithCountry = phone.startsWith('57') ? phone : `57${phone}`;
+          whatsAppLink = `https://wa.me/${phoneWithCountry}?text=${encodeURIComponent(waMessage)}`;
+        }
+
+        const collaboratorName = ctx.user.name || "Un colaborador";
+        const taskTitle = `📱 Enviar avance "${stageLabel}" a ${clientName}`;
+        const taskDescription =
+          `${collaboratorName} subió fotos de *${stageLabel}* en el proyecto "${project.name}".
+
+` +
+          `**Mensaje listo — copiar y enviar desde WhatsApp oficial:**
+
+${waMessage}
+
+` +
+          (whatsAppLink ? `**Enlace directo (toca para abrir WhatsApp):**
+${whatsAppLink}` : "⚠️ El cliente no tiene número de WhatsApp registrado.");
+
+        // Crear tarea para cada admin y super_admin
+        const [admins, superAdmins] = await Promise.all([
+          db.getUsersByRole('admin'),
+          db.getUsersByRole('super_admin'),
+        ]);
+        const allAdmins = [...admins, ...superAdmins];
+
+        const now = new Date();
+        const dueIn2h = new Date(now.getTime() + 2 * 60 * 60 * 1000).toISOString();
+
+        for (const admin of allAdmins) {
+          await db.createTask({
+            projectId: input.projectId,
+            title: taskTitle,
+            description: taskDescription,
+            priority: "alta" as any,
+            status: "pendiente" as any,
+            assignedTo: admin.id,
+            assignedBy: ctx.user.id,
+            dueDate: dueIn2h,
+            dataOrigin: "manual" as any,
+          });
+
+          // Notificación in-app + push
+          await createAndSendNotification(admin.id, {
+            title: `📱 ${stageLabel} de "${project.name}"`,
+            body: `${collaboratorName} subió fotos. Envía el avance a ${clientName} desde WhatsApp oficial.`,
+            type: "proyecto",
+            referenceId: input.projectId,
+            referenceType: "project",
+            url: `/projects/${input.projectId}`,
+          });
+        }
+
+        return {
+          success: true,
+          message: `✅ Admin notificado. Enviarán el avance a ${clientName} desde el número oficial.`,
+          whatsAppLink,
+          stageLabel,
+          adminsNotified: allAdmins.length,
+        };
+      }),
+
     // Enviar modelado al cliente por WhatsApp Cloud API (cambia estado a pendiente_modelado)
     sendModeladoToClient: protectedProcedure
       .input(z.object({
         projectId: z.number(),
-        changeChannel: z.enum(["portal", "whatsapp", "presencial", "telefono"]).optional(),
-        changeNotes: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         // Solo admin, super_admin, comercial y diseñador pueden enviar modelado
-        const allowedRoles = ["super_admin", "admin", "comercial", "disenador"];
+        const allowedRoles = ["super_admin", "admin"];
         if (!allowedRoles.includes(ctx.user.role)) {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para enviar modelado" });
         }
 
-        const project = await db.getProjectById(input.projectId);
+        const project = await db.getProjectByIdPublic(input.projectId);
         if (!project) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
         }
@@ -709,63 +815,58 @@ export const publicGalleryRouter = router({
         const currentRevision = (project as any).modeladoRevisionNumber || 0;
         const newRevision = currentRevision === 0 ? 1 : currentRevision;
         
-        // Cambiar estado si no está ya en pendiente_modelado, o resetear contador si ya lo está
+        // Solo cambiar estado si no está ya en pendiente_modelado
         if (project.status !== "pendiente_modelado") {
           await withTransaction(async (tx) => {
             await db.updateProject(input.projectId, {
               status: "pendiente_modelado",
               modeladoRevisionNumber: newRevision,
-              approvalReminderCount: 0,
-            } as any);
-
+            });
+            
             await db.createProjectStatusHistory({
               projectId: input.projectId,
               fromStatus: project.status,
               toStatus: "pendiente_modelado",
               changedBy: ctx.user.id,
-              notes: `Modelado 3D enviado al cliente por WhatsApp (Revisión #${newRevision})${input.changeChannel && input.changeChannel !== "portal" ? ` — Cambios recibidos vía: ${input.changeChannel}${input.changeNotes ? ` (${input.changeNotes})` : ""}` : ""}`,
+              notes: `Modelado 3D enviado al cliente por WhatsApp (Revisión #${newRevision})`,
             });
-          });
-        } else {
-          // Re-envío estando ya en pendiente_modelado: resetear contador y registrar en historial
-          await db.updateProject(input.projectId, { approvalReminderCount: 0 } as any);
-          await db.createProjectStatusHistory({
-            projectId: input.projectId,
-            fromStatus: "pendiente_modelado",
-            toStatus: "pendiente_modelado",
-            changedBy: ctx.user.id,
-            notes: `Re-envío de Modelado 3D al cliente (Revisión #${newRevision})`,
           });
         }
 
         // Construir URL de galería pública
-        const baseUrl = process.env.VITE_APP_URL || "https://innovarcitas.manus.space";
-        const portalLink = `${baseUrl}/gallery?project=${input.projectId}&token=${project.publicToken ?? ""}&type=modelado_3d`;
+        const baseUrl = process.env.VITE_APP_URL || "https://innovar-cocinas.onrender.com";
+        // Auto-generar publicToken si el proyecto no lo tiene (proyectos creados antes del fix)
+        let modeladoPublicToken = project.publicToken;
+        if (!modeladoPublicToken) {
+          modeladoPublicToken = randomBytes(24).toString('hex');
+          await db.updateProject(input.projectId, { publicToken: modeladoPublicToken });
+        }
+        const portalLink = `${baseUrl}/gallery?project=${input.projectId}&token=${modeladoPublicToken}&type=modelado_3d`;
 
-        // Construir mensaje de WhatsApp
-        const message = 
-          `📐 *Modelado 3D de tu proyecto*\n\n` +
-          `Hola ${client.name},\n\n` +
-          `Ya puedes revisar el modelado 3D aquí:\n` +
-          `${portalLink}\n\n` +
-          `Por favor déjanos tus comentarios o aprobación.\n\n` +
-          `INNOVAR Cocinas Integrales`;
+        // Mensaje elegante para enviar desde el WhatsApp oficial de Innovar
+        const message =
+          `🎨 Hola ${client.name}! Tu modelado 3D está listo.
 
-        // Enviar por WhatsApp Cloud API
+` +
+          `Revisa el diseño y compártenos tus comentarios o cambios desde aquí:
+` +
+          `${portalLink}
+
+` +
+          `Queremos que el resultado sea exactamente lo que imaginaste!
+` +
+          `— INNOVAR Cocinas de Diseño ✨`;
+
+        // Enlace wa.me para abrir WhatsApp oficial y enviar al cliente
         const phone = client.whatsappPhone.replace(/\D/g, '');
         const phoneWithCountry = phone.startsWith('57') ? phone : `57${phone}`;
-        
-        try {
-          const result = await whatsappCloud.sendTextMessage(phoneWithCountry, message);
-        } catch (error) {
-          console.error(`[MODELADO] Error enviando mensaje:`, error);
-          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Error al enviar mensaje por WhatsApp" });
-        }
+        const whatsAppLink = `https://wa.me/${phoneWithCountry}?text=${encodeURIComponent(message)}`;
 
         return {
           success: true,
-          message: `Modelado 3D enviado al cliente por WhatsApp (Revisión #${newRevision})`,
+          message: `📲 Toca el enlace para enviar el modelado al cliente desde WhatsApp oficial (Revisión #${newRevision})`,
           portalLink,
+          whatsAppLink,
           clientName: client?.name,
           revisionNumber: newRevision,
         };
@@ -775,17 +876,15 @@ export const publicGalleryRouter = router({
     sendRendersToClient: protectedProcedure
       .input(z.object({
         projectId: z.number(),
-        changeChannel: z.enum(["portal", "whatsapp", "presencial", "telefono"]).optional(),
-        changeNotes: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
-        // Solo admin, super_admin, comercial y diseñador pueden enviar renders
-        const allowedRoles = ["super_admin", "admin", "comercial", "disenador"];
+        // Solo super_admin y admin pueden enviar renders al cliente
+        const allowedRoles = ["super_admin", "admin"];
         if (!allowedRoles.includes(ctx.user.role)) {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para enviar renders" });
         }
 
-        const project = await db.getProjectById(input.projectId);
+        const project = await db.getProjectByIdPublic(input.projectId);
         if (!project) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
         }
@@ -807,64 +906,58 @@ export const publicGalleryRouter = router({
         const currentRevision = (project as any).renderRevisionNumber || 0;
         const newRevision = currentRevision === 0 ? 1 : currentRevision;
         
-        // Cambiar estado si no está ya en pendiente_render, o resetear contador si ya lo está
+        // Solo cambiar estado si no está ya en pendiente_render
         if (project.status !== "pendiente_render") {
           await withTransaction(async (tx) => {
             await db.updateProject(input.projectId, {
               status: "pendiente_render",
               renderRevisionNumber: newRevision,
-              approvalReminderCount: 0,
-            } as any);
-
+            });
+            
             await db.createProjectStatusHistory({
               projectId: input.projectId,
               fromStatus: project.status,
               toStatus: "pendiente_render",
               changedBy: ctx.user.id,
-              notes: `Renders enviados al cliente por WhatsApp (Revisión #${newRevision})${input.changeChannel && input.changeChannel !== "portal" ? ` — Cambios recibidos vía: ${input.changeChannel}${input.changeNotes ? ` (${input.changeNotes})` : ""}` : ""}`,
+              notes: `Renders enviados al cliente por WhatsApp (Revisión #${newRevision})`,
             });
-          });
-        } else {
-          // Re-envío estando ya en pendiente_render: resetear contador y registrar en historial
-          await db.updateProject(input.projectId, { approvalReminderCount: 0 } as any);
-          await db.createProjectStatusHistory({
-            projectId: input.projectId,
-            fromStatus: "pendiente_render",
-            toStatus: "pendiente_render",
-            changedBy: ctx.user.id,
-            notes: `Re-envío de Renders al cliente (Revisión #${newRevision})`,
           });
         }
 
         // Construir URL de galería pública
-        const baseUrl = process.env.VITE_APP_URL || "https://innovarcitas.manus.space";
-        const portalLink = `${baseUrl}/gallery?project=${input.projectId}&token=${project.publicToken ?? ""}&type=renders`;
+        const baseUrl = process.env.VITE_APP_URL || "https://innovar-cocinas.onrender.com";
+        // Auto-generar publicToken si el proyecto no lo tiene (proyectos creados antes del fix)
+        let rendersPublicToken = project.publicToken;
+        if (!rendersPublicToken) {
+          rendersPublicToken = randomBytes(24).toString('hex');
+          await db.updateProject(input.projectId, { publicToken: rendersPublicToken });
+        }
+        const portalLink = `${baseUrl}/gallery?project=${input.projectId}&token=${rendersPublicToken}&type=renders`;
 
-        // Construir mensaje de WhatsApp
-        const message = 
-          `🗸️ *Renders de tu proyecto*\n\n` +
-          `Hola ${client.name},\n\n` +
-          `Tus renders están listos.\n` +
-          `Puedes verlos aquí:\n` +
-          `${portalLink}\n\n` +
-          `Quedamos atentos a tu aprobación.\n\n` +
-          `INNOVAR Cocinas Integrales`;
+        // Mensaje elegante para enviar desde el WhatsApp oficial de Innovar
+        const message =
+          `✨ Hola ${client.name}! Ya puedes ver cómo quedará tu espacio.
 
-        // Enviar por WhatsApp Cloud API
+` +
+          `Revisa los renders y si estás de acuerdo, apuébalos aquí:
+` +
+          `${portalLink}
+
+` +
+          `Si necesitas algún ajuste, con gusto lo hacemos!
+` +
+          `— INNOVAR Cocinas de Diseño 🏡`;
+
+        // Enlace wa.me para abrir WhatsApp oficial y enviar al cliente
         const phone = client.whatsappPhone.replace(/\D/g, '');
         const phoneWithCountry = phone.startsWith('57') ? phone : `57${phone}`;
-        
-        try {
-          const result = await whatsappCloud.sendTextMessage(phoneWithCountry, message);
-        } catch (error) {
-          console.error(`[RENDERS] Error enviando mensaje:`, error);
-          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Error al enviar mensaje por WhatsApp" });
-        }
+        const whatsAppLink = `https://wa.me/${phoneWithCountry}?text=${encodeURIComponent(message)}`;
 
         return {
           success: true,
-          message: `Renders enviados al cliente por WhatsApp (Revisión #${newRevision})`,
+          message: `📲 Toca el enlace para enviar los renders al cliente desde WhatsApp oficial (Revisión #${newRevision})`,
           portalLink,
+          whatsAppLink,
           clientName: client?.name,
           revisionNumber: newRevision,
         };

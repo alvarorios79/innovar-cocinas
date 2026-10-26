@@ -13,6 +13,16 @@ interface CreateQuickClientDialogProps {
   onClientCreated?: (client: any) => void;
 }
 
+const COUNTRY_CODES_QUICK = [
+  { code: "57", flag: "🇨🇴", label: "Colombia (+57)" },
+  { code: "1",  flag: "🇺🇸", label: "EEUU (+1)" },
+  { code: "34", flag: "🇪🇸", label: "España (+34)" },
+  { code: "41", flag: "🇨🇭", label: "Suiza (+41)" },
+  { code: "54", flag: "🇦🇷", label: "Argentina (+54)" },
+  { code: "52", flag: "🇲🇽", label: "México (+52)" },
+  { code: "44", flag: "🇬🇧", label: "UK (+44)" },
+];
+
 export function CreateQuickClientDialog({ trigger, onClientCreated }: CreateQuickClientDialogProps) {
   const [open, setOpen] = useState(false);
   const [showCredentials, setShowCredentials] = useState(false);
@@ -23,7 +33,9 @@ export function CreateQuickClientDialog({ trigger, onClientCreated }: CreateQuic
     name: "",
     email: "",
     whatsappPhone: "",
+    countryCode: "57",
     address: "",
+    identificationNumber: "",
     internalManagement: false,
   });
 
@@ -65,7 +77,7 @@ export function CreateQuickClientDialog({ trigger, onClientCreated }: CreateQuic
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    createQuickMutation.mutate(formData);
+    createQuickMutation.mutate({ ...formData, whatsappPhone: `${formData.countryCode}${formData.whatsappPhone.replace(/\D/g, "")}` });
   };
 
   const handleCopy = async (text: string, field: string) => {
@@ -95,7 +107,9 @@ Te hemos creado una cuenta en INNOVAR Cocinas para que puedas seguir el estado d
 
 ¡Gracias por confiar en nosotros!`;
 
-    const whatsappUrl = `https://wa.me/57${formData.whatsappPhone.replace(/\D/g, "")}?text=${encodeURIComponent(message)}`;
+    const rawPhone = formData.whatsappPhone.replace(/\D/g, "");
+    const phoneWithCode = rawPhone.startsWith("57") || rawPhone.length > 10 ? rawPhone : `57${rawPhone}`;
+    const whatsappUrl = `https://wa.me/${phoneWithCode}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, "_blank");
   };
 
@@ -103,7 +117,7 @@ Te hemos creado una cuenta en INNOVAR Cocinas para que puedas seguir el estado d
     setOpen(false);
     setShowCredentials(false);
     setCredentials(null);
-    setFormData({ name: "", email: "", whatsappPhone: "", address: "", internalManagement: false });
+    setFormData({ name: "", email: "", whatsappPhone: "", countryCode: "57", address: "", identificationNumber: "", internalManagement: false });
   };
 
   const handleCopyAll = async () => {
@@ -162,13 +176,25 @@ Te hemos creado una cuenta en INNOVAR Cocinas para que puedas seguir el estado d
               </div>
               <div className="space-y-2">
                 <Label htmlFor="whatsappPhone">WhatsApp *</Label>
-                <Input
-                  id="whatsappPhone"
-                  value={formData.whatsappPhone}
-                  onChange={(e) => setFormData({ ...formData, whatsappPhone: e.target.value })}
-                  placeholder="3001234567"
-                  required
-                />
+                <div className="flex gap-2">
+                  <select
+                    value={formData.countryCode}
+                    onChange={(e) => setFormData({ ...formData, countryCode: e.target.value })}
+                    className="rounded-md border border-input bg-background px-2 py-2 text-sm w-36 shrink-0"
+                  >
+                    {COUNTRY_CODES_QUICK.map(c => (
+                      <option key={c.code} value={c.code}>{c.flag} {c.label}</option>
+                    ))}
+                  </select>
+                  <Input
+                    id="whatsappPhone"
+                    value={formData.whatsappPhone}
+                    onChange={(e) => setFormData({ ...formData, whatsappPhone: e.target.value })}
+                    placeholder="3001234567"
+                    required
+                    className="flex-1"
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="address">Dirección (opcional)</Label>
@@ -180,19 +206,30 @@ Te hemos creado una cuenta en INNOVAR Cocinas para que puedas seguir el estado d
                 />
               </div>
               
+              <div className="space-y-2">
+                <Label htmlFor="identificationNumber">Cédula / Identificación (opcional)</Label>
+                <Input
+                  id="identificationNumber"
+                  value={formData.identificationNumber}
+                  onChange={(e) => setFormData({ ...formData, identificationNumber: e.target.value })}
+                  placeholder="Ej: CC 1234567890 o NIT 900123456"
+                />
+                <p className="text-[11px] text-muted-foreground">Cédula, NIT u otro documento.</p>
+              </div>
+
               {/* Checkbox Gestión Interna */}
-              <div className="flex items-start space-x-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <div className="flex items-start space-x-3 p-3 bg-amber-500/10 border border-amber-500/25 rounded-lg">
                 <Checkbox
                   id="internalManagement"
                   checked={formData.internalManagement}
                   onCheckedChange={(checked) => setFormData({ ...formData, internalManagement: checked === true })}
                 />
                 <div className="space-y-1">
-                  <Label htmlFor="internalManagement" className="flex items-center gap-2 font-medium text-amber-800 cursor-pointer">
+                  <Label htmlFor="internalManagement" className="flex items-center gap-2 font-medium text-amber-300 cursor-pointer">
                     <Building2 className="h-4 w-4" />
                     Gestión interna
                   </Label>
-                  <p className="text-xs text-amber-700">
+                  <p className="text-xs text-amber-300">
                     El cliente no maneja tecnología. Las aprobaciones y seguimiento serán gestionados por el equipo comercial.
                   </p>
                 </div>
@@ -212,7 +249,7 @@ Te hemos creado una cuenta en INNOVAR Cocinas para que puedas seguir el estado d
         ) : (
           <>
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 text-green-600">
+              <DialogTitle className="flex items-center gap-2 text-green-400">
                 <Check className="h-5 w-5" />
                 ¡Cliente Creado!
               </DialogTitle>
@@ -221,7 +258,7 @@ Te hemos creado una cuenta en INNOVAR Cocinas para que puedas seguir el estado d
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
-              <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+              <div className="bg-white/[0.03] rounded-lg p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-xs text-muted-foreground">Usuario (Email)</p>
@@ -233,7 +270,7 @@ Te hemos creado una cuenta en INNOVAR Cocinas para que puedas seguir el estado d
                     onClick={() => handleCopy(credentials?.email || "", "email")}
                   >
                     {copiedField === "email" ? (
-                      <Check className="h-4 w-4 text-green-600" />
+                      <Check className="h-4 w-4 text-green-400" />
                     ) : (
                       <Copy className="h-4 w-4" />
                     )}
@@ -250,7 +287,7 @@ Te hemos creado una cuenta en INNOVAR Cocinas para que puedas seguir el estado d
                     onClick={() => handleCopy(credentials?.password || "", "password")}
                   >
                     {copiedField === "password" ? (
-                      <Check className="h-4 w-4 text-green-600" />
+                      <Check className="h-4 w-4 text-green-400" />
                     ) : (
                       <Copy className="h-4 w-4" />
                     )}
@@ -259,7 +296,7 @@ Te hemos creado una cuenta en INNOVAR Cocinas para que puedas seguir el estado d
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-xs text-muted-foreground">Enlace de acceso</p>
-                    <p className="font-medium text-sm text-blue-600">{window.location.origin}/login</p>
+                    <p className="font-medium text-sm text-blue-400">{window.location.origin}/login</p>
                   </div>
                   <Button
                     variant="ghost"
@@ -267,7 +304,7 @@ Te hemos creado una cuenta en INNOVAR Cocinas para que puedas seguir el estado d
                     onClick={() => handleCopy(`${window.location.origin}/login`, "link")}
                   >
                     {copiedField === "link" ? (
-                      <Check className="h-4 w-4 text-green-600" />
+                      <Check className="h-4 w-4 text-green-400" />
                     ) : (
                       <Copy className="h-4 w-4" />
                     )}

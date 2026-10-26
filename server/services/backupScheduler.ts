@@ -58,15 +58,19 @@ class BackupScheduler {
       this.isRunning = true;
       console.log("[BackupScheduler] Backup scheduler initialized successfully");
 
-      // Notify owner that scheduler is running
-      await notifyOwner({
-        title: "Backup Scheduler Started",
-        content:
-          "Automated backup scheduler is now running. Daily backups at 02:00 AM, weekly backups on Sunday at 03:00 AM.",
-      });
+      // Notify owner that scheduler is running (non-fatal if it fails)
+      try {
+        await notifyOwner({
+          title: "Backup Scheduler Started",
+          content:
+            "Automated backup scheduler is now running. Daily backups at 02:00 AM, weekly backups on Sunday at 03:00 AM.",
+        });
+      } catch (notifyErr) {
+        console.warn("[BackupScheduler] Could not send startup notification:", notifyErr);
+      }
     } catch (error) {
       console.error("[BackupScheduler] Failed to initialize:", error);
-      throw error;
+      // No relanzar — el scheduler no es crítico para el servidor
     }
   }
 

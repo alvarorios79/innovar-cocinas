@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -42,9 +42,7 @@ import {
   EyeOff,
   Lock,
   Unlock,
-  CreditCard,
-  ExternalLink,
-  PenLine
+  CreditCard
 } from "lucide-react";
 import { useEffect } from "react";
 import { useFileViewer, FileViewer } from "@/components/FileViewer";
@@ -81,7 +79,8 @@ const PROJECT_STATUSES: Record<string, { label: string; color: string; icon: any
   corte: { label: "En Corte", color: "bg-orange-500", icon: AlertCircle },
   enchape: { label: "En Enchape", color: "bg-orange-600", icon: AlertCircle },
   ensamble: { label: "En Ensamble", color: "bg-orange-700", icon: AlertCircle },
-  listo_instalacion: { label: "En Instalación", color: "bg-teal-500", icon: AlertCircle },
+  listo_instalacion: { label: "Listo para Instalación", color: "bg-teal-500", icon: AlertCircle },
+  trabajando_instalacion: { label: "Instalando", color: "bg-cyan-600", icon: AlertCircle },
   entregado: { label: "Entregado", color: "bg-green-700", icon: CheckCircle2 },
 };
 
@@ -102,104 +101,6 @@ const WORK_TYPES = {
   puertas: "Puertas",
   centro_tv: "Centro de TV",
 };
-
-// ── Componente de firma de entrega ───────────────────────────────────────────
-function DeliverySignaturePad({ onSave, onCancel, uploading }: {
-  onSave: (dataUrl: string) => void;
-  onCancel: () => void;
-  uploading: boolean;
-}) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const drawingRef = useRef(false);
-
-  const getPos = (e: React.MouseEvent | React.TouchEvent, canvas: HTMLCanvasElement) => {
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    if ("touches" in e) {
-      return {
-        x: (e.touches[0].clientX - rect.left) * scaleX,
-        y: (e.touches[0].clientY - rect.top) * scaleY,
-      };
-    }
-    return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
-  };
-
-  const startDraw = (e: React.MouseEvent | React.TouchEvent) => {
-    e.preventDefault();
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    drawingRef.current = true;
-    const ctx = canvas.getContext("2d")!;
-    const pos = getPos(e, canvas);
-    ctx.beginPath();
-    ctx.moveTo(pos.x, pos.y);
-  };
-
-  const draw = (e: React.MouseEvent | React.TouchEvent) => {
-    e.preventDefault();
-    if (!drawingRef.current) return;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d")!;
-    ctx.lineWidth = 2.5;
-    ctx.lineCap = "round";
-    ctx.strokeStyle = "#1a1a1a";
-    const pos = getPos(e, canvas);
-    ctx.lineTo(pos.x, pos.y);
-    ctx.stroke();
-  };
-
-  const stopDraw = () => { drawingRef.current = false; };
-
-  const clear = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d")!;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  };
-
-  const save = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    onSave(canvas.toDataURL("image/png"));
-  };
-
-  return (
-    <div className="space-y-3">
-      <p className="text-sm text-gray-600">El cliente firma confirmando la recepción conforme del proyecto:</p>
-      <div className="border-2 border-dashed border-gray-300 rounded-lg overflow-hidden bg-white">
-        <canvas
-          ref={canvasRef}
-          width={600}
-          height={180}
-          className="w-full touch-none cursor-crosshair"
-          style={{ display: "block" }}
-          onMouseDown={startDraw}
-          onMouseMove={draw}
-          onMouseUp={stopDraw}
-          onMouseLeave={stopDraw}
-          onTouchStart={startDraw}
-          onTouchMove={draw}
-          onTouchEnd={stopDraw}
-        />
-      </div>
-      <div className="flex gap-2 justify-end">
-        <Button variant="outline" size="sm" onClick={clear} disabled={uploading}>Borrar</Button>
-        <Button variant="outline" size="sm" onClick={onCancel} disabled={uploading}>Cancelar</Button>
-        <Button
-          size="sm"
-          className="bg-emerald-600 hover:bg-emerald-700 text-white"
-          onClick={save}
-          disabled={uploading}
-        >
-          {uploading ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
-          {uploading ? "Guardando..." : "Guardar Firma"}
-        </Button>
-      </div>
-    </div>
-  );
-}
 
 export default function ProjectDetail() {
   const { user } = useAuth();
@@ -239,19 +140,9 @@ export default function ProjectDetail() {
   
   // Candado para evitar clics accidentales en aprobación del cliente
   const [approvalUnlocked, setApprovalUnlocked] = useState(false);
-
+  
   // Diálogo para enviar directo a taller (saltar diseño)
   const [showDirectToWorkshopDialog, setShowDirectToWorkshopDialog] = useState(false);
-
-  // Anticipo registration
-  const [showAnticipo, setShowAnticipo] = useState(true);
-  const [anticipoAmount, setAnticipoAmount] = useState("");
-  const [copiedLink, setCopiedLink] = useState(false);
-
-  // Firma de entrega (jefe de taller)
-  const [showDeliverySignature, setShowDeliverySignature] = useState(false);
-  const [deliverySignatureData, setDeliverySignatureData] = useState<string | null>(null);
-  const [uploadingSignature, setUploadingSignature] = useState(false);
 
   const { data: projectDetail, isLoading, error } = trpc.projects.getById.useQuery(
     { id: projectId },
@@ -263,30 +154,10 @@ export default function ProjectDetail() {
     }
   );
 
-  // Visitas técnicas del cliente — acceso por rol y estado:
-  // · Diseñador: solo desde adelanto_recibido (pago confirmado)
-  // · Jefe de taller: solo desde despiece (diseños aprobados y listos para producción)
-  // · Admin/comercial/super_admin: siempre
-  const clientId = (projectDetail as any)?.clientId;
-  const projectStatus = (projectDetail as any)?.status ?? "";
-
-  const DESIGNER_STATUSES = [
-    "adelanto_recibido","en_diseno","pendiente_modelado","pendiente_render",
-    "aprobacion_final","despiece","corte","enchape","ensamble",
-    "listo_instalacion","entregado",
-  ];
-  const TALLER_STATUSES = [
-    "despiece","corte","enchape","ensamble","listo_instalacion","entregado",
-  ];
-
-  const canSeeVisitData =
-    ["admin","super_admin","comercial"].includes(user?.role ?? "") ||
-    (user?.role === "disenador" && DESIGNER_STATUSES.includes(projectStatus)) ||
-    (user?.role === "jefe_taller" && TALLER_STATUSES.includes(projectStatus));
-
-  const { data: clientVisits } = trpc.technicalVisits.listByClientId.useQuery(
-    { clientId: clientId ?? 0 },
-    { enabled: !!clientId && canSeeVisitData }
+  // Levantamiento técnico vinculado al proyecto (para diseñador y admins)
+  const { data: technicalVisit } = trpc.technicalVisits.getByProjectId.useQuery(
+    { projectId },
+    { enabled: !!projectId, staleTime: 30000 }
   );
 
   // Cargar gastos de materiales del proyecto
@@ -313,28 +184,6 @@ export default function ProjectDetail() {
     },
     onError: (error) => {
       toast.error(error.message || "Error al subir archivo");
-    },
-  });
-
-  // Subir firma de entrega: primero al storage, luego registrar como foto del proyecto
-  const uploadSignatureImg = trpc.upload.image.useMutation({
-    onSuccess: async (data) => {
-      if (!projectDetail) return;
-      uploadPhoto.mutate({
-        projectId: projectDetail.id,
-        stage: "final",
-        category: "entrega",
-        subcategory: "fotos_finales",
-        photoUrl: data.url,
-        description: `firma-entrega-${new Date().toLocaleDateString("es-CO")}`,
-      });
-      setShowDeliverySignature(false);
-      setUploadingSignature(false);
-      toast.success("Firma de entrega guardada correctamente");
-    },
-    onError: (e) => {
-      setUploadingSignature(false);
-      toast.error(e.message || "Error al guardar la firma");
     },
   });
 
@@ -393,6 +242,9 @@ export default function ProjectDetail() {
     onSuccess: (data) => {
       utils.projects.getById.invalidate({ id: projectId });
       toast.success(data.message);
+      if ((data as any).whatsAppLink) {
+        window.open((data as any).whatsAppLink, "_blank");
+      }
     },
     onError: (error) => {
       toast.error(error.message || "Error al enviar modelado");
@@ -403,6 +255,9 @@ export default function ProjectDetail() {
     onSuccess: (data) => {
       utils.projects.getById.invalidate({ id: projectId });
       toast.success(data.message);
+      if ((data as any).whatsAppLink) {
+        window.open((data as any).whatsAppLink, "_blank");
+      }
     },
     onError: (error) => {
       toast.error(error.message || "Error al enviar renders");
@@ -439,6 +294,26 @@ export default function ProjectDetail() {
     },
   });
 
+  const notifyStageAdvanceFromDetail = trpc.publicGallery.notifyStageAdvance.useMutation({
+    onSuccess: (result) => {
+      toast.success(result.message);
+      if (user?.role === "jefe_taller" || user?.role === "operario") {
+        // Jefe/operario: abre WhatsApp de la empresa para que admin reenvie al cliente
+        const projectName = projectDetail?.name || '';
+        const msg = `📋 Avance listo: *${result.stageLabel}* - Proyecto "${projectName}"
+
+Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${result.whatsAppLink ? `\n\nEnlace directo al cliente:\n${result.whatsAppLink}` : ''}`;
+        window.open(`https://wa.me/573136802025?text=${encodeURIComponent(msg)}`, "_blank");
+      } else if (result.whatsAppLink) {
+        // Admin/super_admin/comercial: abrir directamente al cliente
+        window.open(result.whatsAppLink, "_blank");
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al notificar al cliente");
+    },
+  });
+
   // Funcion para enviar notificacion de seccion
   const handleSendSectionNotification = (subcategory: string) => {
     if (!projectId) return;
@@ -450,10 +325,32 @@ export default function ProjectDetail() {
     });
   };
 
+  // Mapeo de subcategory a stageName para notifyStageAdvance
+  const subcategoryToStageName: Record<string, "corte" | "enchape" | "ensamble" | "listo_instalacion" | "trabajando_instalacion" | "entregado"> = {
+    corte: "corte",
+    enchape: "enchape",
+    armado: "ensamble",
+    proceso_instalacion: "trabajando_instalacion",
+    fotos_finales: "entregado",
+    fotos_iniciales: "corte",
+    renders: "corte",
+    despieces: "corte",
+    detalles: "corte",
+    modelado_3d: "corte",
+    dibujo: "corte",
+  };
+
+  // Funcion para notificar via WhatsApp directo al cliente (todos los roles)
+  const handleNotifyViaWhatsApp = (subcategory: string) => {
+    if (!projectId) return;
+    const stageName = subcategoryToStageName[subcategory] || "corte";
+    notifyStageAdvanceFromDetail.mutate({ projectId, stageName });
+  };
+
   // Verificar si el usuario puede enviar notificaciones de seccion
   const canSendSectionNotification = () => {
     const role = user?.role;
-    return role === "super_admin" || role === "admin";
+    return role === "super_admin" || role === "admin" || role === "comercial" || role === "jefe_taller" || role === "operario";
   };
 
   // Mapeo de subcategory a sectionKey válido para el backend
@@ -490,7 +387,7 @@ export default function ProjectDetail() {
     corte: "enchape",
     enchape: "ensamble",
     armado: "listo_instalacion",
-    proceso_instalacion: "entregado",
+    proceso_instalacion: "trabajando_instalacion",
     fotos_finales: "entregado",
   };
 
@@ -501,8 +398,8 @@ export default function ProjectDetail() {
     corte: ["corte", "despiece"],
     enchape: ["enchape", "corte"],
     armado: ["ensamble", "enchape"],
-    proceso_instalacion: ["listo_instalacion", "listo_instalacion"],
-    fotos_finales: ["listo_instalacion", "entregado"],
+    proceso_instalacion: ["trabajando_instalacion", "listo_instalacion"],
+    fotos_finales: ["trabajando_instalacion", "entregado"],
   };
 
   // Verificar si el usuario tiene rol permitido para avanzar
@@ -533,8 +430,8 @@ export default function ProjectDetail() {
 
   // Verificar si se puede subir fotos a esta etapa
   const canUploadToStage = (subcategory: string): { allowed: boolean; message?: string } => {
-    // Siempre permitir para admin y super_admin
-    if (user?.role === "super_admin" || user?.role === "admin") {
+    // Siempre permitir para admin, super_admin, jefe_taller y operario
+    if (user?.role === "super_admin" || user?.role === "admin" || user?.role === "jefe_taller" || user?.role === "operario") {
       return { allowed: true };
     }
     
@@ -584,7 +481,7 @@ export default function ProjectDetail() {
 
   const categoryLabels: Record<string, string> = {
     cotizacion: "Cotización",
-    medidas: "Medidas",
+    medidas: "Levantamiento de proyecto",
     disenos: "Diseños",
     avance: "Avance",
     instalacion: "Instalación",
@@ -609,18 +506,20 @@ export default function ProjectDetail() {
   const canUploadToFolder = (folder: string) => {
     const role = user?.role;
     const uploadPermissions: Record<string, string[]> = {
-      documento_cotizacion: ["super_admin", "admin"],
-      fotos_iniciales: ["super_admin", "admin"],
-      dibujo: ["super_admin", "admin"],
-      renders: ["disenador"],
-      despieces: ["disenador"],
-      detalles: ["disenador"],
-      modelado_3d: ["disenador"],
-      corte: ["jefe_taller", "operario"],
-      enchape: ["jefe_taller", "operario"],
-      armado: ["jefe_taller", "operario"],
-      proceso_instalacion: ["jefe_taller", "operario"],
-      fotos_finales: ["jefe_taller", "operario"],
+      // Pre-producción: diseñador + comercial según su fase
+      documento_cotizacion: ["super_admin", "admin", "comercial", "disenador"],
+      fotos_iniciales: ["super_admin", "admin", "comercial", "disenador"],
+      dibujo: ["super_admin", "admin", "comercial", "disenador"],
+      renders: ["super_admin", "admin", "disenador"],
+      despieces: ["super_admin", "admin", "disenador"],
+      detalles: ["super_admin", "admin", "disenador"],
+      modelado_3d: ["super_admin", "admin", "disenador"],
+      // Producción: jefe_taller y operario suben fotos
+      corte: ["super_admin", "admin", "jefe_taller", "operario"],
+      enchape: ["super_admin", "admin", "jefe_taller", "operario"],
+      armado: ["super_admin", "admin", "jefe_taller", "operario"],
+      proceso_instalacion: ["super_admin", "admin", "jefe_taller", "operario"],
+      fotos_finales: ["super_admin", "admin", "jefe_taller", "operario"],
     };
     const allowedRoles = uploadPermissions[folder] || [];
     return allowedRoles.includes(role || "");
@@ -645,9 +544,10 @@ export default function ProjectDetail() {
     Object.entries(allFolders).forEach(([category, subcategories]) => {
       const allowedSubs = subcategories.filter((sub) => {
         const viewPermissions: Record<string, string[]> = {
-          documento_cotizacion: ["super_admin", "admin", "comercial"],
-          fotos_iniciales: ["super_admin", "admin", "comercial", "disenador"],
-          dibujo: ["super_admin", "admin", "comercial", "disenador"],
+          // Todos ven todo (jefe/operario ven pre-producción en solo lectura)
+          documento_cotizacion: ["super_admin", "admin", "comercial", "jefe_taller", "operario"],
+          fotos_iniciales: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
+          dibujo: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
           renders: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
           despieces: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
           detalles: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
@@ -670,7 +570,7 @@ export default function ProjectDetail() {
 
   const filteredFolders = getFilteredFolders();
   const disenoFolders = Object.fromEntries(
-    Object.entries(filteredFolders).filter(([cat]) => ['cotizacion', 'medidas', 'disenos'].includes(cat))
+    Object.entries(filteredFolders).filter(([cat]) => ['medidas', 'disenos'].includes(cat))
   );
   const produccionFolders = Object.fromEntries(
     Object.entries(filteredFolders).filter(([cat]) => ['avance'].includes(cat))
@@ -681,7 +581,7 @@ export default function ProjectDetail() {
 
   if (!user) {
     return (
-      <div className="pb-20 md:pb-0">
+      <div className="min-h-screen bg-background">
         
         <div className="container py-8">
           <p>Debes iniciar sesión para ver este proyecto.</p>
@@ -692,7 +592,7 @@ export default function ProjectDetail() {
 
   if (isLoading) {
     return (
-      <div className="pb-20 md:pb-0">
+      <div className="min-h-screen bg-background">
         
         <div className="container py-8">
           <div className="flex items-center justify-center h-64">
@@ -704,17 +604,32 @@ export default function ProjectDetail() {
   }
 
   if (!projectDetail) {
+    // Proyecto en proceso de diseño — no disponible aún para taller/operario
+    const isEnDiseno = (error as any)?.message === "EN_DISENO";
     return (
-      <div className="pb-20 md:pb-0">
-        
-        <div className="container py-8">
-          <p>Proyecto no encontrado.</p>
-          {error && <p className="text-red-500 mt-2">Error: {error.message}</p>}
-          <p className="text-sm text-gray-500 mt-2">ID: {projectId} | Loading: {isLoading}</p>
-          <Button onClick={() => window.history.back()} className="mt-4">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Volver a Proyectos
-          </Button>
+      <div className="min-h-screen bg-background">
+        <div className="container py-8 flex items-center justify-center min-h-[60vh]">
+          <div className="text-center space-y-4 max-w-sm">
+            {isEnDiseno ? (
+              <>
+                <div className="text-6xl">🎨</div>
+                <h2 className="text-xl font-semibold text-white">En proceso de diseño</h2>
+                <p className="text-sm text-slate-400">
+                  Este proyecto aún está en etapa de diseño. Estará disponible aquí cuando sea aprobado y pase a taller.
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="text-5xl">🔍</div>
+                <h2 className="text-lg font-semibold text-white">Proyecto no encontrado</h2>
+                {error && <p className="text-red-400 text-sm">{error.message}</p>}
+              </>
+            )}
+            <Button onClick={() => window.history.back()} variant="outline" className="mt-2">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Volver a Proyectos
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -732,7 +647,7 @@ export default function ProjectDetail() {
   };
 
   return (
-    <div className="pb-20 md:pb-0">
+    <div className="min-h-screen pb-20 md:pb-0 bg-background">
       
       <FileViewer
         files={fileViewer.files}
@@ -768,10 +683,11 @@ export default function ProjectDetail() {
             <Button
               variant="outline"
               size="sm"
-              className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+              className="bg-green-500/10 hover:bg-green-500/15 text-green-300 border-green-500/25"
               onClick={() => {
-                const phone = projectDetail.client?.whatsappPhone?.replace(/\D/g, "");
-                window.open(`https://wa.me/57${phone}`, "_blank");
+                const rawPhone = (projectDetail.client?.whatsappPhone || "").replace(/\D/g, "");
+                const phone = rawPhone.length > 10 ? rawPhone : `57${rawPhone}`;
+                window.open(`https://wa.me/${phone}`, "_blank");
               }}
             >
               <MessageCircle className="h-4 w-4 mr-1" />
@@ -790,7 +706,7 @@ export default function ProjectDetail() {
             <Button
               variant="outline"
               size="sm"
-              className="bg-yellow-400 hover:bg-yellow-500 text-yellow-900 border-yellow-500"
+              className="bg-yellow-400 hover:bg-yellow-500 text-yellow-100 border-yellow-500"
               onClick={() => {
                 setEditDateForm({
                   estimatedInstallDate: projectDetail.estimatedInstallDate 
@@ -813,7 +729,7 @@ export default function ProjectDetail() {
               className={`${
                 ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render"].includes(projectDetail.status as string)
                   ? "bg-orange-500 hover:bg-orange-600 text-white border-orange-600"
-                  : "bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed"
+                  : "bg-white/[0.10] text-gray-400 border-white/[0.15] cursor-not-allowed"
               }`}
               disabled={
                 !["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render"].includes(projectDetail.status as string) ||
@@ -839,7 +755,7 @@ export default function ProjectDetail() {
           <TabsList className="flex overflow-x-auto w-full gap-1 h-auto p-1 bg-muted/50 mb-4 scrollbar-hide">
             <TabsTrigger
               value="info"
-              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-blue-100 text-blue-700 data-[state=active]:bg-blue-500 data-[state=active]:text-white hover:bg-blue-200 transition-colors rounded-md whitespace-nowrap"
+              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-blue-500/15 text-blue-300 data-[state=active]:bg-blue-500 data-[state=active]:text-white hover:bg-blue-500/20 transition-colors rounded-md whitespace-nowrap"
             >
               <Info className="h-3.5 w-3.5 mr-1" />
               <span>Info</span>
@@ -847,7 +763,7 @@ export default function ProjectDetail() {
             {user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && (
               <TabsTrigger
                 value="financiero"
-                className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-emerald-100 text-emerald-700 data-[state=active]:bg-emerald-500 data-[state=active]:text-white hover:bg-emerald-200 transition-colors rounded-md whitespace-nowrap"
+                className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-emerald-500/15 text-emerald-300 data-[state=active]:bg-emerald-500 data-[state=active]:text-white hover:bg-emerald-200 transition-colors rounded-md whitespace-nowrap"
               >
                 <DollarSign className="h-3.5 w-3.5 mr-1" />
                 <span>Financiero</span>
@@ -855,141 +771,50 @@ export default function ProjectDetail() {
             )}
             <TabsTrigger
               value="diseno"
-              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-purple-100 text-purple-700 data-[state=active]:bg-purple-500 data-[state=active]:text-white hover:bg-purple-200 transition-colors rounded-md whitespace-nowrap"
+              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-purple-500/15 text-purple-300 data-[state=active]:bg-purple-500 data-[state=active]:text-white hover:bg-purple-500/20 transition-colors rounded-md whitespace-nowrap"
             >
               <Palette className="h-3.5 w-3.5 mr-1" />
               <span>Diseño</span>
             </TabsTrigger>
             <TabsTrigger
               value="produccion"
-              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-orange-100 text-orange-700 data-[state=active]:bg-orange-500 data-[state=active]:text-white hover:bg-orange-200 transition-colors rounded-md whitespace-nowrap"
+              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-orange-500/15 text-orange-300 data-[state=active]:bg-orange-500 data-[state=active]:text-white hover:bg-orange-500/20 transition-colors rounded-md whitespace-nowrap"
             >
               <Hammer className="h-3.5 w-3.5 mr-1" />
               <span>Producción</span>
             </TabsTrigger>
             <TabsTrigger
               value="instalacion"
-              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-teal-100 text-teal-700 data-[state=active]:bg-teal-500 data-[state=active]:text-white hover:bg-teal-200 transition-colors rounded-md whitespace-nowrap"
+              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-teal-500/15 text-teal-300 data-[state=active]:bg-teal-500 data-[state=active]:text-white hover:bg-teal-200 transition-colors rounded-md whitespace-nowrap"
             >
               <Truck className="h-3.5 w-3.5 mr-1" />
               <span>Instalación</span>
             </TabsTrigger>
             <TabsTrigger
               value="postventa"
-              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-pink-100 text-pink-700 data-[state=active]:bg-pink-500 data-[state=active]:text-white hover:bg-pink-200 transition-colors rounded-md whitespace-nowrap"
+              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-pink-500/15 text-pink-300 data-[state=active]:bg-pink-500 data-[state=active]:text-white hover:bg-pink-200 transition-colors rounded-md whitespace-nowrap"
             >
               <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
               <span>Postventa</span>
             </TabsTrigger>
-            <TabsTrigger
-              value="history"
-              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-gray-200 text-gray-700 data-[state=active]:bg-gray-600 data-[state=active]:text-white hover:bg-gray-300 transition-colors rounded-md whitespace-nowrap"
-            >
-              <History className="h-3.5 w-3.5 mr-1" />
-              <span>Historial</span>
-            </TabsTrigger>
+            {user?.role !== "jefe_taller" && user?.role !== "operario" && (
+              <TabsTrigger
+                value="history"
+                className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-white/[0.10] text-muted-foreground data-[state=active]:bg-gray-600 data-[state=active]:text-white hover:bg-gray-300 transition-colors rounded-md whitespace-nowrap"
+              >
+                <History className="h-3.5 w-3.5 mr-1" />
+                <span>Historial</span>
+              </TabsTrigger>
+            )}
           </TabsList>
 
           {/* Tab Información */}
           <TabsContent value="info" className="space-y-4">
-
-            {/* ── ANTICIPO: Banner de acción cuando cotización aprobada ── */}
-            {projectDetail.status === "cotizacion_aprobada" && (user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial") && showAnticipo && (
-              <div className="rounded-xl border-2 border-blue-400 bg-gradient-to-r from-blue-50 to-indigo-50 overflow-hidden">
-                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-3 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-5 w-5 text-white" />
-                    <h3 className="text-white font-bold text-base">Confirmar Anticipo Recibido</h3>
-                  </div>
-                  <button onClick={() => setShowAnticipo(false)} className="text-white/70 hover:text-white text-xs">✕ Ocultar</button>
-                </div>
-                <div className="p-5 space-y-4">
-                  <p className="text-sm text-blue-900">
-                    El cliente aprobó la cotización. Cuando confirmes el anticipo, el diseñador asignado recibirá notificación para iniciar el trabajo.
-                  </p>
-                  {(projectDetail as any).designerId && (
-                    <p className="text-xs text-blue-700 bg-blue-100 rounded-lg px-3 py-2">
-                      ✅ Diseñador asignado automáticamente. Al confirmar el anticipo recibirá la orden de trabajo.
-                    </p>
-                  )}
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <div className="flex-1">
-                      <label className="text-xs font-medium text-blue-800 block mb-1">Monto del anticipo (COP)</label>
-                      <Input
-                        type="number"
-                        placeholder="Ej: 3500000"
-                        value={anticipoAmount}
-                        onChange={(e) => setAnticipoAmount(e.target.value)}
-                        className="border-blue-300 focus:border-blue-500"
-                      />
-                    </div>
-                    <div className="flex items-end">
-                      <Button
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6"
-                        disabled={updateStatus.isPending}
-                        onClick={() => {
-                          if (!anticipoAmount) { toast.error("Ingresa el monto del anticipo"); return; }
-                          updateStatus.mutate({
-                            projectId: projectDetail.id,
-                            newStatus: "adelanto_recibido",
-                            advanceAmount: Number(anticipoAmount),
-                            notes: `Anticipo confirmado: $${Number(anticipoAmount).toLocaleString("es-CO")}`,
-                          });
-                          setShowAnticipo(false);
-                        }}
-                      >
-                        {updateStatus.isPending ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
-                        Confirmar Anticipo
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* ── LINK CLIENTE: Visible para admin en cualquier etapa activa ── */}
-            {(user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial") && (projectDetail as any).publicToken && !["cotizacion_enviada","cotizacion_aprobada"].includes(projectDetail.status as string) && (
-              <div className="rounded-xl border border-teal-300 bg-teal-50 px-5 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
-                <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <ExternalLink className="h-4 w-4 text-teal-600 shrink-0" />
-                  <span className="text-sm font-medium text-teal-800">Portal del cliente:</span>
-                  <span className="text-xs text-teal-600 truncate">
-                    {`/gallery?project=${projectDetail.id}&token=${(projectDetail as any).publicToken}`}
-                  </span>
-                </div>
-                <div className="flex gap-2 shrink-0">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="text-teal-700 border-teal-400 hover:bg-teal-100 text-xs h-8"
-                    onClick={() => {
-                      const url = `${window.location.origin}/gallery?project=${projectDetail.id}&token=${(projectDetail as any).publicToken}`;
-                      navigator.clipboard.writeText(url).then(() => { setCopiedLink(true); setTimeout(() => setCopiedLink(false), 2000); });
-                    }}
-                  >
-                    {copiedLink ? "✓ Copiado" : "Copiar Link"}
-                  </Button>
-                  <Button
-                    size="sm"
-                    className="bg-teal-600 hover:bg-teal-700 text-white text-xs h-8"
-                    onClick={() => {
-                      const url = `${window.location.origin}/gallery?project=${projectDetail.id}&token=${(projectDetail as any).publicToken}`;
-                      const msg = encodeURIComponent(`Hola ${projectDetail.client?.name}, aquí puedes ver el progreso de tu proyecto:\n${url}`);
-                      window.open(`https://wa.me/57${projectDetail.client?.whatsappPhone?.replace(/\D/g,'')}?text=${msg}`, "_blank");
-                    }}
-                  >
-                    <MessageCircle className="h-3.5 w-3.5 mr-1" />
-                    Enviar por WhatsApp
-                  </Button>
-                </div>
-              </div>
-            )}
-
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card>
-                <CardHeader className="py-3 bg-blue-50">
+              <Card style={{ background: "#162828", border: "1px solid rgba(255,255,255,0.08)" }}>
+                <CardHeader className="py-3 bg-blue-500/10">
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <User className="h-4 w-4 text-blue-600" />
+                    <User className="h-4 w-4 text-blue-400" />
                     Información del Cliente
                   </CardTitle>
                 </CardHeader>
@@ -1014,15 +839,25 @@ export default function ProjectDetail() {
                     <MapPin className="h-4 w-4 text-muted-foreground" />
                     <strong>Dirección:</strong> {projectDetail.client?.address || "N/A"}
                   </p>
+                  {(technicalVisit as any)?.geoLocation && (
+                    <a
+                      href={`https://www.google.com/maps/dir//${(technicalVisit as any).geoLocation.latitude},${(technicalVisit as any).geoLocation.longitude}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-2 flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold rounded-lg transition-colors w-full"
+                    >
+                      📍 Navegar al domicilio
+                    </a>
+                  )}
                 </CardContent>
               </Card>
 
               {user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && (
-                <Card>
-                  <CardHeader className="py-3 bg-green-50">
+                <Card style={{ background: "#162828", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <CardHeader className="py-3 bg-green-500/10">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-sm flex items-center gap-2">
-                        <DollarSign className="h-4 w-4 text-green-600" />
+                        <DollarSign className="h-4 w-4 text-green-400" />
                         Información Financiera
                       </CardTitle>
                       <Button
@@ -1058,9 +893,9 @@ export default function ProjectDetail() {
                       </div>
                       
                       {/* Desglose de Pagos Dinámico */}
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
-                        <p className="text-xs font-semibold text-blue-700 mb-2">Desglose de Pagos</p>
-                        <div className="space-y-1 text-xs text-blue-600">
+                      <div className="bg-blue-500/10 border border-blue-500/25 rounded-lg p-3 mb-3">
+                        <p className="text-xs font-semibold text-blue-300 mb-2">Desglose de Pagos</p>
+                        <div className="space-y-1 text-xs text-blue-400">
                           {(projectDetail as any).payments && (projectDetail as any).payments.length > 0 ? (
                             (projectDetail as any).payments.map((payment: any, idx: number) => (
                               <p key={idx}>
@@ -1081,20 +916,20 @@ export default function ProjectDetail() {
                       {/* Total Pagado */}
                       <div className="flex justify-between items-center py-2 border-b">
                         <span className="text-muted-foreground">Total Pagado ({Math.round(((projectDetail as any).financialInfo?.totalCobrado || 0) / ((projectDetail as any).financialInfo?.totalAmount || 1) * 100)}%)</span>
-                        <span className="font-semibold text-green-600">{formatCurrency((projectDetail as any).financialInfo?.totalCobrado || 0)}</span>
+                        <span className="font-semibold text-green-400">{formatCurrency((projectDetail as any).financialInfo?.totalCobrado || 0)}</span>
                       </div>
                       
                       {/* Saldo pendiente - DESTACADO */}
                       <div className={`border rounded-lg p-3 ${
                         (projectDetail as any).financialInfo?.remainingAmount > 0
-                          ? "bg-amber-50 border-amber-200"
-                          : "bg-green-50 border-green-200"
+                          ? "bg-amber-500/10 border-amber-500/25"
+                          : "bg-green-500/10 border-green-500/25"
                       }`}>
                         <div className="flex justify-between items-center">
                           <span className={`font-medium ${
                             (projectDetail as any).financialInfo?.remainingAmount > 0
-                              ? "text-amber-800"
-                              : "text-green-800"
+                              ? "text-amber-300"
+                              : "text-green-300"
                           }`}>
                             {(projectDetail as any).financialInfo?.remainingAmount > 0
                               ? `Saldo Pendiente (${Math.round(((projectDetail as any).financialInfo?.remainingAmount || 0) / ((projectDetail as any).financialInfo?.totalAmount || 1) * 100)}%)`
@@ -1102,8 +937,8 @@ export default function ProjectDetail() {
                           </span>
                           <span className={`font-bold text-xl ${
                             (projectDetail as any).financialInfo?.remainingAmount > 0
-                              ? "text-amber-600"
-                              : "text-green-600"
+                              ? "text-amber-400"
+                              : "text-green-400"
                           }`}>
                             {(projectDetail as any).financialInfo?.remainingAmount > 0
                               ? formatCurrency((projectDetail as any).financialInfo?.remainingAmount || 0)
@@ -1111,7 +946,7 @@ export default function ProjectDetail() {
                           </span>
                         </div>
                         {projectDetail.status === "entregado" && (projectDetail as any).financialInfo?.remainingAmount > 0 && (
-                          <p className="text-xs text-amber-700 mt-1">
+                          <p className="text-xs text-amber-300 mt-1">
                             ⚠️ Proyecto entregado - Pendiente de cobro
                           </p>
                         )}
@@ -1145,8 +980,8 @@ export default function ProjectDetail() {
                     </CardContent>
                   ) : (
                     <CardContent className="py-8 flex flex-col items-center justify-center">
-                      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-100 to-emerald-200 flex items-center justify-center mb-2">
-                        <DollarSign className="h-10 w-10 text-green-600" />
+                      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-900/30 to-emerald-200 flex items-center justify-center mb-2">
+                        <DollarSign className="h-10 w-10 text-green-400" />
                       </div>
                     </CardContent>
                   )}
@@ -1161,22 +996,22 @@ export default function ProjectDetail() {
                 />
               )}
 
-              <Card>
-                <CardHeader className="py-3 bg-purple-50">
+              <Card style={{ background: "#162828", border: "1px solid rgba(255,255,255,0.08)" }}>
+                <CardHeader className="py-3 bg-purple-500/10">
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-purple-600" />
+                    <Calendar className="h-4 w-4 text-purple-400" />
                     Fechas del Proyecto
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="text-sm space-y-2 pt-4">
                   {/* Fechas de la cotización */}
                   {(projectDetail as any).quotation?.createdAt && (
-                    <p className="text-blue-600">
+                    <p className="text-blue-400">
                       <strong>📋 Cotización creada:</strong> {formatDate((projectDetail as any).quotation.createdAt)}
                     </p>
                   )}
                   {(projectDetail as any).quotation?.validUntil && (
-                    <p className={new Date((projectDetail as any).quotation.validUntil) < new Date() ? "text-red-500" : "text-blue-600"}>
+                    <p className={new Date((projectDetail as any).quotation.validUntil) < new Date() ? "text-red-500" : "text-blue-400"}>
                       <strong>📅 Válida hasta:</strong> {formatDate((projectDetail as any).quotation.validUntil)}
                       {new Date((projectDetail as any).quotation.validUntil) < new Date() && " (Vencida)"}
                     </p>
@@ -1187,12 +1022,12 @@ export default function ProjectDetail() {
                   
                   {/* Fechas de instalación - Tentativa (roja) y Oficial (verde) - Siempre visibles */}
                   {projectDetail.tentativeInstallDate && (
-                    <p className="text-red-600 font-medium">
+                    <p className="text-red-400 font-medium">
                       <strong>🔴 Instalación tentativa:</strong> {formatDate(projectDetail.tentativeInstallDate)}
                     </p>
                   )}
                   {projectDetail.estimatedInstallDate && projectDetail.isInstallDateOfficial && (
-                    <p className="text-green-600 font-medium">
+                    <p className="text-green-400 font-medium">
                       <strong>🟢 Instalación oficial:</strong> {formatDate(projectDetail.estimatedInstallDate)}
                     </p>
                   )}
@@ -1205,7 +1040,7 @@ export default function ProjectDetail() {
             </div>
 
             {((projectDetail as any).file3dUrl || (projectDetail as any).fileDesgloseUrl) && (
-              <Card>
+              <Card style={{ background: "#162828", border: "1px solid rgba(255,255,255,0.08)" }}>
                 <CardHeader className="py-3">
                   <CardTitle className="text-sm">Archivos de Diseño</CardTitle>
                 </CardHeader>
@@ -1238,9 +1073,9 @@ export default function ProjectDetail() {
           {/* Tab Producción */}
           <TabsContent value="produccion" className="space-y-4">
             <Card>
-              <CardHeader className="py-3 bg-orange-50">
+              <CardHeader className="py-3 bg-orange-500/10">
                 <CardTitle className="text-sm flex items-center gap-2">
-                  <Palette className="h-4 w-4 text-orange-600" />
+                  <Palette className="h-4 w-4 text-orange-400" />
                   Materiales Seleccionados
                 </CardTitle>
               </CardHeader>
@@ -1252,9 +1087,9 @@ export default function ProjectDetail() {
               </CardContent>
             </Card>
             <Card>
-              <CardHeader className="py-3 bg-orange-50">
+              <CardHeader className="py-3 bg-orange-500/10">
                 <CardTitle className="text-sm flex items-center gap-2">
-                  <Box className="h-4 w-4 text-orange-600" />
+                  <Box className="h-4 w-4 text-orange-400" />
                   Herrajes
                 </CardTitle>
               </CardHeader>
@@ -1282,10 +1117,10 @@ export default function ProjectDetail() {
                       return (
                         <div key={subcategory} className="border rounded-lg p-3">
                           <div className="flex items-center justify-between mb-2">
-                            <h5 className="font-semibold text-sm text-orange-700 flex items-center gap-2">
+                            <h5 className="font-semibold text-sm text-orange-300 flex items-center gap-2">
                               <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
                               {subcategoryLabels[subcategory] || subcategory}
-                              <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${photos.length > 0 ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-500'}`}>
+                              <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${photos.length > 0 ? 'bg-orange-500/15 text-orange-300' : 'bg-white/[0.06] text-gray-500'}`}>
                                 {photos.length} fotos
                               </span>
                             </h5>
@@ -1302,9 +1137,19 @@ export default function ProjectDetail() {
                           {photos.length > 0 ? (
                             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2">
                               {photos.map((photo: any, idx: number) => (
-                                <div key={photo.id} className="aspect-square rounded-md overflow-hidden cursor-pointer hover:opacity-80"
+                                <div key={photo.id} className="relative group aspect-square rounded-md overflow-hidden cursor-pointer hover:opacity-80"
                                   onClick={() => fileViewer.openViewer(photos.map((p: any) => ({ url: p.photoUrl, title: p.description || "Foto" })), idx)}>
                                   <img src={photo.photoUrl || ''} alt={photo.description || "Foto"} className="w-full h-full object-cover" />
+                                  {/* Botón eliminar — jefe/operario eliminan sus propias fotos en producción */}
+                                  {(user?.role === "super_admin" || user?.role === "admin" ||
+                                    ((user?.role === "jefe_taller" || user?.role === "operario") && photo.uploadedBy === user?.id)) && (
+                                    <button
+                                      className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow-md"
+                                      onClick={(e) => { e.stopPropagation(); setPhotoToDelete({ id: photo.id, description: photo.description }); }}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </button>
+                                  )}
                                 </div>
                               ))}
                             </div>
@@ -1312,10 +1157,27 @@ export default function ProjectDetail() {
                             <p className="text-sm text-muted-foreground">Sin fotos en esta etapa</p>
                           )}
                           {canShowAdvanceButton(subcategory) && photoToCurrentStatus[subcategory]?.includes(projectDetail.status as string) && (
-                            <Button size="sm" onClick={() => openAdvanceConfirmDialog(subcategory)} disabled={updateStatus.isPending}
-                              className="w-full mt-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold">
-                              {updateStatus.isPending ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <ArrowRight className="h-4 w-4 mr-2" />}
-                              Avanzar etapa
+                            <div className="flex flex-col gap-2 mt-3">
+                              <Button size="sm" onClick={() => openAdvanceConfirmDialog(subcategory)} disabled={updateStatus.isPending}
+                                className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold">
+                                {updateStatus.isPending ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <ArrowRight className="h-4 w-4 mr-2" />}
+                                Avanzar etapa
+                              </Button>
+                              {canSendSectionNotification() && (
+                                <Button size="sm" variant="outline" disabled={notifyStageAdvanceFromDetail.isPending}
+                                  onClick={() => handleNotifyViaWhatsApp(subcategory)}
+                                  className="w-full text-xs">
+                                  {notifyStageAdvanceFromDetail.isPending ? "Enviando..." : "📲 Enviar avance a cliente"}
+                                </Button>
+                              )}
+                            </div>
+                          )}
+                          {/* Botón de notificación siempre visible en etapas de producción */}
+                          {canSendSectionNotification() && !photoToCurrentStatus[subcategory]?.includes(projectDetail.status as string) && photoToNextStatus[subcategory] && (
+                            <Button size="sm" variant="outline" disabled={notifyStageAdvanceFromDetail.isPending}
+                              onClick={() => handleNotifyViaWhatsApp(subcategory)}
+                              className="w-full mt-2 text-xs">
+                              {notifyStageAdvanceFromDetail.isPending ? "Enviando..." : "📲 Enviar avance a cliente"}
                             </Button>
                           )}
                         </div>
@@ -1331,8 +1193,8 @@ export default function ProjectDetail() {
           <TabsContent value="diseno" className="space-y-4">
 
             {/* Centro de Control de Diseño */}
-            {(user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial") && (
-              <div className="mb-4 rounded-xl overflow-hidden shadow-lg border border-gray-200 dark:border-gray-700">
+            {(user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial" || user?.role === "disenador" || user?.role === "jefe_taller" || user?.role === "operario") && (
+              <div className="mb-4 rounded-xl overflow-hidden shadow-lg border border-white/[0.10]">
                 {/* Header del Panel */}
                 <div className="bg-gradient-to-r from-teal-600 to-teal-500 px-6 py-4">
                   <h3 className="text-lg font-bold text-white flex items-center gap-2">
@@ -1342,32 +1204,32 @@ export default function ProjectDetail() {
                   <p className="text-teal-100 text-sm mt-1">Gestiona el envío y aprobación de diseños del cliente</p>
                 </div>
                 
-                <div className="bg-[#162828] dark:bg-gray-900 p-6">
+                <div className="bg-[#162828] p-6">
                   {/* Grid de Tarjetas de Acción */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     
                     {/* Tarjeta Modelado 3D */}
-                    <div className={`relative rounded-xl p-5 transition-all duration-300 ${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 ? 'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 border-2 border-purple-200 dark:border-purple-700 hover:shadow-md' : 'bg-gray-50 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600'}`}>
+                    <div className={`relative rounded-xl p-5 transition-all duration-300 ${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 ? 'bg-purple-500/15 border-2 border-purple-500/25 hover:shadow-md' : 'bg-white/[0.03] border-2 border-dashed border-white/[0.15]'}`}>
                       <div className="flex items-start gap-4">
-                        <div className={`p-3 rounded-xl ${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 ? 'bg-purple-500 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400'}`}>
+                        <div className={`p-3 rounded-xl ${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 ? 'bg-purple-500 text-white' : 'bg-white/[0.10] text-muted-foreground'}`}>
                           <Box className="h-6 w-6" />
                         </div>
                         <div className="flex-1">
-                          <h4 className="font-semibold text-gray-800 dark:text-gray-200">Modelado 3D</h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                            {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 
+                          <h4 className="font-semibold text-foreground">Modelado 3D</h4>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0
                               ? `${projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length} imagen(es) listas`
                               : 'Sin imágenes aún'}
                           </p>
                           {projectDetail.modeladoApprovedAt && (
-                            <div className="mt-2 flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                            <div className="mt-2 flex items-center gap-1 text-xs text-green-400">
                               <CheckCircle2 className="h-3 w-3" />
                               Aprobado por {projectDetail.modeladoApprovedBy}
                             </div>
                           )}
                         </div>
                       </div>
-                      {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 && (
+                      {projectDetail.photos?.filter((p: any) => p.subcategory === "modelado_3d").length > 0 && (user?.role !== "jefe_taller" && user?.role !== "operario") && (
                         <Button
                           size="sm"
                           className={`w-full mt-4 shadow-sm ${(projectDetail.modeladoRevisionNumber || 0) >= 1 ? 'bg-purple-500 hover:bg-purple-600' : 'bg-purple-600 hover:bg-purple-700'} text-white`}
@@ -1382,27 +1244,27 @@ export default function ProjectDetail() {
                     </div>
                     
                     {/* Tarjeta Renders */}
-                    <div className={`relative rounded-xl p-5 transition-all duration-300 ${projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 ? 'bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30 border-2 border-emerald-200 dark:border-emerald-700 hover:shadow-md' : 'bg-gray-50 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600'}`}>
+                    <div className={`relative rounded-xl p-5 transition-all duration-300 ${projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 ? 'bg-emerald-500/15 border-2 border-emerald-500/25 hover:shadow-md' : 'bg-white/[0.03] border-2 border-dashed border-white/[0.15]'}`}>
                       <div className="flex items-start gap-4">
-                        <div className={`p-3 rounded-xl ${projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 ? 'bg-emerald-500 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400'}`}>
+                        <div className={`p-3 rounded-xl ${projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 ? 'bg-emerald-500 text-white' : 'bg-white/[0.10] text-muted-foreground'}`}>
                           <ImageIcon className="h-6 w-6" />
                         </div>
                         <div className="flex-1">
-                          <h4 className="font-semibold text-gray-800 dark:text-gray-200">Renders Finales</h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                            {projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 
+                          <h4 className="font-semibold text-foreground">Renders Finales</h4>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0
                               ? `${projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length} imagen(es) listas`
                               : 'Sin imágenes aún'}
                           </p>
                           {projectDetail.rendersApprovedAt && (
-                            <div className="mt-2 flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                            <div className="mt-2 flex items-center gap-1 text-xs text-green-400">
                               <CheckCircle2 className="h-3 w-3" />
                               Aprobado por {projectDetail.rendersApprovedBy}
                             </div>
                           )}
                         </div>
                       </div>
-                      {projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 && (
+                      {projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 && (user?.role !== "jefe_taller" && user?.role !== "operario") && (
                         <Button
                           size="sm"
                           className={`w-full mt-4 shadow-sm ${(projectDetail.renderRevisionNumber || 0) >= 1 ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-emerald-600 hover:bg-emerald-700'} text-white`}
@@ -1417,8 +1279,8 @@ export default function ProjectDetail() {
                     </div>
                   </div>
                   
-                  {/* Sección de Aprobación */}
-                  {(() => {
+                  {/* Sección de Aprobación — solo admin/super_admin/comercial/disenador */}
+                  {(user?.role !== "jefe_taller" && user?.role !== "operario") && (() => {
                     const isInDesignPhase = ["en_diseno", "pendiente_modelado", "pendiente_render"].includes(projectDetail.status as string);
                     const isPendingApproval = (projectDetail.status as string) === "pendiente_modelado" || (projectDetail.status as string) === "pendiente_render";
                     const isApproved = projectDetail.rendersApprovedAt || projectDetail.modeladoApprovedAt;
@@ -1449,10 +1311,10 @@ export default function ProjectDetail() {
                     
                     return (
                       <div className={`rounded-xl p-5 border mb-4 ${
-                        statusColor === "amber" ? "bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 border-amber-200 dark:border-amber-700" :
-                        statusColor === "green" ? "bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200 dark:border-green-700" :
-                        statusColor === "blue" ? "bg-gradient-to-r from-blue-50 to-sky-50 dark:from-blue-900/20 dark:to-sky-900/20 border-blue-200 dark:border-blue-700" :
-                        "bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-900/20 dark:to-slate-900/20 border-gray-200 dark:border-gray-700"
+                        statusColor === "amber" ? "bg-amber-500/10 border-amber-500/25" :
+                        statusColor === "green" ? "bg-green-500/10 border-green-500/25" :
+                        statusColor === "blue" ? "bg-blue-500/10 border-blue-500/25" :
+                        "bg-white/[0.03] border-white/[0.10]"
                       }`}>
                         <div className="flex items-center gap-3 mb-4">
                           <div className={`p-2 rounded-lg text-white ${
@@ -1465,18 +1327,18 @@ export default function ProjectDetail() {
                           </div>
                           <div>
                             <h4 className={`font-semibold ${
-                              statusColor === "amber" ? "text-amber-800 dark:text-amber-200" :
-                              statusColor === "green" ? "text-green-800 dark:text-green-200" :
-                              statusColor === "blue" ? "text-blue-800 dark:text-blue-200" :
-                              "text-gray-600 dark:text-gray-400"
+                              statusColor === "amber" ? "text-amber-300" :
+                              statusColor === "green" ? "text-green-300" :
+                              statusColor === "blue" ? "text-blue-300" :
+                              "text-muted-foreground"
                             }`}>
                               {isPendingApproval ? "Pendiente de Aprobación" : isApproved ? "Diseño Aprobado" : "Aprobar en Nombre del Cliente"}
                             </h4>
                             <p className={`text-sm ${
-                              statusColor === "amber" ? "text-amber-600 dark:text-amber-400" :
-                              statusColor === "green" ? "text-green-600 dark:text-green-400" :
-                              statusColor === "blue" ? "text-blue-600 dark:text-blue-400" :
-                              "text-gray-500 dark:text-gray-500"
+                              statusColor === "amber" ? "text-amber-400" :
+                              statusColor === "green" ? "text-green-400" :
+                              statusColor === "blue" ? "text-blue-400" :
+                              "text-gray-500"
                             }`}>{statusMessage}</p>
                           </div>
                         </div>
@@ -1488,8 +1350,8 @@ export default function ProjectDetail() {
                               onClick={() => setApprovalUnlocked(!approvalUnlocked)}
                               className={`${
                                 approvalUnlocked 
-                                  ? "border-green-500 text-green-700 bg-green-50 hover:bg-green-100 dark:bg-green-900/20" 
-                                  : "border-gray-300 text-gray-500 hover:bg-gray-50"
+                                  ? "border-green-500 text-green-300 bg-green-500/10 hover:bg-green-500/15" 
+                                  : "border-white/[0.15] text-gray-500 hover:bg-white/[0.03]"
                               }`}
                               title={approvalUnlocked ? "Clic para bloquear" : "Clic para desbloquear y poder aprobar"}
                             >
@@ -1516,8 +1378,8 @@ export default function ProjectDetail() {
                             variant="outline"
                             className={`${
                               isInDesignPhase && approvalUnlocked
-                                ? "border-orange-400 text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20" 
-                                : "border-gray-300 text-gray-400 cursor-not-allowed"
+                                ? "border-orange-500/40 text-orange-300 hover:bg-orange-500/10" 
+                                : "border-white/[0.15] text-gray-400 cursor-not-allowed"
                             }`}
                             onClick={() => {
                               if (isInDesignPhase && approvalUnlocked) {
@@ -1536,8 +1398,8 @@ export default function ProjectDetail() {
                           </Button>
                         </div>
                         {projectDetail.clientApprovalNotes && (
-                          <div className="mt-4 p-3 bg-orange-100 dark:bg-orange-900/30 rounded-lg border border-orange-200 dark:border-orange-700">
-                            <p className="text-sm text-orange-800 dark:text-orange-200">
+                          <div className="mt-4 p-3 bg-orange-500/15 rounded-lg border border-orange-500/25">
+                            <p className="text-sm text-orange-300">
                               <strong>📝 Últimos cambios solicitados:</strong> {projectDetail.clientApprovalNotes}
                             </p>
                           </div>
@@ -1549,108 +1411,6 @@ export default function ProjectDetail() {
               </div>
             )}
 
-            {/* ── DATOS DE VISITA TÉCNICA: visible para diseñador, jefe de taller y admin ── */}
-            {clientVisits && clientVisits.length > 0 && (
-              <Card className="border-2 border-purple-200">
-                <CardHeader className="py-3 bg-gradient-to-r from-purple-600 to-violet-600">
-                  <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    Datos de Visita Técnica ({clientVisits.length} visita{clientVisits.length > 1 ? "s" : ""})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-4 space-y-4">
-                  {clientVisits.map((visit: any) => {
-                    const meas = visit.measurements ?? {};
-                    const checklist = meas._checklist ?? {};
-                    const evaluacion = meas._evaluacion ?? {};
-                    const geo = meas._geo;
-                    const measureKeys = Object.keys(meas).filter(k => !k.startsWith("_"));
-                    const fotosVisita = (visit.photos ?? []).filter((p: any) => !p.category?.startsWith("pdf"));
-                    const pdfsVisita = (visit.photos ?? []).filter((p: any) => p.category?.startsWith("pdf"));
-                    return (
-                      <div key={visit.id} className="border rounded-lg p-4 space-y-3 bg-purple-50/30">
-                        <div className="flex flex-wrap items-center gap-2 text-sm">
-                          <span className="font-semibold text-purple-800">{visit.clientName}</span>
-                          <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full capitalize">{visit.workType}</span>
-                          {visit.status === "enviada" && <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">✓ Enviada</span>}
-                          {geo && (
-                            <a href={`https://www.google.com/maps?q=${geo.lat},${geo.lng}`} target="_blank" rel="noreferrer"
-                              className="text-xs text-blue-600 underline flex items-center gap-1">
-                              <MapPin className="h-3 w-3" /> Ver ubicación
-                            </a>
-                          )}
-                        </div>
-
-                        {/* Medidas */}
-                        {measureKeys.length > 0 && (
-                          <div>
-                            <p className="text-xs font-semibold text-purple-700 mb-1">📐 Medidas</p>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-                              {measureKeys.map(k => (
-                                <div key={k} className="text-xs bg-white border rounded px-2 py-1">
-                                  <span className="text-gray-500 capitalize">{k.replace(/_/g," ")}: </span>
-                                  <span className="font-medium">{String(meas[k])}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Notas */}
-                        {visit.notes && (
-                          <p className="text-xs text-gray-600 italic border-l-2 border-purple-300 pl-2">{visit.notes}</p>
-                        )}
-
-                        {/* Evaluación técnica */}
-                        {Object.keys(evaluacion).length > 0 && (
-                          <div>
-                            <p className="text-xs font-semibold text-purple-700 mb-1">🔍 Evaluación</p>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
-                              {Object.entries(evaluacion).map(([k, v]: any) => (
-                                <div key={k} className="text-xs flex items-center gap-1">
-                                  <span>{v === "bueno" ? "🟢" : v === "regular" ? "🟡" : "🔴"}</span>
-                                  <span className="text-gray-600 capitalize">{k.replace(/_/g," ")}: </span>
-                                  <span className="font-medium capitalize">{v}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Fotos */}
-                        {fotosVisita.length > 0 && (
-                          <div>
-                            <p className="text-xs font-semibold text-purple-700 mb-1">📷 Fotos ({fotosVisita.length})</p>
-                            <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5">
-                              {fotosVisita.map((p: any) => (
-                                <div key={p.id} className="aspect-square rounded overflow-hidden cursor-pointer"
-                                  onClick={() => fileViewer.openViewer(fotosVisita.map((x: any) => ({ url: x.photoUrl, title: x.description ?? "Foto" })), fotosVisita.indexOf(p))}>
-                                  <img src={p.photoUrl} alt={p.description ?? "foto"} className="w-full h-full object-cover hover:opacity-80 transition-opacity" />
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* PDFs */}
-                        {pdfsVisita.length > 0 && (
-                          <div className="flex flex-wrap gap-2">
-                            {pdfsVisita.map((p: any) => (
-                              <a key={p.id} href={p.photoUrl} target="_blank" rel="noreferrer"
-                                className="flex items-center gap-1 text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1 hover:bg-red-100">
-                                <FileText className="h-3 w-3" />
-                                {p.category === "pdf_plano" ? "Plano" : "PDF Medidas"}
-                              </a>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </CardContent>
-              </Card>
-            )}
-
             {Object.entries(disenoFolders).map(([category, subcategories]) => (
               <Card key={category}>
                 <CardHeader className="py-3 bg-gradient-to-r from-emerald-500 to-teal-500">
@@ -1660,17 +1420,122 @@ export default function ProjectDetail() {
                 </CardHeader>
                 <CardContent className="pt-4">
                   <div className="space-y-4">
-                    {subcategories.map((subcategory) => {
+                    {/* Levantamiento del medidor — solo en la sección Medidas */}
+                    {category === "medidas" && technicalVisit && (
+                      <div className="mb-4 pb-4 border-b border-teal-500/20 space-y-3">
+                        <h5 className="text-sm font-semibold text-teal-300 flex items-center gap-2">
+                          📋 Levantamiento del Medidor
+                          <span className="text-xs font-normal bg-teal-500/20 text-teal-400 px-2 py-0.5 rounded-full">
+                            {technicalVisit.clientName}
+                          </span>
+                        </h5>
+                        {technicalVisit.measurements != null && Object.keys(technicalVisit.measurements as Record<string, unknown>).length > 0 && (
+                          <div>
+                            <p className="text-xs text-gray-400 mb-1">Dimensiones</p>
+                            <div className="grid grid-cols-2 gap-2">
+                              {Object.entries(technicalVisit.measurements as Record<string, unknown>).map(([key, val]) => (
+                                <div key={key} className="bg-white/[0.04] rounded p-2 text-xs">
+                                  <span className="text-gray-400">{key}: </span>
+                                  <span className="text-white font-medium">{String(val)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {technicalVisit.checklist != null && Object.keys(technicalVisit.checklist as Record<string, unknown>).length > 0 && (
+                          <div>
+                            <p className="text-xs text-gray-400 mb-1">Checklist técnico</p>
+                            <div className="grid grid-cols-2 gap-1">
+                              {Object.entries(technicalVisit.checklist as Record<string, unknown>).map(([key, val]) => (
+                                <div key={key} className="flex items-center gap-1 text-xs">
+                                  <span className={val === true ? "text-emerald-400" : "text-red-400"}>{val === true ? "✓" : "✗"}</span>
+                                  <span className="text-gray-300">{key.replace(/([A-Z])/g, ' $1').toLowerCase()}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {technicalVisit.technicalEvaluation && (
+                          <div>
+                            <p className="text-xs text-gray-400 mb-1">Evaluación técnica</p>
+                            <span className={`text-xs px-2 py-1 rounded-full ${
+                              technicalVisit.technicalEvaluation === 'viable' ? 'bg-emerald-500/20 text-emerald-300' :
+                              technicalVisit.technicalEvaluation === 'requiere_revision' ? 'bg-amber-500/20 text-amber-300' :
+                              'bg-red-500/20 text-red-300'
+                            }`}>
+                              {technicalVisit.technicalEvaluation === 'viable' ? 'Viable' :
+                               technicalVisit.technicalEvaluation === 'requiere_revision' ? 'Requiere revisión' :
+                               'Requiere visita adicional'}
+                            </span>
+                          </div>
+                        )}
+                        {technicalVisit.criticalObservations && (
+                          <div>
+                            <p className="text-xs text-amber-400 font-semibold mb-1">⚠ Observaciones críticas</p>
+                            <p className="text-xs text-gray-300 bg-amber-500/10 rounded p-2">{technicalVisit.criticalObservations}</p>
+                          </div>
+                        )}
+                        {technicalVisit.notes && (
+                          <div>
+                            <p className="text-xs text-gray-400 mb-1">Notas del medidor</p>
+                            <p className="text-xs text-gray-300 bg-white/[0.04] rounded p-2">{technicalVisit.notes}</p>
+                          </div>
+                        )}
+                        {technicalVisit.photos && (technicalVisit.photos as any[]).length > 0 && (
+                          <div>
+                            <p className="text-xs text-gray-400 mb-1">Fotos del sitio ({(technicalVisit.photos as any[]).length})</p>
+                            <div className="grid grid-cols-3 gap-2">
+                              {(technicalVisit.photos as any[]).map((photo: any) => (
+                                <a key={photo.id} href={photo.url} target="_blank" rel="noopener noreferrer">
+                                  <img src={photo.url} alt={photo.category} className="rounded-lg object-cover w-full h-20 hover:opacity-80 transition-opacity" />
+                                </a>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {technicalVisit.pdfs && (technicalVisit.pdfs as any[]).length > 0 && (
+                          <div>
+                            <p className="text-xs text-gray-400 mb-1">Planos GoodNotes</p>
+                            <div className="space-y-2">
+                              {(technicalVisit.pdfs as any[]).map((pdf: any) => (
+                                <a key={pdf.id} href={pdf.url} target="_blank" rel="noopener noreferrer"
+                                  className="flex items-center gap-2 bg-white/[0.04] rounded-lg p-2 hover:bg-white/[0.08] transition-colors">
+                                  <span className="text-red-400 text-lg">📄</span>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-xs text-white truncate">{pdf.fileName}</p>
+                                    {pdf.savedPercent > 0 && (
+                                      <p className="text-[10px] text-emerald-400">Comprimido {pdf.savedPercent}%</p>
+                                    )}
+                                  </div>
+                                </a>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {user?.role === "disenador" && (
+                          <div className="pt-2">
+                            <button
+                              onClick={() => navigate("/levantamientos")}
+                              className="flex items-center gap-2 text-xs text-teal-400 hover:text-teal-300 bg-teal-500/10 hover:bg-teal-500/20 px-3 py-1.5 rounded-lg transition-colors w-full justify-center"
+                            >
+                              <ArrowRight className="h-3.5 w-3.5" />
+                              Ver levantamiento completo
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {category !== "medidas" && subcategories.map((subcategory) => {
                       const photos = projectDetail.photos?.filter(
                         (p: any) => p.category === category && p.subcategory === subcategory
                       ) || [];
                       return (
                         <div key={subcategory} className="border rounded-lg p-3">
                           <div className="flex items-center justify-between mb-2">
-                            <h5 className="font-semibold text-base text-emerald-700 flex items-center gap-2">
+                            <h5 className="font-semibold text-base text-emerald-300 flex items-center gap-2">
                               <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
                               {subcategoryLabels[subcategory] || subcategory}
-                              <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${photos.length > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
+                              <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${photos.length > 0 ? 'bg-emerald-500/15 text-emerald-300' : 'bg-white/[0.06] text-gray-500'}`}>
                                 {photos.length} {photos.length === 1 ? 'foto' : 'fotos'}
                               </span>
                             </h5>
@@ -1714,9 +1579,9 @@ export default function ProjectDetail() {
                                     )}
                                   >
                                     {photo.photoUrl?.toLowerCase().endsWith('.pdf') || photo.photoUrl?.includes('application/pdf') ? (
-                                      <div className="w-full h-full bg-red-50 flex flex-col items-center justify-center">
+                                      <div className="w-full h-full bg-red-500/10 flex flex-col items-center justify-center">
                                         <FileText className="h-10 w-10 text-red-500" />
-                                        <span className="text-xs text-red-600 mt-1 font-medium">PDF</span>
+                                        <span className="text-xs text-red-400 mt-1 font-medium">PDF</span>
                                       </div>
                                     ) : (
                                       <img
@@ -1731,9 +1596,9 @@ export default function ProjectDetail() {
                                     <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                       <ZoomIn className="h-6 w-6 text-white" />
                                     </div>
-                                    {/* Botón eliminar - admin/comercial pueden eliminar cualquiera, colaboradores solo sus propias fotos */}
-                                    {(user?.role === "super_admin" || user?.role === "admin" || user?.role === "comercial" || 
-                                      ((user?.role === "jefe_taller" || user?.role === "operario" || user?.role === "disenador") && photo.uploadedBy === user?.id)) && (
+                                    {/* Botón eliminar — solo admin/comercial/diseñador en pre-producción; jefe/operario solo ven */}
+                                    {(user?.role === "super_admin" || user?.role === "admin" ||
+                                      user?.role === "comercial" || user?.role === "disenador") && (
                                       <button
                                         className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 opacity-100 xl:opacity-0 xl:group-hover:opacity-100 transition-opacity z-10 shadow-md"
                                         onClick={(e) => {
@@ -1762,18 +1627,19 @@ export default function ProjectDetail() {
                                     Avanzar a {photoToNextStatus[subcategory] === "corte" ? "Corte" :
                                                photoToNextStatus[subcategory] === "enchape" ? "Enchape" :
                                                photoToNextStatus[subcategory] === "ensamble" ? "Ensamble" :
-                                               photoToNextStatus[subcategory] === "listo_instalacion" ? "En Instalación" :
+                                               photoToNextStatus[subcategory] === "listo_instalacion" ? "Listo Instalación" :
+                                               photoToNextStatus[subcategory] === "trabajando_instalacion" ? "Instalando" :
                                                photoToNextStatus[subcategory] === "entregado" ? "Entregado" : "Siguiente Etapa"}
                                   </Button>
                                   {canSendSectionNotification() && (
                                     <Button
                                       size="sm"
                                       variant="outline"
-                                      disabled={sendSectionNotification.isPending}
-                                      onClick={() => handleSendSectionNotification(subcategory)}
+                                      disabled={notifyStageAdvanceFromDetail.isPending}
+                                      onClick={() => handleNotifyViaWhatsApp(subcategory)}
                                       className="w-full sm:w-auto mt-2 text-xs sm:text-sm"
                                     >
-                                      {sendSectionNotification.isPending ? "Enviando..." : "📲 Notificar al cliente"}
+                                      {notifyStageAdvanceFromDetail.isPending ? "Enviando..." : "📲 Enviar a cliente por WhatsApp"}
                                     </Button>
                                   )}
                                 </div>
@@ -1781,7 +1647,7 @@ export default function ProjectDetail() {
                             </>
                           ) : (
                             <>
-                              <div className="flex flex-col items-center justify-center py-8 text-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+                              <div className="flex flex-col items-center justify-center py-8 text-center bg-white/[0.03] rounded-lg border-2 border-dashed border-white/[0.10]">
                                 <Camera className="h-10 w-10 text-gray-300 mb-2" />
                                 <p className="text-sm text-gray-400 font-medium">Sin fotos aún</p>
                                 {canUploadToFolder(subcategory) && (
@@ -1790,7 +1656,7 @@ export default function ProjectDetail() {
                               </div>
                               {/* Botón de avanzar etapa - siempre visible para roles permitidos */}
                               {canShowAdvanceButton(subcategory) && (
-                                <div className="mt-3 pt-3 border-t border-dashed border-amber-200">
+                                <div className="mt-3 pt-3 border-t border-dashed border-amber-500/25">
                                   <Button
                                     onClick={() => openAdvanceConfirmDialog(subcategory)}
                                     disabled={updateStatus.isPending}
@@ -1804,18 +1670,19 @@ export default function ProjectDetail() {
                                     Avanzar a {photoToNextStatus[subcategory] === "corte" ? "Corte" :
                                                photoToNextStatus[subcategory] === "enchape" ? "Enchape" :
                                                photoToNextStatus[subcategory] === "ensamble" ? "Ensamble" :
-                                               photoToNextStatus[subcategory] === "listo_instalacion" ? "En Instalación" :
+                                               photoToNextStatus[subcategory] === "listo_instalacion" ? "Listo Instalación" :
+                                               photoToNextStatus[subcategory] === "trabajando_instalacion" ? "Instalando" :
                                                photoToNextStatus[subcategory] === "entregado" ? "Entregado" : "Siguiente Etapa"}
                                   </Button>
                                   {canSendSectionNotification() && (
                                     <Button
                                       size="sm"
                                       variant="outline"
-                                      disabled={sendSectionNotification.isPending}
-                                      onClick={() => handleSendSectionNotification(subcategory)}
+                                      disabled={notifyStageAdvanceFromDetail.isPending}
+                                      onClick={() => handleNotifyViaWhatsApp(subcategory)}
                                       className="w-full sm:w-auto mt-2 text-xs sm:text-sm"
                                     >
-                                      {sendSectionNotification.isPending ? "Enviando..." : "📲 Notificar al cliente"}
+                                      {notifyStageAdvanceFromDetail.isPending ? "Enviando..." : "📲 Enviar a cliente por WhatsApp"}
                                     </Button>
                                   )}
                                 </div>
@@ -1832,7 +1699,7 @@ export default function ProjectDetail() {
 
             {/* Revisiones del cliente */}
             {projectDetail.clientRevisions && projectDetail.clientRevisions.length > 0 && (
-              <Card className="border-purple-300 bg-purple-50/50">
+              <Card className="border-purple-500/30 bg-purple-500/10/50">
                 <CardHeader className="py-3 bg-gradient-to-r from-purple-500 to-purple-600">
                   <CardTitle className="text-sm text-white flex items-center gap-2">
                     <MessageSquare className="h-4 w-4" />
@@ -1842,16 +1709,16 @@ export default function ProjectDetail() {
                 <CardContent className="pt-4">
                   <div className="space-y-3 max-h-96 overflow-y-auto">
                     {projectDetail.clientRevisions.map((revision: any, index: number) => (
-                      <div key={revision.id || index} className="p-3 bg-[#162828] rounded-lg border border-orange-200">
+                      <div key={revision.id || index} className="p-3 bg-[#162828] rounded-lg border border-orange-500/25">
                         <div className="flex items-center justify-between mb-2">
-                          <span className={`text-xs font-medium px-2 py-1 rounded ${revision.type === 'modelado_3d' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+                          <span className={`text-xs font-medium px-2 py-1 rounded ${revision.type === 'modelado_3d' ? 'bg-blue-500/15 text-blue-300' : 'bg-purple-500/15 text-purple-300'}`}>
                             {revision.type === 'modelado_3d' ? '📎 Modelado 3D' : '🎨 Renders'} - Rev. {revision.revisionNumber}
                           </span>
                           <span className="text-xs text-gray-500">
                             {revision.clientName}
                           </span>
                         </div>
-                        <p className="text-sm text-gray-700">{revision.changes}</p>
+                        <p className="text-sm text-muted-foreground">{revision.changes}</p>
                         <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
                           <Clock className="h-3 w-3" />
                           {new Date(revision.createdAt).toLocaleDateString('es-CO', { 
@@ -1871,7 +1738,7 @@ export default function ProjectDetail() {
             )}
             {/* Mostrar último cambio si no hay historial pero sí hay nota */}
             {(!projectDetail.clientRevisions || projectDetail.clientRevisions.length === 0) && projectDetail.clientApprovalNotes && (
-              <Card className="border-orange-300 bg-orange-50/50">
+              <Card className="border-orange-500/30 bg-orange-500/10/50">
                 <CardHeader className="py-3 bg-gradient-to-r from-orange-500 to-orange-600">
                   <CardTitle className="text-sm text-white flex items-center gap-2">
                     <MessageSquare className="h-4 w-4" />
@@ -1880,8 +1747,8 @@ export default function ProjectDetail() {
                 </CardHeader>
                 <CardContent className="pt-4">
                   <div className="space-y-3">
-                    <div className="p-3 bg-[#162828] rounded-lg border border-orange-200">
-                      <p className="text-sm text-gray-700">{projectDetail.clientApprovalNotes}</p>
+                    <div className="p-3 bg-[#162828] rounded-lg border border-orange-500/25">
+                      <p className="text-sm text-muted-foreground">{projectDetail.clientApprovalNotes}</p>
                       {projectDetail.changesRequestedAt && (
                         <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
                           <Clock className="h-3 w-3" />
@@ -1902,7 +1769,7 @@ export default function ProjectDetail() {
             )}
 
             <Card>
-              <CardHeader className="py-3 bg-orange-50 flex flex-row items-center justify-between">
+              <CardHeader className="py-3 bg-orange-500/10 flex flex-row items-center justify-between">
                 <CardTitle className="text-sm">Notas y Detalles del Proyecto</CardTitle>
                 {/* Solo Super Admin, Admin, Comercial y Diseñador pueden agregar detalles */}
                 {(user?.role === "super_admin" || user?.role === "admin" || user?.role === "comercial" || user?.role === "disenador") && (
@@ -1950,20 +1817,20 @@ export default function ProjectDetail() {
             {/* Fechas de instalación */}
             {(projectDetail.tentativeInstallDate || projectDetail.estimatedInstallDate) && (
               <Card>
-                <CardHeader className="py-3 bg-teal-50">
+                <CardHeader className="py-3 bg-teal-500/10">
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-teal-600" />
+                    <Calendar className="h-4 w-4 text-teal-400" />
                     Fechas de Instalación
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="text-sm space-y-2 pt-4">
                   {projectDetail.tentativeInstallDate && (
-                    <p className="text-red-600 font-medium">
+                    <p className="text-red-400 font-medium">
                       <strong>🔴 Fecha tentativa:</strong> {formatDate(projectDetail.tentativeInstallDate)}
                     </p>
                   )}
                   {projectDetail.estimatedInstallDate && projectDetail.isInstallDateOfficial && (
-                    <p className="text-green-600 font-medium">
+                    <p className="text-green-400 font-medium">
                       <strong>🟢 Fecha oficial:</strong> {formatDate(projectDetail.estimatedInstallDate)}
                     </p>
                   )}
@@ -1989,10 +1856,10 @@ export default function ProjectDetail() {
                       return (
                         <div key={subcategory} className="border rounded-lg p-3">
                           <div className="flex items-center justify-between mb-2">
-                            <h5 className="font-semibold text-sm text-teal-700 flex items-center gap-2">
+                            <h5 className="font-semibold text-sm text-teal-300 flex items-center gap-2">
                               <span className="w-2 h-2 bg-teal-500 rounded-full"></span>
                               {subcategoryLabels[subcategory] || subcategory}
-                              <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${photos.length > 0 ? 'bg-teal-100 text-teal-700' : 'bg-gray-100 text-gray-500'}`}>
+                              <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${photos.length > 0 ? 'bg-teal-500/15 text-teal-300' : 'bg-white/[0.06] text-gray-500'}`}>
                                 {photos.length} fotos
                               </span>
                             </h5>
@@ -2009,9 +1876,19 @@ export default function ProjectDetail() {
                           {photos.length > 0 ? (
                             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2">
                               {photos.map((photo: any, idx: number) => (
-                                <div key={photo.id} className="aspect-square rounded-md overflow-hidden cursor-pointer hover:opacity-80"
+                                <div key={photo.id} className="relative group aspect-square rounded-md overflow-hidden cursor-pointer hover:opacity-80"
                                   onClick={() => fileViewer.openViewer(photos.map((p: any) => ({ url: p.photoUrl, title: p.description || "Foto" })), idx)}>
                                   <img src={photo.photoUrl || ''} alt={photo.description || "Foto"} className="w-full h-full object-cover" />
+                                  {/* Botón eliminar — jefe/operario eliminan sus propias fotos en instalación */}
+                                  {(user?.role === "super_admin" || user?.role === "admin" ||
+                                    ((user?.role === "jefe_taller" || user?.role === "operario") && photo.uploadedBy === user?.id)) && (
+                                    <button
+                                      className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow-md"
+                                      onClick={(e) => { e.stopPropagation(); setPhotoToDelete({ id: photo.id, description: photo.description }); }}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </button>
+                                  )}
                                 </div>
                               ))}
                             </div>
@@ -2019,10 +1896,27 @@ export default function ProjectDetail() {
                             <p className="text-sm text-muted-foreground">Sin fotos en esta etapa</p>
                           )}
                           {canShowAdvanceButton(subcategory) && photoToCurrentStatus[subcategory]?.includes(projectDetail.status as string) && (
-                            <Button size="sm" onClick={() => openAdvanceConfirmDialog(subcategory)} disabled={updateStatus.isPending}
-                              className="w-full mt-3 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white font-semibold">
-                              {updateStatus.isPending ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <ArrowRight className="h-4 w-4 mr-2" />}
-                              Avanzar a entregado
+                            <div className="flex flex-col gap-2 mt-3">
+                              <Button size="sm" onClick={() => openAdvanceConfirmDialog(subcategory)} disabled={updateStatus.isPending}
+                                className="w-full bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white font-semibold">
+                                {updateStatus.isPending ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <ArrowRight className="h-4 w-4 mr-2" />}
+                                Avanzar a entregado
+                              </Button>
+                              {canSendSectionNotification() && (
+                                <Button size="sm" variant="outline" disabled={notifyStageAdvanceFromDetail.isPending}
+                                  onClick={() => handleNotifyViaWhatsApp(subcategory)}
+                                  className="w-full text-xs">
+                                  {notifyStageAdvanceFromDetail.isPending ? "Enviando..." : "📲 Enviar avance a cliente"}
+                                </Button>
+                              )}
+                            </div>
+                          )}
+                          {/* Botón de notificación siempre visible en instalación */}
+                          {canSendSectionNotification() && !photoToCurrentStatus[subcategory]?.includes(projectDetail.status as string) && (
+                            <Button size="sm" variant="outline" disabled={notifyStageAdvanceFromDetail.isPending}
+                              onClick={() => handleNotifyViaWhatsApp(subcategory)}
+                              className="w-full mt-2 text-xs">
+                              {notifyStageAdvanceFromDetail.isPending ? "Enviando..." : "📲 Enviar avance a cliente"}
                             </Button>
                           )}
                         </div>
@@ -2042,67 +1936,10 @@ export default function ProjectDetail() {
                 </CardContent>
               </Card>
             )}
-
-            {/* ── FIRMA DE ENTREGA: jefe de taller o admin cuando está en instalación ── */}
-            {(user?.role === "jefe_taller" || user?.role === "admin" || user?.role === "super_admin") &&
-              ["listo_instalacion","entregado"].includes(projectDetail.status as string) && (
-              <Card className="border-2 border-emerald-400">
-                <CardHeader className="py-3 bg-gradient-to-r from-emerald-600 to-teal-600">
-                  <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4" />
-                    Firma de Entrega del Cliente
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-4 space-y-4">
-                  {/* Verificar si ya hay firma guardada */}
-                  {(() => {
-                    const firma = (projectDetail.photos ?? []).find((p: any) => p.subcategory === "fotos_finales" && p.description?.includes("firma"));
-                    if (firma) {
-                      return (
-                        <div className="text-center space-y-2">
-                          <p className="text-sm text-emerald-700 font-medium">✅ Firma de entrega registrada</p>
-                          <img src={firma.photoUrl} alt="Firma" className="max-h-32 mx-auto border rounded-lg" />
-                        </div>
-                      );
-                    }
-                    if (!showDeliverySignature) {
-                      return (
-                        <div className="text-center space-y-3">
-                          <p className="text-sm text-gray-600">Captura la firma del cliente confirmando la entrega del proyecto.</p>
-                          <Button
-                            className="bg-emerald-600 hover:bg-emerald-700 text-white"
-                            onClick={() => setShowDeliverySignature(true)}
-                          >
-                            <CheckCircle2 className="h-4 w-4 mr-2" />
-                            Capturar Firma de Entrega
-                          </Button>
-                        </div>
-                      );
-                    }
-                    return (
-                      <DeliverySignaturePad
-                        onSave={(dataUrl) => {
-                          setUploadingSignature(true);
-                          uploadSignatureImg.mutate({
-                            fileName: `firma-entrega-${Date.now()}.png`,
-                            fileData: dataUrl,
-                            contentType: "image/png",
-                            projectId: projectDetail.id,
-                            stage: "final",
-                            category: "entrega",
-                          });
-                        }}
-                        onCancel={() => setShowDeliverySignature(false)}
-                        uploading={uploadingSignature}
-                      />
-                    );
-                  })()}
-                </CardContent>
-              </Card>
-            )}
           </TabsContent>
 
-          {/* Tab Historial */}
+          {/* Tab Historial — oculto para jefe_taller y operario */}
+          {user?.role !== "jefe_taller" && user?.role !== "operario" && (
           <TabsContent value="history" className="space-y-4">
             <Card>
               <CardHeader className="py-3 bg-gradient-to-r from-slate-600 to-slate-700">
@@ -2179,13 +2016,13 @@ export default function ProjectDetail() {
                             {/* Contenido */}
                             <div className="flex-1 bg-[#162828] border rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow">
                               <div className="flex items-start justify-between gap-2">
-                                <p className="text-sm font-semibold text-gray-800">{actionText}</p>
+                                <p className="text-sm font-semibold text-foreground">{actionText}</p>
                                 <span className="text-xs text-gray-400 whitespace-nowrap">
                                   {new Date(entry.createdAt).toLocaleDateString("es-CO", { day: '2-digit', month: 'short' })}
                                 </span>
                               </div>
                               {entry.notes && (
-                                <p className="text-sm text-gray-600 mt-1 bg-gray-50 rounded p-2 italic">
+                                <p className="text-sm text-muted-foreground mt-1 bg-white/[0.03] rounded p-2 italic">
                                   "{entry.notes}"
                                 </p>
                               )}
@@ -2216,13 +2053,14 @@ export default function ProjectDetail() {
               </CardContent>
             </Card>
           </TabsContent>
+          )}
 
           {/* Tab Postventa */}
           <TabsContent value="postventa" className="space-y-4">
             <Card>
-              <CardHeader className="py-3 bg-pink-50">
+              <CardHeader className="py-3 bg-pink-500/10">
                 <CardTitle className="text-sm flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-pink-600" />
+                  <CheckCircle2 className="h-4 w-4 text-pink-400" />
                   Seguimiento Postventa
                 </CardTitle>
               </CardHeader>
@@ -2283,12 +2121,24 @@ export default function ProjectDetail() {
               >
                 <SelectTrigger><SelectValue placeholder="Selecciona la categoría" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="cotizacion">Cotización</SelectItem>
-                  <SelectItem value="medidas">Medidas</SelectItem>
-                  <SelectItem value="disenos">Diseños</SelectItem>
-                  <SelectItem value="avance">Avance</SelectItem>
-                  <SelectItem value="instalacion">Instalación</SelectItem>
-                  <SelectItem value="entrega">Entrega</SelectItem>
+                  {["super_admin", "admin", "comercial", "disenador"].includes(user?.role || "") && (
+                    <SelectItem value="cotizacion">Cotización</SelectItem>
+                  )}
+                  {["super_admin", "admin", "comercial", "disenador"].includes(user?.role || "") && (
+                    <SelectItem value="medidas">Medidas</SelectItem>
+                  )}
+                  {["super_admin", "admin", "disenador"].includes(user?.role || "") && (
+                    <SelectItem value="disenos">Diseños</SelectItem>
+                  )}
+                  {["super_admin", "admin", "jefe_taller", "operario"].includes(user?.role || "") && (
+                    <SelectItem value="avance">Avance</SelectItem>
+                  )}
+                  {["super_admin", "admin", "jefe_taller", "operario"].includes(user?.role || "") && (
+                    <SelectItem value="instalacion">Instalación</SelectItem>
+                  )}
+                  {["super_admin", "admin", "jefe_taller", "operario"].includes(user?.role || "") && (
+                    <SelectItem value="entrega">Entrega</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -2545,7 +2395,8 @@ export default function ProjectDetail() {
                     {advanceConfirmDialog.nextStatus === "corte" ? "Corte" :
                      advanceConfirmDialog.nextStatus === "enchape" ? "Enchape" :
                      advanceConfirmDialog.nextStatus === "ensamble" ? "Ensamble" :
-                     advanceConfirmDialog.nextStatus === "listo_instalacion" ? "En Instalación" :
+                     advanceConfirmDialog.nextStatus === "listo_instalacion" ? "Listo para Instalación" :
+                     advanceConfirmDialog.nextStatus === "trabajando_instalacion" ? "Instalando" :
                      advanceConfirmDialog.nextStatus === "entregado" ? "Entregado" : "Siguiente Etapa"}
                   </strong>.
                   <br /><br />
@@ -2594,7 +2445,7 @@ export default function ProjectDetail() {
                 Esto es útil para proyectos pequeños que se fabrican directamente en el taller sin 
                 necesidad de diseño formal.
               </p>
-              <p className="text-amber-600 dark:text-amber-400 font-medium">
+              <p className="text-amber-400 font-medium">
                 ⚠️ Las secciones de diseño seguirán disponibles si deseas subir archivos después.
               </p>
             </AlertDialogDescription>

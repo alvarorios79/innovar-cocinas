@@ -1,0 +1,818 @@
+<title>Pizarra del Medidor</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Diseño: barra de herramientas arriba, hoja cuadriculada que ocupa el resto, línea de ayuda al pie.
+   La hoja siempre es papel blanco con cuadrícula azul, igual en tema claro u oscuro. */
+:root {
+  --bg: #eef1f4; --panel: #ffffff; --fg: #17222d; --muted: #56667a; --line: #cfd8e1;
+  --accent: #0b62c4; --accent-fg: #ffffff; --accent-soft: #dbeafb; --danger: #b3261e;
+  --paper: #ffffff; --grid-minor: #d6e4f2; --grid-major: #a9c4de;
+  --font-ui: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #10161c; --panel: #1a232c; --fg: #e6edf4; --muted: #9aaabb; --line: #2c3945;
+    --accent: #5aa9f2; --accent-fg: #071522; --accent-soft: #1c3450; --danger: #f2867e;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #10161c; --panel: #1a232c; --fg: #e6edf4; --muted: #9aaabb; --line: #2c3945;
+  --accent: #5aa9f2; --accent-fg: #071522; --accent-soft: #1c3450; --danger: #f2867e;
+  color-scheme: dark;
+}
+html, body { height: 100%; overscroll-behavior: none; }
+body {
+  background: var(--bg); color: var(--fg); font: 14px/1.35 var(--font-ui);
+  display: flex; flex-direction: column; gap: 8px; padding-block: 10px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+}
+.bar, .scalebar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.grp { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.grp.end { margin-left: auto; }
+.btn {
+  min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--line);
+  background: var(--panel); color: var(--fg); font: 500 14px var(--font-ui); cursor: pointer;
+  touch-action: manipulation;
+}
+.btn:hover:not(:disabled) { border-color: var(--accent); }
+.btn[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+.btn:disabled { opacity: .4; cursor: default; }
+.btn.danger { color: var(--danger); border-color: var(--danger); }
+.btn.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+.scalebar input[type="text"] {
+  height: 36px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--fg);
+  font: 500 14px var(--font-ui); padding: 0 10px; width: 210px; -webkit-user-select: text; user-select: text;
+}
+.scalebar input#who { width: 140px; }
+.btn.sm { min-height: 36px; padding: 0 12px; }
+.btn:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sw {
+  width: 44px; height: 44px; border-radius: 10px; border: 1px solid transparent; background: transparent;
+  display: grid; place-items: center; cursor: pointer; padding: 0;
+}
+.sw i { width: 26px; height: 26px; border-radius: 50%; background: var(--c); box-shadow: 0 0 0 1px var(--line); }
+.sw[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.sz { width: 44px; padding: 0; display: grid; place-items: center; }
+.sz i { width: var(--d); height: var(--d); border-radius: 50%; background: currentColor; }
+.scalebar { font-size: 13px; color: var(--muted); }
+.scalebar label { display: inline-flex; align-items: center; gap: 6px; }
+.scalebar input[type="number"], .scalebar select {
+  height: 36px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--fg);
+  font: 500 14px var(--font-num); padding: 0 8px;
+}
+.scalebar input[type="number"] { width: 78px; }
+.scalebar input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent); }
+.grow { flex: 1; }
+.num { font-family: var(--font-num); min-width: 3.4em; text-align: center; color: var(--fg); }
+#board {
+  position: relative; flex: 1; min-height: 240px; border: 1px solid var(--line); border-radius: 12px;
+  overflow: hidden; background: var(--paper);
+}
+#cv { display: block; width: 100%; height: 100%; touch-action: none; }
+#txt {
+  position: absolute; z-index: 3; min-width: 120px; padding: 2px 6px; border-radius: 6px;
+  border: 1.5px dashed var(--accent); background: rgba(255,255,255,.94); color: #111827;
+  font-family: var(--font-ui); font-weight: 600; outline: none; -webkit-user-select: text; user-select: text;
+}
+#txt.m { font-family: var(--font-num); text-align: center; transform: translate(-50%, -50%); width: 120px; }
+#hint { font-size: 13px; color: var(--muted); min-height: 1.35em; }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+
+<header class="bar" role="toolbar" aria-label="Herramientas de la pizarra">
+  <div class="grp" role="group" aria-label="Herramienta">
+    <button class="btn" data-tool="pen" aria-pressed="true">Lápiz</button>
+    <button class="btn" data-tool="line" aria-pressed="false">Recta</button>
+    <button class="btn" data-tool="measure" aria-pressed="false">Medir</button>
+    <button class="btn" data-tool="text" aria-pressed="false">Texto</button>
+    <button class="btn" data-tool="erase" aria-pressed="false">Borrar</button>
+    <button class="btn" data-tool="move" aria-pressed="false">Mover</button>
+    <button class="btn" data-tool="hand" aria-pressed="false">Mano</button>
+  </div>
+  <div class="grp" role="group" aria-label="Color">
+    <button class="sw" data-color="#111827" style="--c:#111827" aria-label="Negro" aria-pressed="true"><i></i></button>
+    <button class="sw" data-color="#d92d20" style="--c:#d92d20" aria-label="Rojo" aria-pressed="false"><i></i></button>
+    <button class="sw" data-color="#1769d1" style="--c:#1769d1" aria-label="Azul" aria-pressed="false"><i></i></button>
+    <button class="sw" data-color="#12805c" style="--c:#12805c" aria-label="Verde" aria-pressed="false"><i></i></button>
+    <button class="sw" data-color="#b54708" style="--c:#b54708" aria-label="Naranja" aria-pressed="false"><i></i></button>
+  </div>
+  <div class="grp" role="group" aria-label="Grosor">
+    <button class="btn sz" data-size="2" style="--d:4px" aria-label="Fino" aria-pressed="false"><i></i></button>
+    <button class="btn sz" data-size="4" style="--d:8px" aria-label="Medio" aria-pressed="true"><i></i></button>
+    <button class="btn sz" data-size="8" style="--d:14px" aria-label="Grueso" aria-pressed="false"><i></i></button>
+  </div>
+  <div class="grp" role="group" aria-label="Fotos">
+    <button class="btn" id="shoot">Tomar foto</button>
+    <button class="btn" id="gallery">Galería</button>
+    <button class="btn danger" id="delSel" hidden>Quitar selección</button>
+  </div>
+  <div class="grp end" role="group" aria-label="Edición">
+    <button class="btn primary" id="exportPdf" disabled>Exportar PDF</button>
+    <button class="btn" id="undo" disabled>Deshacer</button>
+    <button class="btn" id="redo" disabled>Rehacer</button>
+    <button class="btn danger" id="clear">Limpiar</button>
+  </div>
+</header>
+
+<div class="scalebar">
+  <label for="job">Cliente / trabajo <input id="job" type="text" maxlength="80" placeholder="Ej. Casa Pérez, cocina" autocomplete="off"></label>
+  <label for="who">Medidor <input id="who" type="text" maxlength="60" placeholder="Nombre" autocomplete="off"></label>
+</div>
+<div class="scalebar">
+  <label for="cell">1 cuadro =
+    <input id="cell" type="number" inputmode="decimal" min="0.01" step="0.05" value="0.5">
+    <select id="unit" aria-label="Unidad"><option value="m">m</option><option value="cm">cm</option></select>
+  </label>
+  <label><input type="checkbox" id="snap" checked> Rectas y medidas a la cuadrícula</label>
+  <label><input type="checkbox" id="holdOn" checked> Formas perfectas al mantener</label>
+  <label><input type="checkbox" id="finger"> Dibujar con el dedo</label>
+  <span class="grow"></span>
+  <button class="btn sm" id="zout" aria-label="Alejar">−</button>
+  <span class="num" id="zoomLbl">100%</span>
+  <button class="btn sm" id="zin" aria-label="Acercar">+</button>
+  <button class="btn sm" id="fit">Ajustar vista</button>
+</div>
+
+<main id="board">
+  <canvas id="cv" aria-label="Hoja de trabajo cuadriculada"></canvas>
+  <input id="txt" type="text" hidden autocomplete="off" autocapitalize="sentences" aria-label="Texto de la anotación">
+</main>
+<div id="hint" role="status"></div>
+
+<input type="file" id="fileCam" accept="image/*" capture="environment" hidden>
+<input type="file" id="fileGal" accept="image/*" multiple hidden>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const cv = $('#cv'), board = $('#board'), txt = $('#txt');
+let ctx = cv.getContext('2d');
+const hint = $('#hint'), zoomLbl = $('#zoomLbl'), delBtn = $('#delSel');
+const CELL = 40, MAJOR = 5, KEY = 'pizarra-medidor-v1';
+const TEXT_SIZES = { 2: 18, 4: 26, 8: 38 };
+const HINTS = {
+  pen: 'Lápiz: dibuja con el Apple Pencil o el mouse. Al terminar un trazo, mantén el lápiz quieto y se endereza en recta, rectángulo, triángulo o círculo. Un dedo mueve la hoja y dos dedos acercan.',
+  line: 'Recta: arrastra de un punto a otro para trazar una línea derecha. Se alinea sola cerca de 0°, 45° y 90°.',
+  measure: 'Medir: arrastra de un punto a otro. Al soltar, confirma la medida o escribe la real.',
+  text: 'Texto: toca la hoja donde quieras escribir y pulsa Enter.',
+  erase: 'Borrar: pasa sobre trazos, medidas o textos. Las fotos se quitan con Mover y «Quitar selección».',
+  move: 'Mover: arrastra cualquier elemento. En una foto seleccionada, la esquina inferior derecha cambia su tamaño.',
+  hand: 'Mano: arrastra para desplazar la hoja. Con dos dedos puedes acercar y alejar.'
+};
+const CURS = { pen: 'crosshair', line: 'crosshair', measure: 'crosshair', text: 'text', erase: 'cell', move: 'default', hand: 'grab' };
+
+let view = { x: 24, y: 24, k: 1 }, items = [], hist = [], redoS = [];
+let tool = 'pen', color = '#111827', size = 4, cellVal = 0.5, unit = 'm', snap = true, fingerDraw = false;
+let cur = null, sel = null, drag = null, nav = null, eraseRing = null, txtState = null;
+let penDown = false, lastPen = 0, dpr = 1, raf = 0, saveT = 0, confirmT = 0;
+let holdOn = true, holdT = 0, holdAnchor = null, holdShape = false;
+let job = '', who = '', DL = null, exporting = false, exportNum = null;
+let T = { accent: '#0b62c4', paper: '#fff', minor: '#d6e4f2', major: '#a9c4de', num: 'monospace', ui: 'sans-serif' };
+const ptrs = new Map(), imgs = new Map();
+
+/* ---------- utilidades ---------- */
+const uid = () => Math.random().toString(36).slice(2, 10);
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const fmt = n => n.toLocaleString('es', { maximumFractionDigits: 2 });
+const segDist = (px, py, ax, ay, bx, by) => {
+  const dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy;
+  let t = l2 ? ((px - ax) * dx + (py - ay) * dy) / l2 : 0; t = clamp(t, 0, 1);
+  return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
+};
+function readTheme() {
+  const cs = getComputedStyle(document.documentElement), g = n => cs.getPropertyValue(n).trim();
+  T = { accent: g('--accent'), paper: g('--paper'), minor: g('--grid-minor'), major: g('--grid-major'), num: g('--font-num'), ui: g('--font-ui') };
+  schedule();
+}
+function schedule() { if (!raf) raf = requestAnimationFrame(() => { raf = 0; draw(); }); }
+function measureLabel(a, b) {
+  const v = Math.hypot(b[0] - a[0], b[1] - a[1]) / CELL * cellVal;
+  return fmt(v) + ' ' + unit;
+}
+const toWorld = (sx, sy) => [(sx - view.x) / view.k, (sy - view.y) / view.k];
+function evPos(e) { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
+function snapPt(p) { return snap ? [Math.round(p[0] / CELL) * CELL, Math.round(p[1] / CELL) * CELL] : p; }
+function textFont(fs) { return `600 ${fs}px ${T.ui}`; }
+
+/* ---------- geometría de elementos ---------- */
+function bounds(it) {
+  if (it.t === 's') {
+    let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    for (const q of it.p) { x0 = Math.min(x0, q[0]); y0 = Math.min(y0, q[1]); x1 = Math.max(x1, q[0]); y1 = Math.max(y1, q[1]); }
+    const w = it.p[0][2]; return [x0 - w, y0 - w, x1 + w, y1 + w];
+  }
+  if (it.t === 'm') return [Math.min(it.a[0], it.b[0]) - 8, Math.min(it.a[1], it.b[1]) - 8, Math.max(it.a[0], it.b[0]) + 8, Math.max(it.a[1], it.b[1]) + 8];
+  if (it.t === 'l' || it.t === 'g') {
+    const xs = it.p.map(q => q[0]), ys = it.p.map(q => q[1]);
+    return [Math.min(...xs) - it.w, Math.min(...ys) - it.w, Math.max(...xs) + it.w, Math.max(...ys) + it.w];
+  }
+  if (it.t === 'e') return [it.x - it.rx - it.w, it.y - it.ry - it.w, it.x + it.rx + it.w, it.y + it.ry + it.w];
+  if (it.t === 't') { ctx.font = textFont(it.fs); const w = ctx.measureText(it.s).width; return [it.x - 4, it.y - it.fs, it.x + w + 4, it.y + it.fs * 0.3]; }
+  return [it.x, it.y, it.x + it.w, it.y + it.h];
+}
+function hit(it, x, y, tol) {
+  if (it.t === 's') {
+    const p = it.p;
+    if (p.length === 1) return Math.hypot(x - p[0][0], y - p[0][1]) <= tol + p[0][2] / 2;
+    for (let i = 1; i < p.length; i++) if (segDist(x, y, p[i - 1][0], p[i - 1][1], p[i][0], p[i][1]) <= tol + p[i][2] / 2) return true;
+    return false;
+  }
+  if (it.t === 'm') return segDist(x, y, it.a[0], it.a[1], it.b[0], it.b[1]) <= tol + 3;
+  if (it.t === 'l' || it.t === 'g') {
+    const p = it.p, n = it.t === 'g' ? p.length : p.length - 1;
+    for (let i = 0; i < n; i++) { const a = p[i], b = p[(i + 1) % p.length]; if (segDist(x, y, a[0], a[1], b[0], b[1]) <= tol + it.w / 2) return true; }
+    return false;
+  }
+  if (it.t === 'e') {
+    const nx = (x - it.x) / it.rx, ny = (y - it.y) / it.ry;
+    return Math.abs(Math.hypot(nx, ny) - 1) * Math.min(it.rx, it.ry) <= tol + it.w / 2;
+  }
+  const b = bounds(it); return x >= b[0] && x <= b[2] && y >= b[1] && y <= b[3];
+}
+function moved(it, dx, dy) {
+  if (it.t === 's') return { ...it, p: it.p.map(q => [q[0] + dx, q[1] + dy, q[2]]) };
+  if (it.t === 'm') return { ...it, a: [it.a[0] + dx, it.a[1] + dy], b: [it.b[0] + dx, it.b[1] + dy] };
+  if (it.t === 'l' || it.t === 'g') return { ...it, p: it.p.map(q => [q[0] + dx, q[1] + dy]) };
+  return { ...it, x: it.x + dx, y: it.y + dy };
+}
+
+/* ---------- dibujo ---------- */
+function resize() {
+  dpr = Math.max(1, window.devicePixelRatio || 1);
+  const w = board.clientWidth, h = board.clientHeight;
+  cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+  schedule();
+}
+function drawGrid(w, h) {
+  const step = CELL * view.k;
+  const x0 = Math.floor(-view.x / view.k / CELL), x1 = Math.ceil((w - view.x) / view.k / CELL);
+  const y0 = Math.floor(-view.y / view.k / CELL), y1 = Math.ceil((h - view.y) / view.k / CELL);
+  ctx.lineWidth = 1;
+  for (const major of [false, true]) {
+    if (!major && step < 9) continue;
+    ctx.strokeStyle = major ? T.major : T.minor; ctx.beginPath();
+    for (let i = x0; i <= x1; i++) { if ((i % MAJOR === 0) !== major) continue; const sx = Math.round(i * step + view.x) + .5; ctx.moveTo(sx, 0); ctx.lineTo(sx, h); }
+    for (let j = y0; j <= y1; j++) { if ((j % MAJOR === 0) !== major) continue; const sy = Math.round(j * step + view.y) + .5; ctx.moveTo(0, sy); ctx.lineTo(w, sy); }
+    ctx.stroke();
+  }
+}
+function drawStroke(s) {
+  const p = s.p; ctx.strokeStyle = s.c; ctx.fillStyle = s.c; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  if (p.length === 1) { ctx.beginPath(); ctx.arc(p[0][0], p[0][1], p[0][2] / 2, 0, 7); ctx.fill(); return; }
+  if (p.length === 2) { ctx.lineWidth = (p[0][2] + p[1][2]) / 2; ctx.beginPath(); ctx.moveTo(p[0][0], p[0][1]); ctx.lineTo(p[1][0], p[1][1]); ctx.stroke(); return; }
+  let prev = [p[0][0], p[0][1]];
+  for (let i = 1; i < p.length - 1; i++) {
+    const mid = [(p[i][0] + p[i + 1][0]) / 2, (p[i][1] + p[i + 1][1]) / 2];
+    ctx.lineWidth = (p[i][2] + p[i + 1][2]) / 2; ctx.beginPath(); ctx.moveTo(prev[0], prev[1]);
+    ctx.quadraticCurveTo(p[i][0], p[i][1], mid[0], mid[1]); ctx.stroke(); prev = mid;
+  }
+  const l = p[p.length - 1]; ctx.lineWidth = l[2]; ctx.beginPath(); ctx.moveTo(prev[0], prev[1]); ctx.lineTo(l[0], l[1]); ctx.stroke();
+}
+function pill(x, y, w, h, r) {
+  ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+function drawMeasure(m) {
+  const [ax, ay] = m.a, [bx, by] = m.b, k = view.k;
+  ctx.strokeStyle = m.c; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
+  const ang = Math.atan2(by - ay, bx - ax), nx = -Math.sin(ang) * 8, ny = Math.cos(ang) * 8;
+  ctx.beginPath(); ctx.moveTo(ax - nx, ay - ny); ctx.lineTo(ax + nx, ay + ny); ctx.moveTo(bx - nx, by - ny); ctx.lineTo(bx + nx, by + ny); ctx.stroke();
+  const fs = 13 / k; ctx.font = `500 ${fs}px ${T.num}`;
+  const label = exportNum && exportNum.has(m) ? exportNum.get(m) + ' · ' + m.label : m.label;
+  const tw = ctx.measureText(label).width, ph = fs * 1.7, pw = tw + fs, cx = (ax + bx) / 2, cy = (ay + by) / 2;
+  pill(cx - pw / 2, cy - ph / 2, pw, ph, ph / 2);
+  ctx.fillStyle = 'rgba(255,255,255,.93)'; ctx.fill(); ctx.strokeStyle = m.c; ctx.lineWidth = 1.2 / k; ctx.stroke();
+  ctx.fillStyle = '#111827'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(label, cx, cy + fs * 0.05);
+  ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';
+}
+function drawPhoto(p) {
+  if (!p.src) { ctx.fillStyle = '#e5e7eb'; ctx.fillRect(p.x, p.y, p.w, p.h); return; } // cargando desde IndexedDB
+  let im = imgs.get(p.id);
+  if (!im) { im = new Image(); im.onload = schedule; im.src = p.src; imgs.set(p.id, im); }
+  if (im.complete && im.naturalWidth) ctx.drawImage(im, p.x, p.y, p.w, p.h);
+  else { ctx.fillStyle = '#e5e7eb'; ctx.fillRect(p.x, p.y, p.w, p.h); }
+  ctx.strokeStyle = 'rgba(0,0,0,.28)'; ctx.lineWidth = 1 / view.k; ctx.strokeRect(p.x, p.y, p.w, p.h);
+}
+function drawShape(it) {
+  ctx.strokeStyle = it.c; ctx.lineWidth = it.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.beginPath();
+  if (it.t === 'e') ctx.ellipse(it.x, it.y, it.rx, it.ry, 0, 0, Math.PI * 2);
+  else { it.p.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); if (it.t === 'g') ctx.closePath(); }
+  ctx.stroke();
+}
+function drawItem(it) {
+  if (it.t === 'l' || it.t === 'g' || it.t === 'e') drawShape(it);
+  else if (it.t === 's') drawStroke(it);
+  else if (it.t === 'm') drawMeasure(it);
+  else if (it.t === 't') { ctx.font = textFont(it.fs); ctx.fillStyle = it.c; ctx.fillText(it.s, it.x, it.y); }
+  else if (it.t === 'p') drawPhoto(it);
+}
+function draw() {
+  const w = board.clientWidth, h = board.clientHeight;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.fillStyle = T.paper; ctx.fillRect(0, 0, w, h);
+  drawGrid(w, h);
+  ctx.setTransform(dpr * view.k, 0, 0, dpr * view.k, dpr * view.x, dpr * view.y);
+  for (const it of items) drawItem(it);
+  if (cur) drawItem(cur);
+  if (sel && tool === 'move') {
+    const b = bounds(sel), k = view.k;
+    ctx.save(); ctx.strokeStyle = T.accent; ctx.lineWidth = 1.5 / k; ctx.setLineDash([6 / k, 4 / k]);
+    ctx.strokeRect(b[0], b[1], b[2] - b[0], b[3] - b[1]); ctx.restore();
+    if (sel.t === 'p') { const s = 14 / k; ctx.fillStyle = T.accent; ctx.fillRect(b[2] - s / 2, b[3] - s / 2, s, s); }
+  }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  if (eraseRing) { ctx.strokeStyle = T.accent; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(eraseRing[0], eraseRing[1], 14, 0, 7); ctx.stroke(); }
+  zoomLbl.textContent = Math.round(view.k * 100) + '%';
+}
+
+/* ---------- fotos en IndexedDB (localStorage solo admite ~5 MB) ---------- */
+const persisted = new Set(), pendingLoads = [];
+const IDB = (() => {
+  let dbp = null;
+  const open = () => dbp || (dbp = new Promise((res, rej) => {
+    try { const r = indexedDB.open('pizarra-medidor', 1); r.onupgradeneeded = () => r.result.createObjectStore('photos'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }
+    catch (e) { rej(e); }
+  }));
+  const tx = (mode, fn) => open().then(db => new Promise((res, rej) => {
+    const t = db.transaction('photos', mode), rq = fn(t.objectStore('photos'));
+    t.oncomplete = () => res(rq && rq.result); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error);
+  }));
+  return { put: (id, v) => tx('readwrite', s => s.put(v, id)), get: id => tx('readonly', s => s.get(id)) };
+})();
+function restorePhotos() {
+  for (const p of items) {
+    if (p.t !== 'p') continue;
+    if (p.src) { if (!persisted.has(p.id)) IDB.put(p.id, p.src).then(() => { persisted.add(p.id); save(); }).catch(() => {}); continue; }
+    persisted.add(p.id);
+    pendingLoads.push(IDB.get(p.id).then(src => { if (src) { p.src = src; imgs.delete(p.id); schedule(); } }).catch(() => {}));
+  }
+}
+
+/* ---------- historial y guardado ---------- */
+function pushHist() { hist.push(items); if (hist.length > 100) hist.shift(); redoS = []; syncBtns(); }
+function syncBtns() { $('#undo').disabled = !hist.length; $('#redo').disabled = !redoS.length; delBtn.hidden = !(tool === 'move' && sel); }
+function undo() { commitText(true); if (!hist.length) return; redoS.push(items); items = hist.pop(); sel = null; syncBtns(); save(); schedule(); }
+function redo() { commitText(true); if (!redoS.length) return; hist.push(items); items = redoS.pop(); sel = null; syncBtns(); save(); schedule(); }
+function save() {
+  clearTimeout(saveT);
+  saveT = setTimeout(() => {
+    const slim = items.map(i => (i.t === 'p' && persisted.has(i.id)) ? { ...i, src: null } : i); // la foto vive en IndexedDB
+    try { localStorage.setItem(KEY, JSON.stringify({ items: slim, view, cellVal, unit, snap, fingerDraw, holdOn, color, size, job, who })); }
+    catch (e) { hint.textContent = 'No se pudo guardar en este navegador. Exporta el PDF para no perder el trabajo.'; }
+  }, 700);
+}
+function load() {
+  try {
+    const d = JSON.parse(localStorage.getItem(KEY) || 'null');
+    if (d && Array.isArray(d.items)) {
+      items = d.items; view = d.view || view; cellVal = d.cellVal || 0.5; unit = d.unit || 'm';
+      snap = d.snap !== false; fingerDraw = !!d.fingerDraw; holdOn = d.holdOn !== false; job = d.job || ''; who = d.who || ''; color = d.color || color; size = d.size || size; return true;
+    }
+  } catch (e) { /* sin almacenamiento: se muestra el ejemplo */ }
+  return false;
+}
+function seedExample() {
+  const A = [120, 100], B = [520, 100], C = [520, 380], D = [120, 380], c = '#1769d1';
+  items = [[A, B], [B, C], [C, D], [D, A]].map(([a, b]) => ({ t: 'm', a, b, c, label: measureLabel(a, b) }));
+  items.push({ t: 't', x: 132, y: 452, s: 'Ejemplo: sala de 5 × 3,5 m. Pulsa «Limpiar» para empezar en blanco.', c: '#475467', fs: 18 });
+}
+
+/* ---------- texto y etiquetas ---------- */
+function openInput(mode, sx, sy, preset, extra) {
+  commitText(true);
+  txtState = { mode, ...extra };
+  txt.className = mode === 'measure' ? 'm' : '';
+  txt.value = preset || '';
+  if (mode === 'text') { const fs = TEXT_SIZES[size] * view.k; txt.style.fontSize = fs + 'px'; txt.style.left = sx + 'px'; txt.style.top = sy + 'px'; }
+  else { txt.style.fontSize = '15px'; txt.style.left = sx + 'px'; txt.style.top = sy + 'px'; }
+  txt.hidden = false; txt.focus(); txt.select();
+}
+function commitText(cancel) {
+  if (!txtState) return;
+  const st = txtState; txtState = null;
+  const v = txt.value.trim(); txt.hidden = true;
+  if (st.mode === 'text') {
+    if (cancel || !v) { schedule(); return; }
+    const fs = TEXT_SIZES[size]; pushHist();
+    items = [...items, { t: 't', x: st.w[0], y: st.w[1] + fs * 0.95, s: v, c: color, fs }];
+  } else {
+    const typed = cancel ? '' : (/^[\d.,]+$/.test(v) ? v + ' ' + unit : v);
+    pushHist(); items = [...items, { ...st.m, label: typed || st.m.label }];
+  }
+  save(); schedule();
+}
+txt.addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); commitText(false); }
+  else if (e.key === 'Escape') { e.preventDefault(); commitText(true); }
+  e.stopPropagation();
+});
+txt.addEventListener('blur', () => commitText(false));
+
+/* ---------- navegación (mover y acercar la hoja) ---------- */
+function centroid() { const ps = [...ptrs.values()]; return [ps.reduce((s, p) => s + p.x, 0) / ps.length, ps.reduce((s, p) => s + p.y, 0) / ps.length]; }
+function spread() { const ps = [...ptrs.values()]; return ps.length > 1 ? Math.hypot(ps[0].x - ps[1].x, ps[0].y - ps[1].y) : 0; }
+function rebase() { const c = centroid(); nav = { d: spread(), k0: view.k, wx: (c[0] - view.x) / view.k, wy: (c[1] - view.y) / view.k }; }
+function navMove() {
+  const c = centroid(), d = spread();
+  if (nav.d > 0 && d > 0) view.k = clamp(nav.k0 * d / nav.d, 0.2, 4);
+  view.x = c[0] - nav.wx * view.k; view.y = c[1] - nav.wy * view.k; schedule();
+}
+function zoomAt(sx, sy, f) {
+  const nk = clamp(view.k * f, 0.2, 4), wx = (sx - view.x) / view.k, wy = (sy - view.y) / view.k;
+  view.k = nk; view.x = sx - wx * nk; view.y = sy - wy * nk; schedule(); save();
+}
+
+/* ---------- formas perfectas (mantener el lápiz quieto) ---------- */
+function rdp(pts, eps) {
+  if (pts.length < 3) return pts;
+  const a = pts[0], b = pts[pts.length - 1]; let dmax = 0, idx = 0;
+  for (let i = 1; i < pts.length - 1; i++) { const d = segDist(pts[i][0], pts[i][1], a[0], a[1], b[0], b[1]); if (d > dmax) { dmax = d; idx = i; } }
+  if (dmax <= eps) return [a, b];
+  return rdp(pts.slice(0, idx + 1), eps).slice(0, -1).concat(rdp(pts.slice(idx), eps));
+}
+// Alinea el extremo b con 0°, 45° o 90° respecto de a cuando está a menos de 5° de esos ángulos.
+function angleSnap(a, b) {
+  const dx = b[0] - a[0], dy = b[1] - a[1], len = Math.hypot(dx, dy); if (!len) return b;
+  const ang = Math.atan2(dy, dx), step = Math.PI / 4, near = Math.round(ang / step) * step;
+  if (Math.abs(ang - near) < 5 * Math.PI / 180) return [a[0] + Math.cos(near) * len, a[1] + Math.sin(near) * len];
+  return b;
+}
+function turnAt(p, i) {
+  const a = p[(i + p.length - 1) % p.length], b = p[i], c = p[(i + 1) % p.length];
+  const v1 = [b[0] - a[0], b[1] - a[1]], v2 = [c[0] - b[0], c[1] - b[1]];
+  return Math.abs(Math.atan2(v1[0] * v2[1] - v1[1] * v2[0], v1[0] * v2[0] + v1[1] * v2[1]));
+}
+function rectFrom(c) {
+  const e = i => [c[(i + 1) % 4][0] - c[i][0], c[(i + 1) % 4][1] - c[i][1]], L = v => Math.hypot(v[0], v[1]);
+  let th = Math.atan2(e(0)[1], e(0)[0]); const q = Math.PI / 2, nearAxis = Math.round(th / q) * q;
+  if (Math.abs(th - nearAxis) < 9 * Math.PI / 180) th = nearAxis;
+  const cx = c.reduce((s, p) => s + p[0], 0) / 4, cy = c.reduce((s, p) => s + p[1], 0) / 4;
+  let w = (L(e(0)) + L(e(2))) / 2, h = (L(e(1)) + L(e(3))) / 2;
+  if (Math.abs(w - h) / Math.max(w, h) < 0.14) w = h = (w + h) / 2;
+  const u = [Math.cos(th) * w / 2, Math.sin(th) * w / 2], v = [-Math.sin(th) * h / 2, Math.cos(th) * h / 2];
+  return [[cx - u[0] - v[0], cy - u[1] - v[1]], [cx + u[0] - v[0], cy + u[1] - v[1]], [cx + u[0] + v[0], cy + u[1] + v[1]], [cx - u[0] + v[0], cy - u[1] + v[1]]].map(p => [r2(p[0]), r2(p[1])]);
+}
+function recognize(stroke) {
+  const pts = stroke.p.map(q => [q[0], q[1]]); if (pts.length < 6) return null;
+  let len = 0; for (let i = 1; i < pts.length; i++) len += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+  if (len * view.k < 40) return null;
+  const w = stroke.p.reduce((s, q) => s + q[2], 0) / stroke.p.length, c = stroke.c;
+  const first = pts[0], last = pts[pts.length - 1];
+  const closed = Math.hypot(last[0] - first[0], last[1] - first[1]) < 0.22 * len;
+  if (!closed) {
+    if (rdp(pts, Math.max(6 / view.k, 0.04 * len)).length !== 2) return null;
+    return { t: 'l', c, w, p: [first.map(r2), angleSnap(first, last).map(r2)] };
+  }
+  const bb = bounds({ t: 's', p: stroke.p.map(q => [q[0], q[1], 0]) }), ex = (bb[0] + bb[2]) / 2, ey = (bb[1] + bb[3]) / 2;
+  let rx = (bb[2] - bb[0]) / 2, ry = (bb[3] - bb[1]) / 2;
+  const err = rx < 4 || ry < 4 ? 9 : pts.reduce((sum, q) => sum + Math.abs(Math.hypot((q[0] - ex) / rx, (q[1] - ey) / ry) - 1), 0) / pts.length;
+  const ellipse = () => {
+    if (Math.abs(rx - ry) / Math.max(rx, ry) < 0.15) rx = ry = (rx + ry) / 2;
+    return { t: 'e', c, w, x: r2(ex), y: r2(ey), rx: r2(rx), ry: r2(ry) };
+  };
+  if (err < 0.09) return ellipse(); // un cuadrado da ~0,15; un círculo a mano, menos de 0,09
+  let s = rdp(pts.concat([first]), Math.max(8 / view.k, 0.06 * len)).slice(0, -1);
+  if (s.length === 5) { let m = 0, mi = 1; for (let i = 1; i < 5; i++) { const t = turnAt(s, i); if (i === 1 || t < m) { m = t; mi = i; } } s.splice(mi, 1); }
+  if (s.length === 3) return { t: 'g', c, w, p: s.map(q => q.map(r2)) };
+  if (s.length === 4) {
+    const ok = s.every((_, i) => { const t = turnAt(s, i); return t > 65 * Math.PI / 180 && t < 115 * Math.PI / 180; });
+    return { t: 'g', c, w, p: ok ? rectFrom(s) : s.map(q => q.map(r2)) };
+  }
+  return err <= 0.16 ? ellipse() : null;
+}
+function armHold() {
+  clearTimeout(holdT);
+  if (!holdOn || tool !== 'pen' || !cur || cur.t !== 's' || holdShape) return;
+  holdT = setTimeout(() => { if (!cur || cur.t !== 's' || nav) return; const r = recognize(cur); if (r) { cur = r; holdShape = true; schedule(); } }, 550);
+}
+
+/* ---------- puntero ---------- */
+const widthFor = e => (e.pointerType === 'pen' && e.pressure > 0) ? Math.round(size * (0.45 + 1.1 * e.pressure) * 10) / 10 : size;
+const r2 = n => Math.round(n * 100) / 100;
+
+cv.addEventListener('pointerdown', e => {
+  e.preventDefault();
+  if (txtState) commitText(false);
+  const [sx, sy] = evPos(e);
+  if (e.pointerType === 'pen') { penDown = true; lastPen = performance.now(); }
+  if (e.pointerType === 'touch' && (penDown || performance.now() - lastPen < 700)) return; // palma apoyada
+  try { cv.setPointerCapture(e.pointerId); } catch (_) { /* sin captura */ }
+  ptrs.set(e.pointerId, { x: sx, y: sy, type: e.pointerType });
+  const touches = [...ptrs.values()].filter(p => p.type === 'touch').length;
+  const navTouch = e.pointerType === 'touch' && (!fingerDraw || touches >= 2);
+  if (navTouch || tool === 'hand') { cur = null; drag = null; eraseRing = null; rebase(); cv.style.cursor = 'grabbing'; return; }
+  if (nav) return;
+  beginTool(e, sx, sy);
+});
+function beginTool(e, sx, sy) {
+  const w = toWorld(sx, sy), tol = 14 / view.k;
+  if (tool === 'pen') { cur = { t: 's', c: color, p: [[r2(w[0]), r2(w[1]), widthFor(e)]] }; holdShape = false; holdAnchor = [sx, sy]; armHold(); }
+  else if (tool === 'line') { const a = snapPt(w); cur = { t: 'l', c: color, w: size, p: [a, a.slice()] }; }
+  else if (tool === 'measure') { const a = snapPt(w); cur = { t: 'm', a, b: a.slice(), c: color, label: '0 ' + unit }; }
+  else if (tool === 'text') openInput('text', sx, sy, '', { w });
+  else if (tool === 'erase') { drag = { erase: true, pushed: false }; eraseAt(w, sx, sy); }
+  else if (tool === 'move') {
+    if (sel && sel.t === 'p') {
+      const b = bounds(sel), hs = 22 / view.k;
+      if (Math.abs(w[0] - b[2]) < hs && Math.abs(w[1] - b[3]) < hs) { drag = { resize: true, base: items, orig: sel, sx: w[0], pushed: false }; return; }
+    }
+    let found = null;
+    for (let i = items.length - 1; i >= 0; i--) if (hit(items[i], w[0], w[1], tol)) { found = items[i]; break; }
+    sel = found; syncBtns();
+    if (found) drag = { base: items, orig: found, sx: w[0], sy: w[1], pushed: false };
+    schedule();
+  }
+}
+function eraseAt(w, sx, sy) {
+  eraseRing = [sx, sy]; const tol = 14 / view.k;
+  const keep = items.filter(it => it.t === 'p' || !hit(it, w[0], w[1], tol));
+  if (keep.length !== items.length) { if (!drag.pushed) { pushHist(); drag.pushed = true; } items = keep; save(); }
+  schedule();
+}
+cv.addEventListener('pointermove', e => {
+  const [sx, sy] = evPos(e);
+  const p = ptrs.get(e.pointerId);
+  if (!p) return;
+  p.x = sx; p.y = sy;
+  if (nav) { navMove(); return; }
+  const w = toWorld(sx, sy);
+  if (cur && tool === 'pen' && holdShape) {
+    if (cur.t === 'l') { cur.p = [cur.p[0], angleSnap(cur.p[0], w).map(r2)]; schedule(); } // la recta sigue al lápiz
+  } else if (cur && tool === 'pen') {
+    if (Math.hypot(sx - holdAnchor[0], sy - holdAnchor[1]) < 1.5) return;
+    const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+    for (const ev of (evs.length ? evs : [e])) {
+      const q = toWorld(...evPos(ev));
+      cur.p.push([r2(q[0]), r2(q[1]), widthFor(ev)]);
+    }
+    if (Math.hypot(sx - holdAnchor[0], sy - holdAnchor[1]) > 4) { holdAnchor = [sx, sy]; armHold(); }
+    schedule();
+  } else if (cur && tool === 'line') {
+    const b = snap ? snapPt(w) : angleSnap(cur.p[0], w); cur.p = [cur.p[0], b.map(r2)]; schedule();
+  } else if (cur && tool === 'measure') {
+    cur.b = snapPt(w); cur.label = measureLabel(cur.a, cur.b); schedule();
+  } else if (drag && drag.erase) eraseAt(w, sx, sy);
+  else if (drag && tool === 'move') {
+    if (drag.resize) {
+      const o = drag.orig, nw = Math.max(60, o.w + (w[0] - drag.sx)), n = { ...o, w: nw, h: nw * (o.h / o.w) };
+      if (!drag.pushed) { items = drag.base; pushHist(); drag.pushed = true; }
+      items = drag.base.map(i => i === o ? n : i); sel = n;
+    } else {
+      const dx = w[0] - drag.sx, dy = w[1] - drag.sy;
+      if (!drag.pushed && Math.hypot(dx, dy) * view.k < 3) return;
+      if (!drag.pushed) { items = drag.base; pushHist(); drag.pushed = true; }
+      const n = moved(drag.orig, dx, dy); items = drag.base.map(i => i === drag.orig ? n : i); sel = n;
+    }
+    schedule();
+  }
+});
+function endPointer(e, cancelled) {
+  if (e.pointerType === 'pen') { penDown = false; lastPen = performance.now(); }
+  if (!ptrs.has(e.pointerId)) return;
+  ptrs.delete(e.pointerId);
+  if (nav) {
+    if (ptrs.size === 0) { nav = null; cv.style.cursor = CURS[tool]; save(); } else rebase();
+    return;
+  }
+  clearTimeout(holdT); holdShape = false;
+  if (cur && !cancelled) {
+    if (tool === 'line' && Math.hypot(cur.p[1][0] - cur.p[0][0], cur.p[1][1] - cur.p[0][1]) * view.k < 6) cur = null;
+    if (cur && (tool === 'pen' || tool === 'line')) { pushHist(); items = [...items, cur]; cur = null; save(); }
+    else if (cur && tool === 'measure') {
+      const m = cur; cur = null;
+      if (Math.hypot(m.b[0] - m.a[0], m.b[1] - m.a[1]) * view.k >= 8) {
+        const mx = (m.a[0] + m.b[0]) / 2 * view.k + view.x, my = (m.a[1] + m.b[1]) / 2 * view.k + view.y;
+        openInput('measure', mx, my, m.label.replace(/ (m|cm)$/, ''), { m });
+      }
+    }
+  } else cur = null;
+  if (drag) { drag = null; save(); }
+  eraseRing = null; syncBtns(); schedule();
+}
+cv.addEventListener('pointerup', e => endPointer(e, false));
+cv.addEventListener('pointercancel', e => endPointer(e, true));
+cv.addEventListener('contextmenu', e => e.preventDefault());
+cv.addEventListener('wheel', e => {
+  e.preventDefault(); const [sx, sy] = evPos(e);
+  zoomAt(sx, sy, Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0015)));
+}, { passive: false });
+
+/* ---------- fotos ---------- */
+function loadPhoto(file) {
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file), im = new Image();
+    im.onload = () => {
+      const sc = Math.min(1, 1600 / Math.max(im.naturalWidth, im.naturalHeight)), c = document.createElement('canvas');
+      c.width = Math.round(im.naturalWidth * sc); c.height = Math.round(im.naturalHeight * sc);
+      c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+      res({ src: c.toDataURL('image/jpeg', 0.8), w: c.width, h: c.height });
+    };
+    im.onerror = () => { URL.revokeObjectURL(url); rej(new Error('imagen')); };
+    im.src = url;
+  });
+}
+async function addPhotos(files) {
+  let n = 0, last = null;
+  for (const f of files) {
+    try {
+      const ph = await loadPhoto(f), bw = board.clientWidth / view.k, bh = board.clientHeight / view.k;
+      let w = Math.min(520, bw * 0.6), h = w * ph.h / ph.w;
+      if (h > bh * 0.7) { h = bh * 0.7; w = h * ph.w / ph.h; }
+      const c = toWorld(board.clientWidth / 2, board.clientHeight / 2);
+      last = { t: 'p', id: uid(), src: ph.src, x: c[0] - w / 2 + n * 24, y: c[1] - h / 2 + n * 24, w, h };
+      try { await IDB.put(last.id, ph.src); persisted.add(last.id); } catch (_) { /* sin IndexedDB: se guarda en localStorage */ }
+      pushHist(); items = [...items, last]; n++;
+    } catch (_) { hint.textContent = 'No se pudo leer una de las imágenes.'; }
+  }
+  if (last) { setTool('move'); sel = last; syncBtns(); hint.textContent = 'Foto lista: arrástrala para ubicarla y usa la esquina para el tamaño. Luego elige Lápiz o Medir para anotar encima.'; save(); schedule(); }
+}
+$('#shoot').addEventListener('click', () => $('#fileCam').click());
+$('#gallery').addEventListener('click', () => $('#fileGal').click());
+for (const id of ['#fileCam', '#fileGal']) $(id).addEventListener('change', e => { addPhotos([...e.target.files]); e.target.value = ''; });
+delBtn.addEventListener('click', () => { if (!sel) return; pushHist(); items = items.filter(i => i !== sel); sel = null; syncBtns(); save(); schedule(); });
+
+/* ---------- controles ---------- */
+function setTool(t) {
+  commitText(true); tool = t; if (t !== 'move') sel = null;
+  $$('[data-tool]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tool === t)));
+  hint.textContent = HINTS[t]; cv.style.cursor = CURS[t]; syncBtns(); schedule();
+}
+$$('[data-tool]').forEach(b => b.addEventListener('click', () => setTool(b.dataset.tool)));
+function setColor(c) { color = c; $$('[data-color]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.color === c))); save(); }
+$$('[data-color]').forEach(b => b.addEventListener('click', () => setColor(b.dataset.color)));
+function setSize(s) { size = s; $$('[data-size]').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.size === s))); save(); }
+$$('[data-size]').forEach(b => b.addEventListener('click', () => setSize(+b.dataset.size)));
+$('#undo').addEventListener('click', undo); $('#redo').addEventListener('click', redo);
+$('#clear').addEventListener('click', e => {
+  const b = e.currentTarget;
+  if (!confirmT) { b.textContent = '¿Borrar todo? Toca otra vez'; confirmT = setTimeout(() => { confirmT = 0; b.textContent = 'Limpiar'; }, 3000); return; }
+  clearTimeout(confirmT); confirmT = 0; b.textContent = 'Limpiar';
+  commitText(true); pushHist(); items = []; sel = null; syncBtns(); save(); schedule();
+});
+$('#cell').addEventListener('input', e => { const v = parseFloat(String(e.target.value).replace(',', '.')); if (v > 0) { cellVal = v; save(); } });
+$('#unit').addEventListener('change', e => { unit = e.target.value; save(); });
+$('#snap').addEventListener('change', e => { snap = e.target.checked; save(); });
+$('#finger').addEventListener('change', e => { fingerDraw = e.target.checked; save(); });
+$('#holdOn').addEventListener('change', e => { holdOn = e.target.checked; save(); });
+$('#zin').addEventListener('click', () => zoomAt(board.clientWidth / 2, board.clientHeight / 2, 1.25));
+$('#zout').addEventListener('click', () => zoomAt(board.clientWidth / 2, board.clientHeight / 2, 0.8));
+$('#fit').addEventListener('click', () => {
+  if (!items.length) { view = { x: 24, y: 24, k: 1 }; save(); schedule(); return; }
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  for (const it of items) { const b = bounds(it); x0 = Math.min(x0, b[0]); y0 = Math.min(y0, b[1]); x1 = Math.max(x1, b[2]); y1 = Math.max(y1, b[3]); }
+  const w = board.clientWidth, h = board.clientHeight, m = 40;
+  const k = clamp(Math.min((w - 2 * m) / (x1 - x0 || 1), (h - 2 * m) / (y1 - y0 || 1)), 0.2, 2);
+  view = { k, x: (w - (x1 - x0) * k) / 2 - x0 * k, y: (h - (y1 - y0) * k) / 2 - y0 * k }; save(); schedule();
+});
+document.addEventListener('keydown', e => {
+  if (txtState || (e.target && /^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName))) return;
+  const mod = e.metaKey || e.ctrlKey;
+  if (mod && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); }
+  else if ((e.key === 'Delete' || e.key === 'Backspace') && sel && tool === 'move') delBtn.click();
+});
+
+/* ---------- exportar a PDF ---------- */
+const MB = 1048576;
+const slug = s => (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+const ensureImg = p => new Promise(res => {
+  let im = imgs.get(p.id);
+  if (!im) { im = new Image(); imgs.set(p.id, im); im.src = p.src; }
+  if (im.complete && im.naturalWidth) return res();
+  im.addEventListener('load', () => res(), { once: true }); im.addEventListener('error', () => res(), { once: true });
+});
+function contentBounds() {
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  for (const it of items) { const b = bounds(it); x0 = Math.min(x0, b[0]); y0 = Math.min(y0, b[1]); x1 = Math.max(x1, b[2]); y1 = Math.max(y1, b[3]); }
+  x0 = Math.floor((x0 - CELL) / CELL) * CELL; y0 = Math.floor((y0 - CELL) / CELL) * CELL;
+  x1 = Math.ceil((x1 + CELL) / CELL) * CELL; y1 = Math.ceil((y1 + CELL) / CELL) * CELL;
+  if (x1 - x0 < CELL * 8) x1 = x0 + CELL * 8;
+  if (y1 - y0 < CELL * 6) y1 = y0 + CELL * 6;
+  return [x0, y0, x1, y1];
+}
+function drawGridWorld(b, s) {
+  for (const major of [false, true]) {
+    ctx.strokeStyle = major ? T.major : T.minor; ctx.lineWidth = (major ? 1.8 : 1.2) / s; ctx.beginPath();
+    for (let i = Math.ceil(b[0] / CELL); i * CELL <= b[2]; i++) { if ((i % MAJOR === 0) !== major) continue; ctx.moveTo(i * CELL, b[1]); ctx.lineTo(i * CELL, b[3]); }
+    for (let j = Math.ceil(b[1] / CELL); j * CELL <= b[3]; j++) { if ((j % MAJOR === 0) !== major) continue; ctx.moveTo(b[0], j * CELL); ctx.lineTo(b[2], j * CELL); }
+    ctx.stroke();
+  }
+}
+function renderBoard(b, pxW) {
+  const W = b[2] - b[0], H = b[3] - b[1], s = pxW / W, c = document.createElement('canvas');
+  c.width = Math.round(pxW); c.height = Math.round(H * s);
+  const prevCtx = ctx, prevView = view;
+  try {
+    ctx = c.getContext('2d'); view = { x: 0, y: 0, k: Math.min(1, 1100 / W) }; // el rótulo de cada medida conserva un tamaño legible
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, c.width, c.height);
+    ctx.setTransform(s, 0, 0, s, -b[0] * s, -b[1] * s);
+    drawGridWorld(b, s);
+    for (const it of items) drawItem(it);
+  } finally { ctx = prevCtx; view = prevView; }
+  return c;
+}
+async function buildPdf() {
+  const { jsPDF } = window.jspdf;
+  await Promise.all(pendingLoads);
+  await Promise.all(items.filter(i => i.t === 'p' && i.src).map(ensureImg));
+  exportNum = new Map(); let n = 0; for (const it of items) if (it.t === 'm') exportNum.set(it, ++n);
+  const b = contentBounds(), W = b[2] - b[0], H = b[3] - b[1], land = W >= H;
+  const pw = land ? 841.89 : 595.28, ph = land ? 595.28 : 841.89, M = 28, headH = 50;
+  const aw = pw - 2 * M, ah = ph - 2 * M - headH - 14;
+  let iw = aw, ih = iw * H / W; if (ih > ah) { ih = ah; iw = ih * W / H; }
+  // Escalera de calidad: de la mejor a la más liviana; cada peldaño acepta un tamaño máximo (MB) para la imagen.
+  const ladder = [[300, 0.9, 2.4], [300, 0.85, 2.4], [250, 0.9, 2.4], [250, 0.85, 2.3], [220, 0.85, 2.2], [200, 0.82, 2.0], [180, 0.8, 2.0], [150, 0.75, 2.0]];
+  let canvas = null, canvasDpi = 0, pick = null;
+  for (const [dpi, q, lim] of ladder) {
+    if ((iw * dpi / 72) * (ih * dpi / 72) > 12e6) continue; // límite de memoria de lienzo en tablets
+    if (canvasDpi !== dpi) { canvas = renderBoard(b, Math.round(iw * dpi / 72)); canvasDpi = dpi; await new Promise(r => setTimeout(r, 0)); }
+    const url = canvas.toDataURL('image/jpeg', q), bytes = Math.round((url.length - 23) * 0.75);
+    pick = { url, bytes, dpi, q }; if (bytes <= lim * MB) break;
+  }
+  const when = new Date().toLocaleString('es', { dateStyle: 'long', timeStyle: 'short' });
+  const scaleTxt = `1 cuadro = ${fmt(cellVal)} ${unit}`;
+  const doc = new jsPDF({ orientation: land ? 'l' : 'p', unit: 'pt', format: 'a4', compress: true });
+  doc.setProperties({ title: job || 'Levantamiento de medidas', subject: 'Levantamiento de medidas', author: who, creator: 'Pizarra del Medidor' });
+  doc.setTextColor(23, 34, 45); doc.setFont('helvetica', 'bold'); doc.setFontSize(15);
+  doc.text(job || 'Levantamiento de medidas', M, M + 14);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(86, 102, 122);
+  doc.text(`Medidor: ${who || 'sin nombre'}   |   ${when}   |   Escala de la cuadrícula: ${scaleTxt}`, M, M + 30);
+  const ix = M + (aw - iw) / 2, iy = M + headH;
+  doc.addImage(pick.url, 'JPEG', ix, iy, iw, ih, undefined, 'FAST');
+  doc.setDrawColor(190, 200, 212); doc.setLineWidth(0.5); doc.rect(ix, iy, iw, ih);
+  // Página de datos
+  doc.addPage('a4', 'p'); const DW = 595.28, DH = 841.89; let y = M + 14;
+  const line = (text, size, bold, gap, color) => {
+    doc.setFont('helvetica', bold ? 'bold' : 'normal'); doc.setFontSize(size); doc.setTextColor(...(color || [23, 34, 45]));
+    for (const l of doc.splitTextToSize(String(text), DW - 2 * M)) { if (y > DH - M) { doc.addPage('a4', 'p'); y = M + 14; } doc.text(l, M, y); y += size * 1.35; }
+    y += gap || 0;
+  };
+  const cnt = t => items.filter(i => i.t === t).length;
+  line('Datos del levantamiento', 16, true, 8);
+  line(`Cliente / trabajo: ${job || 'sin indicar'}`, 10.5, false, 0);
+  line(`Medidor: ${who || 'sin indicar'}`, 10.5, false, 0);
+  line(`Fecha: ${when}`, 10.5, false, 0);
+  line(`Escala de la cuadrícula: ${scaleTxt}`, 10.5, false, 0);
+  line(`Elementos: ${cnt('m')} medidas, ${cnt('p')} fotos, ${cnt('t')} notas de texto, ${cnt('s') + cnt('l') + cnt('g') + cnt('e')} trazos y formas`, 10.5, false, 14);
+  line('Medidas (el número coincide con la hoja)', 12, true, 4);
+  if (!exportNum.size) line('No hay medidas registradas.', 10.5, false, 10, [86, 102, 122]);
+  exportNum.forEach((num, m) => line(`${num}.   ${m.label}`, 10.5, false, 0));
+  y += 12;
+  line('Notas de texto', 12, true, 4);
+  const notes = items.filter(i => i.t === 't');
+  if (!notes.length) line('No hay notas de texto.', 10.5, false, 0, [86, 102, 122]);
+  notes.forEach((t, i) => line(`${i + 1}.   ${t.s}`, 10.5, false, 0));
+  const total = doc.getNumberOfPages();
+  for (let p = 1; p <= total; p++) { doc.setPage(p); const w = p === 1 ? pw : DW, h = p === 1 ? ph : DH; doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(120, 130, 142); doc.text(`Página ${p} de ${total}`, w - M, h - 14, { align: 'right' }); }
+  const blob = doc.output('blob');
+  const name = `Levantamiento_${slug(job) || 'sin-nombre'}_${new Date().toISOString().slice(0, 10)}.pdf`;
+  return { blob, name, dpi: pick.dpi, q: pick.q };
+}
+async function exportPdf() {
+  if (exporting) return;
+  commitText(false);
+  if (!DL) { hint.textContent = 'Guardar archivos no está disponible en este visor.'; return; }
+  if (!window.jspdf) { hint.textContent = 'No se pudo cargar el generador de PDF. Revisa la conexión e inténtalo otra vez.'; return; }
+  if (!items.length) { hint.textContent = 'La hoja está vacía: dibuja o mide algo antes de exportar.'; return; }
+  exporting = true; const btn = $('#exportPdf'); btn.disabled = true; hint.textContent = 'Generando el PDF…';
+  await new Promise(r => setTimeout(r, 30));
+  try {
+    const r = await buildPdf(), mb = r.blob.size / MB;
+    hint.textContent = `PDF listo: ${fmt(mb)} MB a ${r.dpi} ppp. Confirma para guardarlo.`;
+    await DL.save({ filename: r.name, data: r.blob });
+    hint.textContent = `PDF guardado: ${r.name} (${fmt(mb)} MB).`;
+  } catch (e) {
+    const c = e && e.code;
+    hint.textContent = c === 'declined' ? 'No se guardó el PDF.' : c === 'rate_limited' ? 'Ya hay una confirmación abierta. Respóndela y vuelve a intentar.' : 'No se pudo generar o guardar el PDF' + (e && e.message ? ': ' + e.message : '.');
+  } finally { exportNum = null; exporting = false; btn.disabled = !DL; schedule(); }
+}
+$('#exportPdf').addEventListener('click', exportPdf);
+$('#job').addEventListener('input', e => { job = e.target.value; save(); });
+$('#who').addEventListener('input', e => { who = e.target.value; save(); });
+async function initDownloads(tries) {
+  try { DL = (window.claude && window.claude.use) ? await window.claude.use('downloads') : null; } catch (_) { DL = null; }
+  if (!DL && tries > 0) return setTimeout(() => initDownloads(tries - 1), 1200);
+  $('#exportPdf').disabled = !DL;
+  if (!DL) $('#exportPdf').title = 'Guardar archivos no está disponible en este visor';
+}
+
+/* ---------- arranque ---------- */
+readTheme();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readTheme);
+new MutationObserver(readTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+new ResizeObserver(resize).observe(board);
+if (!load()) seedExample(); else restorePhotos();
+$('#cell').value = cellVal; $('#unit').value = unit; $('#snap').checked = snap; $('#finger').checked = fingerDraw; $('#holdOn').checked = holdOn; $('#job').value = job; $('#who').value = who; initDownloads(3);
+setColor(color); setSize(size); setTool('pen'); syncBtns(); resize();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(schedule);
+})();
+</script>

@@ -86,6 +86,7 @@ export const EXPENSE_TYPE_LABELS: Record<string, string> = {
 };
 
 export const CATEGORY_LABELS: Record<string, string> = {
+  // Legacy (generalCategory)
   materiales: 'Materiales',
   mano_de_obra: 'Mano de obra',
   transporte: 'Transporte',
@@ -98,4 +99,64 @@ export const CATEGORY_LABELS: Record<string, string> = {
   servicios_publicos: 'Servicios públicos',
   marketing: 'Marketing',
   impuestos: 'Impuestos',
+  // Bodega y Administración
+  bodega_admin: 'Bodega y Administración',
+  arriendo: 'Arriendo bodega',
+  energia: 'Energía',
+  agua: 'Agua',
+  internet: 'Internet',
+  aseo: 'Aseo e insumos',
+  papeleria: 'Papelería',
+  reparaciones: 'Reparaciones y mantenimiento',
+  jardineria: 'Jardinería / jardín',
+  // Vehículos
+  vehiculos: 'Vehículos',
+  gasolina_moto: 'Gasolina Moto Innovar / Remolque',
+  gasolina_luchito: 'Gasolina Luchito',
+  gasolina_alvaro: 'Gasolina Álvaro',
+  taller_repuestos: 'Taller y repuestos moto',
+  // Nóminas
+  nominas: 'Nóminas y Personal',
+  nomina_operario: 'Daniel Beltrán — Operario',
+  nomina_disenador: 'Alejandro Gutiérrez — Diseñador',
+  nomina_contador: 'Felipe Idárraga — Contador',
+  nomina_jardinero: 'Jardinero (pago suelto)',
+  seguridad_social: 'Seguridad social',
+  industria_comercio: 'Industria y comercio',
+  // Herramientas
+  herramientas: 'Herramientas',
+  compra_herramientas: 'Compra de herramientas',
+  mantenimiento_herramientas: 'Mantenimiento de herramientas',
+  // Dotación y Seguridad
+  dotacion_seguridad: 'Dotación y Seguridad',
+  dotacion: 'Dotación',
+  seguridad: 'Seguridad',
+  // Viáticos
+  viaticos_alimentacion: 'Viáticos y Alimentación',
+  viaticos: 'Viáticos',
+  alimentacion: 'Alimentación',
+  // Proyecto — categorías
+  madera_tableros: 'Madera y Tableros',
+  herrajes: 'Herrajes',
+  pintura_acabados: 'Pintura y acabados',
+  otros_proyecto: 'Otros materiales',
+  // Proyecto — proveedores / subcategorías
+  mademax: 'Mademax',
+  moduofi: 'Moduofi',
+  metales_maderas: 'Metales y Maderas',
+  aglocol: 'Aglocol',
+  otro_madera: 'Otro proveedor madera',
+  el_ebanista: 'El Ebanista',
+  otro_herraje: 'Otro proveedor herrajes',
+  instalacion: 'Instalación',
+  marmol_superficies: 'Mármol y superficies',
+  electricidad: 'Electricidad',
+  otro_mano_obra: 'Otro subcontratista',
+  pintura: 'Pintura',
+  lacado: 'Lacado / laminado',
+  transporte_materiales: 'Transporte de materiales',
+  flete: 'Flete instalación',
+  tornilleria: 'Tornillería y fijaciones',
+  silicona_pegante: 'Silicona y pegantes',
+  otro_proyecto: 'Otro',
 };

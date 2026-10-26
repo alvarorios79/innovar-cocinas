@@ -35,7 +35,9 @@ import {
   AlertTriangle,
   Sparkles,
   Archive,
-  RotateCcw
+  RotateCcw,
+  Flame,
+  MapPin
 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -66,7 +68,8 @@ const PROJECT_STATUSES: Record<string, { label: string; color: string; icon: any
   corte: { label: "En Corte", color: "bg-orange-500", icon: Hammer },
   enchape: { label: "En Enchape", color: "bg-orange-600", icon: Paintbrush },
   ensamble: { label: "En Ensamble", color: "bg-orange-700", icon: Package },
-  listo_instalacion: { label: "En Instalación", color: "bg-teal-500", icon: Truck },
+  listo_instalacion: { label: "Listo para Instalación", color: "bg-teal-500", icon: Truck },
+  trabajando_instalacion: { label: "Instalando", color: "bg-cyan-600", icon: Truck },
   entregado: { label: "Entregado", color: "bg-green-700", icon: CheckCircle2 },
 };
 
@@ -251,8 +254,15 @@ export default function Projects() {
   // No filtrar por estado aquí - el backend ya está filtrando por archived
   const filteredByArchive = filteredByProfit;
   
-  // Aplicar filtro de busqueda por cliente
+  // Proyectos en diseño para jefe_taller (tarjetas preview no clickeables)
+  const DESIGN_PREVIEW_STATUSES = ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "aprobacion_final"];
+  const designPreviewProjects = user?.role === "jefe_taller"
+    ? filteredByArchive.filter(p => DESIGN_PREVIEW_STATUSES.includes((p as any).status))
+    : [];
+
+  // Aplicar filtro de busqueda por cliente (jefe_taller: excluye diseño de lista normal)
   const filteredProjects = filteredByArchive.filter(p => {
+    if (user?.role === "jefe_taller" && DESIGN_PREVIEW_STATUSES.includes((p as any).status)) return false;
     const clientName = (p as any).clientName?.toLowerCase() || "";
     return clientName.includes(searchTerm.toLowerCase());
   });
@@ -540,8 +550,8 @@ export default function Projects() {
       corte: "enchape",
       enchape: "ensamble",
       ensamble: "listo_instalacion",
-      listo_instalacion: "listo_instalacion",
-      instalacion_programada: "entregado",
+      listo_instalacion: "trabajando_instalacion",
+      trabajando_instalacion: "entregado",
     };
     return flow[currentStatus] || null;
   };
@@ -555,7 +565,7 @@ export default function Projects() {
       return ["adelanto_recibido", "en_diseno", "aprobacion_final"].includes(status);
     }
     if (role === "jefe_taller") {
-      return ["aprobacion_final", "corte", "enchape", "ensamble", "listo_instalacion", "listo_instalacion"].includes(status);
+      return ["aprobacion_final", "corte", "enchape", "ensamble", "listo_instalacion", "trabajando_instalacion"].includes(status);
     }
     if (role === "operario") {
       return ["corte", "enchape", "ensamble"].includes(status);
@@ -664,15 +674,15 @@ export default function Projects() {
                   .filter(([key]) => {
                     // Jefe de taller: solo etapas desde diseño listo hasta entregado
                     if (user?.role === "jefe_taller") {
-                      return ["pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "listo_instalacion", "entregado"].includes(key);
+                      return ["pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "trabajando_instalacion", "entregado"].includes(key);
                     }
                     // Diseñador: ve todos los estados desde adelanto hasta entregado
                     if (user?.role === "disenador") {
-                      return ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "listo_instalacion", "entregado"].includes(key);
+                      return ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "trabajando_instalacion", "entregado"].includes(key);
                     }
-                    // Operario: solo etapas de producción
+                    // Operario: desde aprobacion_final hasta entrega
                     if (user?.role === "operario") {
-                      return ["despiece", "corte", "enchape", "ensamble", "listo_instalacion"].includes(key);
+                      return ["aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "trabajando_instalacion"].includes(key);
                     }
                     // Admin y super_admin ven todos
                     return true;
@@ -731,7 +741,7 @@ export default function Projects() {
                   setShowOverdueOnly(!showOverdueOnly);
                   if (!showOverdueOnly) setShowPendingPaymentOnly(false);
                 }}
-                className={showOverdueOnly ? "bg-red-500 hover:bg-red-600 text-white" : "border-red-300 text-red-600 hover:bg-red-50"}
+                className={showOverdueOnly ? "bg-red-500 hover:bg-red-600 text-white" : "border-red-300 text-red-400 hover:bg-red-500/10"}
               >
                 <AlertCircle className="h-4 w-4 mr-2" />
                 ⚠️ Atrasados (+5 días)
@@ -759,8 +769,8 @@ export default function Projects() {
               )}
             </div>
 
-            {/* Gráfico de Distribución de Rentabilidad */}
-            {(() => {
+            {/* Gráfico de Distribución de Rentabilidad — solo admin, super_admin y comercial */}
+            {(user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial") && (() => {
               const healthy = projects.filter((p: any) => (p.rentabilidad ?? 0) > 20).length;
               const moderate = projects.filter((p: any) => (p.rentabilidad ?? 0) >= 10 && (p.rentabilidad ?? 0) <= 20).length;
               const risk = projects.filter((p: any) => (p.rentabilidad ?? 0) >= 5 && (p.rentabilidad ?? 0) < 10).length;
@@ -896,6 +906,45 @@ export default function Projects() {
           </div>
         </div>
 
+        {/* Próximos trabajos — solo jefe_taller, proyectos en diseño */}
+        {user?.role === "jefe_taller" && designPreviewProjects.length > 0 && (
+          <div className="mb-6">
+            <div className="flex items-center gap-2 mb-3">
+              <Flame className="h-4 w-4 text-[#1DB5A8]" />
+              <span className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide">Próximos trabajos</span>
+              <span className="text-xs text-white/40 ml-1">— en diseño</span>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              {designPreviewProjects.map((project: any) => {
+                const typeLabel = WORK_TYPES[(project.workType as keyof typeof WORK_TYPES)] ?? project.workType;
+                return (
+                  <div
+                    key={project.id}
+                    className="rounded-xl border-2 p-4 min-w-[220px] max-w-[260px]"
+                    style={{ borderColor: "#1DB5A8", background: "rgba(29,181,168,0.06)" }}
+                  >
+                    <div className="flex items-center gap-1.5 mb-3">
+                      <Flame className="h-4 w-4 text-orange-400" />
+                      <span className="text-xs font-bold text-orange-400 uppercase tracking-wide">El rancho ardiendo</span>
+                    </div>
+                    <p className="text-sm font-semibold text-white mb-1">Nuevo {typeLabel}</p>
+                    {project.client?.name && (
+                      <p className="flex items-center gap-1 text-xs text-white/60 mb-1">
+                        <User className="h-3 w-3 shrink-0" />{project.client.name}
+                      </p>
+                    )}
+                    {project.client?.address && (
+                      <p className="flex items-center gap-1 text-xs text-white/40">
+                        <MapPin className="h-3 w-3 shrink-0" />{project.client.address}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Lista de proyectos - clic abre modal de detalle */}
         {loadingProjects ? (
           <div className="text-center py-8">Cargando proyectos...</div>
@@ -964,10 +1013,10 @@ export default function Projects() {
                               variant="outline" 
                               className={`text-xs ${
                                 (project as any).renderRevisionNumber >= 3 
-                                  ? "border-red-500 text-red-600 bg-red-50" 
+                                  ? "border-red-500 text-red-400 bg-red-500/10" 
                                   : (project as any).renderRevisionNumber >= 2 
-                                    ? "border-amber-500 text-amber-600 bg-amber-50" 
-                                    : "border-blue-500 text-blue-600 bg-blue-50"
+                                    ? "border-amber-500 text-amber-400 bg-amber-500/10" 
+                                    : "border-blue-500 text-blue-400 bg-blue-500/10"
                               }`}
                             >
                               🎨 {(project as any).renderRevisionNumber} Rev{(project as any).renderRevisionNumber > 1 ? "s" : ""}
@@ -991,11 +1040,11 @@ export default function Projects() {
                                 const rent = Number((project as any).rentabilidad ?? 0)
                                 let colorClass = "text-gray-500";
                                 if (rent > 20) {
-                                  colorClass = "text-green-600 font-semibold";
+                                  colorClass = "text-green-400 font-semibold";
                                 } else if (rent >= 10) {
-                                  colorClass = "text-yellow-600 font-semibold";
+                                  colorClass = "text-yellow-400 font-semibold";
                                 } else {
-                                  colorClass = "text-red-600 font-semibold";
+                                  colorClass = "text-red-400 font-semibold";
                                 }
                                 return <span className={colorClass}>{rent.toFixed(1)}%</span>;
                               })()}
@@ -1003,7 +1052,7 @@ export default function Projects() {
                           )}
                           {/* Fecha tentativa (rojo) */}
                           {(project as any).tentativeInstallDate && !(project as any).isInstallDateOfficial && project.status !== "entregado" && (
-                            <p className="flex items-center gap-1 font-medium text-red-600">
+                            <p className="flex items-center gap-1 font-medium text-red-400">
                               <Truck className="h-3 w-3" />
                               🟥 Tentativa: {new Date((project as any).tentativeInstallDate).toLocaleDateString("es-CO")}
                             </p>
@@ -1012,8 +1061,8 @@ export default function Projects() {
                           {project.estimatedInstallDate && (project as any).isInstallDateOfficial && project.status !== "entregado" && (
                             <p className={`flex items-center gap-1 font-medium ${
                               new Date(project.estimatedInstallDate) < new Date() 
-                                ? "text-red-600" 
-                                : "text-green-600"
+                                ? "text-red-400" 
+                                : "text-green-400"
                             }`}>
                               <Truck className="h-3 w-3" />
                               🟩 Oficial: {new Date(project.estimatedInstallDate).toLocaleDateString("es-CO")}
@@ -1024,8 +1073,8 @@ export default function Projects() {
                           {project.estimatedInstallDate && (project as any).isInstallDateOfficial === undefined && project.status !== "entregado" && (
                             <p className={`flex items-center gap-1 font-medium ${
                               new Date(project.estimatedInstallDate) < new Date() 
-                                ? "text-red-600" 
-                                : "text-green-600"
+                                ? "text-red-400" 
+                                : "text-green-400"
                             }`}>
                               <Truck className="h-3 w-3" />
                               Entrega: {new Date(project.estimatedInstallDate).toLocaleDateString("es-CO")}
@@ -1041,7 +1090,7 @@ export default function Projects() {
                         {(user?.role === "admin" || user?.role === "super_admin") && (
                           <input
                             type="checkbox"
-                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                            className="h-4 w-4 rounded border-white/[0.15] text-primary focus:ring-primary cursor-pointer"
                             checked={selectedProjects.includes(project.id)}
                             onChange={() => toggleProjectSelection(project.id)}
                           />
@@ -1114,7 +1163,7 @@ export default function Projects() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                              className="text-red-500 hover:text-red-300 hover:bg-red-500/10"
                               onClick={() => {
                                 setProjectToDelete(project);
                                 setShowDeleteDialog(true);
@@ -1171,14 +1220,14 @@ export default function Projects() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="text-green-600 border-green-600 hover:bg-green-50"
+                      className="text-green-400 border-green-600 hover:bg-green-500/10"
                       onClick={() => {
                         const baseUrl = window.location.origin;
                         const portalUrl = `${baseUrl}/portal?project=${selectedProject.id}`;
                         const workTypeLabel = WORK_TYPES[selectedProject.workType as keyof typeof WORK_TYPES] || selectedProject.workType;
                         const statusLabel = PROJECT_STATUSES[selectedProject.status as keyof typeof PROJECT_STATUSES]?.label || selectedProject.status;
                         
-                        const message = `Hola ${selectedProject.client.name}, te escribimos de INNOVAR Cocinas Integrales.\n\nTu proyecto "${selectedProject.name}" (${workTypeLabel}) está en estado: ${statusLabel}.\n\nPuedes ver el seguimiento en:\n${portalUrl}\n\n¿Tienes alguna pregunta?`;
+                        const message = `Hola ${selectedProject.client.name}, te escribimos de INNOVAR Cocinas de Diseño.\n\nTu proyecto "${selectedProject.name}" (${workTypeLabel}) está en estado: ${statusLabel}.\n\nPuedes ver el seguimiento en:\n${portalUrl}\n\n¿Tienes alguna pregunta?`;
                         
                         setWhatsAppMessage(message);
                         setWhatsAppPhone(selectedProject.client.whatsappPhone);
@@ -1205,12 +1254,12 @@ export default function Projects() {
             {/* Acciones según estado y rol */}
             {projectDetail && projectDetail.status === "pendiente_render" && 
               (user?.role === "admin" || user?.role === "super_admin") && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-                <h4 className="font-medium text-yellow-800 mb-2 flex items-center gap-2">
+              <div className="bg-yellow-500/10 border border-yellow-200 rounded-lg p-4 mb-4">
+                <h4 className="font-medium text-yellow-300 mb-2 flex items-center gap-2">
                   <AlertCircle className="h-4 w-4" />
                   Pendiente de Aprobación del Cliente
                 </h4>
-                <p className="text-sm text-yellow-700 mb-4">
+                <p className="text-sm text-yellow-300 mb-4">
                   Puedes aprobar el diseño en nombre del cliente si este no usa la aplicación.
                 </p>
                 <div className="flex gap-2">
@@ -1246,7 +1295,9 @@ export default function Projects() {
                   <TabsTrigger value="materials" className="text-xs sm:text-sm px-2 sm:px-3 data-[state=active]:bg-purple-500 data-[state=active]:text-white">Materiales</TabsTrigger>
                   <TabsTrigger value="photos" className="text-xs sm:text-sm px-2 sm:px-3 data-[state=active]:bg-green-500 data-[state=active]:text-white">Fotos</TabsTrigger>
                   <TabsTrigger value="details" className="text-xs sm:text-sm px-2 sm:px-3 data-[state=active]:bg-orange-500 data-[state=active]:text-white">Detalles</TabsTrigger>
-                  <TabsTrigger value="history" className="text-xs sm:text-sm px-2 sm:px-3 data-[state=active]:bg-gray-600 data-[state=active]:text-white">Historial</TabsTrigger>
+                  {user?.role !== "jefe_taller" && user?.role !== "operario" && (
+                    <TabsTrigger value="history" className="text-xs sm:text-sm px-2 sm:px-3 data-[state=active]:bg-gray-600 data-[state=active]:text-white">Historial</TabsTrigger>
+                  )}
                 </TabsList>
 
                 <TabsContent value="info" className="space-y-4">
@@ -1256,7 +1307,7 @@ export default function Projects() {
                     </CardHeader>
                     <CardContent className="text-sm space-y-1">
                       <p><strong>Nombre:</strong> {projectDetail.client?.name}</p>
-                      {user?.role !== "disenador" && (
+                      {user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && (
                         <>
                           <p><strong>Teléfono:</strong> {projectDetail.client?.whatsappPhone}</p>
                           <p><strong>Email:</strong> {projectDetail.client?.email || "N/A"}</p>
@@ -1294,11 +1345,11 @@ export default function Projects() {
                       </div>
                     </CardHeader>
                     <CardContent className="text-sm space-y-2">
-                      {/* Fechas de la cotización */}
-                      {(projectDetail as any).quotation?.createdAt && (
+                      {/* Fechas de la cotización — ocultar a operario */}
+                      {(projectDetail as any).quotation?.createdAt && user?.role !== "operario" && (
                         <p><strong>Cotización creada:</strong> {new Date((projectDetail as any).quotation.createdAt).toLocaleDateString("es-CO")}</p>
                       )}
-                      {(projectDetail as any).quotation?.validUntil && (
+                      {(projectDetail as any).quotation?.validUntil && user?.role !== "operario" && (
                         <p><strong>Validez cotización:</strong> {new Date((projectDetail as any).quotation.validUntil).toLocaleDateString("es-CO")}</p>
                       )}
                       <p><strong>Proyecto creado:</strong> {new Date(projectDetail.createdAt).toLocaleDateString("es-CO")}</p>
@@ -1308,12 +1359,12 @@ export default function Projects() {
                       {projectDetail.quotationApprovedAt && user?.role !== "disenador" && user?.role !== "jefe_taller" && (
                         <p><strong>Cotización aprobada:</strong> {new Date(projectDetail.quotationApprovedAt).toLocaleDateString("es-CO")}</p>
                       )}
-                      {projectDetail.advanceReceivedAt && user?.role !== "disenador" && user?.role !== "jefe_taller" && (
+                      {projectDetail.advanceReceivedAt && user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && (
                         <p><strong>Adelanto recibido:</strong> {new Date(projectDetail.advanceReceivedAt).toLocaleDateString("es-CO")}</p>
                       )}
-                      {projectDetail.advanceReceiptUrl && user?.role !== "disenador" && user?.role !== "jefe_taller" && (
-                        <div className="mt-2 p-2 bg-green-50 rounded-lg">
-                          <p className="text-sm font-medium text-green-800 mb-1">Comprobante de pago:</p>
+                      {projectDetail.advanceReceiptUrl && user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && (
+                        <div className="mt-2 p-2 bg-green-500/10 rounded-lg">
+                          <p className="text-sm font-medium text-green-300 mb-1">Comprobante de pago:</p>
                           <a 
                             href={projectDetail.advanceReceiptUrl} 
                             target="_blank" 
@@ -1325,14 +1376,14 @@ export default function Projects() {
                           </a>
                         </div>
                       )}
-                      {(projectDetail as any).quotationPdfUrl && user?.role !== "disenador" && user?.role !== "jefe_taller" && (
-                        <div className="mt-2 p-2 bg-blue-50 rounded-lg">
-                          <p className="text-sm font-medium text-blue-800 mb-1">Cotización aprobada:</p>
+                      {(projectDetail as any).quotationPdfUrl && user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && (
+                        <div className="mt-2 p-2 bg-blue-500/10 rounded-lg">
+                          <p className="text-sm font-medium text-blue-300 mb-1">Cotización aprobada:</p>
                           <a 
                             href={(projectDetail as any).quotationPdfUrl} 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="text-sm text-blue-600 hover:underline flex items-center gap-1"
+                            className="text-sm text-blue-400 hover:underline flex items-center gap-1"
                           >
                             <FileText className="h-4 w-4" />
                             Ver PDF de cotización
@@ -1340,7 +1391,7 @@ export default function Projects() {
                         </div>
                       )}
                       {projectDetail.designDeadline && (
-                        <p className={new Date(projectDetail.designDeadline) < new Date() && projectDetail.status === "en_diseno" ? "text-red-600 font-medium" : ""}>
+                        <p className={new Date(projectDetail.designDeadline) < new Date() && projectDetail.status === "en_diseno" ? "text-red-400 font-medium" : ""}>
                           <strong>Límite diseño:</strong> {new Date(projectDetail.designDeadline).toLocaleDateString("es-CO")}
                           {new Date(projectDetail.designDeadline) < new Date() && projectDetail.status === "en_diseno" && " (Vencido)"}
                         </p>
@@ -1353,7 +1404,7 @@ export default function Projects() {
                       )}
                       {/* Fecha TENTATIVA (rojo) - solo si no hay fecha oficial */}
                       {(projectDetail as any).tentativeInstallDate && !(projectDetail as any).isInstallDateOfficial && projectDetail.status !== "entregado" && (
-                        <p className="font-medium text-red-600">
+                        <p className="font-medium text-red-400">
                           <strong>🟥 Fecha tentativa:</strong> {new Date((projectDetail as any).tentativeInstallDate).toLocaleDateString("es-CO")}
                           <span className="text-xs ml-1">(pendiente aprobación diseños)</span>
                         </p>
@@ -1362,10 +1413,10 @@ export default function Projects() {
                       {projectDetail.estimatedInstallDate && (projectDetail as any).isInstallDateOfficial && projectDetail.status !== "entregado" && (
                         <p className={`font-medium ${
                           new Date(projectDetail.estimatedInstallDate) < new Date() 
-                            ? "text-red-600" 
+                            ? "text-red-400" 
                             : new Date(projectDetail.estimatedInstallDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-                              ? "text-yellow-600"
-                              : "text-green-600"
+                              ? "text-yellow-400"
+                              : "text-green-400"
                         }`}>
                           <strong>🟩 Fecha oficial:</strong> {new Date(projectDetail.estimatedInstallDate).toLocaleDateString("es-CO")}
                           {new Date(projectDetail.estimatedInstallDate) < new Date() && " (Vencida)"}
@@ -1375,22 +1426,22 @@ export default function Projects() {
                       {projectDetail.estimatedInstallDate && (projectDetail as any).isInstallDateOfficial === undefined && projectDetail.status !== "entregado" && (
                         <p className={`font-medium ${
                           new Date(projectDetail.estimatedInstallDate) < new Date() 
-                            ? "text-red-600" 
+                            ? "text-red-400" 
                             : new Date(projectDetail.estimatedInstallDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-                              ? "text-yellow-600"
-                              : "text-green-600"
+                              ? "text-yellow-400"
+                              : "text-green-400"
                         }`}>
                           <strong>Entrega estimada:</strong> {new Date(projectDetail.estimatedInstallDate).toLocaleDateString("es-CO")}
                           {new Date(projectDetail.estimatedInstallDate) < new Date() && " (Vencida)"}
                         </p>
                       )}
                       {projectDetail.scheduledInstallDate && projectDetail.status !== "entregado" && (
-                        <p className="text-blue-600 font-medium">
+                        <p className="text-blue-400 font-medium">
                           <strong>Instalación programada:</strong> {new Date(projectDetail.scheduledInstallDate).toLocaleDateString("es-CO")}
                         </p>
                       )}
                       {projectDetail.deliveredAt && (
-                        <p className="text-green-600 font-medium">
+                        <p className="text-green-400 font-medium">
                           <strong>Entregado:</strong> {new Date(projectDetail.deliveredAt).toLocaleDateString("es-CO")}
                         </p>
                       )}
@@ -1769,7 +1820,7 @@ export default function Projects() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="text-emerald-600 border-emerald-600 hover:bg-emerald-50"
+                                className="text-emerald-400 border-emerald-600 hover:bg-emerald-500/10"
                                 onClick={() => {
                                   // Mapear folder a stage para el formulario
                                   const folderToStageMap: Record<string, string> = {
@@ -1832,7 +1883,7 @@ export default function Projects() {
                                     )}
                                   >
                                     {isPdf ? (
-                                      <div className="w-full h-24 bg-gray-100 dark:bg-gray-800 rounded flex flex-col items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                                      <div className="w-full h-24 bg-white/[0.06] rounded flex flex-col items-center justify-center hover:bg-white/[0.10] transition-colors">
                                         <FileText className="h-8 w-8 text-red-500" />
                                         <span className="text-xs text-muted-foreground mt-1">PDF</span>
                                       </div>
@@ -1939,26 +1990,28 @@ export default function Projects() {
                   )}
                 </TabsContent>
 
-                <TabsContent value="history" className="space-y-2">
-                  {projectDetail.history?.map((entry: any, index: number) => (
-                    <div key={entry.id} className="flex items-start gap-3 p-3 bg-muted/50 rounded">
-                      <div className="h-2 w-2 mt-2 rounded-full bg-primary" />
-                      <div className="flex-1">
-                        <p className="text-sm">
-                          <strong>{entry.fromStatus || "Inicio"}</strong>
-                          {" → "}
-                          <strong>{entry.toStatus}</strong>
-                        </p>
-                        {entry.notes && (
-                          <p className="text-sm text-muted-foreground">{entry.notes}</p>
-                        )}
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {new Date(entry.createdAt).toLocaleString("es-CO")}
-                        </p>
+                {user?.role !== "jefe_taller" && user?.role !== "operario" && (
+                  <TabsContent value="history" className="space-y-2">
+                    {projectDetail.history?.map((entry: any, index: number) => (
+                      <div key={entry.id} className="flex items-start gap-3 p-3 bg-muted/50 rounded">
+                        <div className="h-2 w-2 mt-2 rounded-full bg-primary" />
+                        <div className="flex-1">
+                          <p className="text-sm">
+                            <strong>{entry.fromStatus || "Inicio"}</strong>
+                            {" → "}
+                            <strong>{entry.toStatus}</strong>
+                          </p>
+                          {entry.notes && (
+                            <p className="text-sm text-muted-foreground">{entry.notes}</p>
+                          )}
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {new Date(entry.createdAt).toLocaleString("es-CO")}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </TabsContent>
+                    ))}
+                  </TabsContent>
+                )}
               </Tabs>
             )}
           </DialogContent>
@@ -2232,15 +2285,16 @@ export default function Projects() {
               </Button>
               <Button
                 className="bg-green-600 hover:bg-green-700"
-                disabled={sendWhatsappMutation.isPending}
                 onClick={() => {
-                  if (currentProjectId) {
-                    sendWhatsappMutation.mutate({ id: currentProjectId });
-                  }
+                  const phone = whatsAppPhone.replace(/\D/g, "");
+                  const phoneWithCountry = phone.startsWith("57") ? phone : `57${phone}`;
+                  const url = `https://wa.me/${phoneWithCountry}?text=${encodeURIComponent(whatsAppMessage)}`;
+                  window.open(url, "_blank");
+                  setShowWhatsAppDialog(false);
                 }}
               >
                 <Send className="h-4 w-4 mr-2" />
-                {sendWhatsappMutation.isPending ? "Enviando..." : "Enviar por WhatsApp"}
+                Enviar por WhatsApp
               </Button>
             </div>
           </div>
@@ -2318,7 +2372,7 @@ export default function Projects() {
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-red-600">Eliminar Proyecto</DialogTitle>
+            <DialogTitle className="text-red-400">Eliminar Proyecto</DialogTitle>
             <DialogDescription>
               ¿Estás seguro de que deseas eliminar el proyecto <strong>"{projectToDelete?.name}"</strong>?
               <br /><br />
@@ -2329,7 +2383,7 @@ export default function Projects() {
                 <li>Todo el historial</li>
               </ul>
               <br />
-              <strong className="text-red-600">Esta acción no se puede deshacer.</strong>
+              <strong className="text-red-400">Esta acción no se puede deshacer.</strong>
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2 mt-4">
@@ -2351,13 +2405,13 @@ export default function Projects() {
       <Dialog open={showBulkDeleteDialog} onOpenChange={setShowBulkDeleteDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-red-600">Eliminar {selectedProjects.length} Proyecto(s)</DialogTitle>
+            <DialogTitle className="text-red-400">Eliminar {selectedProjects.length} Proyecto(s)</DialogTitle>
             <DialogDescription>
               ¿Estás seguro de que deseas eliminar <strong>{selectedProjects.length} proyecto(s)</strong>?
               <br /><br />
               Esta acción eliminará permanentemente todos los datos asociados a estos proyectos.
               <br /><br />
-              <strong className="text-red-600">Esta acción no se puede deshacer.</strong>
+              <strong className="text-red-400">Esta acción no se puede deshacer.</strong>
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2 mt-4">
@@ -2379,7 +2433,7 @@ export default function Projects() {
       <Dialog open={showAdvanceConfirmDialog} onOpenChange={setShowAdvanceConfirmDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-amber-600 flex items-center gap-2">
+            <DialogTitle className="text-amber-400 flex items-center gap-2">
               <AlertTriangle className="h-5 w-5" />
               Confirmar Aprobación Final
             </DialogTitle>
@@ -2388,7 +2442,7 @@ export default function Projects() {
                 Estás a punto de marcar el proyecto <strong>"{projectToAdvance?.clientName}"</strong> como <strong>Aprobación Final</strong>.
               </p>
               {projectToAdvance?.renderRevisionNumber && projectToAdvance.renderRevisionNumber > 1 && (
-                <p className="text-amber-600 font-medium">
+                <p className="text-amber-400 font-medium">
                   ⚠️ Este proyecto ha tenido {projectToAdvance.renderRevisionNumber} revisiones de renders.
                 </p>
               )}

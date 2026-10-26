@@ -170,8 +170,8 @@ export const tasksRouter = router({
     list: protectedProcedure
       .query(async ({ ctx }) => {
         const canViewAll = ["admin", "super_admin", "comercial"];
-        const canViewFiltered = ["jefe_taller"];
-        
+        const canViewFiltered = ["jefe_taller", "disenador", "medidor", "contador"];
+
         if (!canViewAll.includes(ctx.user.role) && !canViewFiltered.includes(ctx.user.role)) {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para ver todas las tareas" });
         }
@@ -182,11 +182,11 @@ export const tasksRouter = router({
           db.getAllUsers(),
         ]);
         const userMap = new Map(allUsers.map(u => [u.id, u]));
-        
-        // Jefe de taller solo ve tareas asignadas a él o que él asignó
+
+        // Jefe de taller y diseñador solo ven tareas asignadas a ellos o que ellos asignaron
         let filteredTasks = tasksList;
-        if (ctx.user.role === "jefe_taller") {
-          filteredTasks = tasksList.filter(t => 
+        if (["jefe_taller", "disenador", "medidor", "contador"].includes(ctx.user.role)) {
+          filteredTasks = tasksList.filter(t =>
             t.assignedTo === ctx.user.id || t.assignedBy === ctx.user.id
           );
         }
@@ -498,6 +498,7 @@ export const tasksRouter = router({
           disenador: ["super_admin", "admin", "jefe_taller"],
           jefe_taller: ["super_admin", "admin", "comercial", "disenador", "operario"],
           operario: ["disenador", "jefe_taller"],
+          medidor: ["super_admin", "admin", "comercial", "disenador"],
         };
         
         const allowedRoles = permissionMatrix[myRole];

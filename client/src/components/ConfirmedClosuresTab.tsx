@@ -66,7 +66,7 @@ export function ConfirmedClosuresTab() {
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-teal-600" />
+            <Calendar className="h-5 w-5 text-teal-400" />
             Filtrar Cierres Confirmados
           </CardTitle>
           <CardDescription>Busca cierres por período de fechas</CardDescription>
@@ -125,7 +125,7 @@ export function ConfirmedClosuresTab() {
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <CheckCircle2 className="h-5 w-5 text-green-600" />
+            <CheckCircle2 className="h-5 w-5 text-green-400" />
             Cierres Confirmados
           </CardTitle>
           <CardDescription>
@@ -135,19 +135,19 @@ export function ConfirmedClosuresTab() {
         <CardContent>
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-6 w-6 animate-spin text-teal-600" />
-              <span className="ml-2 text-gray-600">Cargando cierres...</span>
+              <Loader2 className="h-6 w-6 animate-spin text-teal-400" />
+              <span className="ml-2 text-muted-foreground">Cargando cierres...</span>
             </div>
           ) : sortedClosures.length === 0 ? (
             <div className="text-center py-12">
               <CheckCircle2 className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-600">No hay cierres confirmados en este período</p>
+              <p className="text-muted-foreground">No hay cierres confirmados en este período</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-slate-50">
+                  <TableRow className="bg-white/[0.03]">
                     <TableHead className="font-semibold">Período</TableHead>
                     <TableHead className="text-right font-semibold">Ingresos</TableHead>
                     <TableHead className="text-right font-semibold">Gastos Proyecto</TableHead>
@@ -159,7 +159,7 @@ export function ConfirmedClosuresTab() {
                 </TableHeader>
                 <TableBody>
                   {sortedClosures.map((closure: any) => (
-                    <TableRow key={closure.id} className="hover:bg-slate-50">
+                    <TableRow key={closure.id} className="hover:bg-white/[0.03]">
                       <TableCell>
                         <div className="space-y-1">
                           <div className="text-sm font-medium">
@@ -172,41 +172,41 @@ export function ConfirmedClosuresTab() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
-                          <DollarSign className="h-4 w-4 text-green-600" />
-                          <span className="font-semibold text-green-600">
+                          <DollarSign className="h-4 w-4 text-green-400" />
+                          <span className="font-semibold text-green-400">
                             {formatCurrency(parseFloat(closure.totalSales || '0'))}
                           </span>
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
-                        <span className="text-orange-600 font-semibold">
+                        <span className="text-orange-400 font-semibold">
                           {formatCurrency(parseFloat(closure.totalExpenses || '0'))}
                         </span>
                       </TableCell>
                       <TableCell className="text-right">
-                        <span className="text-red-600 font-semibold">
+                        <span className="text-red-400 font-semibold">
                           {formatCurrency(0)}
                         </span>
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
-                          <TrendingUp className="h-4 w-4 text-blue-600" />
-                          <span className="font-bold text-blue-600">
+                          <TrendingUp className="h-4 w-4 text-blue-400" />
+                          <span className="font-bold text-blue-400">
                             {formatCurrency(parseFloat(closure.totalProfit || '0'))}
                           </span>
                         </div>
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge className="bg-teal-100 text-teal-800">
+                        <Badge className="bg-teal-500/15 text-teal-300">
                           {closure.projectCount || 0}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
                         <div className="space-y-1">
-                          <Badge className="bg-green-100 text-green-800 block">
+                          <Badge className="bg-green-500/15 text-green-300 block">
                             Confirmado
                           </Badge>
-                          <span className="text-xs text-gray-600">
+                          <span className="text-xs text-muted-foreground">
                             {formatDate(closure.confirmedAt)}
                           </span>
                         </div>
@@ -225,12 +225,12 @@ export function ConfirmedClosuresTab() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="shadow-lg">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 Ingresos Totales
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-2xl font-bold text-green-400">
                 {formatCurrency(
                   sortedClosures.reduce((sum, c) => sum + parseFloat(c.totalSales || '0'), 0)
                 )}
@@ -240,12 +240,12 @@ export function ConfirmedClosuresTab() {
 
           <Card className="shadow-lg">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 Gastos Proyecto
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-600">
+              <div className="text-2xl font-bold text-orange-400">
                 {formatCurrency(
                   sortedClosures.reduce((sum, c) => sum + parseFloat(c.totalExpenses || '0'), 0)
                 )}
@@ -255,12 +255,12 @@ export function ConfirmedClosuresTab() {
 
           <Card className="shadow-lg">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 Gastos Operativos
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600">
+              <div className="text-2xl font-bold text-red-400">
                 {formatCurrency(0)}
               </div>
             </CardContent>
@@ -268,12 +268,12 @@ export function ConfirmedClosuresTab() {
 
           <Card className="shadow-lg">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 Utilidad Total
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-2xl font-bold text-blue-400">
                 {formatCurrency(
                   sortedClosures.reduce((sum, c) => sum + parseFloat(c.totalProfit || '0'), 0)
                 )}

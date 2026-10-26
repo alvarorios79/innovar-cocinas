@@ -58,12 +58,8 @@ export function validatePhotoViewPermission(role: string, category: string): boo
   }
 
   if (role === "jefe_taller" || role === "operario") {
-    // jefe_taller y operario pueden ver:
-    // - disenos: para ver planos, modelado, despiece (solo lectura)
-    // - avance: para ver y subir fotos de su trabajo
-    // - instalacion: para ver y subir fotos de su trabajo
-    // - entrega: para ver y subir fotos finales
-    return ["disenos", "avance", "instalacion", "entrega"].includes(category);
+    // jefe_taller y operario pueden ver TODAS las categorías (solo lectura en pre-producción)
+    return true;
   }
 
   return false;
@@ -81,8 +77,8 @@ export function validatePhotoUploadPermission(role: string, category: string): b
   }
 
   if (role === "disenador") {
-    // Diseñador puede subir fotos de diseño
-    return ["disenos"].includes(category);
+    // Diseñador puede subir fotos en todas las fases pre-producción
+    return ["cotizacion", "medidas", "disenos"].includes(category);
   }
 
   if (role === "jefe_taller" || role === "operario") {
@@ -102,9 +98,15 @@ export function validatePhotoDeletePermission(role: string, category: string, up
     return true;
   }
 
-  if (role === "comercial" || role === "disenador") {
-    // Comercial y diseñador pueden eliminar sus propias fotos
-    return uploadedByUserId === currentUserId;
+  if (role === "comercial") {
+    // Comercial puede eliminar cualquier foto en cotizacion y medidas
+    return ["cotizacion", "medidas"].includes(category);
+  }
+
+  if (role === "disenador") {
+    // Diseñador puede eliminar cualquier foto en fases pre-producción
+    // En producción (avance/instalacion/entrega) solo puede ver
+    return ["cotizacion", "medidas", "disenos"].includes(category);
   }
 
   if (role === "jefe_taller" || role === "operario") {
@@ -128,6 +130,7 @@ export function validateTaskAssignmentPermission(assignerRole: string, assignedT
     disenador: ["super_admin", "admin", "jefe_taller"],
     jefe_taller: ["super_admin", "admin", "comercial", "disenador", "operario"],
     operario: ["disenador", "jefe_taller"],
+    medidor: ["super_admin", "admin", "comercial", "disenador"],
   };
 
   const allowedRoles = permissionMatrix[assignerRole];

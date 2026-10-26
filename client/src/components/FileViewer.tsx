@@ -10,7 +10,8 @@ import {
   Download,
   FileText,
   RotateCcw,
-  ExternalLink
+  ExternalLink,
+  MessageCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -142,13 +143,14 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
     setPosition({ x: 0, y: 0 });
   }, []);
 
-  // Descargar archivo
+  // Descargar archivo (con fallback para CORS de Cloudinary)
   const downloadFile = useCallback(async () => {
     const file = files[currentIndex];
     if (!file) return;
 
     try {
-      const response = await fetch(file.url);
+      const response = await fetch(file.url, { mode: 'cors' });
+      if (!response.ok) throw new Error('fetch failed');
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -160,8 +162,19 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("Error downloading file:", error);
+      // Fallback CORS: abrir en nueva pestaña para guardar manualmente
+      console.warn("Descarga directa bloqueada por CORS, abriendo en nueva pestaña:", error);
+      window.open(file.url, '_blank', 'noopener,noreferrer');
     }
+  }, [currentIndex, files]);
+
+  // Compartir imagen por WhatsApp
+  const shareOnWhatsApp = useCallback(() => {
+    const file = files[currentIndex];
+    if (!file) return;
+    const title = file.title ? `*${file.title}*\n` : '';
+    const msg = `${title}${file.url}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
   }, [currentIndex, files]);
 
   // Abrir PDF en nueva pestaña
@@ -301,8 +314,18 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
             size="icon"
             className="text-white hover:bg-[#162828]/20 h-10 w-10"
             onClick={(e) => { e.stopPropagation(); downloadFile(); }}
+            title="Descargar"
           >
             <Download className="h-5 w-5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-white hover:bg-green-600/30 h-10 w-10"
+            onClick={(e) => { e.stopPropagation(); shareOnWhatsApp(); }}
+            title="Compartir por WhatsApp"
+          >
+            <MessageCircle className="h-5 w-5" />
           </Button>
           <Button
             variant="ghost"
@@ -339,10 +362,10 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
                 className="w-full h-full"
               >
                 {/* Fallback si object no funciona */}
-                <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center bg-gray-100">
+                <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center bg-white/[0.06]">
                   <FileText className="h-20 w-20 text-red-500 mb-6" />
-                  <h3 className="text-xl font-semibold text-gray-800 mb-2">Documento PDF</h3>
-                  <p className="text-gray-600 mb-6">
+                  <h3 className="text-xl font-semibold text-foreground mb-2">Documento PDF</h3>
+                  <p className="text-muted-foreground mb-6">
                     Tu dispositivo no puede mostrar el PDF directamente.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-3">

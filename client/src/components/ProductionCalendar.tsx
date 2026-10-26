@@ -124,12 +124,12 @@ export function ProductionCalendar({ className }: ProductionCalendarProps) {
     return (
       <div 
         key={day}
-        className={`min-h-[80px] p-1 border rounded-md ${
-          isToday ? "bg-blue-50 border-blue-300" : 
-          isPast ? "bg-gray-50" : "bg-[#162828]"
+        className={`min-h-[50px] sm:min-h-[80px] p-1 border rounded-md ${
+          isToday ? "bg-blue-500/10 border-blue-300" : 
+          isPast ? "bg-white/[0.03]" : "bg-[#162828]"
         }`}
       >
-        <div className={`text-xs font-medium mb-1 ${isToday ? "text-blue-600" : "text-gray-600"}`}>
+        <div className={`text-xs font-medium mb-1 ${isToday ? "text-blue-400" : "text-muted-foreground"}`}>
           {day}
         </div>
         <div className="space-y-1">
@@ -170,7 +170,7 @@ export function ProductionCalendar({ className }: ProductionCalendarProps) {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg flex items-center gap-2">
-            <CalendarIcon className="h-5 w-5 text-teal-600" />
+            <CalendarIcon className="h-5 w-5 text-teal-400" />
             Calendario de Producción
           </CardTitle>
           <div className="flex items-center gap-2">
@@ -195,24 +195,26 @@ export function ProductionCalendar({ className }: ProductionCalendarProps) {
             </div>
             
             {/* Días de la semana */}
-            <div className="grid grid-cols-7 gap-1 mb-2">
+            <div className="overflow-x-auto -mx-1">
+            <div className="grid grid-cols-7 gap-1 mb-2 min-w-[320px]">
               {["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"].map(day => (
                 <div key={day} className="text-center text-xs font-medium text-muted-foreground py-1">
                   {day}
                 </div>
               ))}
             </div>
-            
+
             {/* Días del mes */}
-            <div className="grid grid-cols-7 gap-1">
+            <div className="grid grid-cols-7 gap-1 min-w-[320px]">
               {/* Espacios vacíos antes del primer día */}
               {Array.from({ length: startingDay }).map((_, i) => (
-                <div key={`empty-${i}`} className="min-h-[80px]" />
+                <div key={`empty-${i}`} className="min-h-[50px] sm:min-h-[80px]" />
               ))}
               {/* Días del mes */}
               {Array.from({ length: daysInMonth }).map((_, i) => renderCalendarDay(i + 1))}
             </div>
-            
+            </div>{/* end overflow-x-auto */}
+
             {/* Leyenda */}
             <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t">
               {Object.entries(PRODUCTION_STATUSES).map(([key, value]) => (
@@ -244,9 +246,9 @@ export function ProductionCalendar({ className }: ProductionCalendarProps) {
                   return (
                     <Link key={project.id} href={`/projects/${project.id}`}>
                       <div className={`p-3 rounded-lg border cursor-pointer hover:shadow-md transition-shadow ${
-                        isOverdue ? "border-red-300 bg-red-50" :
-                        isWarning ? "border-yellow-300 bg-yellow-50" :
-                        "border-gray-200 bg-[#162828]"
+                        isOverdue ? "border-red-300 bg-red-500/10" :
+                        isWarning ? "border-yellow-300 bg-yellow-500/10" :
+                        "border-white/[0.10] bg-[#162828]"
                       }`}>
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
@@ -265,9 +267,9 @@ export function ProductionCalendar({ className }: ProductionCalendarProps) {
                             </span>
                           </div>
                           <div className={`flex items-center gap-1 font-medium ${
-                            isOverdue ? "text-red-600" :
-                            isWarning ? "text-yellow-600" :
-                            "text-green-600"
+                            isOverdue ? "text-red-400" :
+                            isWarning ? "text-yellow-400" :
+                            "text-green-400"
                           }`}>
                             {isOverdue ? (
                               <AlertTriangle className="h-4 w-4" />
@@ -280,7 +282,7 @@ export function ProductionCalendar({ className }: ProductionCalendarProps) {
                         
                         {/* Barra de progreso de tiempo */}
                         <div className="mt-2">
-                          <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                          <div className="h-2 bg-white/[0.10] rounded-full overflow-hidden">
                             <div 
                               className={`h-full transition-all ${
                                 isOverdue ? "bg-red-500" :

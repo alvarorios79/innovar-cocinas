@@ -132,15 +132,15 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
     <Card className="mt-4 border-blue-300">
       <CardContent className="p-4">
         {/* Header */}
-        <div className="flex items-center gap-2 mb-4 pb-2 border-b border-blue-200">
-          <LayoutGrid className="h-5 w-5 text-blue-600" />
-          <h4 className="font-bold text-blue-800 text-lg">Configuración del Closet</h4>
+        <div className="flex items-center gap-2 mb-4 pb-2 border-b border-blue-500/25">
+          <LayoutGrid className="h-5 w-5 text-blue-400" />
+          <h4 className="font-bold text-blue-300 text-lg">Configuración del Closet</h4>
         </div>
 
         <div className="space-y-6">
           {/* Tipo de Closet */}
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-            <h5 className="font-semibold text-blue-700 mb-3">Tipo de Closet</h5>
+          <div className="bg-blue-500/10 p-4 rounded-lg border border-blue-500/25">
+            <h5 className="font-semibold text-blue-300 mb-3">Tipo de Closet</h5>
             <Select value={type} onValueChange={(value) => setType(value as ClosetConfig["type"])}>
               <SelectTrigger className="h-10 bg-[#162828]">
                 <SelectValue placeholder="Selecciona el tipo" />
@@ -153,18 +153,18 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
                 ))}
               </SelectContent>
             </Select>
-            <div className="mt-3 p-3 bg-blue-100 rounded">
-              <p className="text-sm text-blue-700">
+            <div className="mt-3 p-3 bg-blue-500/15 rounded">
+              <p className="text-sm text-blue-300">
                 <strong>Profundidad:</strong> {closetType.depth}
               </p>
-              <p className="text-sm text-blue-700 mt-1">
+              <p className="text-sm text-blue-300 mt-1">
                 <strong>Incluye:</strong> Maletero, divisor, doble colgadero, entrepaños, doble cajonero, zapatero y puertas
               </p>
             </div>
           </div>
 
           {/* Medidas */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
+          <div className="bg-white/[0.03] p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
             <h5 className="font-semibold text-white/85 mb-3">Medidas del Closet</h5>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -193,15 +193,15 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
               </div>
             </div>
             {squareMeters > 0 && (
-              <div className="mt-3 p-3 bg-gray-100 rounded flex justify-between items-center">
+              <div className="mt-3 p-3 bg-white/[0.06] rounded flex justify-between items-center">
                 <span className="text-sm text-white/85">Área total:</span>
-                <span className="font-bold text-gray-800">{squareMeters.toFixed(2)} M²</span>
+                <span className="font-bold text-foreground">{squareMeters.toFixed(2)} M²</span>
               </div>
             )}
           </div>
 
           {/* Tipo de Puertas */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
+          <div className="bg-white/[0.03] p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
             <div className="flex items-center gap-2 mb-3">
               <DoorOpen className="h-4 w-4 text-white/60" />
               <h5 className="font-semibold text-white/85">Tipo de Puertas</h5>
@@ -218,9 +218,9 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
           </div>
 
           {/* Accesorios del closet */}
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-            <h5 className="font-semibold text-blue-700 mb-3">Componentes (para descripción)</h5>
-            <p className="text-xs text-blue-600 mb-3">Selecciona los componentes que lleva este closet — se generará la descripción automáticamente.</p>
+          <div className="bg-blue-500/10 p-4 rounded-lg border border-blue-500/25">
+            <h5 className="font-semibold text-blue-300 mb-3">Componentes (para descripción)</h5>
+            <p className="text-xs text-blue-400 mb-3">Selecciona los componentes que lleva este closet — se generará la descripción automáticamente.</p>
             <div className="grid grid-cols-2 gap-2">
               {([
                 { state: accMaletero,       setState: setAccMaletero,       label: "Maletero" },
@@ -244,7 +244,7 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
           </div>
 
           {/* Transporte e Imprevistos */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
+          <div className="bg-white/[0.03] p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Checkbox
@@ -287,22 +287,22 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
 
           {/* Resumen de Precio */}
           {squareMeters > 0 && (
-            <div className="bg-blue-200 p-4 rounded-lg border border-blue-400">
-              <h5 className="font-semibold text-blue-800 mb-3">Resumen del Precio</h5>
+            <div className="bg-blue-500/20 p-4 rounded-lg border border-blue-400">
+              <h5 className="font-semibold text-blue-300 mb-3">Resumen del Precio</h5>
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between">
                   <span>{closetType.label} ({squareMeters.toFixed(2)} M² × ${closetType.price.toLocaleString()}/M²):</span>
                   <span className="font-medium">${baseSubtotal.toLocaleString()}</span>
                 </div>
                 {includeTransport && (
-                  <div className="flex justify-between text-blue-700">
+                  <div className="flex justify-between text-blue-300">
                     <span>+ Transporte e imprevistos:</span>
                     <span className="font-medium">${transport.toLocaleString()}</span>
                   </div>
                 )}
                 <div className="border-t border-blue-400 pt-2 mt-2 flex justify-between">
-                  <span className="font-bold text-blue-900">TOTAL:</span>
-                  <span className="text-2xl font-bold text-blue-900">${subtotal.toLocaleString()}</span>
+                  <span className="font-bold text-blue-300">TOTAL:</span>
+                  <span className="text-2xl font-bold text-blue-300">${subtotal.toLocaleString()}</span>
                 </div>
               </div>
             </div>

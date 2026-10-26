@@ -4,6 +4,11 @@ import { trpc } from "@/lib/trpc";
 // Sincronizados con el Motor de Cotización INNOVAR — actualizar via /pricing-config
 const DEFAULT_PRICES: Record<string, { value: number; unit: string | null }> = {
   // Cocina Base — precio por metro lineal (inferior + superior)
+  // Códigos con nombre de referencia (usados por mlPriceCode en el configurador)
+  COCINA_ML_ESTANDAR:   { value: 900000,  unit: "ml" },  // fallback BD: mismo valor
+  COCINA_ML_PREMIUM:    { value: 1000000, unit: "ml" },  // fallback BD: mismo valor
+  COCINA_ML_DELUXE:     { value: 1100000, unit: "ml" },  // fallback BD: mismo valor
+  // Códigos legacy (por forma de cocina)
   COCINA_ML_L:          { value: 1800000, unit: "ml" },
   COCINA_ML_U:          { value: 1800000, unit: "ml" },
   COCINA_ML_LINEAL:     { value: 1800000, unit: "ml" },
@@ -39,10 +44,26 @@ const DEFAULT_PRICES: Record<string, { value: number; unit: string | null }> = {
   ISLA_LATERAL:         { value: 350000,  unit: "unidad" },
   BARRA_ML:             { value: 900000,  unit: "ml" },
   BARRA_LATERAL:        { value: 350000,  unit: "unidad" },
+  BARRA_PEDESTAL:       { value: 250000,  unit: "unidad" },
+  BARRA_HERRAJE:        { value: 380000,  unit: "unidad" },
   LED_ML:               { value: 220000,  unit: "ml" },
   TRANSPORTE_IMPREVISTOS: { value: 600000, unit: "fijo" },
 
   // Puertas y Tapas (para cocinas)
+  BANO_50_60:           { value: 750000,  unit: "unidad" },
+  BANO_60_80:           { value: 900000,  unit: "unidad" },
+  BANO_80_100:          { value: 1200000, unit: "unidad" },
+  BANO_100_120:         { value: 1400000, unit: "unidad" },
+
+  // Excavados de lavamanos (precio por ML de ancho del mueble)
+  BANO_EXCAVADO_GRANITO:       { value: 1200000, unit: "ml" },
+  BANO_EXCAVADO_CUARZO:        { value: 1500000, unit: "ml" },
+  BANO_EXCAVADO_SINTERIZADO:   { value: 2100000, unit: "ml" },
+
+  // Mesones de baño — plancha de piedra (precio por ML de ancho)
+  BANO_MESON_GRANITO:          { value: 820000,  unit: "ml" },
+  BANO_MESON_CUARZO:           { value: 1000000, unit: "ml" },
+  BANO_MESON_SINTERIZADO:      { value: 1400000, unit: "ml" },
   PUERTA_SUP_70:        { value: 120000,  unit: "unidad" },
   PUERTA_SUP_90:        { value: 150000,  unit: "unidad" },
   PUERTA_SUP_100:       { value: 180000,  unit: "unidad" },

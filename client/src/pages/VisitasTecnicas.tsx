@@ -5,6 +5,7 @@
  */
 
 import { useState } from "react";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -18,20 +19,29 @@ import {
   Ruler, Camera, FileText, ChevronRight, Loader2,
   CheckCircle2, Clock, Send, User, MapPin, Phone,
   FileSpreadsheet, Eye, Maximize2, X, ArrowLeft,
-  ClipboardList, PenLine, Square, Plus, UserCheck,
+  ClipboardList, PenLine, Square, Plus, UserCheck, Trash2,
 } from "lucide-react";
 import { useLocation } from "wouter";
 
 // ── Tipos ────────────────────────────────────────────────────────────────────
 
 type WorkType = "cocina" | "closet" | "puertas" | "centro_tv";
-type VisitStatus = "borrador" | "enviada" | "convertida";
+type VisitStatus = "borrador" | "enviada" | "cot_hecha" | "cot_enviada";
 
 type Photo = {
   id: number;
-  photoUrl: string;
+  url: string;
   category: string;
+  caption?: string | null;
   description?: string | null;
+};
+
+type Pdf = {
+  id: string;
+  url: string;
+  fileName?: string | null;
+  originalFileName?: string | null;
+  createdAt: string;
 };
 
 type Visit = {
@@ -44,9 +54,15 @@ type Visit = {
   createdAt: string;
   notes?: string | null;
   measurements?: Record<string, unknown> | null;
+  checklist?: Record<string, boolean> | null;
+  technicalEvaluation?: string | null;
+  criticalObservations?: string | null;
+  clientSignature?: string | null;
   photos?: Photo[];
+  pdfs?: Pdf[];
   quotationId?: number | null;
   createdByUser?: { name: string } | null;
+  geoLocation?: { latitude: number; longitude: number; timestamp: string } | null;
 };
 
 // ── Constantes ───────────────────────────────────────────────────────────────
@@ -76,7 +92,8 @@ const MEASUREMENT_UNITS: Record<string, string> = {
 const STATUS_CONFIG: Record<VisitStatus, { label: string; variant: "default" | "secondary" | "outline" }> = {
   borrador:   { label: "Borrador",   variant: "outline" },
   enviada:    { label: "Enviada",    variant: "default" },
-  convertida: { label: "Convertida", variant: "secondary" },
+  cot_hecha:   { label: "Cot. Hecha",   variant: "secondary" },
+  cot_enviada: { label: "Cot. Enviada", variant: "default"   },
 };
 
 // Etiquetas legibles para la evaluación técnica
@@ -113,11 +130,23 @@ const PHOTO_CAT_LABELS: Record<string, string> = {
 
 // ── Componente principal ─────────────────────────────────────────────────────
 
+// Helper: Drizzle retorna timestamps sin timezone → forzar UTC para Colombia
+const parseDBDate = (ds: string | Date | null | undefined): Date => {
+  if (!ds) return new Date();
+  if (ds instanceof Date) return ds;
+  if (!(ds as string).includes('T') && !(ds as string).includes('Z') && !(ds as string).includes('+')) {
+    return new Date((ds as string).replace(' ', 'T') + 'Z');
+  }
+  return new Date(ds as string);
+};
+
 export default function VisitasTecnicas() {
+  const { user } = useAuth();
+  const isManager = ["super_admin", "admin", "comercial"].includes(user?.role ?? "");
   const [, navigate] = useLocation();
   const [selectedVisitId, setSelectedVisitId] = useState<number | null>(null);
   const [lightboxUrl, setLightboxUrl]         = useState<string | null>(null);
-  const [statusFilter, setStatusFilter]       = useState<VisitStatus | "todas">("enviada");
+  const [statusFilter, setStatusFilter]       = useState<VisitStatus | "todas">("todas");
 
   // Modal nueva visita técnica
   const [showNewVisit, setShowNewVisit]       = useState(false);
@@ -216,11 +245,27 @@ export default function VisitasTecnicas() {
     const pdfs   = photos.filter(p => p.category?.startsWith("pdf"));
     const firmas = photos.filter(p => p.category === "firma");
     const rawMeasurements = (visit?.measurements ?? {}) as Record<string, any>;
-    const { _checklist, _evaluacion, _geo, ...measurements } = rawMeasurements;
-    const checklist:  Record<string, boolean> = (_checklist  as any) ?? {};
-    const evaluacion: Record<string, string>  = (_evaluacion as any) ?? {};
-    const geo: { lat: number; lng: number } | null = (_geo as any) ?? null;
-    const fields = visit ? (MEASUREMENT_LABELS[visit.workType] ?? {}) : {};
+    const measurements = rawMeasurements;
+    const checklist: Record<string, boolean> = (visit?.checklist ?? {}) as Record<string, boolean>;
+    const technicalEval = visit?.technicalEvaluation ?? null;
+    const criticalObs   = visit?.criticalObservations ?? null;
+    const visiblePdfs   = visit?.pdfs ?? [];
+    const geoRaw = (visit as any)?.geoLocation ?? null;
+    const rawLat = (visit as any)?.geoLat ?? (visit as any)?.latitude ?? (visit as any)?.lat;
+    const rawLng = (visit as any)?.geoLng ?? (visit as any)?.longitude ?? (visit as any)?.lng;
+    const measGeo = (measurements as any)?._geo;
+    const geo: { lat: number; lng: number } | null =
+      (geoRaw && geoRaw.latitude && geoRaw.longitude) ? { lat: geoRaw.latitude, lng: geoRaw.longitude } :
+      (rawLat && rawLng) ? { lat: parseFloat(String(rawLat)), lng: parseFloat(String(rawLng)) } :
+      (measGeo?.latitude && measGeo?.longitude) ? { lat: parseFloat(String(measGeo.latitude)), lng: parseFloat(String(measGeo.longitude)) } :
+      null;
+    // Tipos de trabajo activos en el levantamiento (estructura nueva del Medidor)
+    const ALL_WORK_TYPES = ["cocina", "closet", "puertas", "centro_tv", "mueble_bano", "otro"] as const;
+    const WORK_TYPE_LABELS_LOCAL: Record<string, string> = {
+      cocina: "Cocina Integral", closet: "Closet", puertas: "Puertas",
+      centro_tv: "Centro de TV", mueble_bano: "Mueble de Baño", otro: "Otro",
+    };
+    const activeWorkTypes = ALL_WORK_TYPES.filter(wt => !!(measurements as any)[`_tipo_${wt}`]);
 
     return (
       <div className="min-h-screen bg-[#0C1A1A] text-white">
@@ -248,7 +293,7 @@ export default function VisitasTecnicas() {
                 {visit?.clientAddress && ` · ${visit.clientAddress}`}
               </p>
             </div>
-            {visit?.status === "enviada" && (
+            {isManager && visit?.status === "enviada" && (
               <Button
                 onClick={() => visit && handleCreateQuotation(visit)}
                 className="bg-[#1DB5A8] hover:bg-[#17a396] text-white"
@@ -256,7 +301,7 @@ export default function VisitasTecnicas() {
                 <FileSpreadsheet className="h-4 w-4 mr-2" /> Crear cotización
               </Button>
             )}
-            {visit?.status === "convertida" && (
+            {(visit?.status === "cot_hecha" || visit?.status === "cot_enviada") && (
               <Badge className="bg-green-600 text-white">✓ Cotización creada</Badge>
             )}
           </div>
@@ -288,19 +333,7 @@ export default function VisitasTecnicas() {
                     <MapPin className="h-4 w-4 text-gray-500" /> {visit.clientAddress}
                   </div>
                 )}
-                {geo && (
-                  <div className="flex items-center gap-2 text-gray-400 text-xs pt-1">
-                    <MapPin className="h-3.5 w-3.5 text-[#1DB5A8]" />
-                    <a
-                      href={`https://maps.google.com/?q=${geo.lat},${geo.lng}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[#1DB5A8] underline"
-                    >
-                      Ver en Google Maps ({geo.lat.toFixed(4)}, {geo.lng.toFixed(4)})
-                    </a>
-                  </div>
-                )}
+
                 {(visit as any)?.assignedToUser?.name && (
                   <div className="flex items-center gap-2 text-gray-300">
                     <UserCheck className="h-4 w-4 text-[#1DB5A8]" />
@@ -324,22 +357,70 @@ export default function VisitasTecnicas() {
               </div>
             </div>
 
+            {/* GPS */}
+            {geo && (
+              <div className="bg-[#162828] rounded-xl p-5 border border-[#1DB5A8]/20 md:col-span-2">
+                <h2 className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide mb-3 flex items-center gap-2">
+                  <MapPin className="h-4 w-4" /> Ubicación GPS
+                </h2>
+                <div className="flex items-center gap-3">
+                  <a
+                    href={`https://maps.google.com/?q=${geo.lat},${geo.lng}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-[#1DB5A8] hover:bg-[#17a396] text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+                  >
+                    Ver en Google Maps
+                  </a>
+                  <span className="text-gray-400 text-sm font-mono">{geo.lat.toFixed(6)}, {geo.lng.toFixed(6)}</span>
+                </div>
+              </div>
+            )}
+
             {/* Medidas */}
             <div className="bg-[#162828] rounded-xl p-5 border border-[#1DB5A8]/10">
               <h2 className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide mb-4 flex items-center gap-2">
                 <Ruler className="h-4 w-4" /> Medidas registradas
               </h2>
-              {Object.keys(fields).length > 0 ? (
-                <div className="space-y-2">
-                  {Object.entries(fields).map(([key, label]) => {
-                    const value = measurements[key];
-                    const unit  = MEASUREMENT_UNITS[key] ?? MEASUREMENT_UNITS.default;
+              {activeWorkTypes.length > 0 ? (
+                <div className="space-y-4">
+                  {activeWorkTypes.map(wt => {
+                    const wtLabel = WORK_TYPE_LABELS_LOCAL[wt] ?? wt;
+                    if (wt === "cocina") {
+                      const forma = (measurements as any)._cocina_forma;
+                      const ancho = (measurements as any)._cocina_ancho;
+                      const alto  = (measurements as any)._cocina_alto;
+                      const prof  = (measurements as any)._cocina_profundo;
+                      return (
+                        <div key={wt}>
+                          <p className="text-xs font-bold text-[#1DB5A8] mb-2">{wtLabel}</p>
+                          <div className="space-y-1 text-sm">
+                            {forma && <div className="flex justify-between"><span className="text-gray-400">Forma</span><span className="text-white font-medium">{forma}</span></div>}
+                            {ancho && <div className="flex justify-between"><span className="text-gray-400">Ancho</span><span className="text-white font-medium">{ancho} cm</span></div>}
+                            {alto  && <div className="flex justify-between"><span className="text-gray-400">Alto</span><span className="text-white font-medium">{alto} cm</span></div>}
+                            {prof  && <div className="flex justify-between"><span className="text-gray-400">Profundo</span><span className="text-white font-medium">{prof} cm</span></div>}
+                            {!forma && !ancho && !alto && !prof && <p className="text-gray-500 text-xs">Sin medidas</p>}
+                          </div>
+                        </div>
+                      );
+                    }
+                    const unidades: Array<Record<string, any>> = (measurements as any)[`_${wt}_unidades`] ?? [{}];
                     return (
-                      <div key={key} className="flex items-center justify-between text-sm">
-                        <span className="text-gray-400">{label}</span>
-                        <span className={`font-medium ${value ? "text-white" : "text-gray-600"}`}>
-                          {value ? `${value} ${unit}` : "—"}
-                        </span>
+                      <div key={wt}>
+                        <p className="text-xs font-bold text-[#1DB5A8] mb-2">{wtLabel}</p>
+                        <div className="space-y-2">
+                          {unidades.map((unit: any, idx: number) => (
+                            <div key={idx} className="bg-[#0C1A1A] rounded-lg px-3 py-2 text-sm space-y-1">
+                              {unidades.length > 1 && <p className="text-[#1DB5A8]/70 text-xs font-semibold">#{idx + 1}{unit.descripcion ? ` — ${unit.descripcion}` : ""}</p>}
+                              {unidades.length === 1 && unit.descripcion && <p className="text-gray-400 text-xs">{unit.descripcion}</p>}
+                              <div className="flex gap-4 flex-wrap">
+                                {unit.ancho   && <span className="text-gray-300">Ancho: <span className="text-white font-medium">{unit.ancho} cm</span></span>}
+                                {unit.alto    && <span className="text-gray-300">Alto: <span className="text-white font-medium">{unit.alto} cm</span></span>}
+                                {unit.profundo && <span className="text-gray-300">Profundo: <span className="text-white font-medium">{unit.profundo} cm</span></span>}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     );
                   })}
@@ -350,27 +431,31 @@ export default function VisitasTecnicas() {
             </div>
 
             {/* Evaluación técnica */}
-            {Object.keys(evaluacion).filter(k => !k.endsWith("_nota")).length > 0 && (
+            {(technicalEval || criticalObs) && (
               <div className="bg-[#162828] rounded-xl p-5 border border-[#1DB5A8]/10 md:col-span-2">
                 <h2 className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide mb-4 flex items-center gap-2">
-                  <ClipboardList className="h-4 w-4" /> Evaluación técnica del espacio
+                  <ClipboardList className="h-4 w-4" /> Evaluación técnica
                 </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {Object.entries(EVAL_FIELD_LABELS).map(([key, label]) => {
-                    const val  = evaluacion[key];
-                    const nota = evaluacion[`${key}_nota`];
-                    if (!val) return null;
-                    return (
-                      <div key={key} className="bg-[#0C1A1A] rounded-lg px-4 py-3">
-                        <p className="text-xs text-gray-500 mb-1">{label}</p>
-                        <p className="text-sm text-white font-medium">
-                          {EVAL_LABELS[key]?.[val] ?? val}
-                        </p>
-                        {nota && <p className="text-xs text-gray-400 mt-1 italic">{nota}</p>}
-                      </div>
-                    );
-                  })}
-                </div>
+                {technicalEval && (
+                  <div className="mb-3">
+                    <p className="text-xs text-gray-500 mb-1">Viabilidad del proyecto</p>
+                    <span className={`text-sm font-medium px-3 py-1 rounded-full ${
+                      technicalEval === "viable" ? "bg-green-500/20 text-green-400" :
+                      technicalEval === "requiere_revision" ? "bg-amber-500/20 text-amber-400" :
+                      "bg-red-500/20 text-red-400"
+                    }`}>
+                      {technicalEval === "viable" ? "✅ Viable" :
+                       technicalEval === "requiere_revision" ? "⚠️ Requiere revisión" :
+                       "🔴 Requiere visita adicional"}
+                    </span>
+                  </div>
+                )}
+                {criticalObs && (
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Observaciones críticas</p>
+                    <p className="text-sm text-gray-300 whitespace-pre-wrap">{criticalObs}</p>
+                  </div>
+                )}
               </div>
             )}
 
@@ -406,16 +491,21 @@ export default function VisitasTecnicas() {
             )}
 
             {/* Firma */}
-            {firmas.length > 0 && (
+            {(firmas.length > 0 || visit?.clientSignature) && (
               <div className="bg-[#162828] rounded-xl p-5 border border-[#1DB5A8]/10">
                 <h2 className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide mb-3 flex items-center gap-2">
                   <PenLine className="h-4 w-4" /> Firma del cliente
                 </h2>
                 {firmas.map(f => (
                   <div key={f.id} className="bg-white rounded-lg overflow-hidden">
-                    <img src={f.photoUrl} alt="Firma" className="w-full h-24 object-contain p-2" />
+                    <img src={f.url} alt="Firma" className="w-full h-24 object-contain p-2" />
                   </div>
                 ))}
+                {firmas.length === 0 && visit?.clientSignature && (
+                  <div className="bg-white rounded-lg overflow-hidden">
+                    <img src={visit.clientSignature} alt="Firma" className="w-full h-24 object-contain p-2" />
+                  </div>
+                )}
               </div>
             )}
 
@@ -429,10 +519,10 @@ export default function VisitasTecnicas() {
                   {fotos.map(photo => (
                     <div key={photo.id} className="relative aspect-square">
                       <img
-                        src={photo.photoUrl}
+                        src={photo.url}
                         alt=""
                         className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                        onClick={() => setLightboxUrl(photo.photoUrl)}
+                        onClick={() => setLightboxUrl(photo.url)}
                       />
                       {photo.category !== "foto" && (
                         <span className="absolute bottom-1 left-1 bg-black/70 text-white text-[9px] px-1 py-0.5 rounded">
@@ -440,7 +530,7 @@ export default function VisitasTecnicas() {
                         </span>
                       )}
                       <button
-                        onClick={() => setLightboxUrl(photo.photoUrl)}
+                        onClick={() => setLightboxUrl(photo.url)}
                         className="absolute bottom-1 right-1 bg-black/60 rounded-full p-1"
                       >
                         <Maximize2 className="h-3 w-3 text-white" />
@@ -452,20 +542,20 @@ export default function VisitasTecnicas() {
             )}
 
             {/* PDFs */}
-            {pdfs.length > 0 && (
+            {visiblePdfs.length > 0 && (
               <div className="bg-[#162828] rounded-xl p-5 border border-[#1DB5A8]/10 md:col-span-2">
                 <h2 className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide mb-4 flex items-center gap-2">
-                  <FileText className="h-4 w-4" /> Planos GoodNotes ({pdfs.length})
+                  <FileText className="h-4 w-4" /> Planos GoodNotes ({visiblePdfs.length})
                 </h2>
                 <div className="space-y-2">
-                  {pdfs.map(pdf => (
+                  {visiblePdfs.map(pdf => (
                     <div key={pdf.id} className="flex items-center gap-3 bg-[#0C1A1A] rounded-lg px-4 py-3">
                       <FileText className="h-5 w-5 text-red-400 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-white truncate">{pdf.description ?? "Plano"}</p>
                       </div>
                       <a
-                        href={pdf.photoUrl}
+                        href={pdf.url}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-[#1DB5A8] hover:text-[#17a396] flex items-center gap-1 text-sm"
@@ -506,35 +596,29 @@ export default function VisitasTecnicas() {
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <h1 className="text-xl font-bold text-[#1DB5A8] flex items-center gap-2">
-                <Ruler className="h-6 w-6" /> Visitas Técnicas
-              </h1>
-              <p className="text-sm text-gray-400 mt-0.5">Medidas y fotos de campo para cotización</p>
+              <p className="text-xs font-semibold text-[#1DB5A8] uppercase tracking-widest mb-0.5">Portal de Medidor</p>
+              <h1 className="text-xl font-bold text-white">Levantamientos</h1>
             </div>
-            <Button
-              onClick={() => setShowNewVisit(true)}
-              className="bg-[#1DB5A8] hover:bg-[#17a396] text-white shrink-0"
-            >
-              <Plus className="h-4 w-4 mr-1" /> Nueva visita
-            </Button>
           </div>
 
-          {/* Filtros */}
-          <div className="flex gap-2 mt-4 flex-wrap">
-            {(["todas", "borrador", "enviada", "convertida"] as const).map((s) => (
-              <button
-                key={s}
-                onClick={() => setStatusFilter(s)}
-                className={`text-sm px-3 py-1.5 rounded-full border transition-colors ${
-                  statusFilter === s
-                    ? "border-[#1DB5A8] bg-[#1DB5A8]/10 text-[#1DB5A8]"
-                    : "border-[#1DB5A8]/20 text-gray-400 hover:border-[#1DB5A8]/40"
-                }`}
-              >
-                {s === "todas" ? "Todas" : s === "borrador" ? "Sin asignar / Pendientes" : s === "enviada" ? "Listas para cotizar" : "Cotizadas"}
-              </button>
-            ))}
-          </div>
+          {/* Filtros — diseñador solo ve "Todas" (sus levantamientos ya tienen proyecto) */}
+          {user?.role !== "disenador" && (
+            <div className="flex gap-2 mt-4 flex-wrap">
+              {(["todas", "enviada", "cot_hecha", "cot_enviada"] as const).map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setStatusFilter(s)}
+                  className={`text-sm px-3 py-1.5 rounded-full border transition-colors ${
+                    statusFilter === s
+                      ? "border-[#1DB5A8] bg-[#1DB5A8]/10 text-[#1DB5A8]"
+                      : "border-[#1DB5A8]/20 text-gray-400 hover:border-[#1DB5A8]/40"
+                  }`}
+                >
+                  {s === "todas" ? "Todas" : s === "enviada" ? "Listas para cotizar" : s === "cot_hecha" ? "Cot. Hecha" : "Cot. Enviada"}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -545,7 +629,7 @@ export default function VisitasTecnicas() {
           </div>
         )}
 
-        {!isLoading && (visits as Visit[]).length === 0 && (
+        {!isLoading && (visits as Visit[]).filter(v => v.status !== "borrador").length === 0 && (
           <div className="text-center py-20 text-gray-400">
             <Ruler className="h-12 w-12 mx-auto mb-4 opacity-30" />
             <p className="text-lg">Sin visitas en esta categoría</p>
@@ -553,13 +637,22 @@ export default function VisitasTecnicas() {
         )}
 
         <div className="space-y-3">
-          {(visits as Visit[]).map(visit => {
+          {(visits as Visit[]).filter(v => {
+            if (statusFilter === "todas") return v.status !== "borrador";
+            return v.status === statusFilter;
+          }).map(visit => {
             const cfg = STATUS_CONFIG[visit.status];
             const photoCount = visit.photos?.length ?? 0;
             return (
               <button
                 key={visit.id}
-                onClick={() => setSelectedVisitId(visit.id)}
+                onClick={() => {
+                  if (!isManager) {
+                    navigate(`/medidor?visitId=${visit.id}`);
+                  } else {
+                    setSelectedVisitId(visit.id);
+                  }
+                }}
                 className="w-full bg-[#162828] border border-[#1DB5A8]/10 rounded-xl p-5 text-left hover:border-[#1DB5A8]/40 transition-colors"
               >
                 <div className="flex items-start justify-between gap-4">
@@ -598,7 +691,7 @@ export default function VisitasTecnicas() {
                       )}
                       {(visit as any).scheduledDate && (
                         <span className="text-xs text-gray-400">
-                          📅 {new Date((visit as any).scheduledDate).toLocaleDateString("es-CO", { weekday: "short", day: "2-digit", month: "short" })}
+                          📅 {parseDBDate((visit as any).scheduledDate).toLocaleDateString("es-CO", { weekday: "short", day: "2-digit", month: "short", timeZone: "America/Bogota" })}
                         </span>
                       )}
                       <span className="text-xs text-gray-500">
@@ -619,6 +712,23 @@ export default function VisitasTecnicas() {
                       <span className="text-xs bg-[#1DB5A8]/10 text-[#1DB5A8] border border-[#1DB5A8]/30 px-2 py-1 rounded-full">
                         Lista para cotizar
                       </span>
+                    )}
+                    {(isManager || (visit.status !== "cot_hecha" && visit.status !== "cot_enviada")) && (
+                      <button
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          if (!confirm("¿Eliminar este levantamiento? Esta acción no se puede deshacer.")) return;
+                          try {
+                            await deleteVisitMutation.mutateAsync({ id: visit.id });
+                          } catch (err: any) {
+                            // onError handles toast
+                          }
+                        }}
+                        className="text-red-400 hover:text-red-300 p-1 rounded hover:bg-red-500/10 ml-1"
+                        title="Eliminar levantamiento"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
                     )}
                     <ChevronRight className="h-5 w-5 text-gray-500" />
                   </div>

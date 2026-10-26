@@ -20,6 +20,8 @@ interface QuotationPDFData {
   transportCost: string;
   discountPercent?: string; // Porcentaje de descuento
   discountAmount?: string; // Monto del descuento
+  includeIva?: boolean; // Si se aplica IVA 19%
+  ivaAmount?: string; // Monto del IVA
   total: string;
   generalNotes?: string; // Notas generales personalizadas
   version?: number; // Versión del PDF

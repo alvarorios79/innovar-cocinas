@@ -9,7 +9,13 @@ import { ChefHat, Refrigerator, UtensilsCrossed, Lightbulb, LayoutGrid, Paintbru
 
 export interface KitchenConfig {
   shape: string;
+  layout?: string; // Forma física: L, U, lineal, cuadrada (informativo, no afecta precio)
+  includeLower?: boolean; // Incluir muebles inferiores (default true)
+  includeUpper?: boolean; // Incluir muebles superiores (default true)
   totalMeters: number;
+  independentMeters?: boolean;  // superiores e inferiores con metraje distinto
+  upperMeters?: number;         // ML superiores (solo cuando independentMeters=true)
+  lowerMeters?: number;         // ML inferiores (solo cuando independentMeters=true)
   specialModules: {
     nichoNevecon: boolean;
     nichoNevera: boolean;
@@ -20,18 +26,47 @@ export interface KitchenConfig {
   countertop: {
     type: string;
     depthSurcharge: string;
+    esImportado?: boolean;       // quarzo/sinterizado importado
+    precioImportadoML?: number;  // precio/ml cuando es importado
+    incluyeLaterales?: boolean;
+    cantLaterales?: number;      // cuántos laterales (default 1)
+    incluyeRegrueso?: boolean;
+    incluyeLavaplatos?: boolean;
+    lavaprecio?: number;         // precio lavaplatos (default 130000)
   };
   island: {
     enabled: boolean;
     meters: number;
     countertopType: string;
     hasLaterals: boolean;
+    depthSurcharge?: string;       // none | 30percent | double
+    esImportado?: boolean;
+    precioImportadoML?: number;
+    incluyeLateralesIsla?: boolean;
+    incluyeRegrueso?: boolean;
+    incluyeSalpicaderoAlto?: boolean;
+    incluyeLavaplatos?: boolean;
+    lavaprecio?: number;
+    incluyeLedIsla?: boolean;
+    ledMLIsla?: number;
+    modulosDescriptivos?: {
+      especiero?: boolean;
+      botellero?: boolean;
+      cajoneroTriple?: boolean;
+      cajoneroDoble?: boolean;
+      basurero?: boolean;
+    };
   };
   bar: {
     enabled: boolean;
     meters: number;
     countertopType: string;
     hasLateral: boolean;
+    barraAlturaLateral?: number;
+    incluyePedestal?: boolean;
+    incluyeHerraje?: boolean;
+    esImportado?: boolean;
+    precioImportadoML?: number;
   };
   ledLighting: number;
   includeUpperModule?: boolean; // Solo para Frente PLL - Módulo superior +$750,000/ml
@@ -45,22 +80,28 @@ export interface KitchenConfig {
     spiceQty: number; // Tapa de especiero - $100,000
     golaQty: number; // Tapas pequeña/gola - $45,000
   };
-  // Módulos de cocina — para descripción automática de la cotización
+  // Módulos de cocina — descripción + ML consumido + piezas pintadas
   kitchenModules?: {
-    esquinero1x1?: boolean;        // Esquinero inferior 1x1
-    esquineroSuperior?: boolean;   // Esquinero superior
-    cajoneroTriple?: boolean;      // Cajonero triple
-    cajoneroDoble?: boolean;       // Cajonero doble
-    basurero?: boolean;            // Basurero integrado
-    moduloEstufaHorno?: boolean;   // Módulo estufa y horno
-    moduloAlmacInf?: boolean;      // Módulo almacenamiento inferior
-    moduloAlmacSup?: boolean;      // Módulo almacenamiento superior
-    moduloExtractor?: boolean;     // Módulo extractor
-    moduloMicroondas?: boolean;    // Módulo de microondas
-    especiero?: boolean;           // Especiero
-    botellero?: boolean;           // Botellero
-    moduloRepisa?: boolean;        // Módulo repisa
-    luzLed?: boolean;              // Luz LED
+    // Superiores
+    esquineroSuperior?: number;    // 0.60ml, 1 pta sup
+    moduloAlmacSup?: number;       // 0.65ml, 2 ptas sup + 1 gola
+    moduloExtractor?: number;      // 0.70ml
+    moduloMicroondas?: number;     // 0.60ml
+    especiero?: number;            // 0.25ml, 1 especiero + 1 gola
+    botellero?: number;            // 0.35ml, 1 pta inf + 1 gola
+    moduloRepisa?: number;         // 0.30ml
+    // Inferiores
+    esquinero1x1?: number;         // 1×1 (no descuenta ML), 2 ptas inf
+    cajoneroTriple?: number;       // 0.70ml, 3 tapas cajón + 1 gola
+    cajoneroDoble?: number;        // 0.60ml, 2 tapas cajón + 1 gola
+    basurero?: number;             // 0.50ml, 1 pta inf + 1 gola
+    moduloEstufaHorno?: number;    // 0.70ml, 1 pta inf + 1 gola
+    moduloAlmacInf?: number;       // 0.70ml, 2 ptas inf + 1 gola
+    // Laterales (no descuentan ML — solo piezas, cantidad por proyecto)
+    lateralNichoNevera?: number;    // qty, sin piezas pintadas
+    lateralMuebleSuperior?: number; // qty, 1 pta sup c/u
+    lateralMuebleInferior?: number; // qty, 1 pta inf c/u
+    luzLed?: boolean;
   };
   // Para forma "Puertas y Tapas (solo cambio)"
   doorsAndCovers?: {
@@ -88,6 +129,25 @@ export interface KitchenConfig {
     };
   };
   notes?: string;
+  mlPriceCode?: string; // Código de precio guardado: COCINA_ML_ESTANDAR | COCINA_ML_PREMIUM | COCINA_ML_DELUXE
+  // Especificaciones informativas (salen en PDF para el cliente)
+  boardFinish?: string;
+  interiorFinish?: string;
+  hardware?: {
+    bisagras?: 'estandar' | 'inox';
+    rieles?: 'peso_alto' | 'cierre_lento';
+  };
+  incluyePlatero?: boolean;
+  plateroDesc?: string;
+  appliances?: {
+    estufa: boolean;
+    horno: boolean;
+    extractor: boolean;
+    llaveLavaplatos: boolean;
+    nevera: boolean;
+    microondas: boolean;
+    lavaVajillas: boolean;
+  };
 }
 
 interface KitchenConfiguratorProps {
@@ -128,18 +188,39 @@ export function KitchenConfigurator({
     countertop: {
       type: "",
       depthSurcharge: "none",
+      esImportado: false,
+      precioImportadoML: 0,
+      incluyeLaterales: false,
+      cantLaterales: 1,
+      incluyeRegrueso: false,
+      incluyeLavaplatos: false,
+      lavaprecio: 130000,
     },
     island: {
       enabled: false,
       meters: 0,
       countertopType: "",
       hasLaterals: false,
+      incluyeLateralesIsla: false,
+      incluyeRegrueso: false,
+      incluyeSalpicaderoAlto: false,
+      incluyeLavaplatos: false,
+      incluyeLedIsla: false,
+      ledMLIsla: 0,
+      modulosDescriptivos: {},
     },
     bar: {
       enabled: false,
       meters: 0,
       countertopType: "",
       hasLateral: false,
+      barraAlturaLateral: 90,
+      incluyePedestal: false,
+      incluyeHerraje: false,
+      incluyeLavaplatos: false,
+      lavaprecio: undefined,
+      esImportado: false,
+      precioImportadoML: undefined,
     },
     ledLighting: 0,
     paintedDoors: {
@@ -160,19 +241,22 @@ export function KitchenConfigurator({
       },
     },
     kitchenModules: {
-      esquinero1x1: false,
-      esquineroSuperior: false,
-      cajoneroTriple: false,
-      cajoneroDoble: false,
-      basurero: false,
-      moduloEstufaHorno: false,
-      moduloAlmacInf: false,
-      moduloAlmacSup: false,
-      moduloExtractor: false,
-      moduloMicroondas: false,
-      especiero: false,
-      botellero: false,
-      moduloRepisa: false,
+      esquineroSuperior: 0,
+      moduloAlmacSup: 0,
+      moduloExtractor: 0,
+      moduloMicroondas: 0,
+      especiero: 0,
+      botellero: 0,
+      moduloRepisa: 0,
+      esquinero1x1: 0,
+      cajoneroTriple: 0,
+      cajoneroDoble: 0,
+      basurero: 0,
+      moduloEstufaHorno: 0,
+      moduloAlmacInf: 0,
+      lateralNichoNevera: 0,
+      lateralMuebleSuperior: 0,
+      lateralMuebleInferior: 0,
       luzLed: false,
     },
     notes: "",
@@ -208,6 +292,9 @@ export function KitchenConfigurator({
     if (currentConfig.specialModules.alacenaEntrepanos) deductions += 0.5;
     if (currentConfig.specialModules.alacenaHerraje) deductions += 0.5;
     if (currentConfig.specialModules.torreHornos) deductions += 0.7;
+    if (currentConfig.independentMeters) {
+      return Math.max(0, (currentConfig.lowerMeters || 0) - deductions);
+    }
     return Math.max(0, currentConfig.totalMeters - deductions);
   };
 
@@ -218,14 +305,14 @@ export function KitchenConfigurator({
       <CardContent className="p-4">
         {/* Header */}
         <div className="flex items-center gap-2 mb-4 pb-2 border-b border-emerald-200">
-          <ChefHat className="h-5 w-5 text-emerald-600" />
-          <h4 className="font-bold text-emerald-800 text-lg">Configuración de Cocina Integral</h4>
+          <ChefHat className="h-5 w-5 text-emerald-400" />
+          <h4 className="font-bold text-emerald-300 text-lg">Configuración de Cocina Integral</h4>
         </div>
 
         <div className="space-y-6">
           {/* Dimensiones */}
-          <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-200">
-            <h5 className="font-semibold text-emerald-700 mb-3">Dimensiones del Proyecto</h5>
+          <div className="bg-emerald-500/10 p-4 rounded-lg border border-emerald-200">
+            <h5 className="font-semibold text-emerald-300 mb-3">Dimensiones del Proyecto</h5>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label className="text-sm font-medium text-white/85 block mb-2">Tipo de Cocina</Label>
@@ -249,6 +336,74 @@ export function KitchenConfigurator({
                 </Select>
               </div>
               <div>
+                <Label className="text-sm font-medium text-white/85 block mb-2">Forma de la Cocina</Label>
+                <Select
+                  value={currentConfig.layout || ""}
+                  onValueChange={(value) => updateConfig("layout", value)}
+                >
+                  <SelectTrigger className="h-10 bg-[#162828]">
+                    <SelectValue placeholder="Selecciona la forma" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="L">En L</SelectItem>
+                    <SelectItem value="U">En U</SelectItem>
+                    <SelectItem value="lineal">Lineal / Recta</SelectItem>
+                    <SelectItem value="cuadrada">Cuadrada / Paralela</SelectItem>
+                    <SelectItem value="isla">Con isla central</SelectItem>
+                    <SelectItem value="otra">Otra</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Módulos incluidos — solo para cocinas completas */}
+            {!['puertas_tapas', 'solo_acabados', 'solo_superiores', 'solo_inferiores', 'frente_pll'].includes(currentConfig.shape || '') && (
+            <div className="mt-4">
+              <Label className="text-sm font-medium text-white/60 block mb-2">Módulos incluidos</Label>
+              <div className="flex gap-6">
+                <label className="flex items-center gap-2 text-sm text-white/80 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={currentConfig.includeLower !== false}
+                    onChange={(e) => updateConfig("includeLower", e.target.checked)}
+                    className="h-4 w-4 accent-[#00BCD4]"
+                  />
+                  Muebles Inferiores
+                </label>
+                <label className="flex items-center gap-2 text-sm text-white/80 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={currentConfig.includeUpper !== false}
+                    onChange={(e) => updateConfig("includeUpper", e.target.checked)}
+                    className="h-4 w-4 accent-[#00BCD4]"
+                  />
+                  Muebles Superiores
+                </label>
+              </div>
+            </div>
+            )}
+
+                        {/* Toggle: medidas independientes superiores/inferiores */}
+            <div className="flex items-center gap-2 mt-4 mb-2">
+              <Checkbox
+                id="independentMeters"
+                checked={currentConfig.independentMeters || false}
+                onCheckedChange={(checked) => {
+                  updateConfig("independentMeters", !!checked);
+                  if (!checked) {
+                    updateConfig("upperMeters", undefined);
+                    updateConfig("lowerMeters", undefined);
+                  }
+                }}
+              />
+              <label htmlFor="independentMeters" className="text-sm text-white/70 cursor-pointer">
+                Superiores e inferiores con medidas distintas
+              </label>
+            </div>
+
+            {!currentConfig.independentMeters ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+              <div>
                 <Label className="text-sm font-medium text-white/85 block mb-2">Metraje Total (ml)</Label>
                 <Input
                   type="number"
@@ -260,18 +415,47 @@ export function KitchenConfigurator({
                 />
               </div>
             </div>
-            <div className="mt-3 p-3 bg-emerald-100 rounded">
-              <p className="text-sm text-emerald-700">
-                <strong>Metraje resultante:</strong> {resultingMeters.toFixed(2)} ml
+            ) : (
+            <div className="grid grid-cols-2 gap-4 mt-2">
+              <div>
+                <Label className="text-sm font-medium text-white/85 block mb-2">ML Inferiores</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={currentConfig.lowerMeters ?? ""}
+                  onChange={(e) => updateConfig("lowerMeters", parseFloat(e.target.value) || 0)}
+                  placeholder="Ej: 3.61"
+                  className="h-10 bg-[#162828]"
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-medium text-white/85 block mb-2">ML Superiores</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={currentConfig.upperMeters ?? ""}
+                  onChange={(e) => updateConfig("upperMeters", parseFloat(e.target.value) || 0)}
+                  placeholder="Ej: 1.88"
+                  className="h-10 bg-[#162828]"
+                />
+              </div>
+            </div>
+            )}
+            <div className="mt-3 p-3 bg-emerald-500/15 rounded">
+              <p className="text-sm text-emerald-300">
+                {currentConfig.independentMeters
+                  ? (<><strong>ML inferiores (resultante):</strong> {resultingMeters.toFixed(2)} ml &nbsp;|&nbsp; <strong>ML superiores:</strong> {(currentConfig.upperMeters || 0).toFixed(2)} ml</>
+                  ) : (<><strong>Metraje resultante:</strong> {resultingMeters.toFixed(2)} ml</>)
+                }
               </p>
-              <p className="text-xs text-emerald-600 mt-1">
-                Muebles Inferiores: {resultingMeters.toFixed(2)} ml | Muebles Superiores: {resultingMeters.toFixed(2)} ml
+              <p className="text-xs text-emerald-400 mt-1">
+                {currentConfig.includeLower !== false && `Muebles Inferiores: ${resultingMeters.toFixed(2)} ml`}{currentConfig.includeLower !== false && currentConfig.includeUpper !== false && ' | '}{currentConfig.includeUpper !== false && `Muebles Superiores: ${resultingMeters.toFixed(2)} ml`}
               </p>
             </div>
           </div>
 
           {/* Muebles Especiales */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
+          <div className="bg-white/[0.03] p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
             <h5 className="font-semibold text-white/85 mb-3">Muebles Especiales (se descuentan del metraje)</h5>
             
             <div className="space-y-3">
@@ -290,7 +474,7 @@ export function KitchenConfigurator({
                     </Label>
                   </div>
                 </div>
-                <span className={`font-semibold ${currentConfig.specialModules.nichoNevecon ? 'text-emerald-700' : 'text-gray-400'}`}>
+                <span className={`font-semibold ${currentConfig.specialModules.nichoNevecon ? 'text-emerald-300' : 'text-gray-400'}`}>
                   $1,200,000
                 </span>
               </div>
@@ -310,7 +494,7 @@ export function KitchenConfigurator({
                     </Label>
                   </div>
                 </div>
-                <span className={`font-semibold ${currentConfig.specialModules.nichoNevera ? 'text-emerald-700' : 'text-gray-400'}`}>
+                <span className={`font-semibold ${currentConfig.specialModules.nichoNevera ? 'text-emerald-300' : 'text-gray-400'}`}>
                   $1,200,000
                 </span>
               </div>
@@ -330,7 +514,7 @@ export function KitchenConfigurator({
                     </Label>
                   </div>
                 </div>
-                <span className={`font-semibold ${currentConfig.specialModules.alacenaEntrepanos ? 'text-emerald-700' : 'text-gray-400'}`}>
+                <span className={`font-semibold ${currentConfig.specialModules.alacenaEntrepanos ? 'text-emerald-300' : 'text-gray-400'}`}>
                   $1,250,000
                 </span>
               </div>
@@ -350,7 +534,7 @@ export function KitchenConfigurator({
                     </Label>
                   </div>
                 </div>
-                <span className={`font-semibold ${currentConfig.specialModules.alacenaHerraje ? 'text-emerald-700' : 'text-gray-400'}`}>
+                <span className={`font-semibold ${currentConfig.specialModules.alacenaHerraje ? 'text-emerald-300' : 'text-gray-400'}`}>
                   $900,000
                 </span>
               </div>
@@ -370,49 +554,143 @@ export function KitchenConfigurator({
                     </Label>
                   </div>
                 </div>
-                <span className={`font-semibold ${currentConfig.specialModules.torreHornos ? 'text-emerald-700' : 'text-gray-400'}`}>
+                <span className={`font-semibold ${currentConfig.specialModules.torreHornos ? 'text-emerald-300' : 'text-gray-400'}`}>
                   $1,350,000
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Módulos de Cocina — checklist descriptivo */}
-          <div className="bg-teal-50 p-4 rounded-lg border border-teal-200">
-            <h5 className="font-semibold text-teal-700 mb-3">Módulos de Cocina (para descripción)</h5>
-            <p className="text-xs text-teal-600 mb-3">Selecciona los módulos que lleva esta cocina — se usan para generar la descripción automática de la cotización.</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {([
-                { key: "esquinero1x1",       label: "Esquinero 1×1 (inferior)" },
-                { key: "esquineroSuperior",   label: "Esquinero superior" },
-                { key: "cajoneroTriple",      label: "Cajonero triple" },
-                { key: "cajoneroDoble",       label: "Cajonero doble" },
-                { key: "basurero",            label: "Basurero integrado" },
-                { key: "moduloEstufaHorno",   label: "Módulo estufa y horno" },
-                { key: "moduloAlmacInf",      label: "Módulo almacenamiento inferior" },
-                { key: "moduloAlmacSup",      label: "Módulo almacenamiento superior" },
-                { key: "moduloExtractor",     label: "Módulo extractor" },
-                { key: "moduloMicroondas",    label: "Módulo de microondas" },
-                { key: "especiero",           label: "Especiero" },
-                { key: "botellero",           label: "Botellero" },
-                { key: "moduloRepisa",        label: "Módulo repisa" },
-                { key: "luzLed",             label: "Luz LED" },
-              ] as { key: keyof NonNullable<KitchenConfig["kitchenModules"]>; label: string }[]).map(({ key, label }) => (
-                <div key={key} className="flex items-center gap-2 p-2 bg-[#162828] rounded border border-teal-100 hover:border-teal-300 transition-colors">
-                  <Checkbox
-                    id={`km-${key}`}
-                    checked={currentConfig.kitchenModules?.[key] ?? false}
-                    onCheckedChange={(c) => updateConfig(`kitchenModules.${key}`, c === true)}
-                  />
-                  <Label htmlFor={`km-${key}`} className="cursor-pointer text-sm text-white/85">{label}</Label>
+          {/* Módulos de Cocina — con cantidades y ML */}
+          <div className="bg-teal-500/10 p-4 rounded-lg border border-teal-500/25">
+            <h5 className="font-semibold text-teal-300 mb-1">Módulos de Cocina</h5>
+            <p className="text-xs text-teal-400 mb-3">Indica cuántos de cada módulo lleva la cocina. Se descuenta el ML y se calculan piezas de pintura automáticamente.</p>
+
+            {/* ML consumido / restante */}
+            {(() => {
+              const km = currentConfig.kitchenModules || {};
+              const sm = currentConfig.specialModules || {};
+              const ML_MAP: Record<string, number> = {
+                esquineroSuperior:0.60, moduloAlmacSup:0.65, moduloExtractor:0.70,
+                moduloMicroondas:0.60, especiero:0.25, botellero:0.35, moduloRepisa:0.30,
+                esquinero1x1:0, cajoneroTriple:0.70, cajoneroDoble:0.60,
+                basurero:0.50, moduloEstufaHorno:0.70, moduloAlmacInf:0.70,
+              };
+              const specialML = (sm.nichoNevecon?1.00:0)+(sm.nichoNevera?0.75:0)+(sm.alacenaEntrepanos?0.55:0)+(sm.alacenaHerraje?0.55:0)+(sm.torreHornos?0.70:0);
+              const modulesML = Object.entries(ML_MAP).reduce((acc,[k,ml])=>{
+                const q = typeof (km as any)[k]==='boolean'?((km as any)[k]?1:0):((km as any)[k]||0);
+                return acc+q*ml;
+              },0);
+              const total = currentConfig.totalMeters||0;
+              const remaining = total - specialML - modulesML;
+              return (
+                <div className="flex gap-4 mb-3 text-xs">
+                  <span className="text-white/50">Total: <span className="text-white font-semibold">{total}ml</span></span>
+                  <span className="text-white/50">Especiales: <span className="text-amber-300">{specialML.toFixed(2)}ml</span></span>
+                  <span className="text-white/50">Módulos: <span className="text-teal-300">{modulesML.toFixed(2)}ml</span></span>
+                  <span className="text-white/50">Restante: <span className={remaining<0?"text-red-400":"text-emerald-400"}>{remaining.toFixed(2)}ml</span></span>
                 </div>
-              ))}
+              );
+            })()}
+
+            <div className="space-y-4">
+              {/* Superiores */}
+              <div>
+                <p className="text-xs font-semibold text-white/50 uppercase tracking-wide mb-2">Módulos superiores</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {([
+                    { key:"esquineroSuperior", label:"Esquinero superior",    ml:0.60 },
+                    { key:"moduloAlmacSup",    label:"Alm. superior",         ml:0.65 },
+                    { key:"moduloExtractor",   label:"Módulo extractor",      ml:0.70 },
+                    { key:"moduloMicroondas",  label:"Módulo microondas",     ml:0.60 },
+                    { key:"especiero",         label:"Especiero",             ml:0.25 },
+                    { key:"botellero",         label:"Botellero",             ml:0.35 },
+                    { key:"moduloRepisa",      label:"Módulo repisa",         ml:0.30 },
+                  ]).map(({ key, label, ml }) => {
+                    const qty = typeof (currentConfig.kitchenModules as any)?.[key]==='boolean'
+                      ? ((currentConfig.kitchenModules as any)?.[key]?1:0)
+                      : ((currentConfig.kitchenModules as any)?.[key]||0);
+                    return (
+                      <div key={key} className="flex items-center gap-2 p-2 bg-[#162828] rounded border border-teal-100">
+                        <Button type="button" variant="ghost" size="sm" className="h-6 w-6 p-0 text-white/50"
+                          onClick={()=>updateConfig(`kitchenModules.${key}`,Math.max(0,qty-1))}>−</Button>
+                        <span className="w-5 text-center text-sm font-semibold text-white">{qty}</span>
+                        <Button type="button" variant="ghost" size="sm" className="h-6 w-6 p-0 text-white/50"
+                          onClick={()=>updateConfig(`kitchenModules.${key}`,qty+1)}>+</Button>
+                        <span className="text-sm text-white/85 flex-1">{label}</span>
+                        <span className="text-xs text-teal-400/70">{ml}ml</span>
+                      </div>
+                    );
+                  })}
+                  {/* Luz LED — sigue siendo boolean */}
+                  <div className="flex items-center gap-2 p-2 bg-[#162828] rounded border border-teal-100">
+                    <Checkbox id="km-luzLed" checked={currentConfig.kitchenModules?.luzLed??false}
+                      onCheckedChange={(c)=>updateConfig("kitchenModules.luzLed",c===true)} />
+                    <Label htmlFor="km-luzLed" className="cursor-pointer text-sm text-white/85">Luz LED</Label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Inferiores */}
+              <div>
+                <p className="text-xs font-semibold text-white/50 uppercase tracking-wide mb-2">Módulos inferiores</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {([
+                    { key:"esquinero1x1",      label:"Esquinero 1×1 inf.",   ml:0    },
+                    { key:"cajoneroTriple",    label:"Cajonero triple",       ml:0.70 },
+                    { key:"cajoneroDoble",     label:"Cajonero doble",        ml:0.60 },
+                    { key:"basurero",          label:"Basurero integrado",    ml:0.50 },
+                    { key:"moduloEstufaHorno", label:"Estufa / horno",        ml:0.70 },
+                    { key:"moduloAlmacInf",    label:"Alm. inferior",         ml:0.70 },
+                  ]).map(({ key, label, ml }) => {
+                    const qty = typeof (currentConfig.kitchenModules as any)?.[key]==='boolean'
+                      ? ((currentConfig.kitchenModules as any)?.[key]?1:0)
+                      : ((currentConfig.kitchenModules as any)?.[key]||0);
+                    return (
+                      <div key={key} className="flex items-center gap-2 p-2 bg-[#162828] rounded border border-teal-100">
+                        <Button type="button" variant="ghost" size="sm" className="h-6 w-6 p-0 text-white/50"
+                          onClick={()=>updateConfig(`kitchenModules.${key}`,Math.max(0,qty-1))}>−</Button>
+                        <span className="w-5 text-center text-sm font-semibold text-white">{qty}</span>
+                        <Button type="button" variant="ghost" size="sm" className="h-6 w-6 p-0 text-white/50"
+                          onClick={()=>updateConfig(`kitchenModules.${key}`,qty+1)}>+</Button>
+                        <span className="text-sm text-white/85 flex-1">{label}</span>
+                        <span className="text-xs text-teal-400/70">{ml>0?`${ml}ml`:"—"}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Laterales */}
+              <div>
+                <p className="text-xs font-semibold text-white/50 uppercase tracking-wide mb-2">Laterales <span className="text-teal-500/60 normal-case">(no descuentan ML — solo piezas)</span></p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {([
+                    { key:"lateralNichoNevera",    label:"Lateral nicho nevera"  },
+                    { key:"lateralMuebleSuperior", label:"Lateral mueble sup."   },
+                    { key:"lateralMuebleInferior", label:"Lateral mueble inf."   },
+                  ]).map(({ key, label }) => {
+                    const qty = (currentConfig.kitchenModules as any)?.[key]||0;
+                    return (
+                      <div key={key} className="flex items-center gap-2 p-2 bg-[#162828] rounded border border-teal-100">
+                        <Button type="button" variant="ghost" size="sm" className="h-6 w-6 p-0 text-white/50"
+                          onClick={()=>updateConfig(`kitchenModules.${key}`,Math.max(0,qty-1))}>−</Button>
+                        <span className="w-5 text-center text-sm font-semibold text-white">{qty}</span>
+                        <Button type="button" variant="ghost" size="sm" className="h-6 w-6 p-0 text-white/50"
+                          onClick={()=>updateConfig(`kitchenModules.${key}`,qty+1)}>+</Button>
+                        <span className="text-sm text-white/85 flex-1">{label}</span>
+                        <span className="text-xs text-teal-400/70">—</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Mesón Principal */}
-          <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-200">
-            <h5 className="font-semibold text-emerald-700 mb-3">Mesón Principal</h5>
+          <div className="bg-emerald-500/10 p-4 rounded-lg border border-emerald-200">
+            <h5 className="font-semibold text-emerald-300 mb-3">Mesón Principal</h5>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label className="text-sm font-medium text-white/85 block mb-2">Tipo de Mesón *</Label>
@@ -441,16 +719,130 @@ export function KitchenConfigurator({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Sin recargo (≤60cm)</SelectItem>
-                    <SelectItem value="30percent">+30% (61-90cm)</SelectItem>
-                    <SelectItem value="double">×2 (91-120cm)</SelectItem>
+                    <SelectItem value="30percent">+30% fondo (61-90cm)</SelectItem>
+                    <SelectItem value="double">×2 fondo (91-120cm)</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+            </div>
+
+            {/* Standard / Importado — solo para quarzo y sinterizado */}
+            {currentConfig.countertop.type && (
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <Label className="text-sm font-medium text-white/70 mr-1">Variante:</Label>
+                <button
+                  type="button"
+                  onClick={() => updateConfig("countertop.esImportado", false)}
+                  className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                    !currentConfig.countertop.esImportado
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-[#162828] text-white/50 hover:text-white/80'
+                  }`}
+                >
+                  Standard
+                </button>
+                <button
+                  type="button"
+                  onClick={() => updateConfig("countertop.esImportado", true)}
+                  className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                    currentConfig.countertop.esImportado
+                      ? 'bg-amber-600 text-white'
+                      : 'bg-[#162828] text-white/50 hover:text-white/80'
+                  }`}
+                >
+                  Importado
+                </button>
+                {currentConfig.countertop.esImportado && (
+                  <div className="flex items-center gap-2 ml-1">
+                    <span className="text-sm text-white/50">$/ml</span>
+                    <Input
+                      type="number"
+                      step="50000"
+                      min="0"
+                      placeholder="Precio por ml"
+                      value={currentConfig.countertop.precioImportadoML || ""}
+                      onChange={(e) => updateConfig("countertop.precioImportadoML", parseInt(e.target.value) || 0)}
+                      className="h-9 w-36 bg-[#162828]"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Info metros mesón */}
+            {currentConfig.countertop.type && (
+              <div className="mt-3 p-2 bg-emerald-900/40 rounded text-xs text-emerald-300 flex flex-wrap gap-2">
+                <span>Metros mesón: <strong>{resultingMeters.toFixed(2)} ml</strong></span>
+                {currentConfig.countertop.incluyeLaterales && (
+                  <span className="text-white/60">+ {((currentConfig.countertop.cantLaterales || 1) * 0.9).toFixed(2)} ml lateral{(currentConfig.countertop.cantLaterales || 1) > 1 ? 'es' : ''}</span>
+                )}
+                {currentConfig.countertop.incluyeRegrueso && (
+                  <span className="text-white/60">+ 0.90 ml regrueso</span>
+                )}
+                {currentConfig.countertop.depthSurcharge === '30percent' && (
+                  <span className="text-amber-300">· +30% por fondo</span>
+                )}
+                {currentConfig.countertop.depthSurcharge === 'double' && (
+                  <span className="text-amber-300">· ×2 por fondo</span>
+                )}
+              </div>
+            )}
+
+            {/* Laterales, regrueso, lavaplatos */}
+            <div className="mt-3 space-y-2">
+              <div className="flex items-center gap-3 flex-wrap">
+                <Checkbox
+                  id="meson-laterales"
+                  checked={currentConfig.countertop.incluyeLaterales ?? false}
+                  onCheckedChange={(c) => updateConfig("countertop.incluyeLaterales", c === true)}
+                />
+                <Label htmlFor="meson-laterales" className="cursor-pointer text-sm">Laterales (+0.90ml c/u)</Label>
+                {currentConfig.countertop.incluyeLaterales && (
+                  <>
+                    <Input
+                      type="number" min="1" max="4" step="1"
+                      value={currentConfig.countertop.cantLaterales || 1}
+                      onChange={(e) => updateConfig("countertop.cantLaterales", parseInt(e.target.value) || 1)}
+                      className="h-8 w-16 text-center bg-[#162828]"
+                    />
+                    <span className="text-xs text-white/50">ud.</span>
+                  </>
+                )}
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Checkbox
+                  id="meson-regrueso"
+                  checked={currentConfig.countertop.incluyeRegrueso ?? false}
+                  onCheckedChange={(c) => updateConfig("countertop.incluyeRegrueso", c === true)}
+                />
+                <Label htmlFor="meson-regrueso" className="cursor-pointer text-sm">Regrueso (+0.90ml)</Label>
+              </div>
+
+              <div className="flex items-center gap-3 flex-wrap">
+                <Checkbox
+                  id="meson-lavaplatos"
+                  checked={currentConfig.countertop.incluyeLavaplatos ?? false}
+                  onCheckedChange={(c) => updateConfig("countertop.incluyeLavaplatos", c === true)}
+                />
+                <Label htmlFor="meson-lavaplatos" className="cursor-pointer text-sm">Lavaplatos y pegado</Label>
+                {currentConfig.countertop.incluyeLavaplatos && (
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs text-white/50">$</span>
+                    <Input
+                      type="number" step="1000" min="0"
+                      value={currentConfig.countertop.lavaprecio ?? 130000}
+                      onChange={(e) => updateConfig("countertop.lavaprecio", parseInt(e.target.value) || 130000)}
+                      className="h-8 w-32 bg-[#162828]"
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
           {/* Isla */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
+          <div className="bg-white/[0.03] p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
                 <Checkbox 
@@ -495,22 +887,149 @@ export function KitchenConfigurator({
                     </Select>
                   </div>
                 </div>
+
+                {/* Recargo por fondo de isla */}
+                <div>
+                  <Label className="text-sm font-medium text-white/85 block mb-2">Profundidad (fondo) del mesón de isla</Label>
+                  <Select
+                    value={currentConfig.island.depthSurcharge || "none"}
+                    onValueChange={(value) => updateConfig("island.depthSurcharge", value)}
+                  >
+                    <SelectTrigger className="h-10 bg-[#162828]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">≤62cm (sin recargo)</SelectItem>
+                      <SelectItem value="30percent">+30% — fondo 63-90cm</SelectItem>
+                      <SelectItem value="40percent">+40% — fondo 91-100cm</SelectItem>
+                      <SelectItem value="double">×2 — fondo 101-120cm</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Importado isla */}
+                {currentConfig.island.countertopType && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Label className="text-sm font-medium text-white/70 mr-1">Variante mesón isla:</Label>
+                    <button
+                      type="button"
+                      onClick={() => updateConfig("island.esImportado", false)}
+                      className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                        !currentConfig.island.esImportado
+                          ? 'bg-emerald-600 text-white'
+                          : 'bg-[#162828] text-white/50 hover:text-white/80'
+                      }`}
+                    >
+                      Standard
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => updateConfig("island.esImportado", true)}
+                      className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                        currentConfig.island.esImportado
+                          ? 'bg-amber-600 text-white'
+                          : 'bg-[#162828] text-white/50 hover:text-white/80'
+                      }`}
+                    >
+                      Importado
+                    </button>
+                    {currentConfig.island.esImportado && (
+                      <div className="flex items-center gap-2 ml-1">
+                        <span className="text-sm text-white/50">$/ml</span>
+                        <Input
+                          type="number"
+                          step="50000"
+                          min="0"
+                          placeholder="Precio por ml"
+                          value={currentConfig.island.precioImportadoML || ""}
+                          onChange={(e) => updateConfig("island.precioImportadoML", parseInt(e.target.value) || 0)}
+                          className="h-9 w-36 bg-[#162828]"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Laterales y regrueso separados */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex items-center gap-2">
+                    <Checkbox id="isla-laterales" checked={currentConfig.island.incluyeLateralesIsla ?? false}
+                      onCheckedChange={(c) => updateConfig("island.incluyeLateralesIsla", c === true)} />
+                    <Label htmlFor="isla-laterales" className="cursor-pointer text-sm">Laterales (+1.80ml)</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox id="isla-regrueso" checked={currentConfig.island.incluyeRegrueso ?? false}
+                      onCheckedChange={(c) => updateConfig("island.incluyeRegrueso", c === true)} />
+                    <Label htmlFor="isla-regrueso" className="cursor-pointer text-sm">Regrueso (+0.90ml)</Label>
+                  </div>
+                </div>
                 <div className="flex items-center gap-3">
-                  <Checkbox 
-                    id="isla-laterales" 
-                    checked={currentConfig.island.hasLaterals} 
-                    onCheckedChange={(c) => updateConfig("island.hasLaterals", c === true)} 
-                  />
-                  <Label htmlFor="isla-laterales" className="cursor-pointer text-sm">
-                    Incluir laterales (+0.90ml × 2 lados)
-                  </Label>
+                  <Checkbox id="isla-salpicadero" checked={currentConfig.island.incluyeSalpicaderoAlto ?? false}
+                    onCheckedChange={(c) => updateConfig("island.incluyeSalpicaderoAlto", c === true)} />
+                  <Label htmlFor="isla-salpicadero" className="cursor-pointer text-sm">Salpicadero alto</Label>
+                </div>
+                {/* Lavaplatos isla */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3">
+                    <Checkbox id="isla-lavaplatos" checked={currentConfig.island.incluyeLavaplatos ?? false}
+                      onCheckedChange={(c) => updateConfig("island.incluyeLavaplatos", c === true)} />
+                    <Label htmlFor="isla-lavaplatos" className="cursor-pointer text-sm">Lavaplatos</Label>
+                  </div>
+                  {currentConfig.island.incluyeLavaplatos && (
+                    <div className="flex items-center gap-2 pl-8">
+                      <Label className="text-sm text-white/70">Precio:</Label>
+                      <Input type="number" step="1000"
+                        value={currentConfig.island.lavaprecio ?? ""}
+                        onChange={(e) => updateConfig("island.lavaprecio", parseFloat(e.target.value) || undefined)}
+                        placeholder="130,000" className="h-8 w-32 bg-[#162828]" />
+                    </div>
+                  )}
+                </div>
+                {/* LED isla */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3">
+                    <Checkbox id="isla-led" checked={currentConfig.island.incluyeLedIsla ?? false}
+                      onCheckedChange={(c) => updateConfig("island.incluyeLedIsla", c === true)} />
+                    <Label htmlFor="isla-led" className="cursor-pointer text-sm">Luz LED isla</Label>
+                  </div>
+                  {currentConfig.island.incluyeLedIsla && (
+                    <div className="flex items-center gap-2 pl-8">
+                      <Input type="number" step="0.01"
+                        value={currentConfig.island.ledMLIsla ?? ""}
+                        onChange={(e) => updateConfig("island.ledMLIsla", parseFloat(e.target.value) || 0)}
+                        placeholder="0.00" className="h-8 w-20 bg-[#162828]" />
+                      <span className="text-sm text-white/60">ml</span>
+                    </div>
+                  )}
+                </div>
+                {/* Módulos descriptivos */}
+                <div>
+                  <Label className="text-sm text-white/60 block mb-2">Módulos (solo descriptivos)</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {([
+                      ['especiero', 'Especiero'],
+                      ['botellero', 'Botellero'],
+                      ['cajoneroTriple', 'Cajonero triple'],
+                      ['cajoneroDoble', 'Cajonero doble'],
+                      ['basurero', 'Basurero'],
+                    ] as [string, string][]).map(([key, label]) => (
+                      <div key={key} className="flex items-center gap-2">
+                        <Checkbox
+                          id={`isla-mod-${key}`}
+                          checked={(currentConfig.island.modulosDescriptivos as any)?.[key] ?? false}
+                          onCheckedChange={(c) => updateConfig(`island.modulosDescriptivos.${key}`, c === true)}
+                        />
+                        <Label htmlFor={`isla-mod-${key}`} className="text-xs cursor-pointer">{label}</Label>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
           </div>
 
           {/* Barra */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
+          <div className="bg-white/[0.03] p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
                 <Checkbox 
@@ -555,22 +1074,84 @@ export function KitchenConfigurator({
                     </Select>
                   </div>
                 </div>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3">
+                    <Checkbox 
+                      id="barra-lateral" 
+                      checked={currentConfig.bar.hasLateral} 
+                      onCheckedChange={(c) => updateConfig("bar.hasLateral", c === true)} 
+                    />
+                    <Label htmlFor="barra-lateral" className="cursor-pointer text-sm">
+                      Incluir lateral
+                    </Label>
+                  </div>
+                  {currentConfig.bar.hasLateral && (
+                    <div className="flex items-center gap-2 pl-8">
+                      <Label className="text-sm text-white/70">Altura:</Label>
+                      <Input
+                        type="number"
+                        step="1"
+                        value={currentConfig.bar.barraAlturaLateral ?? 90}
+                        onChange={(e) => updateConfig("bar.barraAlturaLateral", parseInt(e.target.value) || 90)}
+                        className="h-8 w-20 bg-[#162828]"
+                      />
+                      <span className="text-sm text-white/60">cm</span>
+                    </div>
+                  )}
+                </div>
                 <div className="flex items-center gap-3">
                   <Checkbox 
-                    id="barra-lateral" 
-                    checked={currentConfig.bar.hasLateral} 
-                    onCheckedChange={(c) => updateConfig("bar.hasLateral", c === true)} 
+                    id="barra-pedestal" 
+                    checked={currentConfig.bar.incluyePedestal ?? false} 
+                    onCheckedChange={(c) => updateConfig("bar.incluyePedestal", c === true)} 
                   />
-                  <Label htmlFor="barra-lateral" className="cursor-pointer text-sm">
-                    Incluir lateral (+0.90ml fijo)
+                  <Label htmlFor="barra-pedestal" className="cursor-pointer text-sm">
+                    Pedestal metálico (+$250,000)
                   </Label>
                 </div>
+                <div className="flex items-center gap-3">
+                  <Checkbox 
+                    id="barra-herraje" 
+                    checked={currentConfig.bar.incluyeHerraje ?? false} 
+                    onCheckedChange={(c) => updateConfig("bar.incluyeHerraje", c === true)} 
+                  />
+                  <Label htmlFor="barra-herraje" className="cursor-pointer text-sm">
+                    Herraje de barra (+$380,000)
+                  </Label>
+                </div>
+                {currentConfig.bar.countertopType && (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3">
+                      <Checkbox 
+                        id="barra-importado" 
+                        checked={currentConfig.bar.esImportado ?? false} 
+                        onCheckedChange={(c) => updateConfig("bar.esImportado", c === true)} 
+                      />
+                      <Label htmlFor="barra-importado" className="cursor-pointer text-sm">
+                        Mesón importado
+                      </Label>
+                    </div>
+                    {currentConfig.bar.esImportado && (
+                      <div className="flex items-center gap-2 pl-8">
+                        <Label className="text-sm text-white/70">Precio/ml:</Label>
+                        <Input
+                          type="number"
+                          step="1000"
+                          value={currentConfig.bar.precioImportadoML ?? ""}
+                          onChange={(e) => updateConfig("bar.precioImportadoML", parseFloat(e.target.value) || undefined)}
+                          placeholder="precio/ml"
+                          className="h-8 w-32 bg-[#162828]"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>
 
           {/* Luz LED */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
+          <div className="bg-white/[0.03] p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Lightbulb className="h-4 w-4 text-amber-500" />
@@ -594,7 +1175,7 @@ export function KitchenConfigurator({
           </div>
 
           {/* Pintado Puertas Alto Brillo */}
-          <div className="bg-pink-50 p-4 rounded-lg border border-pink-200">
+          <div className="bg-pink-500/10 p-4 rounded-lg border border-pink-200">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
                 <Checkbox 
@@ -603,8 +1184,8 @@ export function KitchenConfigurator({
                   onCheckedChange={(c) => updateConfig("paintedDoors.enabled", c === true)} 
                 />
                 <div className="flex items-center gap-2">
-                  <Paintbrush className="h-4 w-4 text-pink-600" />
-                  <Label htmlFor="painted-doors-enabled" className="cursor-pointer font-semibold text-pink-700">
+                  <Paintbrush className="h-4 w-4 text-pink-400" />
+                  <Label htmlFor="painted-doors-enabled" className="cursor-pointer font-semibold text-pink-300">
                     Pintado Puertas Alto Brillo
                   </Label>
                 </div>
@@ -613,7 +1194,7 @@ export function KitchenConfigurator({
             
             {currentConfig.paintedDoors?.enabled && (
               <div className="space-y-3 mt-3 pt-3 border-t border-pink-200">
-                <p className="text-xs text-pink-600 mb-2">Ingrese la cantidad de cada tipo de puerta</p>
+                <p className="text-xs text-pink-400 mb-2">Ingrese la cantidad de cada tipo de puerta</p>
                 
                 {/* Puertas Superiores */}
                 <div className="flex items-center justify-between p-2 bg-[#162828] rounded border">
@@ -630,7 +1211,7 @@ export function KitchenConfigurator({
                       placeholder="0"
                       className="h-8 w-20 text-right bg-[#162828]"
                     />
-                    <span className="text-sm text-pink-700 font-medium w-28 text-right">
+                    <span className="text-sm text-pink-300 font-medium w-28 text-right">
                       ${((currentConfig.paintedDoors?.upperQty || 0) * 120000).toLocaleString()}
                     </span>
                   </div>
@@ -651,7 +1232,7 @@ export function KitchenConfigurator({
                       placeholder="0"
                       className="h-8 w-20 text-right bg-[#162828]"
                     />
-                    <span className="text-sm text-pink-700 font-medium w-28 text-right">
+                    <span className="text-sm text-pink-300 font-medium w-28 text-right">
                       ${((currentConfig.paintedDoors?.lowerQty || 0) * 150000).toLocaleString()}
                     </span>
                   </div>
@@ -672,7 +1253,7 @@ export function KitchenConfigurator({
                       placeholder="0"
                       className="h-8 w-20 text-right bg-[#162828]"
                     />
-                    <span className="text-sm text-pink-700 font-medium w-28 text-right">
+                    <span className="text-sm text-pink-300 font-medium w-28 text-right">
                       ${((currentConfig.paintedDoors?.pantryQty || 0) * 250000).toLocaleString()}
                     </span>
                   </div>
@@ -693,7 +1274,7 @@ export function KitchenConfigurator({
                       placeholder="0"
                       className="h-8 w-20 text-right bg-[#162828]"
                     />
-                    <span className="text-sm text-pink-700 font-medium w-28 text-right">
+                    <span className="text-sm text-pink-300 font-medium w-28 text-right">
                       ${((currentConfig.paintedDoors?.drawerQty || 0) * 80000).toLocaleString()}
                     </span>
                   </div>
@@ -714,7 +1295,7 @@ export function KitchenConfigurator({
                       placeholder="0"
                       className="h-8 w-20 text-right bg-[#162828]"
                     />
-                    <span className="text-sm text-pink-700 font-medium w-28 text-right">
+                    <span className="text-sm text-pink-300 font-medium w-28 text-right">
                       ${((currentConfig.paintedDoors?.spiceQty || 0) * 100000).toLocaleString()}
                     </span>
                   </div>
@@ -735,16 +1316,16 @@ export function KitchenConfigurator({
                       placeholder="0"
                       className="h-8 w-20 text-right bg-[#162828]"
                     />
-                    <span className="text-sm text-pink-700 font-medium w-28 text-right">
+                    <span className="text-sm text-pink-300 font-medium w-28 text-right">
                       ${((currentConfig.paintedDoors?.golaQty || 0) * 45000).toLocaleString()}
                     </span>
                   </div>
                 </div>
 
                 {/* Total Pintado */}
-                <div className="flex items-center justify-between p-2 bg-pink-100 rounded border border-pink-300 mt-2">
-                  <Label className="text-sm font-bold text-pink-800">Total Pintado Alto Brillo:</Label>
-                  <span className="text-lg font-bold text-pink-800">
+                <div className="flex items-center justify-between p-2 bg-pink-500/15 rounded border border-pink-300 mt-2">
+                  <Label className="text-sm font-bold text-pink-200">Total Pintado Alto Brillo:</Label>
+                  <span className="text-lg font-bold text-pink-200">
                     ${((
                       (currentConfig.paintedDoors?.upperQty || 0) * 120000 +
                       (currentConfig.paintedDoors?.lowerQty || 0) * 150000 +
@@ -760,7 +1341,7 @@ export function KitchenConfigurator({
           </div>
 
           {/* Transporte e Imprevistos */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
+          <div className="bg-white/[0.03] p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Checkbox 
@@ -787,7 +1368,7 @@ export function KitchenConfigurator({
           </div>
 
           {/* Acabados Especiales */}
-          <div className="bg-amber-50 p-4 rounded-lg border border-amber-300">
+          <div className="bg-amber-500/10 p-4 rounded-lg border border-amber-300">
             <div className="flex items-center gap-3 mb-4">
               <Checkbox 
                 id="special-finishes" 
@@ -802,7 +1383,7 @@ export function KitchenConfigurator({
                   updateConfig("specialFinishes", newSpecialFinishes);
                 }} 
               />
-              <Label htmlFor="special-finishes" className="cursor-pointer font-semibold text-amber-800 flex items-center gap-2">
+              <Label htmlFor="special-finishes" className="cursor-pointer font-semibold text-amber-300 flex items-center gap-2">
                 <Sparkles className="h-5 w-5" />
                 Acabados Especiales (Puertas Aluminio + Vidrio)
               </Label>
@@ -813,12 +1394,12 @@ export function KitchenConfigurator({
                 {/* Lista de Puertas de Aluminio + Vidrio */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <Label className="text-sm font-medium text-amber-700">Puertas en Marco de Aluminio + Vidrio Ahumado</Label>
+                    <Label className="text-sm font-medium text-amber-300">Puertas en Marco de Aluminio + Vidrio Ahumado</Label>
                     <Button
                       type="button"
                       size="sm"
                       variant="outline"
-                      className="border-amber-400 text-amber-700 hover:bg-amber-100"
+                      className="border-amber-400 text-amber-300 hover:bg-amber-500/15"
                       onClick={() => {
                         const newDoor = {
                           id: `door-${Date.now()}`,
@@ -839,7 +1420,7 @@ export function KitchenConfigurator({
                   </div>
                   
                   {(currentConfig.specialFinishes?.aluminumGlassDoors || []).length === 0 ? (
-                    <p className="text-sm text-amber-600 italic">No hay puertas agregadas. Haz clic en "Agregar Puerta" para comenzar.</p>
+                    <p className="text-sm text-amber-400 italic">No hay puertas agregadas. Haz clic en "Agregar Puerta" para comenzar.</p>
                   ) : (
                     <div className="space-y-2">
                       {(currentConfig.specialFinishes?.aluminumGlassDoors || []).map((door, index) => {
@@ -850,8 +1431,8 @@ export function KitchenConfigurator({
                         const totalDoorPrice = doorPrice + hingePrice;
                         
                         return (
-                          <div key={door.id} className="flex items-center gap-2 bg-[#162828] p-2 rounded border border-amber-200">
-                            <span className="text-sm font-medium text-amber-700 w-16">Puerta {index + 1}:</span>
+                          <div key={door.id} className="flex items-center gap-2 bg-[#162828] p-2 rounded border border-amber-500/25">
+                            <span className="text-sm font-medium text-amber-300 w-16">Puerta {index + 1}:</span>
                             <div className="flex items-center gap-1">
                               <Label className="text-xs text-white/45">Alto:</Label>
                               <Input
@@ -904,17 +1485,17 @@ export function KitchenConfigurator({
                               <span className="text-xs">m</span>
                             </div>
                             <div className="flex-1 text-right text-sm">
-                              <span className="text-amber-700">{sqm.toFixed(2)} m²</span>
+                              <span className="text-amber-300">{sqm.toFixed(2)} m²</span>
                               {extraHinges > 0 && (
-                                <span className="text-orange-600 ml-2">+{extraHinges} par bisagras</span>
+                                <span className="text-orange-400 ml-2">+{extraHinges} par bisagras</span>
                               )}
-                              <span className="font-semibold text-amber-900 ml-2">${totalDoorPrice.toLocaleString()}</span>
+                              <span className="font-semibold text-amber-300 ml-2">${totalDoorPrice.toLocaleString()}</span>
                             </div>
                             <Button
                               type="button"
                               size="sm"
                               variant="ghost"
-                              className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0"
+                              className="text-red-500 hover:text-red-300 hover:bg-red-500/10 h-8 w-8 p-0"
                               onClick={() => {
                                 const newDoors = (currentConfig.specialFinishes?.aluminumGlassDoors || []).filter((_, i) => i !== index);
                                 updateConfig("specialFinishes", {
@@ -931,9 +1512,9 @@ export function KitchenConfigurator({
                       
                       {/* Subtotal Puertas */}
                       {(currentConfig.specialFinishes?.aluminumGlassDoors || []).length > 0 && (
-                        <div className="flex justify-between items-center pt-2 border-t border-amber-200">
-                          <span className="text-sm text-amber-700">Subtotal Puertas Aluminio + Vidrio:</span>
-                          <span className="font-semibold text-amber-900">
+                        <div className="flex justify-between items-center pt-2 border-t border-amber-500/25">
+                          <span className="text-sm text-amber-300">Subtotal Puertas Aluminio + Vidrio:</span>
+                          <span className="font-semibold text-amber-300">
                             ${(currentConfig.specialFinishes?.aluminumGlassDoors || []).reduce((sum, door) => {
                               const sqm = door.height * door.width;
                               const extraHinges = door.height > 1.4 ? 2 : (door.height > 0.8 ? 1 : 0);
@@ -947,7 +1528,7 @@ export function KitchenConfigurator({
                 </div>
                 
                 {/* Luz LED para Alacenas */}
-                <div className="border-t border-amber-200 pt-4">
+                <div className="border-t border-amber-500/25 pt-4">
                   <div className="flex items-center gap-3 mb-2">
                     <Checkbox 
                       id="led-alacenas" 
@@ -962,7 +1543,7 @@ export function KitchenConfigurator({
                         });
                       }} 
                     />
-                    <Label htmlFor="led-alacenas" className="cursor-pointer text-sm font-medium text-amber-700 flex items-center gap-2">
+                    <Label htmlFor="led-alacenas" className="cursor-pointer text-sm font-medium text-amber-300 flex items-center gap-2">
                       <Lightbulb className="h-4 w-4" />
                       Luz LED para Alacenas ($180,000/ml)
                     </Label>
@@ -989,7 +1570,7 @@ export function KitchenConfigurator({
                         placeholder="0.00"
                       />
                       <span className="text-sm">ml</span>
-                      <span className="font-semibold text-amber-900">
+                      <span className="font-semibold text-amber-300">
                         = ${((currentConfig.specialFinishes?.ledLighting?.meters || 0) * precioLedMl).toLocaleString()}
                       </span>
                     </div>
@@ -997,10 +1578,10 @@ export function KitchenConfigurator({
                 </div>
                 
                 {/* Total Acabados Especiales */}
-                <div className="bg-amber-100 p-3 rounded-lg mt-4">
+                <div className="bg-amber-500/15 p-3 rounded-lg mt-4">
                   <div className="flex justify-between items-center">
-                    <span className="font-semibold text-amber-800">Total Acabados Especiales:</span>
-                    <span className="text-xl font-bold text-amber-900">
+                    <span className="font-semibold text-amber-300">Total Acabados Especiales:</span>
+                    <span className="text-xl font-bold text-amber-300">
                       ${(
                        (currentConfig.specialFinishes?.aluminumGlassDoors || []).reduce((sum, door) => {
                        const sqm = door.height * door.width;
@@ -1014,6 +1595,159 @@ export function KitchenConfigurator({
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Especificaciones del Proyecto — material, color, herraje, platero, electrodomésticos */}
+          <div className="bg-blue-500/10 p-4 rounded-lg border border-blue-500/25 space-y-4">
+            <h5 className="font-semibold text-blue-300 mb-1">Especificaciones del Proyecto</h5>
+
+            {/* Material fijo */}
+            <div className="p-3 bg-[#162828] rounded border border-blue-400/30">
+              <p className="text-xs text-blue-400 font-semibold uppercase tracking-wide mb-1">Material del tablero</p>
+              <p className="text-sm text-white/85">Tablero 15mm hidrófuga alta presión RH — resistente a la humedad</p>
+              <p className="text-xs text-white/40 mt-1">Material estándar para todos los proyectos Innovar</p>
+            </div>
+
+            {/* Color exterior */}
+            <div>
+              <Label className="text-sm font-medium text-white/85 block mb-2">Color / Acabado exterior</Label>
+              <Select
+                value={currentConfig.boardFinish || ""}
+                onValueChange={(v) => updateConfig("boardFinish", v)}
+              >
+                <SelectTrigger className="h-10 bg-[#162828]">
+                  <SelectValue placeholder="Selecciona el color" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Flor Morado">Flor Morado</SelectItem>
+                  <SelectItem value="Creta">Creta</SelectItem>
+                  <SelectItem value="Tihua">Tihua</SelectItem>
+                  <SelectItem value="Yalaa">Yalaa</SelectItem>
+                  <SelectItem value="Humo">Humo</SelectItem>
+                  <SelectItem value="Mali">Mali</SelectItem>
+                  <SelectItem value="Glaze">Glaze</SelectItem>
+                  <SelectItem value="Robere Arena">Robere Arena</SelectItem>
+                  <SelectItem value="Cocuy">Cocuy</SelectItem>
+                  <SelectItem value="Ika">Ika</SelectItem>
+                  <SelectItem value="Sikuani">Sikuani</SelectItem>
+                  <SelectItem value="Roble Cenizo">Roble Cenizo</SelectItem>
+                  <SelectItem value="otro">Otro (ver notas)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Color interior */}
+            <div>
+              <Label className="text-sm font-medium text-white/85 block mb-2">Color interior de la cocina</Label>
+              <div className="flex gap-4">
+                {(["Blanco Ártico", "Yalaa"] as string[]).map((color) => (
+                  <div key={color}
+                    className="flex items-center gap-2 p-2 bg-[#162828] rounded border border-blue-400/30 cursor-pointer flex-1"
+                    onClick={() => updateConfig("interiorFinish", currentConfig.interiorFinish === color ? "" : color)}>
+                    <Checkbox
+                      checked={currentConfig.interiorFinish === color}
+                      onCheckedChange={() => updateConfig("interiorFinish", currentConfig.interiorFinish === color ? "" : color)}
+                    />
+                    <span className="text-sm text-white/85">{color}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Herraje */}
+            <div>
+              <Label className="text-sm font-medium text-white/85 block mb-2">Herraje incluido</Label>
+              <div className="space-y-2">
+                <p className="text-xs text-white/50 uppercase tracking-wide">Bisagras</p>
+                <div className="flex gap-3">
+                  {([
+                    { value: "estandar", label: "Estándar cierre lento" },
+                    { value: "inox",     label: "Acero inoxidable cierre lento" },
+                  ] as {value:string;label:string}[]).map(({ value, label }) => (
+                    <div key={value}
+                      className="flex items-center gap-2 p-2 bg-[#162828] rounded border border-blue-400/30 cursor-pointer flex-1"
+                      onClick={() => updateConfig("hardware.bisagras", currentConfig.hardware?.bisagras === value ? undefined : value)}>
+                      <Checkbox
+                        checked={currentConfig.hardware?.bisagras === value}
+                        onCheckedChange={() => updateConfig("hardware.bisagras", currentConfig.hardware?.bisagras === value ? undefined : value)}
+                      />
+                      <span className="text-xs text-white/85">{label}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-white/50 uppercase tracking-wide mt-2">Rieles</p>
+                <div className="flex gap-3">
+                  {([
+                    { value: "peso_alto",     label: "Telescópico peso alto" },
+                    { value: "cierre_lento",  label: "Telescópico cierre lento" },
+                  ] as {value:string;label:string}[]).map(({ value, label }) => (
+                    <div key={value}
+                      className="flex items-center gap-2 p-2 bg-[#162828] rounded border border-blue-400/30 cursor-pointer flex-1"
+                      onClick={() => updateConfig("hardware.rieles", currentConfig.hardware?.rieles === value ? undefined : value)}>
+                      <Checkbox
+                        checked={currentConfig.hardware?.rieles === value}
+                        onCheckedChange={() => updateConfig("hardware.rieles", currentConfig.hardware?.rieles === value ? undefined : value)}
+                      />
+                      <span className="text-xs text-white/85">{label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Platero */}
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <Checkbox
+                  id="incluye-platero"
+                  checked={currentConfig.incluyePlatero || false}
+                  onCheckedChange={(v) => updateConfig("incluyePlatero", v === true)}
+                />
+                <Label htmlFor="incluye-platero" className="text-sm font-medium text-white/85 cursor-pointer">
+                  Incluye platero en acero inoxidable
+                </Label>
+              </div>
+              {currentConfig.incluyePlatero && (
+                <input
+                  type="text"
+                  value={currentConfig.plateroDesc || ""}
+                  onChange={(e) => updateConfig("plateroDesc", e.target.value)}
+                  placeholder="Descripción del platero (medidas, tipo, etc.)"
+                  className="w-full h-9 px-3 text-sm bg-[#162828] border border-blue-400/30 rounded text-white/85 placeholder:text-white/30"
+                />
+              )}
+            </div>
+
+            {/* Electrodomésticos */}
+            <div>
+              <Label className="text-sm font-medium text-white/85 block mb-1">Electrodomésticos</Label>
+              <p className="text-xs text-white/40 mb-3">No son suministrados por Innovar — se reserva espacio según medidas estándar</p>
+              <div className="grid grid-cols-2 gap-2">
+                {([
+                  { key: "estufa",          label: "Estufa" },
+                  { key: "horno",           label: "Horno empotrable" },
+                  { key: "extractor",       label: "Extractor" },
+                  { key: "llaveLavaplatos", label: "Llave de lavaplatos" },
+                  { key: "nevera",          label: "Nevera" },
+                  { key: "microondas",      label: "Microondas" },
+                  { key: "lavaVajillas",    label: "Lavavajillas" },
+                ] as {key:string;label:string}[]).map(({ key, label }) => {
+                  const val = (currentConfig.appliances as any)?.[key] || false;
+                  return (
+                    <div key={key}
+                      className={`flex items-center gap-2 p-2 rounded border cursor-pointer ${val ? 'bg-emerald-900/30 border-emerald-500/40' : 'bg-[#162828] border-white/10'}`}
+                      onClick={() => updateConfig(`appliances.${key}`, !val)}>
+                      <Checkbox
+                        checked={val}
+                        onCheckedChange={(v) => updateConfig(`appliances.${key}`, v === true)}
+                      />
+                      <span className="text-xs text-white/85">{label}</span>
+                      <span className={`ml-auto text-xs font-semibold ${val ? 'text-emerald-400' : 'text-red-400/70'}`}>{val ? 'SÍ' : 'NO'}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
           {/* Notas */}
@@ -1030,62 +1764,62 @@ export function KitchenConfigurator({
 
           {/* Resumen Total */}
           <div className="bg-emerald-200 p-4 rounded-lg border border-emerald-400">
-            <h5 className="font-semibold text-emerald-800 mb-3">Resumen del Precio</h5>
+            <h5 className="font-semibold text-emerald-300 mb-3">Resumen del Precio</h5>
             <div className="space-y-1 text-sm">
               <div className="flex justify-between">
                 <span>Cocina {currentConfig.shape || "---"} - {resultingMeters.toFixed(2)}ml:</span>
                 <span className="font-medium">Calculado</span>
               </div>
               {currentConfig.specialModules.nichoNevecon && (
-                <div className="flex justify-between text-emerald-700">
+                <div className="flex justify-between text-emerald-300">
                   <span>+ Nicho nevecon:</span>
                   <span className="font-medium">$1,200,000</span>
                 </div>
               )}
               {currentConfig.specialModules.nichoNevera && (
-                <div className="flex justify-between text-emerald-700">
+                <div className="flex justify-between text-emerald-300">
                   <span>+ Nicho nevera:</span>
                   <span className="font-medium">$1,200,000</span>
                 </div>
               )}
               {currentConfig.specialModules.alacenaEntrepanos && (
-                <div className="flex justify-between text-emerald-700">
+                <div className="flex justify-between text-emerald-300">
                   <span>+ Alacena entrepaños:</span>
                   <span className="font-medium">$1,250,000</span>
                 </div>
               )}
               {currentConfig.specialModules.alacenaHerraje && (
-                <div className="flex justify-between text-emerald-700">
+                <div className="flex justify-between text-emerald-300">
                   <span>+ Alacena herraje:</span>
                   <span className="font-medium">$900,000</span>
                 </div>
               )}
               {currentConfig.specialModules.torreHornos && (
-                <div className="flex justify-between text-emerald-700">
+                <div className="flex justify-between text-emerald-300">
                   <span>+ Torre de hornos:</span>
                   <span className="font-medium">$1,350,000</span>
                 </div>
               )}
               {currentConfig.island.enabled && (
-                <div className="flex justify-between text-emerald-700">
+                <div className="flex justify-between text-emerald-300">
                   <span>+ Isla ({currentConfig.island.meters}ml):</span>
                   <span className="font-medium">Incluido</span>
                 </div>
               )}
               {currentConfig.bar.enabled && (
-                <div className="flex justify-between text-emerald-700">
+                <div className="flex justify-between text-emerald-300">
                   <span>+ Barra ({currentConfig.bar.meters}ml):</span>
                   <span className="font-medium">Incluido</span>
                 </div>
               )}
               {currentConfig.ledLighting > 0 && (
-                <div className="flex justify-between text-emerald-700">
+                <div className="flex justify-between text-emerald-300">
                   <span>+ LED ({currentConfig.ledLighting}ml × $180,000):</span>
                   <span className="font-medium">${(currentConfig.ledLighting * precioLedMl).toLocaleString()}</span>
                 </div>
               )}
               {currentConfig.paintedDoors?.enabled && (
-                <div className="flex justify-between text-pink-700">
+                <div className="flex justify-between text-pink-300">
                   <span>+ Pintado Alto Brillo:</span>
                   <span className="font-medium">
                     ${((
@@ -1100,7 +1834,7 @@ export function KitchenConfigurator({
                 </div>
               )}
               {currentConfig.specialFinishes?.enabled && (currentConfig.specialFinishes?.aluminumGlassDoors || []).length > 0 && (
-                <div className="flex justify-between text-amber-700">
+                <div className="flex justify-between text-amber-300">
                   <span>+ Puertas Aluminio+Vidrio ({(currentConfig.specialFinishes?.aluminumGlassDoors || []).length}):</span>
                   <span className="font-medium">
                     ${(currentConfig.specialFinishes?.aluminumGlassDoors || []).reduce((sum, door) => {
@@ -1112,7 +1846,7 @@ export function KitchenConfigurator({
                 </div>
               )}
               {currentConfig.specialFinishes?.enabled && currentConfig.specialFinishes?.ledLighting?.enabled && (currentConfig.specialFinishes?.ledLighting?.meters || 0) > 0 && (
-                <div className="flex justify-between text-amber-700">
+                <div className="flex justify-between text-amber-300">
                   <span>+ LED Alacenas ({currentConfig.specialFinishes?.ledLighting?.meters}ml):</span>
                   <span className="font-medium">
                     ${((currentConfig.specialFinishes?.ledLighting?.meters || 0) * precioLedMl).toLocaleString()}
@@ -1120,14 +1854,14 @@ export function KitchenConfigurator({
                 </div>
               )}
               {includesFixedCosts && (
-                <div className="flex justify-between text-emerald-700">
+                <div className="flex justify-between text-emerald-300">
                   <span>+ Transporte e imprevistos:</span>
                   <span className="font-medium">${fixedCostsAmount.toLocaleString()}</span>
                 </div>
               )}
               <div className="border-t border-emerald-400 pt-2 mt-2 flex justify-between">
-                <span className="font-bold text-emerald-900">TOTAL COCINA:</span>
-                <span className="text-2xl font-bold text-emerald-900">${totalPrice.toLocaleString()}</span>
+                <span className="font-bold text-emerald-300">TOTAL COCINA:</span>
+                <span className="text-2xl font-bold text-emerald-300">${totalPrice.toLocaleString()}</span>
               </div>
             </div>
           </div>

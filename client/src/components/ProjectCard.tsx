@@ -146,7 +146,7 @@ export function ProjectCard({
   const isInProgressForDesigner = user?.role === "disenador" && ["en_diseno", "pendiente_modelado", "pendiente_render", "pendiente_render", "aprobacion_final"].includes(project.status);
 
   return (
-    <Card className={`transition-all duration-300 ${isExpanded ? 'ring-2 ring-primary shadow-lg' : 'hover:shadow-md'} ${isNewForDesigner ? 'ring-2 ring-purple-500 bg-purple-50/50' : ''}`}>
+    <Card className={`transition-all duration-300 ${isExpanded ? 'ring-2 ring-primary shadow-lg' : 'hover:shadow-md'} ${isNewForDesigner ? 'ring-2 ring-purple-500 bg-purple-500/10/50' : ''}`}>
       <CardContent className="p-0">
         {/* Header del proyecto - siempre visible */}
         <div 
@@ -182,10 +182,10 @@ export function ProjectCard({
                 {project.estimatedInstallDate && project.status !== "entregado" && (
                   <p className={`flex items-center gap-1 font-medium ${
                     new Date(project.estimatedInstallDate) < new Date() 
-                      ? "text-red-600" 
+                      ? "text-red-400" 
                       : new Date(project.estimatedInstallDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-                        ? "text-yellow-600"
-                        : "text-green-600"
+                        ? "text-yellow-400"
+                        : "text-green-400"
                   }`}>
                     <Truck className="h-3 w-3" />
                     Entrega: {new Date(project.estimatedInstallDate).toLocaleDateString("es-CO")}
@@ -240,7 +240,7 @@ export function ProjectCard({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-green-600 border-green-600 hover:bg-green-50"
+                  className="text-green-400 border-green-600 hover:bg-green-500/10"
                   onClick={() => onWhatsApp(project)}
                 >
                   <MessageCircle className="h-4 w-4 mr-1" />
@@ -284,12 +284,12 @@ export function ProjectCard({
             {detail.status === "pendiente_render" && 
               (user?.role === "admin" || user?.role === "super_admin") && 
               onApproveDesign && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 my-3">
-                <h4 className="font-medium text-yellow-800 mb-2 flex items-center gap-2">
+              <div className="bg-yellow-500/10 border border-yellow-200 rounded-lg p-4 my-3">
+                <h4 className="font-medium text-yellow-300 mb-2 flex items-center gap-2">
                   <AlertCircle className="h-4 w-4" />
                   Pendiente de Aprobación del Cliente
                 </h4>
-                <p className="text-sm text-yellow-700 mb-3">
+                <p className="text-sm text-yellow-300 mb-3">
                   Puedes aprobar el diseño en nombre del cliente si este no usa la aplicación.
                 </p>
                 <div className="flex gap-2">
@@ -320,11 +320,13 @@ export function ProjectCard({
 
             {/* Tabs de contenido */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-3">
-              <TabsList className="grid grid-cols-4 w-full">
+              <TabsList className={`grid ${user?.role === "jefe_taller" || user?.role === "operario" ? "grid-cols-3" : "grid-cols-4"} w-full`}>
                 <TabsTrigger value="info" className="text-xs sm:text-sm">Info</TabsTrigger>
                 <TabsTrigger value="dates" className="text-xs sm:text-sm">Fechas</TabsTrigger>
                 <TabsTrigger value="photos" className="text-xs sm:text-sm">Fotos</TabsTrigger>
-                <TabsTrigger value="history" className="text-xs sm:text-sm">Historial</TabsTrigger>
+                {user?.role !== "jefe_taller" && user?.role !== "operario" && (
+                  <TabsTrigger value="history" className="text-xs sm:text-sm">Historial</TabsTrigger>
+                )}
               </TabsList>
 
               <TabsContent value="info" className="mt-3 space-y-3">
@@ -404,7 +406,7 @@ export function ProjectCard({
                       <p><strong>Adelanto recibido:</strong> {new Date(detail.advanceReceivedAt).toLocaleDateString("es-CO")}</p>
                     )}
                     {detail.designDeadline && (
-                      <p className={new Date(detail.designDeadline) < new Date() && detail.status === "en_diseno" ? "text-red-600 font-medium" : ""}>
+                      <p className={new Date(detail.designDeadline) < new Date() && detail.status === "en_diseno" ? "text-red-400 font-medium" : ""}>
                         <strong>Límite diseño:</strong> {new Date(detail.designDeadline).toLocaleDateString("es-CO")}
                         {new Date(detail.designDeadline) < new Date() && detail.status === "en_diseno" && " (Vencido)"}
                       </p>
@@ -418,21 +420,21 @@ export function ProjectCard({
                     {detail.estimatedInstallDate && detail.status !== "entregado" && (
                       <p className={`font-medium ${
                         new Date(detail.estimatedInstallDate) < new Date() 
-                          ? "text-red-600" 
+                          ? "text-red-400" 
                           : new Date(detail.estimatedInstallDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-                            ? "text-yellow-600"
-                            : "text-green-600"
+                            ? "text-yellow-400"
+                            : "text-green-400"
                       }`}>
                         <strong>Entrega estimada:</strong> {new Date(detail.estimatedInstallDate).toLocaleDateString("es-CO")}
                       </p>
                     )}
                     {detail.scheduledInstallDate && detail.status !== "entregado" && (
-                      <p className="text-blue-600 font-medium">
+                      <p className="text-blue-400 font-medium">
                         <strong>Instalación:</strong> {new Date(detail.scheduledInstallDate).toLocaleDateString("es-CO")}
                       </p>
                     )}
                     {detail.deliveredAt && (
-                      <p className="text-green-600 font-medium">
+                      <p className="text-green-400 font-medium">
                         <strong>Entregado:</strong> {new Date(detail.deliveredAt).toLocaleDateString("es-CO")}
                       </p>
                     )}
@@ -445,7 +447,7 @@ export function ProjectCard({
                         href={detail.advanceReceiptUrl} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-sm text-green-600 hover:underline bg-green-50 px-2 py-1 rounded"
+                        className="inline-flex items-center gap-1 text-sm text-green-400 hover:underline bg-green-500/10 px-2 py-1 rounded"
                       >
                         <FileText className="h-4 w-4" />
                         Ver comprobante
@@ -456,7 +458,7 @@ export function ProjectCard({
                         href={(detail as any).quotationPdfUrl} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline bg-blue-50 px-2 py-1 rounded"
+                        className="inline-flex items-center gap-1 text-sm text-blue-400 hover:underline bg-blue-500/10 px-2 py-1 rounded"
                       >
                         <FileText className="h-4 w-4" />
                         Ver cotización PDF
@@ -499,35 +501,37 @@ export function ProjectCard({
                 )}
               </TabsContent>
 
-              <TabsContent value="history" className="mt-3">
-                {detail.history?.length === 0 ? (
-                  <div className="text-center py-6 text-muted-foreground">
-                    <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">Sin historial de cambios</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {detail.history?.map((entry: any) => (
-                      <div key={entry.id} className="flex items-start gap-2 text-sm p-2 bg-muted/30 rounded">
-                        <div className="h-2 w-2 mt-1.5 rounded-full bg-primary flex-shrink-0" />
-                        <div className="min-w-0">
-                          <p>
-                            <span className="font-medium">{entry.fromStatus || "Inicio"}</span>
-                            {" → "}
-                            <span className="font-medium">{entry.toStatus}</span>
-                          </p>
-                          {entry.notes && (
-                            <p className="text-muted-foreground text-xs truncate">{entry.notes}</p>
-                          )}
-                          <p className="text-xs text-muted-foreground">
-                            {new Date(entry.createdAt).toLocaleString("es-CO")}
-                          </p>
+              {user?.role !== "jefe_taller" && user?.role !== "operario" && (
+                <TabsContent value="history" className="mt-3">
+                  {detail.history?.length === 0 ? (
+                    <div className="text-center py-6 text-muted-foreground">
+                      <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">Sin historial de cambios</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {detail.history?.map((entry: any) => (
+                        <div key={entry.id} className="flex items-start gap-2 text-sm p-2 bg-muted/30 rounded">
+                          <div className="h-2 w-2 mt-1.5 rounded-full bg-primary flex-shrink-0" />
+                          <div className="min-w-0">
+                            <p>
+                              <span className="font-medium">{entry.fromStatus || "Inicio"}</span>
+                              {" → "}
+                              <span className="font-medium">{entry.toStatus}</span>
+                            </p>
+                            {entry.notes && (
+                              <p className="text-muted-foreground text-xs truncate">{entry.notes}</p>
+                            )}
+                            <p className="text-xs text-muted-foreground">
+                              {new Date(entry.createdAt).toLocaleString("es-CO")}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
+              )}
             </Tabs>
           </div>
         )}

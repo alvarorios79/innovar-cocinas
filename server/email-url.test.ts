@@ -6,13 +6,13 @@ describe("Email URL Configuration", () => {
     const appUrl = process.env.VITE_APP_URL;
     
     expect(appUrl).toBeDefined();
-    expect(appUrl).toBe("https://innovarcitas.manus.space");
+    expect(appUrl).toBe("https://innovar-cocinas.onrender.com");
   });
 
   it("should generate correct portal URL in welcome email", () => {
     const portalUrl = `${process.env.VITE_APP_URL || ""}/portal`;
     
-    expect(portalUrl).toBe("https://innovarcitas.manus.space/portal");
+    expect(portalUrl).toBe("https://innovar-cocinas.onrender.com/portal");
     
     const emailData = welcomeEmailTemplate({
       userName: "Test User",
@@ -21,7 +21,7 @@ describe("Email URL Configuration", () => {
       portalUrl,
     });
 
-    expect(emailData.html).toContain("https://innovarcitas.manus.space/portal");
+    expect(emailData.html).toContain("https://innovar-cocinas.onrender.com/portal");
     expect(emailData.html).toContain("Acceder al Portal");
   });
 

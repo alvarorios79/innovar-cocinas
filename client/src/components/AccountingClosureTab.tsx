@@ -1,8 +1,6 @@
 
 import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
-import { useAuth } from "@/_core/hooks/useAuth";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -39,8 +37,6 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 
 export function AccountingClosureTab() {
-  const { user } = useAuth();
-  const isSuperAdmin = user?.role === "super_admin";
   const utils = trpc.useUtils();
   const [activeTab, setActiveTab] = useState<"create" | "history">("create");
   const [periodStart, setPeriodStart] = useState("");
@@ -96,7 +92,6 @@ export function AccountingClosureTab() {
   });
 
   const [showRevertDialog, setShowRevertDialog] = useState(false);
-  const [revertReason, setRevertReason] = useState("");
 
   const revertClosure = trpc.accountingClosures.revert.useMutation({
     onSuccess: (data) => {
@@ -104,7 +99,6 @@ export function AccountingClosureTab() {
       utils.accountingClosures.list.invalidate();
       setSelectedClosureId(null);
       setShowRevertDialog(false);
-      setRevertReason("");
     },
     onError: (error) => {
       toast.error(`Error: ${error.message}`);
@@ -182,14 +176,14 @@ export function AccountingClosureTab() {
   const getStatusBadge = (status: string) => {
     if (status === "confirmed") {
       return (
-        <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+        <Badge className="bg-green-500/15 text-green-300 hover:bg-green-500/15">
           <CheckCircle2 className="h-3 w-3 mr-1" />
           Confirmado
         </Badge>
       );
     }
     return (
-      <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
+      <Badge className="bg-yellow-500/15 text-yellow-300 hover:bg-yellow-500/15">
         <AlertCircle className="h-3 w-3 mr-1" />
         Borrador
       </Badge>
@@ -276,7 +270,7 @@ export function AccountingClosureTab() {
             <CardContent>
               {loadingPending ? (
                 <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-teal-600" />
+                  <Loader2 className="h-6 w-6 animate-spin text-teal-400" />
                 </div>
               ) : !pendingProjects || pendingProjects.length === 0 ? (
                 <div className="py-8 text-center text-gray-500">
@@ -288,7 +282,7 @@ export function AccountingClosureTab() {
                   {pendingProjects.map((project) => (
                     <div
                       key={project.projectId}
-                      className="flex items-start gap-3 p-4 border rounded-lg hover:bg-gray-50 transition"
+                      className="flex items-start gap-3 p-4 border rounded-lg hover:bg-white/[0.03] transition"
                     >
                       <Checkbox
                         checked={selectedProjects.includes(project.projectId)}
@@ -297,19 +291,19 @@ export function AccountingClosureTab() {
                       />
                       <div className="flex-1">
                         <p className="font-medium">{project.projectName}</p>
-                        <p className="text-sm text-gray-600 mb-2">
+                        <p className="text-sm text-muted-foreground mb-2">
                           Cliente: {project.clientName}
                         </p>
                         {/* Desglose de precios NETO */}
-                        <div className="mt-2 text-xs space-y-1 bg-gray-50 p-3 rounded border border-gray-200">
-                          <div className="flex justify-between text-gray-700">
+                        <div className="mt-2 text-xs space-y-1 bg-white/[0.03] p-3 rounded border border-white/[0.10]">
+                          <div className="flex justify-between text-muted-foreground">
                             <span>Precio Original:</span>
                             <span className="font-semibold">
                               ${parseFloat(project.originalPrice?.toString() || "0").toFixed(2)}
                             </span>
                           </div>
                           {parseFloat(project.discountsApplied?.toString() || "0") > 0 && (
-                            <div className="flex justify-between text-red-600">
+                            <div className="flex justify-between text-red-400">
                               <span>- Descuentos:</span>
                               <span className="font-semibold">
                                 -${parseFloat(project.discountsApplied?.toString() || "0").toFixed(2)}
@@ -317,14 +311,14 @@ export function AccountingClosureTab() {
                             </div>
                           )}
                           {parseFloat(project.surchargesApplied?.toString() || "0") > 0 && (
-                            <div className="flex justify-between text-green-600">
+                            <div className="flex justify-between text-green-400">
                               <span>+ Recargos:</span>
                               <span className="font-semibold">
                                 +${parseFloat(project.surchargesApplied?.toString() || "0").toFixed(2)}
                               </span>
                             </div>
                           )}
-                          <div className="border-t border-gray-300 pt-2 mt-2 flex justify-between font-bold text-teal-700 bg-teal-50 p-2 rounded">
+                          <div className="border-t border-white/[0.15] pt-2 mt-2 flex justify-between font-bold text-teal-300 bg-teal-500/10 p-2 rounded">
                             <span>💰 PRECIO NETO:</span>
                             <span>
                               ${parseFloat(project.netPrice?.toString() || "0").toFixed(2)}
@@ -341,30 +335,30 @@ export function AccountingClosureTab() {
 
           {/* Preview and Submit */}
           {selectedProjects.length > 0 && (
-            <Card className="bg-teal-50 border-teal-200">
+            <Card className="bg-teal-500/10 border-teal-500/25">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5 text-teal-600" />
+                  <DollarSign className="h-5 w-5 text-teal-400" />
                   Resumen del Cierre
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="bg-[#162828] p-4 rounded-lg border border-teal-200">
-                  <p className="text-sm font-semibold text-gray-700 mb-3">💰 Desglose de Ingresos</p>
+                <div className="bg-[#162828] p-4 rounded-lg border border-teal-500/25">
+                  <p className="text-sm font-semibold text-muted-foreground mb-3">💰 Desglose de Ingresos</p>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Precio de Cotización Original:</span>
+                      <span className="text-muted-foreground">Precio de Cotización Original:</span>
                       <span className="font-semibold">-</span>
                     </div>
-                    <div className="flex justify-between text-red-600">
+                    <div className="flex justify-between text-red-400">
                       <span>Menos: Descuentos Aplicados</span>
                       <span className="font-semibold">-</span>
                     </div>
-                    <div className="flex justify-between text-green-600">
+                    <div className="flex justify-between text-green-400">
                       <span>Más: Recargos Aplicados</span>
                       <span className="font-semibold">-</span>
                     </div>
-                    <div className="border-t border-gray-200 pt-2 mt-2 flex justify-between font-bold text-teal-700">
+                    <div className="border-t border-white/[0.10] pt-2 mt-2 flex justify-between font-bold text-teal-300">
                       <span>= PRECIO NETO (Dinero Real):</span>
                       <span>${Number(previewTotals.totalSales).toFixed(2)}</span>
                     </div>
@@ -373,20 +367,20 @@ export function AccountingClosureTab() {
 
                 <div className="grid grid-cols-3 gap-4">
                   <div className="bg-[#162828] p-4 rounded-lg">
-                    <p className="text-sm text-gray-600">Ventas Netas</p>
-                    <p className="text-2xl font-bold text-teal-600">
+                    <p className="text-sm text-muted-foreground">Ventas Netas</p>
+                    <p className="text-2xl font-bold text-teal-400">
                       ${Number(previewTotals.totalSales).toFixed(2)}
                     </p>
                   </div>
                   <div className="bg-[#162828] p-4 rounded-lg">
-                    <p className="text-sm text-gray-600">Gastos Totales</p>
-                    <p className="text-2xl font-bold text-orange-600">
+                    <p className="text-sm text-muted-foreground">Gastos Totales</p>
+                    <p className="text-2xl font-bold text-orange-400">
                       ${Number(previewTotals.totalExpenses).toFixed(2)}
                     </p>
                   </div>
                   <div className="bg-[#162828] p-4 rounded-lg">
-                    <p className="text-sm text-gray-600">Ganancia Neta</p>
-                    <p className="text-2xl font-bold text-green-600">
+                    <p className="text-sm text-muted-foreground">Ganancia Neta</p>
+                    <p className="text-2xl font-bold text-green-400">
                       ${Number(previewTotals.totalProfit).toFixed(2)}
                     </p>
                   </div>
@@ -422,7 +416,7 @@ export function AccountingClosureTab() {
         <div className="space-y-4">
           {loadingClosures ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-teal-600" />
+              <Loader2 className="h-6 w-6 animate-spin text-teal-400" />
             </div>
           ) : !closures || closures.length === 0 ? (
             <Card>
@@ -456,21 +450,21 @@ export function AccountingClosureTab() {
                 {selectedClosureId === closure.id && closureDetails && (
                   <CardContent className="space-y-4 border-t pt-4">
                     <div className="grid grid-cols-3 gap-4">
-                      <div className="bg-teal-50 p-4 rounded-lg">
-                        <p className="text-sm text-gray-600">Ventas Totales</p>
-                        <p className="text-2xl font-bold text-teal-600">
+                      <div className="bg-teal-500/10 p-4 rounded-lg">
+                        <p className="text-sm text-muted-foreground">Ventas Totales</p>
+                        <p className="text-2xl font-bold text-teal-400">
                           ${Number(closureDetails.totalSales).toFixed(2)}
                         </p>
                       </div>
-                      <div className="bg-orange-50 p-4 rounded-lg">
-                        <p className="text-sm text-gray-600">Gastos Totales</p>
-                        <p className="text-2xl font-bold text-orange-600">
+                      <div className="bg-orange-500/10 p-4 rounded-lg">
+                        <p className="text-sm text-muted-foreground">Gastos Totales</p>
+                        <p className="text-2xl font-bold text-orange-400">
                           ${Number(closureDetails.totalExpenses).toFixed(2)}
                         </p>
                       </div>
-                      <div className="bg-green-50 p-4 rounded-lg">
-                        <p className="text-sm text-gray-600">Ganancia Neta</p>
-                        <p className="text-2xl font-bold text-green-600">
+                      <div className="bg-green-500/10 p-4 rounded-lg">
+                        <p className="text-sm text-muted-foreground">Ganancia Neta</p>
+                        <p className="text-2xl font-bold text-green-400">
                           ${Number(closureDetails.totalProfit).toFixed(2)}
                         </p>
                       </div>
@@ -485,22 +479,20 @@ export function AccountingClosureTab() {
                           <CheckCircle2 className="h-4 w-4 mr-2" />
                           Confirmar Cierre
                         </Button>
-                        {isSuperAdmin && (
-                          <Button
-                            onClick={() => setShowRevertDialog(true)}
-                            variant="outline"
-                            className="flex-1"
-                          >
-                            <RotateCcw className="h-4 w-4 mr-2" />
-                            Revertir
-                          </Button>
-                        )}
+                        <Button
+                          onClick={() => setShowRevertDialog(true)}
+                          variant="outline"
+                          className="flex-1"
+                        >
+                          <RotateCcw className="h-4 w-4 mr-2" />
+                          Revertir
+                        </Button>
                       </div>
                     )}
 
                     {closure.status === "confirmed" && (
-                      <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
-                        <p className="text-sm text-green-800">
+                      <div className="bg-green-500/10 border border-green-500/25 p-4 rounded-lg">
+                        <p className="text-sm text-green-300">
                           ✅ Este cierre ha sido confirmado y no puede ser modificado.
                         </p>
                       </div>
@@ -543,55 +535,39 @@ export function AccountingClosureTab() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Revert Dialog — solo super_admin */}
-      <Dialog open={showRevertDialog} onOpenChange={(open) => { setShowRevertDialog(open); if (!open) setRevertReason(""); }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Revertir Cierre Contable</DialogTitle>
-            <DialogDescription>
-              Esta acción solo puede realizarla el Super Admin. El cierre volverá a estado borrador
-              y los proyectos quedarán desvinculados.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="rounded-md bg-amber-50 border border-amber-200 p-3 text-sm text-amber-800">
-              <strong>Recuerda:</strong> los gastos tardíos deben registrarse en el período siguiente,
-              no como motivo de reapertura. Solo revertir por error en los datos del cierre.
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="revert-reason">Motivo de la reapertura <span className="text-red-500">*</span></Label>
-              <Textarea
-                id="revert-reason"
-                placeholder="Describe el motivo (mínimo 10 caracteres)..."
-                value={revertReason}
-                onChange={(e) => setRevertReason(e.target.value)}
-                rows={3}
-              />
-              <p className="text-xs text-muted-foreground">Este motivo quedará registrado en la auditoría del cierre.</p>
-            </div>
-          </div>
-          <div className="flex gap-3 justify-end">
-            <Button variant="outline" onClick={() => { setShowRevertDialog(false); setRevertReason(""); }}>
-              Cancelar
-            </Button>
-            <Button
+      {/* Revert Dialog */}
+      <AlertDialog open={showRevertDialog} onOpenChange={setShowRevertDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Revertir Cierre Contable</AlertDialogTitle>
+            <AlertDialogDescription>
+              ¿Deseas revertir este cierre contable? Los proyectos serán desvinculados y podrán
+              incluirse en un nuevo cierre.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex gap-3">
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
               onClick={() => {
                 if (selectedClosureId) {
-                  revertClosure.mutate({ closureId: selectedClosureId, reason: revertReason });
+                  revertClosure.mutate({ closureId: selectedClosureId });
                 }
               }}
-              disabled={revertReason.trim().length < 10 || revertClosure.isPending}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              disabled={isSubmitting}
+              className="bg-red-600 hover:bg-red-700"
             >
-              {revertClosure.isPending ? (
-                <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Revirtiendo...</>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Revirtiendo...
+                </>
               ) : (
-                "Revertir Cierre"
+                "Revertir"
               )}
-            </Button>
+            </AlertDialogAction>
           </div>
-        </DialogContent>
-      </Dialog>
+        </AlertDialogContent>
+      </AlertDialog>
 
 
     </div>

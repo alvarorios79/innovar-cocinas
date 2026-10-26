@@ -54,7 +54,7 @@ export function SystemCleanupButton() {
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-red-700">
+            <DialogTitle className="flex items-center gap-2 text-red-300">
               <AlertTriangle className="h-5 w-5" />
               Confirmar Limpieza del Sistema
             </DialogTitle>
@@ -66,14 +66,14 @@ export function SystemCleanupButton() {
 
           {!showResults ? (
             <div className="space-y-4 py-4">
-              <div className="rounded-lg bg-red-50 p-3 border border-red-200">
-                <p className="text-sm text-red-900">
+              <div className="rounded-lg bg-red-500/10 p-3 border border-red-500/25">
+                <p className="text-sm text-red-300">
                   <strong>Advertencia:</strong> Se eliminarán todos los registros del sistema que fueron creados automáticamente.
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirm-text" className="text-red-700 font-semibold">
+                <Label htmlFor="confirm-text" className="text-red-300 font-semibold">
                   Escribe "CONFIRMAR" para proceder:
                 </Label>
                 <Input
@@ -115,31 +115,31 @@ export function SystemCleanupButton() {
             </div>
           ) : (
             <div className="space-y-4 py-4">
-              <div className="rounded-lg bg-green-50 p-3 border border-green-200">
-                <p className="text-sm text-green-900 font-semibold">
+              <div className="rounded-lg bg-green-500/10 p-3 border border-green-500/25">
+                <p className="text-sm text-green-300 font-semibold">
                   ✅ Limpieza completada exitosamente
                 </p>
               </div>
 
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Usuarios eliminados:</span>
+                  <span className="text-muted-foreground">Usuarios eliminados:</span>
                   <span className="font-semibold">{cleanupResults?.usersDeleted || 0}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Clientes eliminados:</span>
+                  <span className="text-muted-foreground">Clientes eliminados:</span>
                   <span className="font-semibold">{cleanupResults?.clientsDeleted || 0}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Proyectos eliminados:</span>
+                  <span className="text-muted-foreground">Proyectos eliminados:</span>
                   <span className="font-semibold">{cleanupResults?.projectsDeleted || 0}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Cotizaciones eliminadas:</span>
+                  <span className="text-muted-foreground">Cotizaciones eliminadas:</span>
                   <span className="font-semibold">{cleanupResults?.quotationsDeleted || 0}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Citas eliminadas:</span>
+                  <span className="text-muted-foreground">Citas eliminadas:</span>
                   <span className="font-semibold">{cleanupResults?.appointmentsDeleted || 0}</span>
                 </div>
               </div>

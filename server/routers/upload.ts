@@ -65,11 +65,11 @@ export const uploadRouter = router({
         let buffer = Buffer.from(base64Data, "base64");
 
         // Validar tamaño máximo (10MB)
-        const maxSize = 10 * 1024 * 1024;
+        const maxSize = 20 * 1024 * 1024;
         if (buffer.length > maxSize) {
           throw new TRPCError({ 
             code: "BAD_REQUEST", 
-            message: "El archivo es demasiado grande. Máximo 10MB." 
+            message: "El archivo es demasiado grande. Máximo 20MB." 
           });
         }
 
@@ -92,16 +92,29 @@ export const uploadRouter = router({
             console.warn('Error comprimiendo imagen, usando original:', compressionError);
           }
         }
-        // Para PDFs, subir sin modificar
+        // Para PDFs: comprimir con ghostscript si está disponible
+        if (input.contentType === 'application/pdf') {
+          try {
+            const { compressPdf } = await import('../image-utils');
+            const { buffer: compressed, savedPercent } = await compressPdf(buffer);
+            if (savedPercent > 0) {
+              buffer = compressed;
+              console.log(`PDF comprimido: ${savedPercent}% de reducción`);
+            }
+          } catch (pdfError) {
+            console.warn('Error comprimiendo PDF, usando original:', pdfError);
+          }
+        }
 
         try {
           const { url } = await storagePut(fileKey, buffer, finalContentType);
           return { success: true, url, key: fileKey };
         } catch (error) {
-          console.error("Error uploading file:", error);
+          const errMsg = error instanceof Error ? error.message : String(error);
+          console.error("Error uploading file:", errMsg, error);
           throw new TRPCError({ 
             code: "INTERNAL_SERVER_ERROR", 
-            message: "Error al subir el archivo" 
+            message: `Error al subir el archivo: ${errMsg}` 
           });
         }
       }),
@@ -160,9 +173,9 @@ export const uploadRouter = router({
             let buffer = Buffer.from(base64Data, "base64");
 
             // Validar tamaño
-            const maxSize = 10 * 1024 * 1024;
+            const maxSize = 20 * 1024 * 1024;
             if (buffer.length > maxSize) {
-              errors.push({ fileName: file.fileName, error: "Archivo muy grande (máx 10MB)" });
+              errors.push({ fileName: file.fileName, error: "Archivo muy grande (máx 20MB)" });
               continue;
             }
 

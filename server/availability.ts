@@ -1,6 +1,6 @@
 import { getDb } from "./db";
 import { appointments } from "../drizzle/schema";
-import { and, eq, gte, lte, sql } from "drizzle-orm";
+import { and, eq, gte, isNull, lte, sql } from "drizzle-orm";
 
 /**
  * Configuración de horarios de citas
@@ -25,7 +25,8 @@ export const APPOINTMENT_CONFIG = {
  * Verifica si una fecha es un día permitido
  * @param dayOfWeek - Día de la semana (0-6)
  */
-export function isAllowedDay(dayOfWeek: number): boolean {
+export function isAllowedDay(dayOfWeek: number, bypassDayRestriction = false): boolean {
+  if (bypassDayRestriction) return true;
   return APPOINTMENT_CONFIG.allowedDays.includes(dayOfWeek);
 }
 
@@ -33,7 +34,7 @@ export function isAllowedDay(dayOfWeek: number): boolean {
  * Obtiene todos los horarios disponibles para una fecha específica
  * @param dateStr - Fecha en formato "YYYY-MM-DD"
  */
-export async function getAvailableTimeSlots(dateStr: string | Date): Promise<string[]> {
+export async function getAvailableTimeSlots(dateStr: string | Date, bypassDayRestriction = false, excludeAppointmentId?: number): Promise<string[]> {
   // Parsear la fecha directamente sin conversión de zona horaria
   let year: number, month: number, day: number;
   let date: Date;
@@ -50,7 +51,9 @@ export async function getAvailableTimeSlots(dateStr: string | Date): Promise<str
   
   // Verificar si es un día permitido
   const dayOfWeek = date.getDay();
-  if (!isAllowedDay(dayOfWeek)) {
+  console.log(`[getAvailableTimeSlots] dateStr=${dateStr instanceof Date ? dateStr.toISOString() : dateStr} dayOfWeek=${dayOfWeek} bypassDayRestriction=${bypassDayRestriction}`);
+  if (!isAllowedDay(dayOfWeek, bypassDayRestriction)) {
+    console.log(`[getAvailableTimeSlots] day ${dayOfWeek} NOT allowed (bypass=${bypassDayRestriction}) → returning []`);
     return [];
   }
 
@@ -69,26 +72,39 @@ export async function getAvailableTimeSlots(dateStr: string | Date): Promise<str
     .select()
     .from(appointments)
     .where(
-      and(
-    // @ts-ignore
-        gte(appointments.scheduledDate, startOfDay),
-    // @ts-ignore
-        lte(appointments.scheduledDate, endOfDay),
-        sql`${appointments.status} != 'cancelada'`
-      )
+      excludeAppointmentId
+        ? and(
+            // @ts-ignore
+            gte(appointments.scheduledDate, startOfDay),
+            // @ts-ignore
+            lte(appointments.scheduledDate, endOfDay),
+            sql`${appointments.status} != 'cancelada'`,
+            isNull(appointments.deletedAt),
+            sql`${appointments.id} != ${excludeAppointmentId}`
+          )
+        : and(
+            // @ts-ignore
+            gte(appointments.scheduledDate, startOfDay),
+            // @ts-ignore
+            lte(appointments.scheduledDate, endOfDay),
+            sql`${appointments.status} != 'cancelada'`,
+            isNull(appointments.deletedAt)
+          )
     );
+
+  // DEBUG: log what's blocking
+  if (existingAppointments.length > 0) {
+    console.log('[isTimeSlotAvailable] Appointments found for', dateStr, ':', existingAppointments.map(a => ({ id: a.id, status: a.status, deletedAt: a.deletedAt, scheduledDate: a.scheduledDate })));
+  }
 
   // Obtener horarios ocupados - convertir a zona horaria de Colombia
   const occupiedSlots = existingAppointments.map(apt => {
     if (!apt.scheduledDate) return null;
-    // Convertir la fecha a zona horaria de Colombia
-    const colombiaTime = new Date(apt.scheduledDate).toLocaleString("en-US", {
-      timeZone: "America/Bogota",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
-    return colombiaTime;
+    // Convertir a hora Colombia usando matemática directa UTC-5 (confiable en Node.js Linux)
+    const colombiaDate = new Date(new Date(apt.scheduledDate).getTime() + (-5 * 60 * 60 * 1000));
+    const h = String(colombiaDate.getUTCHours()).padStart(2, '0');
+    const m = String(colombiaDate.getUTCMinutes()).padStart(2, '0');
+    return `${h}:${m}`;
   }).filter(Boolean) as string[];
 
   // Filtrar horarios disponibles
@@ -97,18 +113,25 @@ export async function getAvailableTimeSlots(dateStr: string | Date): Promise<str
     .map(slot => slot.start);
 
   // Bloquear horarios que ya pasaron del día actual (zona horaria Colombia UTC-5)
-  const nowColombia = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Bogota" }));
-  const todayColombia = new Date(nowColombia.getFullYear(), nowColombia.getMonth(), nowColombia.getDate(), 12, 0, 0);
-  const requestedDate = new Date(year, month - 1, day, 12, 0, 0);
-  
-  if (requestedDate.getTime() === todayColombia.getTime()) {
-    // Es hoy: filtrar horarios que ya pasaron
-    const currentHour = nowColombia.getHours();
-    const currentMinute = nowColombia.getMinutes();
+  // Colombia es siempre UTC-5 (sin cambio de horario) — cálculo directo y confiable
+  const COLOMBIA_OFFSET_MS = -5 * 60 * 60 * 1000;
+  const nowColombia = new Date(Date.now() + COLOMBIA_OFFSET_MS);
+  const colombiaYear  = nowColombia.getUTCFullYear();
+  const colombiaMonth = nowColombia.getUTCMonth(); // 0-indexed
+  const colombiaDay   = nowColombia.getUTCDate();
+  const currentHour   = nowColombia.getUTCHours();
+  const currentMinute = nowColombia.getUTCMinutes();
+
+  console.log(`[slots] Colombia ${colombiaYear}-${colombiaMonth+1}-${colombiaDay} ${currentHour}:${String(currentMinute).padStart(2,'0')} | req: ${year}-${month}-${day} | bypass: ${bypassDayRestriction}`);
+
+  const isToday = (year === colombiaYear && (month - 1) === colombiaMonth && day === colombiaDay);
+  if (isToday) {
+    // Es hoy en Colombia: filtrar horarios que ya pasaron
     availableSlots = availableSlots.filter(slot => {
       const [slotHour, slotMinute] = slot.split(':').map(Number);
       return slotHour > currentHour || (slotHour === currentHour && slotMinute > currentMinute);
     });
+    console.log(`[slots] isToday → filtro ${currentHour}:${String(currentMinute).padStart(2,'0')} → quedan: [${availableSlots}]`);
   }
 
   return availableSlots;
@@ -119,7 +142,7 @@ export async function getAvailableTimeSlots(dateStr: string | Date): Promise<str
  * @param dateStr - Fecha en formato "YYYY-MM-DD"
  * @param timeSlot - Horario en formato "HH:MM"
  */
-export async function isTimeSlotAvailable(dateStr: string | Date, timeSlot: string, excludeAppointmentId?: number): Promise<boolean> {
+export async function isTimeSlotAvailable(dateStr: string | Date, timeSlot: string, excludeAppointmentId?: number, bypassDayRestriction = false): Promise<boolean> {
   // Parsear la fecha directamente sin conversión de zona horaria
   let date: Date;
   let year: number, month: number, day: number;
@@ -136,7 +159,7 @@ export async function isTimeSlotAvailable(dateStr: string | Date, timeSlot: stri
   
   // Verificar si es un día permitido
   const dayOfWeek = date.getDay();
-  if (!isAllowedDay(dayOfWeek)) {
+  if (!isAllowedDay(dayOfWeek, bypassDayRestriction)) {
     return false;
   }
 
@@ -179,7 +202,8 @@ export async function isTimeSlotAvailable(dateStr: string | Date, timeSlot: stri
   const whereConditions = [
     gte(appointments.scheduledDate, startOfDayStr),
     lte(appointments.scheduledDate, endOfDayStr),
-    sql`${appointments.status} != 'cancelada'`
+    sql`${appointments.status} != 'cancelada'`,
+    isNull(appointments.deletedAt)  // excluir citas eliminadas (soft-delete)
   ];
   
   if (excludeAppointmentId) {
@@ -194,13 +218,11 @@ export async function isTimeSlotAvailable(dateStr: string | Date, timeSlot: stri
   // Verificar si alguna cita existente tiene el mismo horario
   for (const apt of existingAppointments) {
     if (apt.scheduledDate) {
-      // Convertir la fecha a zona horaria de Colombia
-      const colombiaTime = new Date(apt.scheduledDate).toLocaleString("en-US", {
-        timeZone: "America/Bogota",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-      });
+      // Convertir a hora Colombia usando matemática directa UTC-5 (confiable en Node.js Linux)
+      const colombiaDate2 = new Date(new Date(apt.scheduledDate).getTime() + (-5 * 60 * 60 * 1000));
+      const h2 = String(colombiaDate2.getUTCHours()).padStart(2, '0');
+      const m2 = String(colombiaDate2.getUTCMinutes()).padStart(2, '0');
+      const colombiaTime = `${h2}:${m2}`;
       if (colombiaTime === timeSlot) {
         return false; // Horario ocupado
       }

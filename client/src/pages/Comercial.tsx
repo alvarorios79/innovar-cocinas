@@ -42,6 +42,17 @@ import { CreateQuickClientDialog } from "@/components/CreateQuickClientDialog";
 import { DailyMotivation } from "@/components/DailyMotivation";
 import { PageHeader } from "@/components/PageHeader";
 
+// Helper: Drizzle retorna timestamps sin timezone ("2026-09-28 13:30:00")
+// Chrome los parsea como hora local → forzar UTC
+const parseDBDate = (ds: string | Date | null | undefined): Date => {
+  if (!ds) return new Date();
+  if (ds instanceof Date) return ds;
+  if (!(ds as string).includes('T') && !(ds as string).includes('Z') && !(ds as string).includes('+')) {
+    return new Date((ds as string).replace(' ', 'T') + 'Z');
+  }
+  return new Date(ds as string);
+};
+
 export default function Comercial() {
   const { user, isAuthenticated, loading } = useAuth();
   const [, setLocation] = useLocation();
@@ -114,7 +125,7 @@ export default function Comercial() {
 
   // Citas del día
   const todayAppointments = appointments.filter((apt: any) => {
-    const aptDate = new Date(apt.scheduledDate);
+    const aptDate = parseDBDate(apt.scheduledDate);
     aptDate.setHours(0, 0, 0, 0);
     return aptDate.getTime() === today.getTime() && apt.status === "pending";
   });
@@ -203,22 +214,22 @@ export default function Comercial() {
   // Obtener color del estado
   const getStatusColor = (status: string) => {
     const statusColors: Record<string, string> = {
-      contacto: "bg-slate-100 text-white/85",
-      cotizacion_enviada: "bg-blue-100 text-blue-700",
-      cotizacion_aprobada: "bg-emerald-100 text-emerald-700",
-      adelanto_recibido: "bg-green-100 text-green-700",
-      en_diseno: "bg-purple-100 text-purple-700",
-      pendiente_modelado: "bg-slate-100 text-white/85",
-      pendiente_render: "bg-amber-100 text-amber-700",
-      aprobacion_final: "bg-indigo-100 text-indigo-700",
-      despiece: "bg-orange-100 text-orange-700",
-      corte: "bg-amber-100 text-amber-700",
-      enchape: "bg-teal-100 text-teal-700",
-      ensamble: "bg-teal-100 text-teal-700",
-      listo_instalacion: "bg-cyan-100 text-cyan-700",
-      entregado: "bg-gray-100 text-gray-700",
+      contacto: "bg-white/[0.06] text-white/85",
+      cotizacion_enviada: "bg-blue-500/15 text-blue-300",
+      cotizacion_aprobada: "bg-emerald-500/15 text-emerald-300",
+      adelanto_recibido: "bg-green-500/15 text-green-300",
+      en_diseno: "bg-purple-500/15 text-purple-300",
+      pendiente_modelado: "bg-white/[0.06] text-white/85",
+      pendiente_render: "bg-amber-500/15 text-amber-300",
+      aprobacion_final: "bg-indigo-500/15 text-indigo-300",
+      despiece: "bg-orange-500/15 text-orange-300",
+      corte: "bg-amber-500/15 text-amber-300",
+      enchape: "bg-teal-500/15 text-teal-300",
+      ensamble: "bg-teal-500/15 text-teal-300",
+      listo_instalacion: "bg-cyan-100 text-cyan-300",
+      entregado: "bg-white/[0.06] text-muted-foreground",
     };
-    return statusColors[status] || "bg-gray-100 text-gray-700";
+    return statusColors[status] || "bg-white/[0.06] text-muted-foreground";
   };
 
   // Manejar programación de instalación
@@ -244,7 +255,8 @@ export default function Comercial() {
       `¡Que todos tus sueños se hagan realidad! 💕\n\n` +
       `Un abrazo,\n${user?.name || 'INNOVAR Cocinas'}`
     );
-    window.open(`https://wa.me/57${phone}?text=${message}`, '_blank');
+    const waPhone = phone.length > 10 ? phone : `57${phone}`;
+    window.open(`https://wa.me/${waPhone}?text=${message}`, '_blank');
   };
 
   if (loading) {
@@ -287,7 +299,7 @@ export default function Comercial() {
             
             {/* Información de contacto */}
             <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 text-xs md:text-sm text-muted-foreground">
-              <a href="tel:3136802025" className="flex items-center gap-1 hover:text-teal-600 transition-colors">
+              <a href="tel:3136802025" className="flex items-center gap-1 hover:text-teal-400 transition-colors">
                 <Phone className="h-3.5 w-3.5" />
                 <span>313 680 2025</span>
               </a>
@@ -296,7 +308,7 @@ export default function Comercial() {
                 <span className="hidden sm:inline">K9 vía Cerritos a Pereira</span>
                 <span className="sm:hidden">Cerritos, Pereira</span>
               </span>
-              <a href="https://innovarcocinasintegrales.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-teal-600 transition-colors">
+              <a href="https://innovarcocinasintegrales.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-teal-400 transition-colors">
                 <Globe className="h-3.5 w-3.5" />
                 <span>Sitio Web</span>
               </a>
@@ -356,7 +368,7 @@ export default function Comercial() {
               </CardHeader>
               <CardContent className="space-y-2">
                 {upcomingBirthdays.slice(0, 5).map((client: any) => (
-                  <div key={client.id} className="bg-[#162828] rounded-lg p-3 border border-teal-200 shadow-sm hover:shadow-md transition-shadow">
+                  <div key={client.id} className="bg-[#162828] rounded-lg p-3 border border-teal-500/25 shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <div className="flex items-center gap-3">
                         <div className={`p-2 rounded-full ${client.daysUntil === 0 ? 'bg-teal-500 text-white animate-bounce' : 'bg-teal-500/20 text-teal-400'}`}>
@@ -364,7 +376,7 @@ export default function Comercial() {
                         </div>
                         <div>
                           <h3 className="font-semibold text-white/90">{client.name}</h3>
-                          <p className="text-sm text-teal-600">
+                          <p className="text-sm text-teal-400">
                             {client.daysUntil === 0 ? (
                               <span className="font-bold">🎉 ¡Hoy es su cumpleaños!</span>
                             ) : client.daysUntil === 1 ? (
@@ -474,7 +486,7 @@ export default function Comercial() {
                 Proyectos Activos
               </h2>
               <Link href="/projects">
-                <Button variant="ghost" size="sm" className="text-teal-600 font-semibold">
+                <Button variant="ghost" size="sm" className="text-teal-400 font-semibold">
                   Ver todos <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>
               </Link>
@@ -545,13 +557,13 @@ export default function Comercial() {
               </CardHeader>
               <CardContent className="space-y-3">
                 {projectsInEnsamble.map((project: any) => (
-                  <div key={project.id} className="bg-[#162828] rounded-lg p-4 border border-orange-200 shadow-sm">
+                  <div key={project.id} className="bg-[#162828] rounded-lg p-4 border border-orange-500/25 shadow-sm">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div className="flex-1">
                         <h3 className="font-semibold text-white/90">{project.name}</h3>
                         <div className="flex flex-wrap items-center gap-3 mt-1 text-sm text-white/60">
                           {project.client?.whatsappPhone && (
-                            <a href={`tel:${project.client.whatsappPhone}`} className="flex items-center gap-1 hover:text-teal-600">
+                            <a href={`tel:${project.client.whatsappPhone}`} className="flex items-center gap-1 hover:text-teal-400">
                               <Phone className="h-4 w-4" />
                               {project.client.whatsappPhone}
                             </a>
@@ -560,7 +572,7 @@ export default function Comercial() {
                             <span className="flex items-center gap-1">
                               <Clock className="h-4 w-4" />
                               Entrega: {formatDate(project.tentativeInstallDate)}
-                              <Badge variant="outline" className="ml-1 text-orange-600 border-orange-300">
+                              <Badge variant="outline" className="ml-1 text-orange-400 border-orange-500/30">
                                 {getDaysRemaining(project.tentativeInstallDate)}
                               </Badge>
                             </span>
@@ -662,7 +674,7 @@ export default function Comercial() {
                           <div>
                             <h3 className="font-medium">{apt.client?.name || "Cliente"}</h3>
                             <p className="text-sm text-white/45">
-                              {new Date(apt.scheduledDate).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}
+                              {parseDBDate(apt.scheduledDate).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Bogota' })}
                             </p>
                           </div>
                           {apt.client?.whatsappPhone && (
@@ -732,13 +744,14 @@ export default function Comercial() {
                                 onClick={(e) => {
                                   e.preventDefault();
                                   e.stopPropagation();
-                                  const phone = quot.client.whatsappPhone.replace(/\D/g, '');
+                                  const rawPh2 = quot.client.whatsappPhone.replace(/\D/g, '');
+                                  const phone = rawPh2.length > 10 ? rawPh2 : `57${rawPh2}`;
                                   const message = encodeURIComponent(
                                     `Hola ${quot.client.name}, le escribo de INNOVAR Cocinas Integrales. ` +
                                     `Quería hacer seguimiento a la cotización ${quot.quotationNumber} por valor de ${formatPrice(quot.total)}. ` +
                                     `¿Ha tenido oportunidad de revisarla?`
                                   );
-                                  window.open(`https://wa.me/57${phone}?text=${message}`, '_blank');
+                                  window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
                                 }}
                               >
                                 <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
@@ -782,11 +795,11 @@ export default function Comercial() {
               <CardContent>
                 <div className="space-y-2">
                   {expiringQuotations.map((quot: any) => (
-                    <div key={quot.id} className="bg-[#162828] rounded-lg p-3 border border-red-200 shadow-sm">
+                    <div key={quot.id} className="bg-[#162828] rounded-lg p-3 border border-red-500/25 shadow-sm">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div>
                           <h3 className="font-medium text-white/90">{quot.client?.name || quot.quotationNumber}</h3>
-                          <p className="text-sm text-red-600">
+                          <p className="text-sm text-red-400">
                             {formatPrice(quot.total)} • Vence: {formatDate(quot.validUntil)}
                           </p>
                         </div>
@@ -823,7 +836,7 @@ export default function Comercial() {
                 Mis Tareas Pendientes
               </h2>
               <Link href="/tasks">
-                <Button variant="ghost" size="sm" className="text-teal-600 font-semibold">
+                <Button variant="ghost" size="sm" className="text-teal-400 font-semibold">
                   Ver todas <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>
               </Link>
@@ -870,16 +883,6 @@ export default function Comercial() {
         )}
       </main>
 
-      {/* Botón flotante de WhatsApp */}
-      <a 
-        href="https://wa.me/573136802025" 
-        target="_blank" 
-        rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 bg-[#25D366] text-white p-4 rounded-full shadow-lg hover:bg-[#128C7E] transition-colors z-50"
-        title="Contactar por WhatsApp"
-      >
-        <MessageCircle className="h-6 w-6" />
-      </a>
 
       {/* Dialog para programar instalación */}
       <Dialog open={!!scheduleDialog} onOpenChange={(open) => !open && setScheduleDialog(null)}>

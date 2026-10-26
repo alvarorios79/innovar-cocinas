@@ -80,8 +80,11 @@ export function RemindersPanel({ userId, userRole, compact = false }: RemindersP
     },
   });
 
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   const activeReminders = reminders.filter(
-    (r: any) => r.status === "pendiente" || r.status === "enviado"
+    (r: any) => (r.status === "pendiente" || r.status === "enviado") &&
+      new Date(r.dueDate) >= thirtyDaysAgo
   );
 
   const urgentReminders = activeReminders.filter((r: any) => {
@@ -273,8 +276,11 @@ export function RemindersPanel({ userId, userRole, compact = false }: RemindersP
 export function RemindersIndicator({ userId }: { userId: number }) {
   const { data: reminders = [] } = trpc.reminders.getMyReminders.useQuery();
   
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   const activeReminders = reminders.filter(
-    (r: any) => r.status === "pendiente" || r.status === "enviado"
+    (r: any) => (r.status === "pendiente" || r.status === "enviado") &&
+      new Date(r.dueDate) >= thirtyDaysAgo
   );
 
   const urgentCount = activeReminders.filter((r: any) => {

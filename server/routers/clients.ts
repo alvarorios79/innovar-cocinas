@@ -16,6 +16,11 @@ import { addBusinessDays, calculateEstimatedDeliveryDate } from "../business-day
 import { sanitizeText, sanitizeHtml, sanitizeForEmail, sanitizePhone, sanitizeEmail } from "../sanitize";
 
 
+// Normaliza nombres: "carlos alfredo" → "Carlos Alfredo"
+function toTitleCase(str: string): string {
+  return str.trim().toLowerCase().replace(/(?:^|\s|-)\w/g, c => c.toUpperCase());
+}
+
 export const clientsRouter = router({
     getOrCreateByWhatsApp: publicProcedure
       .input(z.object({
@@ -23,6 +28,7 @@ export const clientsRouter = router({
         email: z.string().email().optional().or(z.literal("")),
         whatsappPhone: z.string().min(10),
         address: z.string().optional(),
+        identificationNumber: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         // Buscar cliente existente por WhatsApp
@@ -32,11 +38,12 @@ export const clientsRouter = router({
           // Crear nuevo cliente, asociando con usuario si está autenticado
           const clientId = await db.createClient({
             userId: ctx.user?.id, // Asociar con usuario autenticado si existe
-          name: sanitizeText(input.name),
+          name: toTitleCase(sanitizeText(input.name)),
           email: input.email && input.email.trim() !== "" ? sanitizeEmail(input.email) : undefined,
           whatsappPhone: sanitizePhone(input.whatsappPhone),
           address: input.address ? sanitizeText(input.address) : undefined,
-          });
+          identificationNumber: input.identificationNumber ? sanitizeText(input.identificationNumber) : undefined,
+          } as any);
           client = await db.getClientById(clientId);
         } else if (ctx.user && !client.userId) {
           // Si el cliente ya existe pero no tiene userId, asociarlo con el usuario autenticado
@@ -65,7 +72,7 @@ export const clientsRouter = router({
         }
         
         const sanitizedData = {
-          name: input.name ? sanitizeText(input.name) : undefined,
+          name: input.name ? toTitleCase(sanitizeText(input.name)) : undefined,
           email: input.email && input.email.trim() !== "" ? sanitizeEmail(input.email) : null,
         };
         
@@ -104,9 +111,10 @@ export const clientsRouter = router({
       .input(z.object({
         name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
         email: z.string().email("Email inválido").optional().or(z.literal("")),
-        whatsappPhone: z.string().min(10, "Número de WhatsApp inválido"),
+        whatsappPhone: z.string().min(6, "Número de WhatsApp inválido"),
         address: z.string().optional(),
         internalManagement: z.boolean().optional().default(false),
+        identificationNumber: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         // Solo admin, super_admin y comercial pueden crear clientes
@@ -114,13 +122,10 @@ export const clientsRouter = router({
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para crear clientes" });
         }
 
-        // Verificar que el WhatsApp no esté duplicado
+        // Si ya existe un cliente con ese WhatsApp, retornarlo en vez de crear duplicado
         const existingClient = await db.getClientByWhatsApp(input.whatsappPhone);
         if (existingClient) {
-          throw new TRPCError({ 
-            code: "BAD_REQUEST", 
-            message: "Ya existe un cliente con este número de WhatsApp" 
-          });
+          return { ...existingClient, alreadyExisted: true };
         }
 
         let userId: number | undefined = undefined;
@@ -147,7 +152,7 @@ export const clientsRouter = router({
 
           // Crear usuario con rol "user" (cliente)
           userId = await db.createUserExtended({
-            name: sanitizeText(input.name),
+            name: toTitleCase(sanitizeText(input.name)),
             email: sanitizeEmail(input.email),
             role: "user",
             password: passwordHash,
@@ -159,11 +164,12 @@ export const clientsRouter = router({
         const clientId = await withTransaction(async (tx) => {
           const cid = await db.createClient({
             userId,
-            name: sanitizeText(input.name),
+            name: toTitleCase(sanitizeText(input.name)),
             email: input.email && input.email.trim() !== "" ? sanitizeEmail(input.email) : undefined,
             whatsappPhone: sanitizePhone(input.whatsappPhone),
             address: input.address ? sanitizeText(input.address) : undefined,
             internalManagement: input.internalManagement ? 1 : 0,
+            identificationNumber: input.identificationNumber ? sanitizeText(input.identificationNumber) : undefined,
           });
           return cid;
         });
@@ -188,6 +194,7 @@ export const clientsRouter = router({
         email: z.string().email().optional().or(z.literal("")),
         whatsappPhone: z.string().optional(),
         address: z.string().optional(),
+        identificationNumber: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
@@ -198,6 +205,7 @@ export const clientsRouter = router({
         const sanitizedData = {
           name: updateData.name ? sanitizeText(updateData.name) : undefined,
           email: updateData.email && updateData.email.trim() !== "" ? sanitizeEmail(updateData.email) : null,
+          identificationNumber: updateData.identificationNumber !== undefined ? (updateData.identificationNumber || null) : undefined,
           whatsappPhone: updateData.whatsappPhone ? sanitizePhone(updateData.whatsappPhone) : undefined,
           address: updateData.address ? sanitizeText(updateData.address) : undefined,
         };

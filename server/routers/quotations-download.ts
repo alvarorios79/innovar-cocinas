@@ -1,4 +1,4 @@
-import { protectedProcedure, router } from "../_core/trpc";
+import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { z } from "zod";
 import * as db from "../db";
 import { TRPCError } from "@trpc/server";
@@ -55,7 +55,7 @@ export const quotationsDownloadRouter = router({
           discountPercent: quotation.discountPercent ? `${quotation.discountPercent}%` : '0%',
           transportCost: formatCurrency(Number(quotation.transportCost || 0)),
           total: formatCurrency(Number(quotation.total)),
-          notes: (quotation as any).notes || "",
+          generalNotes: (quotation as any).generalNotes || "",
         };
 
         // Generar PDF
@@ -85,6 +85,83 @@ export const quotationsDownloadRouter = router({
         throw new TRPCError({ 
           code: "INTERNAL_SERVER_ERROR", 
           message: error.message || "Error generando PDF de cotización" 
+        });
+      }
+    }),
+
+  // Descarga pública por token — genera PDF fresco idéntico al del CRM
+  downloadPDFByToken: publicProcedure
+    .input(z.object({ token: z.string().min(1) }))
+    .mutation(async ({ input }) => {
+      const drizzleDb = await db.getDb();
+      if (!drizzleDb) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+      const { quotations: qTable } = await import("../../drizzle/schema");
+      const { eq, and, isNull } = await import("drizzle-orm");
+
+      const rows = await drizzleDb
+        .select()
+        .from(qTable)
+        .where(and(eq((qTable as any).publicToken, input.token), isNull(qTable.deletedAt)))
+        .limit(1);
+
+      if (!rows.length) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Enlace no válido o expirado" });
+      }
+
+      const quotation = rows[0];
+
+      try {
+        const items = await db.getQuotationItems(quotation.id);
+        const clientData = await db.getClientById(quotation.clientId);
+
+        const formatCurrency = (value: number) =>
+          new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value);
+
+        const pdfData = {
+          quotationNumber: quotation.quotationNumber,
+          date: new Date().toLocaleDateString('es-CO', { timeZone: 'America/Bogota' }),
+          clientName: clientData?.name || 'Cliente',
+          clientPhone: clientData?.whatsappPhone || undefined,
+          clientAddress: clientData?.address || undefined,
+          vendorName: quotation.vendorName,
+          productType: quotation.productType,
+          validUntil: quotation.validUntil
+            ? new Date(quotation.validUntil).toLocaleDateString('es-CO', { timeZone: 'America/Bogota' })
+            : '',
+          items: items.map((item: any) => ({
+            itemNumber: item.itemNumber,
+            description: item.description,
+            quantity: item.quantity.toString(),
+            totalPrice: formatCurrency(Number(item.totalPrice)),
+          })),
+          subtotal: formatCurrency(Number(quotation.subtotal)),
+          discountAmount: formatCurrency(Number(quotation.discountAmount || 0)),
+          discountPercent: quotation.discountPercent ? `${quotation.discountPercent}%` : '0%',
+          transportCost: formatCurrency(Number(quotation.transportCost || 0)),
+          total: formatCurrency(Number(quotation.total)),
+          generalNotes: (quotation as any).generalNotes || "",
+        };
+
+        const { generateQuotationPDF } = await import('../quotation-pdf-generator');
+        // @ts-ignore
+        const result = await generateQuotationPDF(pdfData, quotation.id);
+
+        const fs = await import('fs');
+        const pdfBuffer = fs.readFileSync(result.pdfPath);
+        fs.unlinkSync(result.pdfPath);
+
+        return {
+          success: true,
+          pdf: pdfBuffer.toString('base64'),
+          fileName: `${quotation.quotationNumber}.pdf`,
+          mimeType: 'application/pdf',
+        };
+      } catch (error: any) {
+        console.error('[downloadPDFByToken] Error:', error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: error.message || "Error generando PDF",
         });
       }
     }),

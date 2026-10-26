@@ -110,14 +110,14 @@ export function PDFPreviewDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 flex flex-col relative bg-gray-100 rounded-md overflow-hidden" ref={containerRef}>
+        <div className="flex-1 flex flex-col relative bg-white/[0.06] rounded-md overflow-hidden" ref={containerRef}>
           {/* Botón de cierre en esquina superior derecha */}
           <button
             onClick={() => onOpenChange(false)}
-            className="absolute top-2 right-2 z-50 p-2 bg-white rounded-full shadow-lg hover:bg-gray-100"
+            className="absolute top-2 right-2 z-50 p-2 bg-white/[0.12] rounded-full shadow-lg hover:bg-white/[0.20]"
             title="Cerrar"
           >
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5 text-foreground" />
           </button>
 
           {isIOS ? (
@@ -125,8 +125,8 @@ export function PDFPreviewDialog({
             <div className="flex-1 flex flex-col items-center justify-center gap-4 p-6">
               <AlertCircle className="h-12 w-12 text-amber-500" />
               <div className="text-center">
-                <p className="font-semibold text-gray-900">Vista previa no disponible en iPhone</p>
-                <p className="text-sm text-gray-600 mt-2">Toca el botón de abajo para ver el PDF en pantalla completa</p>
+                <p className="font-semibold text-foreground">Vista previa no disponible en iPhone</p>
+                <p className="text-sm text-muted-foreground mt-2">Toca el botón de abajo para ver el PDF en pantalla completa</p>
               </div>
               <Button
                 onClick={() => window.open(pdfUrl, '_blank')}
@@ -139,14 +139,14 @@ export function PDFPreviewDialog({
             // En desktop, mostrar iframe normal
             <>
               {isLoading && (
-                <div className="absolute inset-0 flex items-center justify-center z-10 bg-gray-100">
+                <div className="absolute inset-0 flex items-center justify-center z-10 bg-white/[0.06]">
                   <Loader2 className="h-8 w-8 text-gray-400 animate-spin" />
                 </div>
               )}
               {error && (
-                <div className="absolute inset-0 flex items-center justify-center z-10 bg-red-50 flex-col gap-2">
+                <div className="absolute inset-0 flex items-center justify-center z-10 bg-red-500/10 flex-col gap-2">
                   <AlertCircle className="h-8 w-8 text-red-500" />
-                  <div className="text-red-700 text-center px-4">
+                  <div className="text-red-300 text-center px-4">
                     <p className="font-semibold">Error al cargar PDF</p>
                     <p className="text-sm mt-1">{error}</p>
                   </div>
@@ -156,7 +156,7 @@ export function PDFPreviewDialog({
               {!error && (
                 <div className="flex-1 flex flex-col">
                   {/* PDF Viewer con react-pdf */}
-                  <div className="flex-1 overflow-auto flex items-center justify-center bg-gray-50">
+                  <div className="flex-1 overflow-auto flex items-center justify-center bg-white/[0.03]">
                     <Document
                       file={pdfUrl}
                       onLoadSuccess={onDocumentLoadSuccess}
@@ -174,7 +174,7 @@ export function PDFPreviewDialog({
                   
                   {/* Controles de navegación */}
                   {numPages > 1 && (
-                    <div className="flex items-center justify-center gap-4 p-4 bg-white border-t">
+                    <div className="flex items-center justify-center gap-4 p-4 bg-white/[0.05] border-t border-white/[0.10]">
                       <Button
                         variant="outline"
                         size="sm"

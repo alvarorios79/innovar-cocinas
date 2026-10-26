@@ -22,10 +22,11 @@ export const quotationsRouter = router({
       .input(z.object({
         clientId: z.number(),
         vendorName: z.string(),
-        productType: z.enum(["cocina", "closet", "puerta", "centro_tv", "herrajes", "mesones", "acabados_especiales", "otro"]).optional(),
+        productType: z.enum(["cocina", "closet", "puerta", "centro_tv", "herrajes", "mesones", "acabados_especiales", "mueble_cocina", "otro"]).optional(),
         discountPercent: z.number().min(0).max(100).optional().default(0),
+        includeIva: z.boolean().optional().default(false),
         generalNotes: z.string().optional(),
-        visitId: z.number().optional(), // visita técnica origen (si aplica)
+        technicalVisitId: z.number().optional(),
         items: z.array(z.object({
           itemNumber: z.number(),
           itemType: z.string(),
@@ -47,6 +48,7 @@ export const quotationsRouter = router({
           doorConfig: z.any().optional(),
           tvCenterConfig: z.any().optional(),
           countertopConfig: z.any().optional(),
+          bathroomConfig: z.any().optional(),
         })),
       }))
       .mutation(async ({ ctx, input }) => {
@@ -63,11 +65,13 @@ export const quotationsRouter = router({
         // Calcular descuento
         const discountPercent = input.discountPercent || 0;
         const discountAmount = subtotal * (discountPercent / 100);
+        const baseAfterDiscount = subtotal - discountAmount;
+        const ivaAmount = input.includeIva ? baseAfterDiscount * 0.19 : 0;
         
         // El transporte ya está incluido en el totalPrice de cada item si includesFixedCosts=true
         // Por lo tanto, el total es simplemente la suma de todos los items menos el descuento
         const transportCost = 0; // No agregar transporte adicional
-        const total = subtotal - discountAmount;
+        const total = baseAfterDiscount + ivaAmount;
 
         // Fecha de validez: 7 días desde hoy
         const validUntil = new Date();
@@ -85,6 +89,7 @@ export const quotationsRouter = router({
             transportCost: transportCost.toString(),
             discountPercent: discountPercent.toString(),
             discountAmount: discountAmount.toString(),
+            includeIva: (input.includeIva ? 1 : 0) as any,
             total: total.toString(),
             createdBy: ctx.user.id,
             generalNotes: input.generalNotes || null,
@@ -107,22 +112,30 @@ export const quotationsRouter = router({
               doorConfig: item.doorConfig ? JSON.stringify(item.doorConfig) : null,
               tvCenterConfig: item.tvCenterConfig ? JSON.stringify(item.tvCenterConfig) : null,
               countertopConfig: item.countertopConfig ? JSON.stringify(item.countertopConfig) : null,
+              bathroomConfig: item.bathroomConfig ? JSON.stringify(item.bathroomConfig) : null,
             });
           }
 
           return qId;
         });
 
-        // Si la cotización viene de una visita técnica, marcarla como convertida
-        if (input.visitId) {
+        // Si viene de un levantamiento técnico, vincular visita a esta cotización
+        if (input.technicalVisitId) {
           try {
-            await db.updateTechnicalVisit(input.visitId, {
-              status: "convertida" as any,
-              quotationId: quotationId,
-            });
-            console.log(`[Quotations] Visita técnica ${input.visitId} marcada como convertida → cotización ${quotationId}`);
-          } catch (visitErr) {
-            console.error("[Quotations] Error marcando visita como convertida:", visitErr);
+            const drizzleDb = await db.getDb();
+            if (drizzleDb) {
+              const { technicalVisits: tvTable } = await import("../../drizzle/schema");
+              const { eq, and: andOp } = await import("drizzle-orm");
+              const nowTs = new Date().toISOString().replace('T', ' ').replace('Z', '');
+              await drizzleDb.update(tvTable)
+                .set({ quotationId: quotationId, status: 'cot_hecha' as any, updatedAt: nowTs })
+                .where(andOp(
+                  eq(tvTable.id, input.technicalVisitId),
+                  eq(tvTable.status, 'enviada' as any)
+                ));
+            }
+          } catch (tvErr) {
+            console.error('[create] Error vinculando visita técnica:', tvErr);
           }
         }
 
@@ -174,6 +187,10 @@ export const quotationsRouter = router({
               transportCost: quotation.transportCost,
               discountPercent: quotation.discountPercent || undefined,
               discountAmount: quotation.discountAmount || undefined,
+              includeIva: (quotation as any).includeIva === 1,
+              ivaAmount: (quotation as any).includeIva === 1
+                ? String((parseFloat(String(quotation.subtotal)) - parseFloat(String(quotation.discountAmount || "0"))) * 0.19)
+                : undefined,
               total: quotation.total,
             };
             
@@ -208,8 +225,9 @@ export const quotationsRouter = router({
         id: z.number(),
         clientId: z.number().optional(),
         vendorName: z.string().optional(),
-        productType: z.enum(["cocina", "closet", "puerta", "centro_tv", "herrajes", "mesones", "acabados_especiales", "otro"]).optional(),
+        productType: z.enum(["cocina", "closet", "puerta", "centro_tv", "herrajes", "mesones", "acabados_especiales", "mueble_cocina", "otro"]).optional(),
         discountPercent: z.number().min(0).max(100).optional(),
+        includeIva: z.boolean().optional(),
         customDescriptions: z.record(z.string(), z.string()).optional(),
         generalNotes: z.string().optional(),
         items: z.array(z.object({
@@ -233,6 +251,7 @@ export const quotationsRouter = router({
           doorConfig: z.any().optional(),
           tvCenterConfig: z.any().optional(),
           countertopConfig: z.any().optional(),
+          bathroomConfig: z.any().optional(),
         })).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
@@ -256,7 +275,10 @@ export const quotationsRouter = router({
           const transportCost = 0;
           const discountPercent = input.discountPercent ?? 0;
           const discountAmount = subtotal * (discountPercent / 100);
-          const total = subtotal - discountAmount;
+          const baseAfterDiscount = subtotal - discountAmount;
+          const includeIvaItems = input.includeIva !== undefined ? input.includeIva : (currentQuotation as any).includeIva === 1;
+          const ivaAmountItems = includeIvaItems ? baseAfterDiscount * 0.19 : 0;
+          const total = baseAfterDiscount + ivaAmountItems;
 
           await withTransaction(async (tx) => {
             await db.deleteQuotationItems(id);
@@ -277,6 +299,7 @@ export const quotationsRouter = router({
                 doorConfig: item.doorConfig ? JSON.stringify(item.doorConfig) : null,
                 tvCenterConfig: item.tvCenterConfig ? JSON.stringify(item.tvCenterConfig) : null,
                 countertopConfig: item.countertopConfig ? JSON.stringify(item.countertopConfig) : null,
+                bathroomConfig: item.bathroomConfig ? JSON.stringify(item.bathroomConfig) : null,
               });
             }
             await db.updateQuotation(id, {
@@ -285,6 +308,7 @@ export const quotationsRouter = router({
               transportCost: transportCost.toString(),
               discountPercent: discountPercent.toString(),
               discountAmount: discountAmount.toString(),
+              includeIva: (includeIvaItems ? 1 : 0) as any,
               total: total.toString(),
             });
           });
@@ -294,15 +318,19 @@ export const quotationsRouter = router({
             await db.updateProject(linkedProject1.id, { totalAmount: total.toString() });
             console.log(`[QUOTATION-SYNC] Proyecto ${linkedProject1.id} actualizado con totalAmount=${total} por edición de ítems en cotización ${id}`);
           }
-        } else if (input.discountPercent !== undefined) {
+        } else if (input.discountPercent !== undefined || input.includeIva !== undefined) {
           const subtotal = parseFloat(currentQuotation.subtotal);
-          const discountPercent = input.discountPercent;
+          const discountPercent = input.discountPercent !== undefined ? input.discountPercent : parseFloat(currentQuotation.discountPercent || "0");
           const discountAmount = subtotal * (discountPercent / 100);
-          const total = subtotal - discountAmount;
+          const baseAfterDiscountB2 = subtotal - discountAmount;
+          const includeIvaB2 = input.includeIva !== undefined ? input.includeIva : (currentQuotation as any).includeIva === 1;
+          const ivaAmountB2 = includeIvaB2 ? baseAfterDiscountB2 * 0.19 : 0;
+          const total = baseAfterDiscountB2 + ivaAmountB2;
           await db.updateQuotation(id, {
             ...quotationData,
             discountPercent: discountPercent.toString(),
             discountAmount: discountAmount.toString(),
+            includeIva: (includeIvaB2 ? 1 : 0) as any,
             total: total.toString(),
           });
           // Sincronizar totalAmount del proyecto si esta cotización está vinculada
@@ -312,7 +340,7 @@ export const quotationsRouter = router({
             console.log(`[QUOTATION-SYNC] Proyecto ${linkedProject2.id} actualizado con totalAmount=${total} por cambio de descuento en cotización ${id}`);
           }
         } else {
-          const { discountPercent: _, ...safeQuotationData } = quotationData;
+          const { discountPercent: _, includeIva: _iva, ...safeQuotationData } = quotationData;
           await db.updateQuotation(id, safeQuotationData);
         }
         return { success: true, quotationId: id };
@@ -621,7 +649,7 @@ export const quotationsRouter = router({
               : item.hardwareSelections;
             
             // Parsear closetConfig si es string JSON (manejar doble serialización)
-            let closetConfig: any = item.closetConfig;
+            let closetConfig = item.closetConfig;
             if (closetConfig && typeof closetConfig === 'string') {
               try {
                 closetConfig = JSON.parse(closetConfig);
@@ -733,7 +761,13 @@ export const quotationsRouter = router({
                   if (door.notes) {
                     lines.push(`  • Notas: ${door.notes}`);
                   }
-                  lines.push(`  • Precio unitario: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(door.pricePerUnit)}`);
+                  if (door.height > 2.40) {
+                    lines.push(`  • Precio base: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(door.pricePerUnit)}`);
+                    lines.push(`  • Plus empate extra (altura >2.40m): ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(350000)} / unidad`);
+                    lines.push(`  • Precio total c/plus: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(door.pricePerUnit + 350000)}`);
+                  } else {
+                    lines.push(`  • Precio unitario: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(door.pricePerUnit)}`);
+                  }
                   if (qty > 1) {
                     lines.push(`  • Subtotal: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(lineTotal)}`);
                   }
@@ -741,12 +775,7 @@ export const quotationsRouter = router({
                 });
                 
                 lines.push('');
-                lines.push('Todas incluyen:');
-                lines.push('• Marco RH');
-                lines.push('• Chapa gama alta');
-                lines.push('• Bisagras omega');
-                lines.push('• Tope de puerta');
-                lines.push('• Instalación completa');
+                lines.push('Puertas macizas de 36 mm de espesor, enchapada a 4 lados con marco y material RH. con chapa gama alta, tope de puerta y totalmente instalada.');
                 
                 // Transporte e imprevistos
                 if (doorConfig.includeTransport && doorConfig.transportCost) {
@@ -781,6 +810,35 @@ export const quotationsRouter = router({
                 lines.push(doorConfig.notes);
               }
               
+              description = lines.join('\n');
+            }
+            // Si es baño y tiene bathroomConfig, generar descripción detallada
+            else if (item.itemType === 'baño' && item.bathroomConfig) {
+              const bc = item.bathroomConfig;
+              const fmtCOP = (n: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(n);
+              const typeLabel = bc.furnitureType === 'flotante' ? 'Mueble de Baño Flotante' : 'Mueble de Baño de Piso con Pata';
+              const lines: string[] = [];
+              lines.push(typeLabel.toUpperCase());
+              lines.push(`Medidas: ${bc.width}cm (ancho) × ${bc.depth}cm (prof.) × ${bc.height}cm (alto)`);
+              lines.push(`Tipo de lavabo: ${bc.sinkType === 'excavado' ? 'Excavado (lavamanos integrado en piedra)' : 'Lavamanos de sobreponer'}`);
+              if (bc.widthRange === 'mayor-120') {
+                lines.push(`Ancho superior a 120cm — precio calculado proporcionalmente`);
+              }
+              lines.push('');
+              lines.push('Madera aglomerada tipo RH de alta presión, cantos rígidos en puertas y tapas.');
+              if (bc.hasExcavado && bc.excavadoMaterial) {
+                lines.push(`Excavado en ${bc.excavadoMaterial} — incluye salpicadero de 10cm. Llave/grifo no incluida.`);
+              }
+              if (bc.hasMeson && bc.mesonMaterial) {
+                lines.push(`Mesón en ${bc.mesonMaterial} — incluye salpicadero de 10cm. Llave/grifo no incluida. Lavamanos de sobreponer no incluido.`);
+              }
+              lines.push('');
+              lines.push(`Precio madera: ${fmtCOP(bc.pricePerUnit)} / unidad`);
+              if (bc.quantity > 1) lines.push(`Cantidad: ${bc.quantity} unidades`);
+              if (bc.notes && bc.notes.trim()) {
+                lines.push('');
+                lines.push(`Notas: ${bc.notes}`);
+              }
               description = lines.join('\n');
             }
             // Si es centro_tv y tiene tvCenterConfig, generar descripción detallada
@@ -947,17 +1005,26 @@ export const quotationsRouter = router({
               
               // Título según la forma
               const shapeLabels: Record<string, string> = {
-                'L': 'en L',
-                'U': 'en U',
-                'lineal': 'Lineal',
+                'estandar': 'Estándar',
+                'premium': 'Premium',
+                'deluxe': 'Deluxe',
+                'L': 'Estándar (en L)',
+                'U': 'Premium (en U)',
+                'lineal': 'Deluxe (Lineal)',
                 'frente_pll': 'Frente PLL (Solo Inferiores)',
                 'solo_superiores': 'Solo Muebles Superiores',
                 'solo_inferiores': 'Solo Muebles Inferiores',
                 'puertas_tapas': 'Puertas y Tapas'
               };
               const shapeLabel = shapeLabels[config.shape] || config.shape;
-              lines.push(`COCINA INTEGRAL - ${shapeLabel}`);
-              lines.push(`Metraje total: ${config.totalMeters.toFixed(2)}ml`);
+              const layoutLabels: Record<string, string> = { L: 'en L', U: 'en U', lineal: 'Lineal / Recta', cuadrada: 'Cuadrada / Paralela', isla: 'Con isla central', otra: 'Otra' };
+              const layoutSuffix = config.layout && layoutLabels[config.layout] ? ` • Forma: ${layoutLabels[config.layout]}` : '';
+              lines.push(`COCINA INTEGRAL - ${shapeLabel}${layoutSuffix}`);
+              if (config.independentMeters && (config.lowerMeters !== undefined || config.upperMeters !== undefined)) {
+                lines.push(`Metraje inferiores: ${(config.lowerMeters || 0).toFixed(2)}ml — superiores: ${(config.upperMeters || 0).toFixed(2)}ml`);
+              } else {
+                lines.push(`Metraje total: ${config.totalMeters.toFixed(2)}ml`);
+              }
               lines.push('');
               
               // Calcular metraje resultante (solo para cocinas completas)
@@ -992,8 +1059,18 @@ export const quotationsRouter = router({
                 if (dc.smallCovers > 0) lines.push(`• Tapas pequeñas: ${dc.smallCovers} und`);
               } else {
                 // Cocinas completas (L, U, Lineal)
-                lines.push(`• Muebles Inferiores: ${resultingMeters.toFixed(2)}ml`);
-                lines.push(`• Muebles Superiores: ${resultingMeters.toFixed(2)}ml`);
+                if (config.includeLower !== false) {
+                  const lowerML = (config.independentMeters && config.lowerMeters !== undefined)
+                    ? Math.max(0, (config.lowerMeters || 0) - deductions)
+                    : resultingMeters;
+                  lines.push(`• Muebles Inferiores: ${lowerML.toFixed(2)}ml`);
+                }
+                if (config.includeUpper !== false) {
+                  const upperML = (config.independentMeters && config.upperMeters !== undefined)
+                    ? (config.upperMeters || 0)
+                    : resultingMeters;
+                  lines.push(`• Muebles Superiores: ${upperML.toFixed(2)}ml`);
+                }
               }
               
               // Muebles especiales
@@ -1015,16 +1092,23 @@ export const quotationsRouter = router({
               
               // Mesón principal
               if (config.countertop.type) {
-                const countertopType = config.countertop.type === 'quarzone' ? 'Quarzone' : 'Sinterizado';
+                const ct = config.countertop;
+                const countertopType = ct.esImportado ? (ct.type === 'quarzone' ? 'Quarzone Importado' : ct.type === 'granito' ? 'Granito Importado' : 'Sinterizado Importado') : ct.type === 'quarzone' ? 'Quarzone' : ct.type === 'granito' ? 'Granito' : 'Sinterizado';
                 let surchargeText = '';
                 
-                if (config.countertop.depthSurcharge === '30percent') {
-                  surchargeText = ' (fondo 61-90cm)';
-                } else if (config.countertop.depthSurcharge === 'double') {
-                  surchargeText = ' (fondo 91-120cm)';
+                if (ct.depthSurcharge === '30percent') {
+                  surchargeText = ' — fondo 61-90cm (+30%)';
+                } else if (ct.depthSurcharge === 'double') {
+                  surchargeText = ' — fondo 91-120cm (×2)';
                 }
                 
-                lines.push(`• Mesón ${countertopType}: ${resultingMeters.toFixed(2)}ml${surchargeText}`);
+                const mesonML = (config.independentMeters && config.lowerMeters !== undefined)
+                  ? Math.max(0, (config.lowerMeters || 0) - deductions)
+                  : resultingMeters;
+                lines.push(`• Mesón ${countertopType}: ${mesonML.toFixed(2)}ml${surchargeText}`);
+                if (ct.incluyeLaterales) lines.push(`  - ${ct.cantLaterales || 1} lateral${(ct.cantLaterales || 1) > 1 ? 'es' : ''}: ${((ct.cantLaterales || 1) * 0.9).toFixed(2)}ml`);
+                if (ct.incluyeRegrueso) lines.push(`  - Regrueso: 0.90ml`);
+                if (ct.incluyeLavaplatos) lines.push(`  - Lavaplatos y pegado`);
               }
               
               // Isla
@@ -1033,13 +1117,35 @@ export const quotationsRouter = router({
                 islandLines.push(`${config.island.meters.toFixed(2)}ml muebles`);
                 
                 if (config.island.countertopType) {
-                  const islandCountertopType = config.island.countertopType === 'quarzone' ? 'Quarzone' : 'Sinterizado';
-                  islandLines.push(`mesón ${islandCountertopType}`);
+                  const isl = config.island;
+                  const islandCtType = isl.esImportado
+                    ? (isl.countertopType === 'quarzone' ? 'Quarzone Importado' : isl.countertopType === 'granito' ? 'Granito Importado' : 'Sinterizado Importado')
+                    : (isl.countertopType === 'quarzone' ? 'Quarzone' : isl.countertopType === 'granito' ? 'Granito' : 'Sinterizado');
+                  let islandSurchargeText = '';
+                  if (isl.depthSurcharge === '30percent') islandSurchargeText = ' +30% fondo (63-90cm)';
+                  else if (isl.depthSurcharge === '40percent') islandSurchargeText = ' +40% fondo (91-100cm)';
+                  else if (isl.depthSurcharge === 'double') islandSurchargeText = ' ×2 fondo (101-120cm)';
+                  islandLines.push(`mesón ${islandCtType}${islandSurchargeText}`);
                 }
                 
-                if (config.island.hasLaterals) {
-                  islandLines.push('con laterales');
+                const islAddLat = (config.island as any).incluyeLateralesIsla ?? config.island.hasLaterals;
+                const islAddReg = (config.island as any).incluyeRegrueso ?? config.island.hasLaterals;
+                if (islAddLat) islandLines.push('con laterales');
+                if (islAddReg) islandLines.push('regrueso');
+                if ((config.island as any).incluyeSalpicaderoAlto) islandLines.push('salpicadero alto');
+                if ((config.island as any).incluyeLavaplatos) islandLines.push('lavaplatos');
+                if ((config.island as any).incluyeLedIsla && (config.island as any).ledMLIsla > 0) {
+                  islandLines.push(`LED ${(config.island as any).ledMLIsla}ml`);
                 }
+                const islandModLabels: Record<string, string> = {
+                  especiero: 'Especiero', botellero: 'Botellero',
+                  cajoneroTriple: 'Cajonero triple', cajoneroDoble: 'Cajonero doble',
+                  basurero: 'Basurero',
+                };
+                const islandMods = (config.island as any).modulosDescriptivos || {};
+                Object.entries(islandModLabels).forEach(([k, lbl]) => {
+                  if ((islandMods as any)[k]) islandLines.push(lbl);
+                });
                 
                 lines.push(`• Isla: ${islandLines.join(', ')}`);
               }
@@ -1049,18 +1155,52 @@ export const quotationsRouter = router({
                 const barLines: string[] = [];
                 barLines.push(`${config.bar.meters.toFixed(2)}ml muebles`);
                 
+                if (config.bar.incluyePedestal) barLines.push('pedestal metálico');
+                if (config.bar.incluyeHerraje) barLines.push('herraje');
+                
                 if (config.bar.countertopType) {
-                  const barCountertopType = config.bar.countertopType === 'quarzone' ? 'Quarzone' : 'Sinterizado';
-                  barLines.push(`mesón ${barCountertopType}`);
+                  const barCtBase = config.bar.countertopType === 'quarzone' ? 'Quarzone'
+                                  : config.bar.countertopType === 'granito' ? 'Granito'
+                                  : 'Sinterizado';
+                  const barCtLabel = config.bar.esImportado ? `${barCtBase} Importado` : barCtBase;
+                  barLines.push(`mesón ${barCtLabel}`);
                 }
                 
                 if (config.bar.hasLateral) {
-                  barLines.push('con lateral');
+                  const altCm = config.bar.barraAlturaLateral ?? 90;
+                  barLines.push(`con lateral (${altCm}cm)`);
                 }
                 
                 lines.push(`• Barra: ${barLines.join(', ')}`);
               }
               
+
+              // Módulos de cocina descriptivos
+              if (config.kitchenModules) {
+                const km_d = config.kitchenModules as any;
+                const toQty_d = (v: any) => typeof v === 'boolean' ? (v ? 1 : 0) : (v || 0);
+                const KM_LABELS: Record<string, string> = {
+                  esquineroSuperior:'Esq. superior', moduloAlmacSup:'Alm. superior',
+                  moduloExtractor:'Extractor', moduloMicroondas:'Microondas',
+                  especiero:'Especiero', botellero:'Botellero', moduloRepisa:'Repisa',
+                  esquinero1x1:'Esq. 1×1 inf.', cajoneroTriple:'Caj. triple',
+                  cajoneroDoble:'Caj. doble', basurero:'Basurero',
+                  moduloEstufaHorno:'Estufa/horno', moduloAlmacInf:'Alm. inferior',
+                };
+                const kmEntries: string[] = [];
+                for (const [k, lbl] of Object.entries(KM_LABELS)) {
+                  const q = toQty_d(km_d[k]);
+                  if (q > 0) kmEntries.push(q > 1 ? `${q}× ${lbl}` : lbl);
+                }
+                const latNN = toQty_d(km_d.lateralNichoNevera);
+                const latSup = toQty_d(km_d.lateralMuebleSuperior);
+                const latInf = toQty_d(km_d.lateralMuebleInferior);
+                if (latNN  > 0) kmEntries.push(`${latNN} lat. nicho nevera`);
+                if (latSup > 0) kmEntries.push(`${latSup} lat. sup.`);
+                if (latInf > 0) kmEntries.push(`${latInf} lat. inf.`);
+                if (km_d.luzLed) kmEntries.push('Luz LED');
+                if (kmEntries.length > 0) lines.push(`• Módulos: ${kmEntries.join(', ')}`);
+              }
               // LED
               if (config.ledLighting > 0) {
                 lines.push(`• Luz LED: ${config.ledLighting.toFixed(2)}ml`);
@@ -1106,8 +1246,152 @@ export const quotationsRouter = router({
                   if (pd.golaQty > 0) lines.push(`• Gola: ${pd.golaQty}`);
                 }
               }
-              
+
+              // Especificaciones del proyecto
+              lines.push('');
+              lines.push('ESPECIFICACIONES:');
+              lines.push('• Material: Tablero 15mm hidrófuga alta presión RH (resistente a la humedad)');
+              if (config.boardFinish) lines.push(`• Color exterior: ${config.boardFinish}`);
+              if (config.interiorFinish) lines.push(`• Color interior: ${config.interiorFinish}`);
+              if (config.hardware?.bisagras) {
+                const bisLabel = config.hardware.bisagras === 'inox'
+                  ? 'Bisagras acero inoxidable cierre lento'
+                  : 'Bisagras estándar cierre lento';
+                lines.push(`• Bisagras: ${bisLabel}`);
+              }
+              if (config.hardware?.rieles) {
+                const rielLabel = config.hardware.rieles === 'peso_alto'
+                  ? 'Riel telescópico peso alto'
+                  : 'Riel telescópico cierre lento';
+                lines.push(`• Rieles: ${rielLabel}`);
+              }
+              if (config.incluyePlatero) {
+                lines.push(`• Platero: Acero inoxidable${config.plateroDesc ? ' — ' + config.plateroDesc : ''}`);
+              }
+              if (config.appliances) {
+                const ap = config.appliances as any;
+                const apList: string[] = [];
+                if (ap.estufa)          apList.push('Estufa');
+                if (ap.horno)           apList.push('Horno empotrable');
+                if (ap.extractor)       apList.push('Extractor');
+                if (ap.llaveLavaplatos) apList.push('Llave de lavaplatos');
+                if (ap.nevera)          apList.push('Nevera');
+                if (ap.microondas)      apList.push('Microondas');
+                if (ap.lavaVajillas)    apList.push('Lavavajillas');
+                if (apList.length > 0) lines.push(`• Espacios electrodomésticos (no suministrados): ${apList.join(', ')}`);
+              }
+
+              // Notas adicionales del ítem de cocina
+              if (config.notes && config.notes.trim()) {
+                lines.push('');
+                lines.push('Notas adicionales:');
+                lines.push(config.notes);
+              }
+
               description = lines.join('\n');
+              // Descripción adicional editada manualmente en el formulario
+              const _itemDescManual = typeof item.description === 'string' ? item.description.trim() : '';
+              if (_itemDescManual && !_itemDescManual.startsWith('COCINA INTEGRAL')) {
+                description += '\n\n' + _itemDescManual;
+              }
+            }
+            // Si es mueble_cocina y tiene kitchenConfig, generar descripción
+            else if (item.itemType === 'mueble_cocina' && item.kitchenConfig) {
+              const cfg: any = typeof item.kitchenConfig === 'string'
+                ? JSON.parse(item.kitchenConfig)
+                : item.kitchenConfig;
+              if (cfg?.tipoPieza) {
+                const lines: string[] = [];
+                const pieceLabels: Record<string, string> = {
+                  'isla': 'Isla',
+                  'barra': 'Barra',
+                  'mueble_alto': 'Mueble Alto',
+                  'mueble_bajo': 'Mueble Bajo',
+                  'nicho_nevecon': 'Nicho Nevecon',
+                  'nicho_nevera': 'Nicho Nevera',
+                  'alacena_entrepanos': 'Alacena (Entrepaños)',
+                  'alacena_herraje': 'Alacena (Herraje)',
+                  'torre_hornos': 'Torre de Hornos',
+                };
+                const pieceLabel = pieceLabels[cfg.tipoPieza] || cfg.tipoPieza;
+                const madreraStr = cfg.madreraML ? ` — ${cfg.madreraML}ml` : '';
+                lines.push(`${pieceLabel.toUpperCase()} A MEDIDA${madreraStr}`);
+                if (cfg.tipoPieza === 'alacena_herraje' && cfg.alacenaHerrajePrecio > 0) {
+                  lines.push(`• Precio herraje: $${Number(cfg.alacenaHerrajePrecio).toLocaleString('es-CO')}`);
+                }
+                const moduloLabels: Record<string, string> = {
+                  'esquineroSuperior': 'Esquinero superior',
+                  'moduloExtractor': 'Módulo extractor',
+                  'moduloMicroondas': 'Módulo microondas',
+                  'especiero': 'Especiero',
+                  'botellero': 'Botellero',
+                  'moduloRepisa': 'Módulo repisa',
+                  'moduloAlmacSup': 'Módulo almacenamiento sup.',
+                  'esquinero1x1': 'Esquinero 1×1 inferior',
+                  'cajoneroTriple': 'Cajonero triple',
+                  'cajoneroDoble': 'Cajonero doble',
+                  'basurero': 'Basurero integrado',
+                  'moduloEstufaHorno': 'Módulo estufa/horno',
+                  'moduloAlmacInf': 'Módulo almacenamiento inf.',
+                };
+                const mods = cfg.modulosDescriptivos || {};
+                const activeModulos = Object.entries(moduloLabels)
+                  .filter(([key]) => (mods as any)[key] === true)
+                  .map(([, label]) => `  • ${label}`);
+                if (activeModulos.length > 0) {
+                  lines.push('Módulos:');
+                  lines.push(...activeModulos);
+                }
+                if (cfg.incluyeMeson) {
+                  const mesonMaterials: Record<string, string> = { 'granito': 'Granito', 'cuarzo': 'Cuarzo', 'sinterizado': 'Sinterizado' };
+                  const matBase = mesonMaterials[cfg.mesonMaterial] || cfg.mesonMaterial || '';
+                  const matLabel = cfg.mesonEsImportado ? `${matBase} Importado` : matBase;
+                  const mesonParts: string[] = [`Mesón: ${matLabel}`];
+                  if (cfg.mesonML) mesonParts.push(`${cfg.mesonML}ml`);
+                  if (cfg.mesonFondo) { const f = cfg.mesonFondo > 5 ? (cfg.mesonFondo / 100).toFixed(2) : cfg.mesonFondo; mesonParts.push(`fondo ${f}m`); }
+                  lines.push(mesonParts.join(' — '));
+                  const mesonExtras: string[] = [];
+                  if (cfg.mesonIncluyeLaterales) mesonExtras.push('laterales');
+                  if (cfg.mesonIncluyeRegrueso) mesonExtras.push('regrueso');
+                  if (cfg.mesonIncluyeSalpicaderoAlto) mesonExtras.push('salpicadero alto');
+                  if (mesonExtras.length > 0) lines.push(`  Extras mesón: ${mesonExtras.join(', ')}`);
+                  if (cfg.incluyeLavaplatos) lines.push(`  Lavaplatos y pegado${cfg.lavaprecio ? ' $' + cfg.lavaprecio.toLocaleString('es-CO') : ''}`);
+                }
+                if (cfg.incluyeLed && cfg.ledML) {
+                  lines.push(`LED: ${cfg.ledML}ml`);
+                }
+                if (cfg.incluyePintado) {
+                  lines.push('Incluye pintado');
+                }
+                if (cfg.notas?.trim()) {
+                  lines.push('');
+                  lines.push(cfg.notas.trim());
+                }
+                description = lines.join('\n');
+              }
+            }
+            // Si es acabados_especiales y tiene kitchenConfig, generar descripción
+            else if (item.itemType === 'acabados_especiales' && item.kitchenConfig) {
+              const cfg: any = typeof item.kitchenConfig === 'string'
+                ? JSON.parse(item.kitchenConfig)
+                : item.kitchenConfig;
+              const lines: string[] = [];
+              lines.push('ACABADOS ESPECIALES');
+              if (cfg?.aluminumGlassDoors && cfg.aluminumGlassDoors.length > 0) {
+                const totalDoors = cfg.aluminumGlassDoors.length;
+                const totalSqm = cfg.aluminumGlassDoors.reduce((sum: number, d: any) => sum + (d.height * d.width), 0);
+                lines.push(`• Puertas aluminio + vidrio ahumado: ${totalDoors} ${totalDoors === 1 ? 'puerta' : 'puertas'} (${totalSqm.toFixed(2)} m²)`);
+                cfg.aluminumGlassDoors.forEach((door: any, idx: number) => {
+                  const sqm = door.height * door.width;
+                  const extraHinges = door.height > 1.4 ? 2 : (door.height > 0.8 ? 1 : 0);
+                  const hingeText = extraHinges > 0 ? ` (+${extraHinges} par${extraHinges > 1 ? 'es' : ''} bisagras)` : '';
+                  lines.push(`  - Puerta ${idx + 1}: ${door.height.toFixed(2)}m x ${door.width.toFixed(2)}m = ${sqm.toFixed(2)} m²${hingeText}`);
+                });
+              }
+              if (cfg?.ledLighting?.enabled && cfg.ledLighting.meters > 0) {
+                lines.push(`• LED para alacenas: ${cfg.ledLighting.meters.toFixed(2)}ml`);
+              }
+              if (lines.length > 1) description = lines.join('\n');
             }
             
             // Usar descripción personalizada si existe
@@ -1116,11 +1400,21 @@ export const quotationsRouter = router({
             if (customDescriptions && customDescriptions[itemIndex]) {
               description = customDescriptions[itemIndex];
             }
-            
+
+          // Para puerta: mostrar cantidad real de puertas desde doorConfig
+          let pdfQuantity = item.quantity;
+          if (item.itemType === 'puerta' && doorConfig) {
+            if (doorConfig.doors && Array.isArray(doorConfig.doors)) {
+              const totalDoors = doorConfig.doors.reduce((s: number, d: any) => s + (d.quantity || 1), 0);
+              pdfQuantity = String(totalDoors);
+            } else if (doorConfig.quantity) {
+              pdfQuantity = String(doorConfig.quantity);
+            }
+          }
             return {
               itemNumber: item.itemNumber,
               description,
-              quantity: item.quantity,
+              quantity: pdfQuantity,
               unitPrice: item.unitPrice || '',
               totalPrice: item.totalPrice,
             };
@@ -1129,6 +1423,10 @@ export const quotationsRouter = router({
           transportCost: String(parseFloat(String(quotation.transportCost)) || 0),
           discountPercent: String(parseFloat(String(quotation.discountPercent)) || 0),
           discountAmount: String(parseFloat(String(quotation.discountAmount)) || 0),
+          includeIva: (quotation as any).includeIva === 1,
+          ivaAmount: (quotation as any).includeIva === 1
+            ? String((parseFloat(String(quotation.subtotal)) - parseFloat(String(quotation.discountAmount || "0"))) * 0.19)
+            : undefined,
           total: String(parseFloat(String(quotation.total)) || 0),
           generalNotes: quotation.generalNotes || '',
           versionNumber: quotation.versionNumber || 1,
@@ -1286,18 +1584,19 @@ export const quotationsRouter = router({
                 lines.push(`  • Dintel: ${door.hasLintel ? 'Sí' : 'No'}`);
                 if (door.location) lines.push(`  • Ubicación: ${door.location}`);
                 if (door.notes) lines.push(`  • Notas: ${door.notes}`);
-                lines.push(`  • Precio unitario: ${formatCurrency(door.pricePerUnit)}`);
+                if (door.height > 2.40) {
+                  lines.push(`  • Precio base: ${formatCurrency(door.pricePerUnit)}`);
+                  lines.push(`  • Plus empate extra (altura >2.40m): ${formatCurrency(350000)} / unidad`);
+                  lines.push(`  • Precio total c/plus: ${formatCurrency(door.pricePerUnit + 350000)}`);
+                } else {
+                  lines.push(`  • Precio unitario: ${formatCurrency(door.pricePerUnit)}`);
+                }
                 if (qty > 1) lines.push(`  • Subtotal: ${formatCurrency(lineTotal)}`);
                 if (idx < doorConfig.doors.length - 1) lines.push('');
               });
               
               lines.push('');
-              lines.push('Todas incluyen:');
-              lines.push('• Marco RH');
-              lines.push('• Chapa gama alta');
-              lines.push('• Bisagras omega');
-              lines.push('• Tope de puerta');
-              lines.push('• Instalación completa');
+              lines.push('Puertas macizas de 36 mm de espesor, enchapada a 4 lados con marco y material RH. con chapa gama alta, tope de puerta y totalmente instalada.');
               
               if (doorConfig.includeTransport && doorConfig.transportCost) {
                 lines.push('');
@@ -1369,7 +1668,11 @@ export const quotationsRouter = router({
             };
             const shapeLabel = shapeLabels[config.shape] || config.shape;
             lines.push(`COCINA INTEGRAL - ${shapeLabel}`);
-            lines.push(`Metraje total: ${config.totalMeters.toFixed(2)}ml`);
+            if (config.independentMeters && (config.lowerMeters !== undefined || config.upperMeters !== undefined)) {
+                lines.push(`Metraje inferiores: ${(config.lowerMeters || 0).toFixed(2)}ml — superiores: ${(config.upperMeters || 0).toFixed(2)}ml`);
+              } else {
+                lines.push(`Metraje total: ${config.totalMeters.toFixed(2)}ml`);
+              }
             lines.push('');
             
             let deductions = 0;
@@ -1401,8 +1704,18 @@ export const quotationsRouter = router({
               if (dc.drawerCovers > 0) lines.push(`• Tapas cajón: ${dc.drawerCovers} und`);
               if (dc.smallCovers > 0) lines.push(`• Tapas pequeñas: ${dc.smallCovers} und`);
             } else {
-              lines.push(`• Muebles Inferiores: ${resultingMeters.toFixed(2)}ml`);
-              lines.push(`• Muebles Superiores: ${resultingMeters.toFixed(2)}ml`);
+              if (config.includeLower !== false) {
+                const lowerML = (config.independentMeters && config.lowerMeters !== undefined)
+                  ? Math.max(0, (config.lowerMeters || 0) - deductions)
+                  : resultingMeters;
+                lines.push(`• Muebles Inferiores: ${lowerML.toFixed(2)}ml`);
+              }
+              if (config.includeUpper !== false) {
+                const upperML = (config.independentMeters && config.upperMeters !== undefined)
+                  ? (config.upperMeters || 0)
+                  : resultingMeters;
+                lines.push(`• Muebles Superiores: ${upperML.toFixed(2)}ml`);
+              }
             }
             
             if (config.specialModules?.nichoNevecon) lines.push(`• Nicho para nevecon 100cm`);
@@ -1412,35 +1725,101 @@ export const quotationsRouter = router({
             if (config.specialModules?.torreHornos) lines.push(`• Torre de hornos 70cm`);
             
             if (config.countertop?.type) {
-              const countertopType = config.countertop.type === 'quarzone' ? 'Quarzone' : 'Sinterizado';
+              const ct = config.countertop;
+              const countertopType = ct.esImportado ? (ct.type === 'quarzone' ? 'Quarzone Importado' : ct.type === 'granito' ? 'Granito Importado' : 'Sinterizado Importado') : ct.type === 'quarzone' ? 'Quarzone' : ct.type === 'granito' ? 'Granito' : 'Sinterizado';
               let surchargeText = '';
-              if (config.countertop.depthSurcharge === '30percent') surchargeText = ' (fondo 61-90cm)';
-              else if (config.countertop.depthSurcharge === 'double') surchargeText = ' (fondo 91-120cm)';
-              lines.push(`• Mesón ${countertopType}: ${resultingMeters.toFixed(2)}ml${surchargeText}`);
+              if (ct.depthSurcharge === '30percent') surchargeText = ' — fondo 61-90cm (+30%)';
+              else if (ct.depthSurcharge === 'double') surchargeText = ' — fondo 91-120cm (×2)';
+              const mesonML = (config.independentMeters && config.lowerMeters !== undefined)
+                ? Math.max(0, (config.lowerMeters || 0) - deductions)
+                : resultingMeters;
+              lines.push(`• Mesón ${countertopType}: ${mesonML.toFixed(2)}ml${surchargeText}`);
+              if (ct.incluyeLaterales) lines.push(`  - ${ct.cantLaterales || 1} lateral${(ct.cantLaterales || 1) > 1 ? 'es' : ''}: ${((ct.cantLaterales || 1) * 0.9).toFixed(2)}ml`);
+              if (ct.incluyeRegrueso) lines.push(`  - Regrueso: 0.90ml`);
+              if (ct.incluyeLavaplatos) lines.push(`  - Lavaplatos y pegado`);
             }
             
             if (config.island?.enabled && config.island.meters > 0) {
               const islandLines: string[] = [];
               islandLines.push(`${config.island.meters.toFixed(2)}ml muebles`);
               if (config.island.countertopType) {
-                const islandCountertopType = config.island.countertopType === 'quarzone' ? 'Quarzone' : 'Sinterizado';
-                islandLines.push(`mesón ${islandCountertopType}`);
+                const isl2 = config.island;
+                const islandCtType2 = isl2.esImportado
+                  ? (isl2.countertopType === 'quarzone' ? 'Quarzone Importado' : isl2.countertopType === 'granito' ? 'Granito Importado' : 'Sinterizado Importado')
+                  : (isl2.countertopType === 'quarzone' ? 'Quarzone' : isl2.countertopType === 'granito' ? 'Granito' : 'Sinterizado');
+                let islandSurchargeText2 = '';
+                if (isl2.depthSurcharge === '30percent') islandSurchargeText2 = ' +30% fondo (63-90cm)';
+                else if (isl2.depthSurcharge === '40percent') islandSurchargeText2 = ' +40% fondo (91-100cm)';
+                else if (isl2.depthSurcharge === 'double') islandSurchargeText2 = ' ×2 fondo (101-120cm)';
+                islandLines.push(`mesón ${islandCtType2}${islandSurchargeText2}`);
               }
-              if (config.island.hasLaterals) islandLines.push('con laterales');
+              const islAddLat2 = (config.island as any).incluyeLateralesIsla ?? config.island.hasLaterals;
+              const islAddReg2 = (config.island as any).incluyeRegrueso ?? config.island.hasLaterals;
+              if (islAddLat2) islandLines.push('con laterales');
+              if (islAddReg2) islandLines.push('regrueso');
+              if ((config.island as any).incluyeSalpicaderoAlto) islandLines.push('salpicadero alto');
+              if ((config.island as any).incluyeLavaplatos) islandLines.push('lavaplatos');
+              if ((config.island as any).incluyeLedIsla && (config.island as any).ledMLIsla > 0) {
+                islandLines.push(`LED ${(config.island as any).ledMLIsla}ml`);
+              }
+              const islandModLabels2: Record<string, string> = {
+                especiero: 'Especiero', botellero: 'Botellero',
+                cajoneroTriple: 'Cajonero triple', cajoneroDoble: 'Cajonero doble',
+                basurero: 'Basurero',
+              };
+              const islandMods2 = (config.island as any).modulosDescriptivos || {};
+              Object.entries(islandModLabels2).forEach(([k, lbl]) => {
+                if ((islandMods2 as any)[k]) islandLines.push(lbl);
+              });
               lines.push(`• Isla: ${islandLines.join(', ')}`);
             }
             
             if (config.bar?.enabled && config.bar.meters > 0) {
               const barLines: string[] = [];
               barLines.push(`${config.bar.meters.toFixed(2)}ml muebles`);
+              if (config.bar.incluyePedestal) barLines.push('pedestal metálico');
+              if (config.bar.incluyeHerraje) barLines.push('herraje');
               if (config.bar.countertopType) {
-                const barCountertopType = config.bar.countertopType === 'quarzone' ? 'Quarzone' : 'Sinterizado';
-                barLines.push(`mesón ${barCountertopType}`);
+                const barCtBase = config.bar.countertopType === 'quarzone' ? 'Quarzone'
+                                : config.bar.countertopType === 'granito' ? 'Granito'
+                                : 'Sinterizado';
+                const barCtLabel = config.bar.esImportado ? `${barCtBase} Importado` : barCtBase;
+                barLines.push(`mesón ${barCtLabel}`);
               }
-              if (config.bar.hasLateral) barLines.push('con lateral');
+              if (config.bar.hasLateral) {
+                const altCm = config.bar.barraAlturaLateral ?? 90;
+                barLines.push(`con lateral (${altCm}cm)`);
+              }
               lines.push(`• Barra: ${barLines.join(', ')}`);
             }
             
+
+            // Módulos de cocina descriptivos
+            if (config.kitchenModules) {
+              const km_d = config.kitchenModules as any;
+              const toQty_d = (v: any) => typeof v === 'boolean' ? (v ? 1 : 0) : (v || 0);
+              const KM_LABELS: Record<string, string> = {
+                esquineroSuperior:'Esq. superior', moduloAlmacSup:'Alm. superior',
+                moduloExtractor:'Extractor', moduloMicroondas:'Microondas',
+                especiero:'Especiero', botellero:'Botellero', moduloRepisa:'Repisa',
+                esquinero1x1:'Esq. 1×1 inf.', cajoneroTriple:'Caj. triple',
+                cajoneroDoble:'Caj. doble', basurero:'Basurero',
+                moduloEstufaHorno:'Estufa/horno', moduloAlmacInf:'Alm. inferior',
+              };
+              const kmEntries: string[] = [];
+              for (const [k, lbl] of Object.entries(KM_LABELS)) {
+                const q = toQty_d(km_d[k]);
+                if (q > 0) kmEntries.push(q > 1 ? `${q}× ${lbl}` : lbl);
+              }
+              const latNN = toQty_d(km_d.lateralNichoNevera);
+              const latSup = toQty_d(km_d.lateralMuebleSuperior);
+              const latInf = toQty_d(km_d.lateralMuebleInferior);
+              if (latNN  > 0) kmEntries.push(`${latNN} lat. nicho nevera`);
+              if (latSup > 0) kmEntries.push(`${latSup} lat. sup.`);
+              if (latInf > 0) kmEntries.push(`${latInf} lat. inf.`);
+              if (km_d.luzLed) kmEntries.push('Luz LED');
+              if (kmEntries.length > 0) lines.push(`• Módulos: ${kmEntries.join(', ')}`);
+            }
             if (config.ledLighting > 0) {
               lines.push(`• Luz LED: ${config.ledLighting.toFixed(2)}ml`);
             }
@@ -1485,8 +1864,118 @@ export const quotationsRouter = router({
                 if (pd.golaQty > 0) lines.push(`• Gola: ${pd.golaQty}`);
               }
             }
-            
+
+            // Notas adicionales del ítem de cocina
+            if (config.notes && config.notes.trim()) {
+              lines.push('');
+              lines.push('Notas adicionales:');
+              lines.push(config.notes);
+            }
+
             description = lines.join('\n');
+            // Descripción adicional editada manualmente en el formulario
+            const _itemDescManual = typeof item.description === 'string' ? item.description.trim() : '';
+            if (_itemDescManual && !_itemDescManual.startsWith('COCINA INTEGRAL')) {
+              description += '\n\n' + _itemDescManual;
+            }
+          }
+          // Si es mueble_cocina y tiene kitchenConfig, generar descripción
+          else if (item.itemType === 'mueble_cocina' && item.kitchenConfig) {
+            const cfg: any = typeof item.kitchenConfig === 'string'
+              ? JSON.parse(item.kitchenConfig)
+              : item.kitchenConfig;
+            if (cfg?.tipoPieza) {
+              const lines: string[] = [];
+              const pieceLabels: Record<string, string> = {
+                'isla': 'Isla',
+                'barra': 'Barra',
+                'mueble_alto': 'Mueble Alto',
+                'mueble_bajo': 'Mueble Bajo',
+                'nicho_nevecon': 'Nicho Nevecon',
+                'nicho_nevera': 'Nicho Nevera',
+                'alacena_entrepanos': 'Alacena (Entrepaños)',
+                'alacena_herraje': 'Alacena (Herraje)',
+                'torre_hornos': 'Torre de Hornos',
+              };
+              const pieceLabel = pieceLabels[cfg.tipoPieza] || cfg.tipoPieza;
+              const madreraStr = cfg.madreraML ? ` — ${cfg.madreraML}ml` : '';
+              lines.push(`${pieceLabel.toUpperCase()} A MEDIDA${madreraStr}`);
+              if (cfg.tipoPieza === 'alacena_herraje' && cfg.alacenaHerrajePrecio > 0) {
+                lines.push(`• Precio herraje: $${Number(cfg.alacenaHerrajePrecio).toLocaleString('es-CO')}`);
+              }
+              const moduloLabels: Record<string, string> = {
+                'esquineroSuperior': 'Esquinero superior',
+                'moduloExtractor': 'Módulo extractor',
+                'moduloMicroondas': 'Módulo microondas',
+                'especiero': 'Especiero',
+                'botellero': 'Botellero',
+                'moduloRepisa': 'Módulo repisa',
+                'moduloAlmacSup': 'Módulo almacenamiento sup.',
+                'esquinero1x1': 'Esquinero 1×1 inferior',
+                'cajoneroTriple': 'Cajonero triple',
+                'cajoneroDoble': 'Cajonero doble',
+                'basurero': 'Basurero integrado',
+                'moduloEstufaHorno': 'Módulo estufa/horno',
+                'moduloAlmacInf': 'Módulo almacenamiento inf.',
+              };
+              const mods = cfg.modulosDescriptivos || {};
+              const activeModulos = Object.entries(moduloLabels)
+                .filter(([key]) => (mods as any)[key] === true)
+                .map(([, label]) => `  • ${label}`);
+              if (activeModulos.length > 0) {
+                lines.push('Módulos:');
+                lines.push(...activeModulos);
+              }
+              if (cfg.incluyeMeson) {
+                const mesonMaterials: Record<string, string> = { 'granito': 'Granito', 'cuarzo': 'Cuarzo', 'sinterizado': 'Sinterizado' };
+                const matBase = mesonMaterials[cfg.mesonMaterial] || cfg.mesonMaterial || '';
+                const matLabel = cfg.mesonEsImportado ? `${matBase} Importado` : matBase;
+                const mesonParts: string[] = [`Mesón: ${matLabel}`];
+                if (cfg.mesonML) mesonParts.push(`${cfg.mesonML}ml`);
+                if (cfg.mesonFondo) { const f = cfg.mesonFondo > 5 ? (cfg.mesonFondo / 100).toFixed(2) : cfg.mesonFondo; mesonParts.push(`fondo ${f}m`); }
+                lines.push(mesonParts.join(' — '));
+                const mesonExtras: string[] = [];
+                if (cfg.mesonIncluyeLaterales) mesonExtras.push('laterales');
+                if (cfg.mesonIncluyeRegrueso) mesonExtras.push('regrueso');
+                if (cfg.mesonIncluyeSalpicaderoAlto) mesonExtras.push('salpicadero alto');
+                if (mesonExtras.length > 0) lines.push(`  Extras mesón: ${mesonExtras.join(', ')}`);
+                if (cfg.incluyeLavaplatos) lines.push(`  Lavaplatos y pegado${cfg.lavaprecio ? ' $' + cfg.lavaprecio.toLocaleString('es-CO') : ''}`);
+              }
+              if (cfg.incluyeLed && cfg.ledML) {
+                lines.push(`LED: ${cfg.ledML}ml`);
+              }
+              if (cfg.incluyePintado) {
+                lines.push('Incluye pintado');
+              }
+              if (cfg.notas?.trim()) {
+                lines.push('');
+                lines.push(cfg.notas.trim());
+              }
+              description = lines.join('\n');
+            }
+          }
+          // Si es acabados_especiales y tiene kitchenConfig, generar descripción
+          else if (item.itemType === 'acabados_especiales' && item.kitchenConfig) {
+            const cfg: any = typeof item.kitchenConfig === 'string'
+              ? JSON.parse(item.kitchenConfig)
+              : item.kitchenConfig;
+            const lines: string[] = [];
+            lines.push('ACABADOS ESPECIALES');
+            if (cfg?.aluminumGlassDoors && cfg.aluminumGlassDoors.length > 0) {
+              const totalDoors = cfg.aluminumGlassDoors.length;
+              const totalSqm = cfg.aluminumGlassDoors.reduce((sum: number, d: any) => sum + (d.height * d.width), 0);
+              lines.push(`• Puertas aluminio + vidrio ahumado: ${totalDoors} ${totalDoors === 1 ? 'puerta' : 'puertas'} (${totalSqm.toFixed(2)} m²)`);
+              cfg.aluminumGlassDoors.forEach((door: any, idx: number) => {
+                const sqm = door.height * door.width;
+                const extraHinges = door.height > 1.4 ? 2 : (door.height > 0.8 ? 1 : 0);
+                const hingeText = extraHinges > 0 ? ` (+${extraHinges} par${extraHinges > 1 ? 'es' : ''} bisagras)` : '';
+                lines.push(`  - Puerta ${idx + 1}: ${door.height.toFixed(2)}m x ${door.width.toFixed(2)}m = ${sqm.toFixed(2)} m²${hingeText}`);
+              });
+            }
+            if (cfg?.ledLighting?.enabled && cfg.ledLighting.meters > 0) {
+              lines.push(`• LED para alacenas: ${cfg.ledLighting.meters.toFixed(2)}ml`);
+            }
+            if (lines.length > 1) description = lines.join('\n');
           }
           
           // Usar descripción personalizada si existe
@@ -1509,10 +1998,21 @@ export const quotationsRouter = router({
           productType: quotation.productType,
           validUntil: quotation.validUntil ? new Date(quotation.validUntil).toLocaleDateString('es-CO', { timeZone: 'America/Bogota' }) : '',
           items: items.map(item => {
+            // Para puerta: mostrar cantidad real desde doorConfig
+            const dc = item.doorConfig && typeof item.doorConfig === 'string'
+              ? JSON.parse(item.doorConfig) : item.doorConfig;
+            let pdfQty = item.quantity;
+            if (item.itemType === 'puerta' && dc) {
+              if (dc.doors && Array.isArray(dc.doors)) {
+                pdfQty = String(dc.doors.reduce((s: number, d: any) => s + (d.quantity || 1), 0));
+              } else if (dc.quantity) {
+                pdfQty = String(dc.quantity);
+              }
+            }
             return {
               itemNumber: item.itemNumber,
               description: generateItemDescription(item, quotation),
-              quantity: item.quantity,
+              quantity: pdfQty,
               unitPrice: item.unitPrice || undefined,
               totalPrice: item.totalPrice,
             };
@@ -1521,6 +2021,10 @@ export const quotationsRouter = router({
           transportCost: String(parseFloat(String(quotation.transportCost)) || 0),
           discountPercent: String(parseFloat(String(quotation.discountPercent)) || 0),
           discountAmount: String(parseFloat(String(quotation.discountAmount)) || 0),
+          includeIva: (quotation as any).includeIva === 1,
+          ivaAmount: (quotation as any).includeIva === 1
+            ? String((parseFloat(String(quotation.subtotal)) - parseFloat(String(quotation.discountAmount || "0"))) * 0.19)
+            : undefined,
           total: String(parseFloat(String(quotation.total)) || 0),
           generalNotes: quotation.generalNotes || '',
           versionNumber: quotation.versionNumber || 1,
@@ -1589,7 +2093,7 @@ export const quotationsRouter = router({
               : item.hardwareSelections;
             
             // Parsear closetConfig si es string JSON (manejar doble serialización)
-            let closetConfig: any = item.closetConfig;
+            let closetConfig = item.closetConfig;
             if (closetConfig && typeof closetConfig === 'string') {
               try {
                 closetConfig = JSON.parse(closetConfig);
@@ -1701,7 +2205,13 @@ export const quotationsRouter = router({
                   if (door.notes) {
                     lines.push(`  • Notas: ${door.notes}`);
                   }
-                  lines.push(`  • Precio unitario: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(door.pricePerUnit)}`);
+                  if (door.height > 2.40) {
+                    lines.push(`  • Precio base: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(door.pricePerUnit)}`);
+                    lines.push(`  • Plus empate extra (altura >2.40m): ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(350000)} / unidad`);
+                    lines.push(`  • Precio total c/plus: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(door.pricePerUnit + 350000)}`);
+                  } else {
+                    lines.push(`  • Precio unitario: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(door.pricePerUnit)}`);
+                  }
                   if (qty > 1) {
                     lines.push(`  • Subtotal: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(lineTotal)}`);
                   }
@@ -1709,12 +2219,7 @@ export const quotationsRouter = router({
                 });
                 
                 lines.push('');
-                lines.push('Todas incluyen:');
-                lines.push('• Marco RH');
-                lines.push('• Chapa gama alta');
-                lines.push('• Bisagras omega');
-                lines.push('• Tope de puerta');
-                lines.push('• Instalación completa');
+                lines.push('Puertas macizas de 36 mm de espesor, enchapada a 4 lados con marco y material RH. con chapa gama alta, tope de puerta y totalmente instalada.');
                 
                 // Transporte e imprevistos
                 if (doorConfig.includeTransport && doorConfig.transportCost) {
@@ -1749,6 +2254,35 @@ export const quotationsRouter = router({
                 lines.push(doorConfig.notes);
               }
               
+              description = lines.join('\n');
+            }
+            // Si es baño y tiene bathroomConfig, generar descripción detallada
+            else if (item.itemType === 'baño' && item.bathroomConfig) {
+              const bc = item.bathroomConfig;
+              const fmtCOP = (n: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(n);
+              const typeLabel = bc.furnitureType === 'flotante' ? 'Mueble de Baño Flotante' : 'Mueble de Baño de Piso con Pata';
+              const lines: string[] = [];
+              lines.push(typeLabel.toUpperCase());
+              lines.push(`Medidas: ${bc.width}cm (ancho) × ${bc.depth}cm (prof.) × ${bc.height}cm (alto)`);
+              lines.push(`Tipo de lavabo: ${bc.sinkType === 'excavado' ? 'Excavado (lavamanos integrado en piedra)' : 'Lavamanos de sobreponer'}`);
+              if (bc.widthRange === 'mayor-120') {
+                lines.push(`Ancho superior a 120cm — precio calculado proporcionalmente`);
+              }
+              lines.push('');
+              lines.push('Madera aglomerada tipo RH de alta presión, cantos rígidos en puertas y tapas.');
+              if (bc.hasExcavado && bc.excavadoMaterial) {
+                lines.push(`Excavado en ${bc.excavadoMaterial} — incluye salpicadero de 10cm. Llave/grifo no incluida.`);
+              }
+              if (bc.hasMeson && bc.mesonMaterial) {
+                lines.push(`Mesón en ${bc.mesonMaterial} — incluye salpicadero de 10cm. Llave/grifo no incluida. Lavamanos de sobreponer no incluido.`);
+              }
+              lines.push('');
+              lines.push(`Precio madera: ${fmtCOP(bc.pricePerUnit)} / unidad`);
+              if (bc.quantity > 1) lines.push(`Cantidad: ${bc.quantity} unidades`);
+              if (bc.notes && bc.notes.trim()) {
+                lines.push('');
+                lines.push(`Notas: ${bc.notes}`);
+              }
               description = lines.join('\n');
             }
             // Si es centro_tv y tiene tvCenterConfig, generar descripción detallada
@@ -1915,17 +2449,26 @@ export const quotationsRouter = router({
               
               // Título según la forma
               const shapeLabels: Record<string, string> = {
-                'L': 'en L',
-                'U': 'en U',
-                'lineal': 'Lineal',
+                'estandar': 'Estándar',
+                'premium': 'Premium',
+                'deluxe': 'Deluxe',
+                'L': 'Estándar (en L)',
+                'U': 'Premium (en U)',
+                'lineal': 'Deluxe (Lineal)',
                 'frente_pll': 'Frente PLL (Solo Inferiores)',
                 'solo_superiores': 'Solo Muebles Superiores',
                 'solo_inferiores': 'Solo Muebles Inferiores',
                 'puertas_tapas': 'Puertas y Tapas'
               };
               const shapeLabel = shapeLabels[config.shape] || config.shape;
-              lines.push(`COCINA INTEGRAL - ${shapeLabel}`);
-              lines.push(`Metraje total: ${config.totalMeters.toFixed(2)}ml`);
+              const layoutLabels: Record<string, string> = { L: 'en L', U: 'en U', lineal: 'Lineal / Recta', cuadrada: 'Cuadrada / Paralela', isla: 'Con isla central', otra: 'Otra' };
+              const layoutSuffix = config.layout && layoutLabels[config.layout] ? ` • Forma: ${layoutLabels[config.layout]}` : '';
+              lines.push(`COCINA INTEGRAL - ${shapeLabel}${layoutSuffix}`);
+              if (config.independentMeters && (config.lowerMeters !== undefined || config.upperMeters !== undefined)) {
+                lines.push(`Metraje inferiores: ${(config.lowerMeters || 0).toFixed(2)}ml — superiores: ${(config.upperMeters || 0).toFixed(2)}ml`);
+              } else {
+                lines.push(`Metraje total: ${config.totalMeters.toFixed(2)}ml`);
+              }
               lines.push('');
               
               // Calcular metraje resultante (solo para cocinas completas)
@@ -1960,8 +2503,18 @@ export const quotationsRouter = router({
                 if (dc.smallCovers > 0) lines.push(`• Tapas pequeñas: ${dc.smallCovers} und`);
               } else {
                 // Cocinas completas (L, U, Lineal)
-                lines.push(`• Muebles Inferiores: ${resultingMeters.toFixed(2)}ml`);
-                lines.push(`• Muebles Superiores: ${resultingMeters.toFixed(2)}ml`);
+                if (config.includeLower !== false) {
+                  const lowerML = (config.independentMeters && config.lowerMeters !== undefined)
+                    ? Math.max(0, (config.lowerMeters || 0) - deductions)
+                    : resultingMeters;
+                  lines.push(`• Muebles Inferiores: ${lowerML.toFixed(2)}ml`);
+                }
+                if (config.includeUpper !== false) {
+                  const upperML = (config.independentMeters && config.upperMeters !== undefined)
+                    ? (config.upperMeters || 0)
+                    : resultingMeters;
+                  lines.push(`• Muebles Superiores: ${upperML.toFixed(2)}ml`);
+                }
               }
               
               // Muebles especiales
@@ -1983,16 +2536,23 @@ export const quotationsRouter = router({
               
               // Mesón principal
               if (config.countertop.type) {
-                const countertopType = config.countertop.type === 'quarzone' ? 'Quarzone' : 'Sinterizado';
+                const ct = config.countertop;
+                const countertopType = ct.esImportado ? (ct.type === 'quarzone' ? 'Quarzone Importado' : ct.type === 'granito' ? 'Granito Importado' : 'Sinterizado Importado') : ct.type === 'quarzone' ? 'Quarzone' : ct.type === 'granito' ? 'Granito' : 'Sinterizado';
                 let surchargeText = '';
                 
-                if (config.countertop.depthSurcharge === '30percent') {
-                  surchargeText = ' (fondo 61-90cm)';
-                } else if (config.countertop.depthSurcharge === 'double') {
-                  surchargeText = ' (fondo 91-120cm)';
+                if (ct.depthSurcharge === '30percent') {
+                  surchargeText = ' — fondo 61-90cm (+30%)';
+                } else if (ct.depthSurcharge === 'double') {
+                  surchargeText = ' — fondo 91-120cm (×2)';
                 }
                 
-                lines.push(`• Mesón ${countertopType}: ${resultingMeters.toFixed(2)}ml${surchargeText}`);
+                const mesonML = (config.independentMeters && config.lowerMeters !== undefined)
+                  ? Math.max(0, (config.lowerMeters || 0) - deductions)
+                  : resultingMeters;
+                lines.push(`• Mesón ${countertopType}: ${mesonML.toFixed(2)}ml${surchargeText}`);
+                if (ct.incluyeLaterales) lines.push(`  - ${ct.cantLaterales || 1} lateral${(ct.cantLaterales || 1) > 1 ? 'es' : ''}: ${((ct.cantLaterales || 1) * 0.9).toFixed(2)}ml`);
+                if (ct.incluyeRegrueso) lines.push(`  - Regrueso: 0.90ml`);
+                if (ct.incluyeLavaplatos) lines.push(`  - Lavaplatos y pegado`);
               }
               
               // Isla
@@ -2001,13 +2561,35 @@ export const quotationsRouter = router({
                 islandLines.push(`${config.island.meters.toFixed(2)}ml muebles`);
                 
                 if (config.island.countertopType) {
-                  const islandCountertopType = config.island.countertopType === 'quarzone' ? 'Quarzone' : 'Sinterizado';
-                  islandLines.push(`mesón ${islandCountertopType}`);
+                  const isl3 = config.island;
+                  const islandCtType3 = isl3.esImportado
+                    ? (isl3.countertopType === 'quarzone' ? 'Quarzone Importado' : isl3.countertopType === 'granito' ? 'Granito Importado' : 'Sinterizado Importado')
+                    : (isl3.countertopType === 'quarzone' ? 'Quarzone' : isl3.countertopType === 'granito' ? 'Granito' : 'Sinterizado');
+                  let islandSurchargeText3 = '';
+                  if (isl3.depthSurcharge === '30percent') islandSurchargeText3 = ' +30% fondo (63-90cm)';
+                  else if (isl3.depthSurcharge === '40percent') islandSurchargeText3 = ' +40% fondo (91-100cm)';
+                  else if (isl3.depthSurcharge === 'double') islandSurchargeText3 = ' ×2 fondo (101-120cm)';
+                  islandLines.push(`mesón ${islandCtType3}${islandSurchargeText3}`);
                 }
                 
-                if (config.island.hasLaterals) {
-                  islandLines.push('con laterales');
+                const islAddLat3 = (config.island as any).incluyeLateralesIsla ?? config.island.hasLaterals;
+                const islAddReg3 = (config.island as any).incluyeRegrueso ?? config.island.hasLaterals;
+                if (islAddLat3) islandLines.push('con laterales');
+                if (islAddReg3) islandLines.push('regrueso');
+                if ((config.island as any).incluyeSalpicaderoAlto) islandLines.push('salpicadero alto');
+                if ((config.island as any).incluyeLavaplatos) islandLines.push('lavaplatos');
+                if ((config.island as any).incluyeLedIsla && (config.island as any).ledMLIsla > 0) {
+                  islandLines.push(`LED ${(config.island as any).ledMLIsla}ml`);
                 }
+                const islandModLabels3: Record<string, string> = {
+                  especiero: 'Especiero', botellero: 'Botellero',
+                  cajoneroTriple: 'Cajonero triple', cajoneroDoble: 'Cajonero doble',
+                  basurero: 'Basurero',
+                };
+                const islandMods3 = (config.island as any).modulosDescriptivos || {};
+                Object.entries(islandModLabels3).forEach(([k, lbl]) => {
+                  if ((islandMods3 as any)[k]) islandLines.push(lbl);
+                });
                 
                 lines.push(`• Isla: ${islandLines.join(', ')}`);
               }
@@ -2017,36 +2599,130 @@ export const quotationsRouter = router({
                 const barLines: string[] = [];
                 barLines.push(`${config.bar.meters.toFixed(2)}ml muebles`);
                 
+                if (config.bar.incluyePedestal) barLines.push('pedestal metálico');
+                if (config.bar.incluyeHerraje) barLines.push('herraje');
+                
                 if (config.bar.countertopType) {
-                  const barCountertopType = config.bar.countertopType === 'quarzone' ? 'Quarzone' : 'Sinterizado';
-                  barLines.push(`mesón ${barCountertopType}`);
+                  const barCtBase = config.bar.countertopType === 'quarzone' ? 'Quarzone'
+                                  : config.bar.countertopType === 'granito' ? 'Granito'
+                                  : 'Sinterizado';
+                  const barCtLabel = config.bar.esImportado ? `${barCtBase} Importado` : barCtBase;
+                  barLines.push(`mesón ${barCtLabel}`);
                 }
                 
                 if (config.bar.hasLateral) {
-                  barLines.push('con lateral');
+                  const altCm = config.bar.barraAlturaLateral ?? 90;
+                  barLines.push(`con lateral (${altCm}cm)`);
                 }
                 
                 lines.push(`• Barra: ${barLines.join(', ')}`);
               }
-              
+
+              // Módulos de cocina descriptivos
+              if (config.kitchenModules) {
+                const km_d = config.kitchenModules as any;
+                const toQty_d = (v: any) => typeof v === 'boolean' ? (v ? 1 : 0) : (v || 0);
+                const KM_LABELS: Record<string, string> = {
+                  esquineroSuperior:'Esq. superior', moduloAlmacSup:'Alm. superior',
+                  moduloExtractor:'Extractor', moduloMicroondas:'Microondas',
+                  especiero:'Especiero', botellero:'Botellero', moduloRepisa:'Repisa',
+                  esquinero1x1:'Esq. 1×1 inf.', cajoneroTriple:'Caj. triple',
+                  cajoneroDoble:'Caj. doble', basurero:'Basurero',
+                  moduloEstufaHorno:'Estufa/horno', moduloAlmacInf:'Alm. inferior',
+                };
+                const kmEntries: string[] = [];
+                for (const [k, lbl] of Object.entries(KM_LABELS)) {
+                  const q = toQty_d(km_d[k]);
+                  if (q > 0) kmEntries.push(q > 1 ? `${q}× ${lbl}` : lbl);
+                }
+                const latNN = toQty_d(km_d.lateralNichoNevera);
+                const latSup = toQty_d(km_d.lateralMuebleSuperior);
+                const latInf = toQty_d(km_d.lateralMuebleInferior);
+                if (latNN  > 0) kmEntries.push(`${latNN} lat. nicho nevera`);
+                if (latSup > 0) kmEntries.push(`${latSup} lat. sup.`);
+                if (latInf > 0) kmEntries.push(`${latInf} lat. inf.`);
+                if (km_d.luzLed) kmEntries.push('Luz LED');
+                if (kmEntries.length > 0) lines.push(`• Módulos: ${kmEntries.join(', ')}`);
+              }
               // LED
               if (config.ledLighting > 0) {
                 lines.push(`• Luz LED: ${config.ledLighting.toFixed(2)}ml`);
               }
-              
+
+              // Especificaciones del proyecto
+              lines.push('');
+              lines.push('ESPECIFICACIONES:');
+              lines.push('• Material: Tablero 15mm hidrófuga alta presión RH (resistente a la humedad)');
+              if (config.boardFinish) lines.push(`• Color exterior: ${config.boardFinish}`);
+              if (config.interiorFinish) lines.push(`• Color interior: ${config.interiorFinish}`);
+              if (config.hardware?.bisagras) {
+                const bisLabel = config.hardware.bisagras === 'inox'
+                  ? 'Bisagras acero inoxidable cierre lento'
+                  : 'Bisagras estándar cierre lento';
+                lines.push(`• Bisagras: ${bisLabel}`);
+              }
+              if (config.hardware?.rieles) {
+                const rielLabel = config.hardware.rieles === 'peso_alto'
+                  ? 'Riel telescópico peso alto'
+                  : 'Riel telescópico cierre lento';
+                lines.push(`• Rieles: ${rielLabel}`);
+              }
+              if (config.incluyePlatero) {
+                lines.push(`• Platero: Acero inoxidable${config.plateroDesc ? ' — ' + config.plateroDesc : ''}`);
+              }
+              if (config.appliances) {
+                const ap = config.appliances as any;
+                const apList: string[] = [];
+                if (ap.estufa)          apList.push('Estufa');
+                if (ap.horno)           apList.push('Horno empotrable');
+                if (ap.extractor)       apList.push('Extractor');
+                if (ap.llaveLavaplatos) apList.push('Llave de lavaplatos');
+                if (ap.nevera)          apList.push('Nevera');
+                if (ap.microondas)      apList.push('Microondas');
+                if (ap.lavaVajillas)    apList.push('Lavavajillas');
+                if (apList.length > 0) lines.push(`• Espacios electrodomésticos (no suministrados): ${apList.join(', ')}`);
+              }
+
+              // Notas adicionales del ítem de cocina
+              if (config.notes && config.notes.trim()) {
+                lines.push('');
+                lines.push('Notas adicionales:');
+                lines.push(config.notes);
+              }
+
               description = lines.join('\n');
+              // Descripción adicional editada manualmente en el formulario
+              const _itemDescManual = typeof item.description === 'string' ? item.description.trim() : '';
+              if (_itemDescManual && !_itemDescManual.startsWith('COCINA INTEGRAL')) {
+                description += '\n\n' + _itemDescManual;
+              }
             }
-            
+
+
+          // Para puerta: mostrar cantidad real de puertas desde doorConfig
+          let pdfQuantity3 = item.quantity;
+          if (item.itemType === 'puerta' && doorConfig) {
+            if (doorConfig.doors && Array.isArray(doorConfig.doors)) {
+              const totalDoors3 = doorConfig.doors.reduce((s: number, d: any) => s + (d.quantity || 1), 0);
+              pdfQuantity3 = String(totalDoors3);
+            } else if (doorConfig.quantity) {
+              pdfQuantity3 = String(doorConfig.quantity);
+            }
+          }
             return {
               itemNumber: item.itemNumber,
               description,
-              quantity: item.quantity,
+              quantity: pdfQuantity3,
               unitPrice: item.unitPrice || '',
               totalPrice: item.totalPrice,
             };
           }),
           subtotal: quotation.subtotal,
           transportCost: quotation.transportCost,
+          includeIva: (quotation as any).includeIva === 1,
+          ivaAmount: (quotation as any).includeIva === 1
+            ? String((parseFloat(String(quotation.subtotal)) - parseFloat(String(quotation.discountAmount || "0"))) * 0.19)
+            : undefined,
           total: quotation.total,
         };
 
@@ -2109,7 +2785,7 @@ export const quotationsRouter = router({
 
     // Enviar cotización por WhatsApp
     sendByWhatsApp: protectedProcedure
-      .input(z.object({ id: z.number() }))
+      .input(z.object({ id: z.number(), publicToken: z.string().optional() }))
       .mutation(async ({ ctx, input }) => {
         if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
           throw new TRPCError({ code: "FORBIDDEN" });
@@ -2133,110 +2809,79 @@ export const quotationsRouter = router({
         console.log("[WHATSAPP DEBUG] Número original del cliente:", client.whatsappPhone);
 
         try {
-          console.log("[WHATSAPP DEBUG] Iniciando proceso de envío por WhatsApp...");
-          // Generar PDF de la cotizacion
-          console.log("[WHATSAPP DEBUG] Generando PDF...");
-          const formatCurrency = (value: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value);
-          
-          // @ts-ignore - Propiedades opcionales del quotation
-          const pdfData = {
-            quotationNumber: quotation.quotationNumber,
-            date: new Date().toLocaleDateString('es-CO', { timeZone: 'America/Bogota' }),
-            clientName: client.name,
-            clientEmail: client.email,
-            clientPhone: client.whatsappPhone,
-            items: (quotation as any).items || [],
-            subtotal: quotation.subtotal || 0,
-            discount: (quotation as any).discount || 0,
-            tax: (quotation as any).tax || 0,
-            total: quotation.total || 0,
-            notes: (quotation as any).notes || "",
-            validUntil: quotation.validUntil,
-          };
-
-          // Generar PDF
-          const { generateQuotationPDF } = await import('../quotation-pdf-generator');
-          // @ts-ignore
-          const result = await generateQuotationPDF(pdfData, quotation.id);
-          
-          // Leer el PDF generado y subirlo a S3
-          const fs = await import('fs');
-          const pdfBuffer = fs.readFileSync(result.pdfPath);
-          const { storagePut } = await import('../storage');
-          
-          const pdfKey = `quotations/${quotation.quotationNumber}-${Date.now()}.pdf`;
-          const { url: pdfUrl } = await storagePut(pdfKey, pdfBuffer, 'application/pdf');
-          
-          // Limpiar archivo temporal
-          fs.unlinkSync(result.pdfPath);
-
-          // Enviar plantilla con documento en un solo mensaje
-          console.log("\n\n========== WHATSAPP QUOTATION FLOW START ==========");
-          console.log("[WHATSAPP] Enviando plantilla con documento: cotizacion_pdf");
-          console.log("[WHATSAPP] Idioma: es");
-          console.log("[WHATSAPP] Cliente nombre:", client.name);
-          console.log("[WHATSAPP] Número de teléfono destino:", client.whatsappPhone);
-          console.log("[WHATSAPP] Cotización ID:", quotation.id);
-          console.log("[WHATSAPP] Cotización número:", quotation.quotationNumber);
-          console.log("[WHATSAPP] PDF URL:", pdfUrl);
-          
-          // Formatear monto total
-          const formattedAmount = new Intl.NumberFormat("es-CO", {
-            style: "currency",
-            currency: "COP",
-            minimumFractionDigits: 0,
-          }).format(Number(quotation.total));
-          
-          // Enviar plantilla con documento en el header (un solo mensaje)
-          const templateWithDocResponse = await whatsappCloud.sendTemplateWithDocument(
-            client.whatsappPhone,
-            "cotizacion_pdf_v3",
-            "es",
-            pdfUrl,
-            `Cotizacion_${quotation.quotationNumber.replace(/-/g, '_')}.pdf`,
-            client.name,
-            quotation.quotationNumber,
-            formattedAmount
-          );
-          
-          console.log("\n========== TEMPLATE WITH DOCUMENT RESPONSE ==========");
-          console.log("[WHATSAPP] Status: " + (templateWithDocResponse.success ? "SUCCESS" : "FAILED"));
-          console.log("[WHATSAPP] Full Response:", JSON.stringify(templateWithDocResponse, null, 2));
-          if (templateWithDocResponse.messageId) {
-            console.log("[WHATSAPP] Message ID:", templateWithDocResponse.messageId);
-          }
-          if (templateWithDocResponse.error) {
-            console.log("[WHATSAPP] Error:", templateWithDocResponse.error);
-            console.log("[WHATSAPP] Error Code:", templateWithDocResponse.errorCode);
-          }
-          console.log("========== END TEMPLATE WITH DOCUMENT RESPONSE ==========");
-          
-          if (!templateWithDocResponse.success) {
-            console.error("[WhatsApp] Fallo en envio de plantilla con documento:", {
-              success: templateWithDocResponse.success,
-              error: templateWithDocResponse.error,
-            });
-            
-            throw new TRPCError({
-              code: "INTERNAL_SERVER_ERROR",
-              message: `Error enviando plantilla con documento: ${templateWithDocResponse.error}`,
-            });
-          }
-          
-          console.log("\n========== WHATSAPP QUOTATION FLOW COMPLETED ==========");
-          console.log("[WHATSAPP] Template with document sent: ✓");
-          console.log("========== END FLOW ==========");
-          console.log("\n");
-          
-          // Actualizar estado de la cotización a "sent"
+          // ── PASO 1: Guardar token PRIMERO — el link siempre funciona aunque PDF falle
+          const { randomUUID } = await import("crypto");
+          const publicToken = input.publicToken || randomUUID().replace(/-/g, '');
           await db.updateQuotation(input.id, {
             status: "sent",
+            publicToken,
           });
-          
+
+          // ── PASO 2: Generar PDF y subir a S3 (independiente del token)
+          let pdfUrl: string | null = null;
+          try {
+            console.log("[sendByWhatsApp] Generando PDF...");
+            const formatCurrency = (value: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value);
+
+            // @ts-ignore
+            const pdfData = {
+              quotationNumber: quotation.quotationNumber,
+              date: new Date().toLocaleDateString('es-CO', { timeZone: 'America/Bogota' }),
+              clientName: client.name,
+              clientEmail: client.email,
+              clientPhone: client.whatsappPhone,
+              items: (quotation as any).items || [],
+              subtotal: quotation.subtotal || 0,
+              discount: (quotation as any).discount || 0,
+              tax: (quotation as any).tax || 0,
+              total: quotation.total || 0,
+              notes: (quotation as any).notes || "",
+              validUntil: quotation.validUntil,
+            };
+
+            const { generateQuotationPDF } = await import('../quotation-pdf-generator');
+            // @ts-ignore
+            const result = await generateQuotationPDF(pdfData, quotation.id);
+
+            const fs = await import('fs');
+            const pdfBuffer = fs.readFileSync(result.pdfPath);
+            const { storagePut } = await import('../storage');
+
+            const pdfKey = `quotations/${quotation.quotationNumber}-${Date.now()}.pdf`;
+            const pdfResult = await storagePut(pdfKey, pdfBuffer, 'application/pdf');
+            pdfUrl = pdfResult.url;
+
+            fs.unlinkSync(result.pdfPath);
+            await db.updateQuotation(input.id, { pdfUrl });
+            console.log("[sendByWhatsApp] PDF generado:", pdfUrl);
+          } catch (pdfError: any) {
+            console.error('[sendByWhatsApp] PDF falló (no crítico, token ya guardado):', pdfError?.message);
+          }
+
+          // ── PASO 3: Marcar visita técnica como cot_enviada
+          try {
+            const drizzleDb2 = await db.getDb();
+            if (drizzleDb2) {
+              const { technicalVisits: tvTable2 } = await import("../../drizzle/schema");
+              const { eq: eq2, and: and2, isNull: isNull2 } = await import("drizzle-orm");
+              const nowTs2 = new Date().toISOString().replace('T', ' ').replace('Z', '');
+              await drizzleDb2.update(tvTable2)
+                .set({ status: 'cot_enviada' as any, updatedAt: nowTs2 })
+                .where(and2(
+                  eq2(tvTable2.quotationId, input.id),
+                  eq2(tvTable2.status, 'cot_hecha' as any),
+                  isNull2(tvTable2.deletedAt)
+                ));
+            }
+          } catch (tvErr2) {
+            console.error('[sendByWhatsApp] Error marcando visita como cot_enviada:', tvErr2);
+          }
+
           return {
             success: true,
-            templateMessage: templateWithDocResponse,
-            message: "Cotizacion enviada exitosamente por WhatsApp en un solo mensaje",
+            pdfUrl,
+            clientPhone: client.whatsappPhone,
+            message: "",
           };
         } catch (error: any) {
           console.error('Error enviando cotizacion por WhatsApp:', error);
@@ -2306,7 +2951,13 @@ export const quotationsRouter = router({
               totalPrice: formatCurrency(Number(item.totalPrice)),
             })),
             subtotal: formatCurrency(Number(quotation.subtotal)),
+            discountPercent: String(parseFloat(String(quotation.discountPercent)) || 0),
+            discountAmount: String(parseFloat(String(quotation.discountAmount)) || 0),
             transportCost: formatCurrency(Number(quotation.transportCost || 0)),
+            includeIva: (quotation as any).includeIva === 1,
+            ivaAmount: (quotation as any).includeIva === 1
+              ? formatCurrency((Number(quotation.subtotal) - Number(quotation.discountAmount || 0)) * 0.19)
+              : undefined,
             total: formatCurrency(Number(quotation.total)),
           };
           
@@ -2369,6 +3020,23 @@ export const quotationsRouter = router({
           designerId: autoAssignedDesignerId,
         });
         
+        // Sincronizar publicToken: mismo link permanente para el cliente
+        const quotationPublicToken = quotation.publicToken ?? null;
+        if (quotationPublicToken) {
+          try {
+            const drizzleDbSync = await db.getDb();
+            if (drizzleDbSync) {
+              const { projects: projectsTable } = await import("../../drizzle/schema");
+              const { eq: eqSync } = await import("drizzle-orm");
+              await drizzleDbSync.update(projectsTable)
+                .set({ publicToken: quotationPublicToken })
+                .where(eqSync(projectsTable.id, projectId));
+            }
+          } catch (syncErr) {
+            console.error('[createProject] Error sincronizando publicToken al proyecto:', syncErr);
+          }
+        }
+
         // Crear historial de estado del proyecto
         await db.createProjectStatusHistory({
           projectId: projectId,
@@ -2951,4 +3619,192 @@ export const quotationsRouter = router({
             clientName: client?.name || 'Proyecto',
           };
         }),
+
+
+    // ── Portal público del cliente ─────────────────────────────────────────────
+
+    publicGetByToken: publicProcedure
+      .input(z.object({ token: z.string().min(1) }))
+      .query(async ({ input }) => {
+        const drizzleDb = await db.getDb();
+        if (!drizzleDb) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const { quotations: qTable } = await import("../../drizzle/schema");
+        const { eq, and, isNull } = await import("drizzle-orm");
+
+        const rows = await drizzleDb
+          .select()
+          .from(qTable)
+          .where(and(eq((qTable as any).publicToken, input.token), isNull(qTable.deletedAt)))
+          .limit(1);
+
+        if (!rows.length) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Enlace no válido o expirado" });
+        }
+
+        const quotation = rows[0];
+        const client = await db.getClientById(quotation.clientId);
+        const items = await db.getQuotationItems(quotation.id);
+
+        const formatCurrency = (v: number) =>
+          new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", minimumFractionDigits: 0 }).format(v);
+
+        // Verificar si ya existe un proyecto vinculado a esta cotización
+        let linkedProjectId: number | null = null;
+        try {
+          const linkedProject = await db.getProjectByQuotationId(quotation.id);
+          if (linkedProject) linkedProjectId = linkedProject.id;
+        } catch (_) {}
+
+        return {
+          quotationNumber: quotation.quotationNumber,
+          clientName: client?.name ?? "Cliente",
+          total: formatCurrency(Number(quotation.total)),
+          validUntil: quotation.validUntil
+            ? new Date(quotation.validUntil).toLocaleDateString("es-CO", { timeZone: "America/Bogota" })
+            : null,
+          status: quotation.status,
+          pdfUrl: quotation.pdfUrl ?? null,
+          items: (items as any[]).map((it: any) => ({
+            description: it.description ?? it.itemType ?? "",
+            quantity: it.quantity ?? 1,
+            unitPrice: formatCurrency(Number(it.unitPrice ?? 0)),
+            total: formatCurrency(Number(it.totalPrice ?? 0)),
+          })),
+          createdAt: quotation.createdAt,
+          projectId: linkedProjectId,
+        };
+      }),
+
+    publicApprove: publicProcedure
+      .input(z.object({ token: z.string().min(1), notes: z.string().optional() }))
+      .mutation(async ({ input }) => {
+        const drizzleDb = await db.getDb();
+        if (!drizzleDb) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const { quotations: qTable } = await import("../../drizzle/schema");
+        const { eq, and, isNull } = await import("drizzle-orm");
+
+        const rows = await drizzleDb
+          .select()
+          .from(qTable)
+          .where(and(eq((qTable as any).publicToken, input.token), isNull(qTable.deletedAt)))
+          .limit(1);
+
+        if (!rows.length) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Enlace no válido o expirado" });
+        }
+
+        const quotation = rows[0];
+
+        if (quotation.status === "approved") {
+          return { success: true, alreadyApproved: true };
+        }
+
+        if (quotation.status !== "sent") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Esta cotización no puede aprobarse en su estado actual" });
+        }
+
+        await db.updateQuotation(quotation.id, {
+          status: "approved",
+          approvedAt: new Date().toISOString(),
+          clientResponseNotes: input.notes ?? null,
+          clientResponseAt: new Date().toISOString(),
+          clientResponseStatus: "approved",
+        });
+
+        // Notificar al equipo interno
+        try {
+          const clientData = quotation.clientId ? await db.getClientById(quotation.clientId) : null;
+          const allUsers = await db.getAllUsers();
+          const notifyRoles = ["super_admin", "admin", "comercial"];
+          const usersToNotify = allUsers.filter((u: any) => notifyRoles.includes(u.role));
+          for (const user of usersToNotify) {
+            await db.createNotification({
+              userId: user.id,
+              title: "✅ Cotización Aprobada por el Cliente",
+              body: `${clientData?.name || "El cliente"} aprobó la cotización ${quotation.quotationNumber}${input.notes ? `. Nota: "${input.notes}"` : ""}. Ingresa al CRM para crear el proyecto.`,
+              type: "cotizacion",
+              referenceId: quotation.id,
+              referenceType: "quotation",
+            });
+          }
+        } catch (notifErr) {
+          console.error("[publicApprove] Error enviando notificaciones:", notifErr);
+        }
+
+        return { success: true, alreadyApproved: false };
+      }),
+  manualApprove: protectedProcedure
+    .input(
+      z.object({
+        quotationId: z.number(),
+        notes: z.string().optional(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const allowedRoles = ["super_admin", "admin", "comercial"];
+      if (!allowedRoles.includes(ctx.user.role)) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Sin permisos para aprobar cotizaciones" });
+      }
+
+      const drizzleDb = await db.getDb();
+      if (!drizzleDb) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB no disponible" });
+
+      const { quotations: qTable } = await import("../../drizzle/schema");
+      const { eq: eqOp, isNull: isNullOp } = await import("drizzle-orm");
+
+      const rows = await drizzleDb
+        .select()
+        .from(qTable)
+        .where(eqOp(qTable.id, input.quotationId))
+        .limit(1);
+
+      if (!rows.length) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Cotización no encontrada" });
+      }
+      const quotation = rows[0];
+
+      if (quotation.status === "approved") {
+        return { success: true, alreadyApproved: true };
+      }
+
+      const now = new Date().toISOString();
+      const notaAprobacion = input.notes || `Aprobado manualmente por ${(ctx.user as any).name || ctx.user.email}`;
+
+      try {
+        await drizzleDb
+          .update(qTable)
+          .set({
+            status: "approved",
+            approvedAt: now,
+          })
+          .where(eqOp(qTable.id, input.quotationId));
+      } catch (dbErr: any) {
+        console.error("[manualApprove] DB error code:", dbErr?.code, "detail:", dbErr?.detail, "msg:", dbErr?.message);
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: `Error DB: ${dbErr?.message || dbErr}` });
+      }
+
+      // Enviar notificaciones al equipo
+      try {
+        const clientData = quotation.clientId ? await db.getClientById(quotation.clientId) : null;
+        const allUsers = await db.getAllUsers();
+        const notifyRoles = ["super_admin", "admin", "comercial"];
+        const usersToNotify = allUsers.filter((u: any) => notifyRoles.includes(u.role));
+        for (const user of usersToNotify) {
+          await db.createNotification({
+            userId: user.id,
+            title: "✅ Cotización Aprobada (Manual)",
+            body: `${(ctx.user as any).name || ctx.user.email} marcó como aprobada la cotización ${quotation.quotationNumber} de ${clientData?.name || "cliente"}${input.notes ? `. Nota: "${input.notes}"` : ""}.`,
+            type: "cotizacion",
+            referenceId: quotation.id,
+            referenceType: "quotation",
+          });
+        }
+      } catch (notifErr) {
+        console.error("[manualApprove] Error enviando notificaciones:", notifErr);
+      }
+
+      return { success: true, alreadyApproved: false };
+    }),
 });

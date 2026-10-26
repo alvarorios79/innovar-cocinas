@@ -40,13 +40,16 @@ const formatPrice = (price: number) => {
 };
 
 const getItemTypeName = (itemType: string) => {
+  // Bug F fix: agregados mueble_cocina y acabados_especiales que faltaban
   const names: Record<string, string> = {
     cocina: "Cocina Integral",
     closet: "Closet",
     puerta: "Puerta",
     centro_tv: "Centro de TV",
     herrajes: "Herrajes",
-    mesones: "Mesones",
+    mesones: "Mesón Solo",
+    mueble_cocina: "Piezas de Cocina",
+    acabados_especiales: "Acabados Especiales",
     otro: "Otro"
   };
   return names[itemType] || itemType;
@@ -240,8 +243,8 @@ export function PDFContentEditor({
         
         <div className="space-y-6">
           {/* Instrucciones */}
-          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-            <p className="text-sm text-blue-800 dark:text-blue-200">
+          <div className="bg-blue-500/10 border border-blue-500/25 rounded-lg p-4">
+            <p className="text-sm text-blue-300">
               <strong>Instrucciones:</strong> Edita la descripción de cada producto para personalizar el contenido del PDF. 
               Los cambios se guardarán con la cotización y aparecerán en el documento final.
             </p>
@@ -250,7 +253,7 @@ export function PDFContentEditor({
           {/* Lista de productos */}
           <div className="space-y-4">
             <h3 className="font-semibold text-lg flex items-center gap-2">
-              <Package className="h-5 w-5 text-emerald-600" />
+              <Package className="h-5 w-5 text-emerald-400" />
               Productos de la Cotización
             </h3>
             
@@ -259,18 +262,18 @@ export function PDFContentEditor({
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base flex justify-between items-center">
                     <span className="flex items-center gap-2">
-                      <span className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-bold">
+                      <span className="w-6 h-6 rounded-full bg-emerald-500/15 text-emerald-300 flex items-center justify-center text-sm font-bold">
                         {index + 1}
                       </span>
                       {getItemTypeName(item.itemType)}
                     </span>
-                    <span className="text-emerald-600 font-bold">
+                    <span className="text-emerald-400 font-bold">
                       {formatPrice(item.totalPrice)}
                     </span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Label htmlFor={`desc-${index}`} className="text-sm text-slate-600 mb-2 block">
+                  <Label htmlFor={`desc-${index}`} className="text-sm text-muted-foreground mb-2 block">
                     Descripción detallada (aparecerá en el PDF)
                   </Label>
                   <Textarea
@@ -280,7 +283,7 @@ export function PDFContentEditor({
                     placeholder="Escribe la descripción detallada de este producto..."
                     className="min-h-[120px] font-mono text-sm"
                   />
-                  <p className="text-xs text-slate-500 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     Usa viñetas (•) para listar características. Cada línea aparecerá como un ítem separado.
                   </p>
                 </CardContent>
@@ -292,12 +295,12 @@ export function PDFContentEditor({
           <Card className="border-l-4 border-l-amber-500">
             <CardHeader className="pb-2">
               <CardTitle className="text-base flex items-center gap-2">
-                <StickyNote className="h-5 w-5 text-amber-600" />
+                <StickyNote className="h-5 w-5 text-amber-400" />
                 Observaciones Generales
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <Label htmlFor="general-notes" className="text-sm text-slate-600 mb-2 block">
+              <Label htmlFor="general-notes" className="text-sm text-muted-foreground mb-2 block">
                 Notas adicionales que aparecerán al final del PDF
               </Label>
               <Textarea

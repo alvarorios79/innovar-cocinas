@@ -18,6 +18,7 @@ import { addBusinessDays, calculateEstimatedDeliveryDate } from "../business-day
 import { sanitizeText, sanitizeHtml, sanitizeForEmail, sanitizePhone, sanitizeEmail } from "../sanitize";
 import { eq, and, desc } from "drizzle-orm";
 import { projects, projectDetails, projectPhotos } from "../../drizzle/schema";
+import { randomBytes } from "crypto";
 
 
 export const projectsRouter = router({
@@ -61,6 +62,7 @@ export const projectsRouter = router({
           tentativeInstallDate: tentativeDate instanceof Date ? tentativeDate.toISOString() : tentativeDate,
           isInstallDateOfficial: 0,
           designerId: autoAssignedDesignerId,
+          publicToken: randomBytes(24).toString('hex'),
         });
 
         // Registrar en historial
@@ -71,6 +73,23 @@ export const projectsRouter = router({
           changedBy: ctx.user.id,
           notes: "Proyecto creado - Cotización enviada",
         });
+
+        // Vincular levantamiento técnico al proyecto (si existe via quotationId)
+        if (finalQuotationId) {
+          try {
+            const drizzleDb = await db.getDb();
+            if (drizzleDb) {
+              const { technicalVisits: tvTable } = await import("../../drizzle/schema");
+              const { eq: eqOp } = await import("drizzle-orm");
+              const nowTs = new Date().toISOString().replace('T', ' ').replace('Z', '');
+              await drizzleDb.update(tvTable)
+                .set({ projectId, updatedAt: nowTs })
+                .where(eqOp(tvTable.quotationId, finalQuotationId));
+            }
+          } catch (tvErr) {
+            console.error("[projects.create] Error vinculando levantamiento:", tvErr);
+          }
+        }
         
         // Notificar al diseñador asignado
         const clientForNotif = await db.getClientById(input.clientId);
@@ -125,22 +144,22 @@ export const projectsRouter = router({
         // (necesita ver proyectos en producción para responder consultas del jefe de taller/operario)
         if (role === "disenador") {
           projectsList = projectsList.filter(p => 
-            ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"].includes(p.status)
+            ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "trabajando_instalacion", "entregado"].includes(p.status)
           );
         }
 
-        // Jefe de taller ve proyectos solo desde producción (despiece en adelante)
-        // No ve proyectos en diseño ni pendientes de aprobación
+        // Jefe de taller ve producción completa + proyectos en diseño (solo lectura, sin financiero)
         if (role === "jefe_taller") {
           projectsList = projectsList.filter(p =>
-            ["despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"].includes(p.status)
+            ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "aprobacion_final",
+             "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "trabajando_instalacion", "entregado"].includes(p.status)
           );
         }
 
         // Operario ve los mismos proyectos que el jefe de taller (solo producción)
         if (role === "operario") {
           projectsList = projectsList.filter(p =>
-            ["despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"].includes(p.status)
+            ["despiece", "corte", "enchape", "ensamble", "listo_instalacion", "trabajando_instalacion", "entregado"].includes(p.status)
           );
         }
 
@@ -174,17 +193,18 @@ export const projectsRouter = router({
         let filteredData: typeof result.data = result.data || [];
         if (role === "disenador") {
           filteredData = filteredData.filter(p => 
-            ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"].includes(p.status)
+            ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "trabajando_instalacion", "entregado"].includes(p.status)
           );
         }
         if (role === "jefe_taller") {
           filteredData = filteredData.filter(p =>
-            ["despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"].includes(p.status)
+            ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render",
+             "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "trabajando_instalacion", "entregado"].includes(p.status)
           );
         }
         if (role === "operario") {
           filteredData = filteredData.filter(p =>
-            ["despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"].includes(p.status)
+            ["aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "trabajando_instalacion", "entregado"].includes(p.status)
           );
         }
         const allClients = await db.getAllClients();
@@ -230,10 +250,15 @@ export const projectsRouter = router({
           throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
         }
 
-        // jefe_taller y operario solo pueden ver proyectos en fase de producción
+        // jefe_taller y operario solo pueden abrir proyectos en fase de producción
         const role = ctx.user.role;
-        const productionStatuses = ["despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"];
-        if ((role === "jefe_taller" || role === "operario") && !productionStatuses.includes(project.status)) {
+        const productionStatuses = ["despiece", "corte", "enchape", "ensamble", "listo_instalacion", "trabajando_instalacion", "entregado"];
+        const designStatuses = ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "aprobacion_final"];
+        // Operario: solo producción. Jefe de taller: producción + diseño (solo lectura, sin financiero)
+        if (role === "operario" && !productionStatuses.includes(project.status)) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso a este proyecto" });
+        }
+        if (role === "jefe_taller" && !productionStatuses.includes(project.status) && !designStatuses.includes(project.status)) {
           throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso a este proyecto" });
         }
 
@@ -523,7 +548,7 @@ export const projectsRouter = router({
           "cotizacion_enviada", "cotizacion_aprobada", "adelanto_recibido",
           "en_diseno", "pendiente_modelado", "pendiente_render", "aprobacion_final",
           "despiece", "corte", "enchape", "ensamble",
-          "listo_instalacion", "entregado"
+          "listo_instalacion", "trabajando_instalacion", "entregado"
         ]),
         notes: z.string().optional(),
         advanceAmount: z.number().optional(),
@@ -554,9 +579,10 @@ export const projectsRouter = router({
         }
 
         // Validación general: Etapas productivas requieren fotos antes de avanzar
-        const stagesRequiringPhotos = ["corte", "enchape", "ensamble", "listo_instalacion"];
+        const stagesRequiringPhotos = ["corte", "enchape", "ensamble", "trabajando_instalacion"];
         
-        if (stagesRequiringPhotos.includes(currentStatus)) {
+        // super_admin puede omitir fotos para cerrar proyectos simples
+        if (stagesRequiringPhotos.includes(currentStatus) && role !== "super_admin") {
           try {
             const dbInstance = await db.getDb();
             if (!dbInstance) {
@@ -568,7 +594,7 @@ export const projectsRouter = router({
 
             // Mapear estado del proyecto a categoría de fotos
             let photoCategory = "avance"; // corte, enchape, ensamble usan "avance"
-            if (currentStatus === "listo_instalacion") {
+            if (currentStatus === "trabajando_instalacion") {
               photoCategory = "instalacion";
             }
 
@@ -603,7 +629,7 @@ export const projectsRouter = router({
         }
 
         // Validación especial: Fotos de instalación requeridas antes de marcar como entregado
-        if (currentStatus === "listo_instalacion" && newStatus === "entregado") {
+        if (currentStatus === "trabajando_instalacion" && newStatus === "entregado" && role !== "super_admin") {
           try {
             const dbInstance = await db.getDb();
             if (!dbInstance) {
@@ -832,7 +858,7 @@ export const projectsRouter = router({
         }
 
         // Notificar al jefe de taller cuando el operario avanza una etapa de producción
-        const productionStages = ["enchape", "ensamble", "listo_instalacion"];
+        const productionStages = ["enchape", "ensamble", "listo_instalacion", "trabajando_instalacion"];
         if (role === "operario" && productionStages.includes(newStatus)) {
           try {
             const allUsers = await db.getAllUsers();
@@ -842,6 +868,7 @@ export const projectsRouter = router({
               enchape: "Enchape",
               ensamble: "Ensamble",
               listo_instalacion: "Listo para Instalación",
+              trabajando_instalacion: "Trabajando en Instalación",
             };
             
             for (const jefe of jefesTaller) {
@@ -1069,7 +1096,7 @@ export const projectsRouter = router({
                         </div>
                         <div style="background: #1F2937; padding: 20px; text-align: center;">
                           <p style="color: #9CA3AF; margin: 0; font-size: 12px;">
-                            INNOVAR Cocinas Integrales | K9 vía Cerritos a Pereira | Tel: 313 680 2025
+                            INNOVAR Cocinas de Diseño | K9 vía Cerritos a Pereira | Tel: 313 680 2025
                           </p>
                         </div>
                       </div>
@@ -1161,11 +1188,18 @@ export const projectsRouter = router({
         
         if (client) {
           const baseUrl = ctx.req.headers.origin || `https://${ctx.req.headers.host}`;
+          // Auto-generar publicToken si el proyecto no tiene (creados antes del fix)
+          let projectPublicToken = project.publicToken;
+          if (!projectPublicToken) {
+            projectPublicToken = randomBytes(24).toString('hex');
+            await db.updateProject(project.id, { publicToken: projectPublicToken });
+          }
           const projectWithClient = {
             id: project.id,
             name: project.name,
             status: newStatus,
             workType: project.workType,
+            publicToken: projectPublicToken,
             client: {
               name: client.name,
               whatsappPhone: client.whatsappPhone,
@@ -1218,7 +1252,7 @@ Nos complace informarte que tu proyecto "${project.name}" ha sido *entregado exi
 
 Por favor, realiza el pago del saldo restante para completar tu proyecto.
 
-¡Gracias por confiar en INNOVAR Cocinas Integrales! 🙏`;
+¡Gracias por confiar en INNOVAR Cocinas de Diseño! 🙏`;
             
             const cleanPhone = client.whatsappPhone?.replace(/\D/g, '') || '';
             const phoneWithCountry = cleanPhone.startsWith('57') ? cleanPhone : `57${cleanPhone}`;
@@ -1757,7 +1791,8 @@ ${input.notes || "No se especificaron detalles"}
 
           // 3. Flujo inverso de estados
           const reverseFlow: Record<string, string | null> = {
-            entregado: "listo_instalacion",
+            entregado: "trabajando_instalacion",
+            trabajando_instalacion: "listo_instalacion",
             listo_instalacion: "ensamble",
             ensamble: "enchape",
             enchape: "corte",
@@ -2013,11 +2048,11 @@ export const projectPhotosRouter = router({
 
         // Cambiar estado del proyecto automáticamente según la subcategoría de foto subida
         // Solo cambiar si el proyecto está en un estado anterior o igual
-        const statusOrder = ["contacto", "cotizacion_enviada", "cotizacion_aprobada", "adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"];
+        const statusOrder = ["contacto", "cotizacion_enviada", "cotizacion_aprobada", "adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "trabajando_instalacion", "entregado"];
         const currentStatusIndex = statusOrder.indexOf(project.status);
         
         // Mapeo de subcategoría a estado de proyecto
-        type ProjectStatus = "contacto" | "cotizacion_enviada" | "cotizacion_aprobada" | "adelanto_recibido" | "en_diseno" | "pendiente_modelado" | "pendiente_render" | "aprobacion_final" | "despiece" | "corte" | "enchape" | "ensamble" | "listo_instalacion" | "entregado";
+        type ProjectStatus = "contacto" | "cotizacion_enviada" | "cotizacion_aprobada" | "adelanto_recibido" | "en_diseno" | "pendiente_modelado" | "pendiente_render" | "aprobacion_final" | "despiece" | "corte" | "enchape" | "ensamble" | "listo_instalacion" | "trabajando_instalacion" | "entregado";
         
         const subcategoryToStatus: Record<string, ProjectStatus> = {
           "despieces": "despiece",
@@ -2044,6 +2079,60 @@ export const projectPhotosRouter = router({
               changedBy: ctx.user.id,
               notes: `Estado actualizado automáticamente al subir foto de ${subcategory}`,
             });
+          }
+        }
+
+        // ── Notificar a admin cuando diseñador sube modelado o renders ──
+        const designerUploadTypes = ["modelado_3d", "renders"];
+        if (
+          ctx.user.role === "disenador" &&
+          input.subcategory &&
+          designerUploadTypes.includes(input.subcategory)
+        ) {
+          const typeLabel = input.subcategory === "modelado_3d" ? "Modelado 3D" : "Renders";
+          const projectName = project.name || `Proyecto #${input.projectId}`;
+
+          // Push notification a super_admin y admin
+          try {
+            await sendPushToRole("super_admin", {
+              title: `📐 ${typeLabel} listo — ${projectName}`,
+              body: `El diseñador subió ${typeLabel}. Revisa y envía al cliente cuando esté listo.`,
+              url: `/projects/${input.projectId}`,
+            });
+            await sendPushToRole("admin", {
+              title: `📐 ${typeLabel} listo — ${projectName}`,
+              body: `El diseñador subió ${typeLabel}. Revisa y envía al cliente cuando esté listo.`,
+              url: `/projects/${input.projectId}`,
+            });
+          } catch (pushErr) {
+            console.error("[Notif] Error enviando push:", pushErr);
+          }
+
+          // Email a Álvaro
+          try {
+            const appUrl = process.env.VITE_APP_URL || "https://innovar-cocinas.onrender.com";
+            const projectUrl = `${appUrl}/projects/${input.projectId}`;
+            const emailHtml = generateEmailHTML(`
+              <h2>📐 ${typeLabel} listo para revisión</h2>
+              <p>El diseñador acaba de subir <strong>${typeLabel}</strong> del proyecto:</p>
+              <p style="font-size:18px; font-weight:bold; color:#1DB5A8;">${projectName}</p>
+              <p>Entra al CRM, revisa el diseño y cuando estés de acuerdo envíaselo al cliente.</p>
+              <a href="${projectUrl}" class="button" style="background:#1DB5A8;">
+                Ver proyecto →
+              </a>
+              <p style="color:#888; font-size:13px; margin-top:24px;">
+                No olvides tocar el botón <strong>"Enviar Modelado"</strong> (o "Enviar Renders") 
+                desde el detalle del proyecto para notificar al cliente.
+              </p>
+            `, `${typeLabel} listo — ${projectName}`);
+
+            await sendEmail({
+              to: "alvarorios79@gmail.com",
+              subject: `📐 ${typeLabel} listo: ${projectName}`,
+              html: emailHtml,
+            });
+          } catch (emailErr) {
+            console.error("[Notif] Error enviando email:", emailErr);
           }
         }
 

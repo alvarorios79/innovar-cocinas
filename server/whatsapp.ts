@@ -19,7 +19,7 @@ export function generateWhatsAppLink(phone: string, message: string): string {
   const cleanPhone = phone.replace(/\D/g, "");
   
   // Asegurar que tenga el código de país (57 para Colombia)
-  const fullPhone = cleanPhone.startsWith("57") ? cleanPhone : `57${cleanPhone}`;
+  const fullPhone = cleanPhone.length > 10 ? cleanPhone : `57${cleanPhone}`;
   
   // Codificar el mensaje para URL
   const encodedMessage = encodeURIComponent(message);
@@ -67,6 +67,69 @@ export function notifyNewAppointment(data: {
   if (data.notes) message += `📝 *Notas:* ${data.notes}\n`;
 
   return generateWhatsAppLink(WHATSAPP_BUSINESS, message);
+}
+
+/**
+ * Genera enlace wa.me para enviarle al CLIENTE la confirmación de su cita
+ * (el admin abre este link desde el WhatsApp de la empresa y presiona Enviar)
+ */
+export function generateClientConfirmationLink(data: {
+  clientPhone: string;
+  clientName: string;
+  scheduledDate?: Date;
+  workTypes: string[];
+  notes?: string;
+  citaLink?: string;
+}): string {
+  const workTypeLabels: Record<string, string> = {
+    cocina: "Cocina Integral",
+    closet: "Closet",
+    puertas: "Puertas",
+    centro_tv: "Centro de TV",
+  };
+
+  const workTypeText = data.workTypes
+    .map(wt => workTypeLabels[wt] || wt)
+    .join(", ");
+
+  let dateStr = "";
+  let timeStr = "";
+  if (data.scheduledDate) {
+    dateStr = data.scheduledDate.toLocaleDateString("es-CO", {
+      weekday: "long", day: "numeric", month: "long", year: "numeric",
+      timeZone: "America/Bogota",
+    });
+    timeStr = data.scheduledDate.toLocaleTimeString("es-CO", {
+      hour: "2-digit", minute: "2-digit", hour12: true,
+      timeZone: "America/Bogota",
+    });
+  }
+
+  let message = `Hola ${data.clientName} 👋, le escribe *INNOVAR Cocinas de Diseño*.
+
+`;
+  message += `✅ Quedó confirmada su cita de *${workTypeText}*.
+
+`;
+  if (dateStr) {
+    message += `📅 *Fecha:* ${dateStr}
+`;
+    message += `⏰ *Hora:* ${timeStr}
+
+`;
+  }
+  message += `📍 Estaremos en su domicilio a la hora acordada.
+
+`;
+  if (data.notes) message += `📝 *Nota:* ${data.notes}
+
+`;
+  if (data.citaLink) {
+    message += `\n🔗 *Ver / cancelar / reagendar su cita:*\n${data.citaLink}\n`;
+  }
+  message += `\nCualquier duda, estamos a sus órdenes. ¡Gracias por su confianza! 🙏`;
+
+  return generateWhatsAppLink(data.clientPhone, message);
 }
 
 /**

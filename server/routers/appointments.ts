@@ -4,7 +4,9 @@ import { systemRouter } from "../_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { z } from "zod";
 import * as db from "../db";
-import { withTransaction } from "../db";
+import { withTransaction, getDb } from "../db";
+import { appointmentWorkTypes, appointments as appointmentsTable } from "../../drizzle/schema";
+import { eq } from "drizzle-orm";
 import * as whatsapp from "../whatsapp";
 import { TRPCError } from "@trpc/server";
 import { getAvailableTimeSlots, isTimeSlotAvailable, APPOINTMENT_CONFIG } from "../availability";
@@ -20,10 +22,11 @@ export const appointmentsRouter = router({
     create: publicProcedure
       .input(z.object({
         clientId: z.number(),
-        workTypes: z.array(z.enum(["cocina", "closet", "puertas", "centro_tv"])),
+        workTypes: z.array(z.enum(["cocina", "closet", "puertas", "centro_tv", "mueble_bano", "otro"])),
         scheduledDateStr: z.string().optional(), // "YYYY-MM-DD"
         scheduledTimeStr: z.string().optional(), // "HH:MM"
         notes: z.string().optional(),
+        bypassDayRestriction: z.boolean().optional().default(false),
       }))
       .mutation(async ({ input }) => {
         let scheduledDate: Date | undefined;
@@ -31,7 +34,7 @@ export const appointmentsRouter = router({
         // Validar disponibilidad si se proporciona fecha/hora
         if (input.scheduledDateStr && input.scheduledTimeStr) {
           // Usar los strings directamente para validar disponibilidad
-          const isAvailable = await isTimeSlotAvailable(input.scheduledDateStr, input.scheduledTimeStr);
+          const isAvailable = await isTimeSlotAvailable(input.scheduledDateStr, input.scheduledTimeStr, undefined, input.bypassDayRestriction);
           
           if (!isAvailable) {
             throw new TRPCError({
@@ -48,11 +51,15 @@ export const appointmentsRouter = router({
           scheduledDate = new Date(dateStr).toISOString() as any;
         }
 
+        const { randomBytes } = await import('crypto');
+        const appointmentToken = randomBytes(32).toString('hex');
+
         const appointmentId = await db.createAppointment({
           clientId: input.clientId,
           scheduledDate: scheduledDate as any,
           notes: input.notes ? sanitizeText(input.notes) : undefined,
-        });
+          appointmentToken,
+        } as any);
 
         // Insertar los tipos de trabajo en la tabla appointmentWorkTypes
         for (const workType of input.workTypes) {
@@ -60,59 +67,6 @@ export const appointmentsRouter = router({
             appointmentId,
             workType,
           });
-        }
-
-        // Auto-crear visita técnica vinculada al cliente
-        // La cita ES la visita técnica: queda pendiente de asignar medidor
-        try {
-          const clientForVisit = await db.getClientById(input.clientId);
-          if (clientForVisit) {
-            // Buscar un super_admin o admin como createdBy de sistema
-            const [admins, superAdmins] = await Promise.all([
-              db.getUsersByRole("admin"),
-              db.getUsersByRole("super_admin"),
-            ]);
-            const systemUser = [...superAdmins, ...admins][0];
-            if (systemUser) {
-              const visitNotes = input.notes
-                ? `Cita agendada online. ${sanitizeText(input.notes)}`
-                : "Cita agendada desde portal público. Pendiente de asignar medidor.";
-
-              // Si hay varios tipos de trabajo, guardarlos todos en measurements._workTypes
-              const visitMeasurements = input.workTypes.length > 1
-                ? { _workTypes: input.workTypes }
-                : undefined;
-
-              await db.createTechnicalVisit({
-                clientId:      input.clientId,
-                clientName:    clientForVisit.name,
-                clientPhone:   clientForVisit.whatsappPhone ?? undefined,
-                clientAddress: clientForVisit.address ?? undefined,
-                workType:      input.workTypes[0] as any,
-                measurements:  visitMeasurements,
-                notes:         visitNotes,
-                scheduledDate: scheduledDate ? new Date(scheduledDate as any).toISOString() : undefined,
-                createdBy:     systemUser.id,
-                // assignedTo = null: pendiente de asignar por admin/comercial
-              });
-
-              // Notificar a admin y comerciales que hay visita pendiente de asignar
-              const { createAndSendNotification } = await import("../push-notifications");
-              const comerciales = await db.getUsersByRole("comercial");
-              const recipients = [...superAdmins, ...admins, ...comerciales];
-              for (const recipient of recipients) {
-                await createAndSendNotification(recipient.id, {
-                  title: `📅 Nueva visita técnica pendiente`,
-                  body:  `${clientForVisit.name} agendó cita. Asigna un medidor en Visitas Técnicas.`,
-                  type:  "proyecto",
-                  url:   `/visitas-tecnicas`,
-                });
-              }
-            }
-          }
-        } catch (visitErr) {
-          console.error("[appointments.create] Error creando visita técnica automática:", visitErr);
-          // No bloquear la cita si falla la visita
         }
 
         // Obtener datos del cliente para notificación
@@ -203,22 +157,24 @@ export const appointmentsRouter = router({
             }
           }
 
-          const whatsappLink = whatsapp.notifyNewAppointment({
-            clientName: client.name,
+          // Link para notificar AL CLIENTE (se abre manualmente desde el toast)
+          const citaPublicUrl = `${process.env.APP_URL || 'https://innovar-cocinas.onrender.com'}/cita?token=${appointmentToken}`;
+          const whatsappClientLink = whatsapp.generateClientConfirmationLink({
             clientPhone: client.whatsappPhone,
-            clientEmail: client.email || undefined,
-            clientAddress: client.address || undefined,
-            workType: workTypesText,
-            scheduledDate,
+            clientName: client.name,
+            scheduledDate: scheduledDate ? new Date(scheduledDate as string) : undefined,
+            workTypes: input.workTypes,
             notes: input.notes ? sanitizeText(input.notes) : undefined,
+            citaLink: citaPublicUrl,
           });
 
           // Notificación en campanilla para el cliente (si tiene userId)
           const updatedClient = await db.getClientById(client.id);
           if (updatedClient?.userId && scheduledDate) {
             try {
-              const dateFormatted = scheduledDate.toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Bogota' });
-              const timeFormatted = scheduledDate.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'America/Bogota' });
+              const _scheduledDateObj = new Date(scheduledDate as string);
+              const dateFormatted = _scheduledDateObj.toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Bogota' });
+              const timeFormatted = _scheduledDateObj.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'America/Bogota' });
               await db.createNotification({
                 userId: updatedClient.userId,
                 type: 'cita',
@@ -238,8 +194,9 @@ export const appointmentsRouter = router({
               const result = await whatsappCloud.sendAppointmentConfirmation(
                 client.whatsappPhone,
                 client.name,
-                scheduledDate,
-                input.workTypes[0] || "cocina"
+                new Date(scheduledDate as string),
+                input.workTypes[0] || "cocina",
+                citaPublicUrl
               );
               whatsappAutoSent = result.success;
               if (!result.success) {
@@ -250,7 +207,7 @@ export const appointmentsRouter = router({
             }
           }
           
-          return { id: appointmentId, success: true, whatsappLink, whatsappAutoSent };
+          return { id: appointmentId, success: true, whatsappClientLink, whatsappAutoSent, appointmentToken };
         }
         
         return { id: appointmentId, success: true };
@@ -267,7 +224,7 @@ export const appointmentsRouter = router({
     updateStatus: protectedProcedure
       .input(z.object({
         id: z.number(),
-        status: z.enum(["pendiente", "confirmada", "completada", "cancelada"]),
+        status: z.enum(["pendiente", "confirmada", "completada", "cancelada", "enviada"]),
       }))
       .mutation(async ({ ctx, input }) => {
         if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
@@ -539,24 +496,83 @@ export const appointmentsRouter = router({
 
     list: protectedProcedure
       .query(async ({ ctx }) => {
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
+        if (!["admin", "super_admin", "comercial", "medidor"].includes(ctx.user.role)) {
           throw new TRPCError({ code: "FORBIDDEN" });
         }
-        
+
         // Optimización: ejecutar consultas en paralelo
-        const [appointments, clients] = await Promise.all([
+        const [allApts, clients] = await Promise.all([
           db.getAllAppointments(),
           db.getAllClients(),
         ]);
-        
+
+        // Medidor solo ve las citas que le han sido asignadas
+        const filteredApts = ctx.user.role === "medidor"
+          ? allApts.filter((a: any) => a.assignedMedidorId === ctx.user.id)
+          : allApts;
+
+        // Para medidor: incluir workTypes (necesita saber qué medir)
+        if (ctx.user.role === "medidor") {
+          const enriched = await Promise.all(filteredApts.map(async (apt: any) => {
+            const client = clients.find(c => c.id === apt.clientId);
+            const workTypes = await db.getAppointmentWorkTypes(apt.id);
+            return { ...apt, client, workTypes: workTypes.map((wt: any) => wt.workType) };
+          }));
+          return enriched;
+        }
+
         // Combinar datos de citas con clientes
-        return appointments.map(apt => {
+        return filteredApts.map((apt: any) => {
           const client = clients.find(c => c.id === apt.clientId);
-          return {
-            ...apt,
-            client,
-          };
+          return { ...apt, client };
         });
+      }),
+
+    assignMedidor: protectedProcedure
+      .input(z.object({
+        appointmentId: z.coerce.number(),
+        medidorId: z.coerce.number().nullable(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (!["admin", "super_admin", "comercial"].includes(ctx.user.role)) {
+          throw new TRPCError({ code: "FORBIDDEN" });
+        }
+        const drizzleDb = await getDb();
+        if (!drizzleDb) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        await drizzleDb.update(appointmentsTable)
+          .set({ assignedMedidorId: input.medidorId })
+          .where(eq(appointmentsTable.id, input.appointmentId));
+
+        // -- Notificar al medidor cuando le asignan una cita
+        if (input.medidorId) {
+          try {
+            const { createNotification, getAppointmentById, getClientById, getAppointmentWorkTypes } = await import('../db');
+            const apt = await getAppointmentById(input.appointmentId);
+            const client = apt?.clientId ? await getClientById(apt.clientId) : null;
+            const workTypes = await getAppointmentWorkTypes(input.appointmentId);
+            const wtLabels: Record<string, string> = { cocina: 'Cocina Integral', closet: 'Closet', puertas: 'Puertas', centro_tv: 'Centro de TV' };
+            const tipoStr = workTypes.map((wt: any) => wtLabels[wt.workType] || wt.workType).join(', ');
+            let fechaStr = 'Sin fecha';
+            if (apt?.scheduledDate) {
+              const d = new Date(apt.scheduledDate as string);
+              fechaStr = d.toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'America/Bogota' })
+                + ' a las '
+                + d.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'America/Bogota' });
+            }
+            await createNotification({
+              userId: input.medidorId,
+              title: `Visita asignada — ${client?.name || 'Cliente'}`,
+              body: `${tipoStr ? tipoStr + ' — ' : ''}${fechaStr}`,
+              type: 'cita',
+              referenceId: input.appointmentId,
+              referenceType: 'appointment',
+            });
+          } catch (notifErr) {
+            console.error('[assignMedidor] Error notificando medidor:', notifErr);
+          }
+        }
+
+        return { success: true };
       }),
 
     listPaginated: protectedProcedure
@@ -585,10 +601,28 @@ export const appointmentsRouter = router({
     delete: protectedProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ ctx, input }) => {
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
+        const isManager = ["admin", "super_admin", "comercial"].includes(ctx.user.role);
+        const isMedidor = ctx.user.role === "medidor";
+        if (!isManager && !isMedidor) {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para eliminar citas" });
         }
-        
+        // Medidor solo puede eliminar citas que le fueron asignadas y están pendientes
+        if (isMedidor) {
+          const dbConn = await getDb();
+          if (!dbConn) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB no disponible" });
+          const [apt] = await dbConn
+            .select()
+            .from(appointments)
+            .where(eq(appointments.id, input.id))
+            .limit(1);
+          if (!apt) throw new TRPCError({ code: "NOT_FOUND", message: "Cita no encontrada" });
+          if (apt.assignedMedidorId !== ctx.user.id) {
+            throw new TRPCError({ code: "FORBIDDEN", message: "Solo puedes eliminar citas asignadas a ti" });
+          }
+          if (apt.status !== "pendiente" && apt.status !== "confirmada") {
+            throw new TRPCError({ code: "FORBIDDEN", message: "Solo se pueden eliminar citas pendientes o confirmadas" });
+          }
+        }
         await db.deleteAppointment(input.id);
         return { success: true };
       }),
@@ -643,10 +677,46 @@ export const appointmentsRouter = router({
           console.error('[UpdateDate] Error al crear notificación en campanilla:', notifError);
         }
 
-        return { success: true };
+        // Generar link de WhatsApp para notificar al cliente del reagendamiento
+        let whatsappLink: string | null = null;
+        try {
+          const updatedApt = await db.getAppointmentById(input.id);
+          if (updatedApt) {
+            const client = await db.getClientById(updatedApt.clientId);
+            if (client?.whatsappPhone) {
+              const workTypes = await db.getWorkTypesByAppointmentId(updatedApt.id);
+              const token = (updatedApt as any).appointmentToken as string | null;
+              const citaUrl = token
+                ? `${process.env.APP_URL || 'https://innovar-cocinas.onrender.com'}/cita?token=${token}`
+                : undefined;
+              whatsappLink = whatsapp.generateClientConfirmationLink({
+                clientPhone: client.whatsappPhone,
+                clientName: client.name,
+                scheduledDate,
+                workTypes,
+                citaLink: citaUrl,
+              });
+            }
+          }
+        } catch (waErr) {
+          console.error('[UpdateDate] Error al generar link WhatsApp:', waErr);
+        }
+
+        return { success: true, whatsappLink };
       }),
 
-    getOccupiedSlots: publicProcedure
+    listMedidores: protectedProcedure
+      .query(async ({ ctx }) => {
+        if (!["admin", "super_admin", "comercial"].includes(ctx.user.role)) {
+          throw new TRPCError({ code: "FORBIDDEN" });
+        }
+        const allUsers = await db.getAllUsers();
+        return allUsers
+          .filter((u: any) => u.role === "medidor")
+          .map((u: any) => ({ id: u.id, name: u.name || u.email }));
+      }),
+
+        getOccupiedSlots: publicProcedure
       .input(z.object({
         date: z.string(), // Fecha en formato ISO (YYYY-MM-DD)
       }))
@@ -670,17 +740,185 @@ export const availabilityRouter = router({
     getConfig: publicProcedure.query(() => {
       return APPOINTMENT_CONFIG;
     }),
-    getAvailableSlots: publicProcedure
-      .input(z.object({ date: z.string() }))
+    // ── Endpoints públicos por token (sin login) ──────────────────────────────
+    getByToken: publicProcedure
+      .input(z.object({ token: z.string().min(10) }))
       .query(async ({ input }) => {
-        // Pasar la fecha como string directamente
-        return await getAvailableTimeSlots(input.date);
+        const apt = await db.getAppointmentByToken(input.token);
+        if (!apt) throw new TRPCError({ code: "NOT_FOUND", message: "Cita no encontrada o enlace inválido." });
+        const client = await db.getClientById(apt.clientId);
+        const workTypes = await db.getWorkTypesByAppointmentId(apt.id);
+        const workTypeLabels: Record<string, string> = {
+          cocina: "Cocina Integral", closet: "Closet", puertas: "Puertas",
+          centro_tv: "Centro de Entretenimiento", mueble_bano: "Mueble de Baño",
+          escalera: "Escalera", empresas: "Mobiliario Empresarial", otro: "Toma de medidas",
+        };
+        return {
+          id: apt.id,
+          status: apt.status,
+          scheduledDate: apt.scheduledDate,
+          notes: apt.notes,
+          clientName: client?.name ?? "Cliente",
+          workTypes,
+          workTypeLabels,
+        };
+      }),
+
+    cancelByToken: publicProcedure
+      .input(z.object({ token: z.string().min(10) }))
+      .mutation(async ({ input }) => {
+        const apt = await db.getAppointmentByToken(input.token);
+        if (!apt) throw new TRPCError({ code: "NOT_FOUND", message: "Cita no encontrada." });
+        if (apt.status === 'cancelada') throw new TRPCError({ code: "BAD_REQUEST", message: "La cita ya estaba cancelada." });
+        if (apt.status === 'completada') throw new TRPCError({ code: "BAD_REQUEST", message: "No puedes cancelar una cita ya completada." });
+        await db.updateAppointment(apt.id, { status: 'cancelada' });
+        // Notificar al equipo via push notification (WhatsApp Cloud no está configurado)
+        try {
+          const client = await db.getClientById(apt.clientId);
+          const aptDate = apt.scheduledDate ? new Date(apt.scheduledDate as string).toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Bogota' }) : 'fecha no definida';
+          const aptTime = apt.scheduledDate ? new Date(apt.scheduledDate as string).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'America/Bogota' }) : '';
+          const clientName = client?.name ?? 'Cliente';
+          const { sendPushToRole } = await import("../push-notifications");
+          const pushPayload = {
+            title: `⚠️ Cita cancelada — ${clientName}`,
+            body: `El cliente canceló su cita del ${aptDate}${aptTime ? ` a las ${aptTime}` : ''}. Contáctalo para reagendar.`,
+            url: '/calendar',
+          };
+          await sendPushToRole("super_admin", pushPayload);
+          await sendPushToRole("admin", pushPayload);
+          await sendPushToRole("comercial", pushPayload);
+        } catch (notifErr) {
+          console.error('[cancelByToken] Error notificando al equipo:', notifErr);
+        }
+        return { success: true };
+      }),
+
+    requestRescheduleByToken: publicProcedure
+      .input(z.object({
+        token: z.string().min(10),
+        requestedDate: z.string(), // "YYYY-MM-DD"
+        requestedTime: z.string(), // "HH:MM"
+        message: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const apt = await db.getAppointmentByToken(input.token);
+        if (!apt) throw new TRPCError({ code: "NOT_FOUND", message: "Cita no encontrada." });
+        if (apt.status === 'cancelada') throw new TRPCError({ code: "BAD_REQUEST", message: "No puedes reagendar una cita cancelada." });
+        if (apt.status === 'completada') throw new TRPCError({ code: "BAD_REQUEST", message: "No puedes reagendar una cita ya completada." });
+        const noteAppend = `\n[REAGENDAMIENTO SOLICITADO: ${input.requestedDate} a las ${input.requestedTime}${input.message ? ` — "${input.message}"` : ''}]`;
+        const newNotes = (apt.notes ?? '') + noteAppend;
+        await db.updateAppointment(apt.id, {
+          status: 'reagendamiento_solicitado',
+          notes: newNotes,
+          rescheduleRequestedDate: input.requestedDate,
+          rescheduleRequestedTime: input.requestedTime,
+        } as any);
+        // Notificar al equipo via push notification (WhatsApp Cloud no está configurado)
+        try {
+          const client = await db.getClientById(apt.clientId);
+          const clientName = client?.name ?? 'Cliente';
+          const msgExtra = input.message ? ` ("${input.message}")` : '';
+          const { sendPushToRole } = await import("../push-notifications");
+          const pushPayload = {
+            title: `🔄 Reagendamiento solicitado — ${clientName}`,
+            body: `Quiere mover la cita al ${input.requestedDate} a las ${input.requestedTime}${msgExtra}. Confirmar en el CRM.`,
+            url: '/calendar',
+          };
+          await sendPushToRole("super_admin", pushPayload);
+          await sendPushToRole("admin", pushPayload);
+          await sendPushToRole("comercial", pushPayload);
+        } catch (notifErr) {
+          console.error('[requestRescheduleByToken] Error notificando al equipo:', notifErr);
+        }
+        return { success: true };
+      }),
+
+        confirmReschedule: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        if (!["admin", "super_admin", "comercial"].includes(ctx.user.role)) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Sin permisos" });
+        }
+        const apt = await db.getAppointmentById(input.id);
+        if (!apt) throw new TRPCError({ code: "NOT_FOUND", message: "Cita no encontrada" });
+        const reqDate = (apt as any).rescheduleRequestedDate as string | null;
+        const reqTime = (apt as any).rescheduleRequestedTime as string | null;
+        if (!reqDate || !reqTime) throw new TRPCError({ code: "BAD_REQUEST", message: "No hay solicitud de reagendamiento registrada" });
+
+        // Validar disponibilidad del nuevo horario (excluir la cita actual)
+        const isAvailable = await isTimeSlotAvailable(reqDate, reqTime, input.id);
+        if (!isAvailable) throw new TRPCError({ code: "CONFLICT", message: "El horario solicitado ya está ocupado" });
+
+        // Construir nueva fecha en Colombia (UTC-5)
+        const [year, month, day] = reqDate.split('-').map(Number);
+        const [hours, minutes] = reqTime.split(':').map(Number);
+        const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}T${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}:00-05:00`;
+        const newScheduledDate = new Date(dateStr);
+
+        await db.updateAppointment(input.id, {
+          scheduledDate: newScheduledDate.toISOString() as any,
+          status: 'confirmada',
+          notes: apt.notes ?? undefined,
+          rescheduleRequestedDate: null as any,
+          rescheduleRequestedTime: null as any,
+        } as any);
+
+        // Generar link de WhatsApp para notificar al cliente
+        const client = await db.getClientById(apt.clientId);
+        let whatsappLink: string | null = null;
+        if (client?.whatsappPhone) {
+          const workTypes = await db.getWorkTypesByAppointmentId(apt.id);
+          const token = (apt as any).appointmentToken as string | null;
+          const citaUrl = token ? `${process.env.APP_URL || 'https://innovar-cocinas.onrender.com'}/cita?token=${token}` : undefined;
+          whatsappLink = whatsapp.generateClientConfirmationLink({
+            clientPhone: client.whatsappPhone,
+            clientName: client.name,
+            scheduledDate: newScheduledDate,
+            workTypes,
+            citaLink: citaUrl,
+          });
+        }
+        return { success: true, whatsappLink };
+      }),
+
+        getAvailableSlots: publicProcedure
+      .input(z.object({ date: z.string(), bypassDayRestriction: z.boolean().optional().default(false), excludeId: z.number().optional() }))
+      .query(async ({ input }) => {
+        return await getAvailableTimeSlots(input.date, input.bypassDayRestriction, input.excludeId);
       }),
     checkSlot: publicProcedure
       .input(z.object({ date: z.string(), timeSlot: z.string() }))
       .query(async ({ input }) => {
         // Pasar la fecha como string directamente
         return await isTimeSlotAvailable(input.date, input.timeSlot);
+      }),
+
+    getWhatsAppLink: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ ctx, input }) => {
+        if (!["admin", "super_admin", "comercial"].includes(ctx.user.role)) {
+          throw new TRPCError({ code: "FORBIDDEN" });
+        }
+        const apt = await db.getAppointmentById(input.id);
+        if (!apt) throw new TRPCError({ code: "NOT_FOUND", message: "Cita no encontrada" });
+        const client = await db.getClientById(apt.clientId);
+        if (!client?.whatsappPhone) return { whatsappLink: null };
+        const workTypes = await db.getWorkTypesByAppointmentId(apt.id);
+        const token = (apt as any).appointmentToken as string | null;
+        const citaUrl = token
+          ? `${process.env.APP_URL || 'https://innovar-cocinas.onrender.com'}/cita?token=${token}`
+          : undefined;
+        const scheduledDate = apt.scheduledDate
+          ? new Date(apt.scheduledDate as string)
+          : new Date();
+        const whatsappLink = whatsapp.generateClientConfirmationLink({
+          clientPhone: client.whatsappPhone,
+          clientName: client.name,
+          scheduledDate,
+          workTypes,
+          citaLink: citaUrl,
+        });
+        return { whatsappLink };
       }),
 });
 

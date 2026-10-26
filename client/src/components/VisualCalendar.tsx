@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Calendar as CalendarIcon, Clock } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,8 @@ interface VisualCalendarProps {
   selectedTime: string;
   onDateChange: (date: string) => void;
   onTimeChange: (time: string) => void;
+  bypassDayRestriction?: boolean;
+  excludeId?: number;
 }
 
 export function VisualCalendar({
@@ -17,24 +19,21 @@ export function VisualCalendar({
   selectedTime,
   onDateChange,
   onTimeChange,
+  bypassDayRestriction = false,
+  excludeId,
 }: VisualCalendarProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
-  
   // Obtener configuración
   const { data: config } = trpc.availability.getConfig.useQuery();
   
   // Obtener horarios disponibles para la fecha seleccionada
   const { data: slots } = trpc.availability.getAvailableSlots.useQuery(
-    { date: selectedDate },
+    { date: selectedDate, bypassDayRestriction, ...(excludeId ? { excludeId } : {}) },
     { enabled: !!selectedDate }
   );
 
-  useEffect(() => {
-    if (slots) {
-      setAvailableSlots(slots);
-    }
-  }, [slots]);
+  // Usar slots directamente (sin estado local) para evitar datos stale de fecha anterior
+  const availableSlots = slots ?? [];
 
   // Generar días del mes
   const getDaysInMonth = () => {
@@ -61,7 +60,8 @@ export function VisualCalendar({
   };
 
   const days = getDaysInMonth();
-  const allowedDays = config?.allowedDays || [2, 4, 5];
+  // Super admin: todos los días excepto miércoles (3) — pico y placa
+  const allowedDays = bypassDayRestriction ? [0,1,2,4,5,6] : (config?.allowedDays || [2, 4, 5]);
   const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
                       'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
   const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
@@ -97,12 +97,12 @@ export function VisualCalendar({
     const isToday = date.toDateString() === new Date().toDateString();
 
     return cn(
-      "h-10 sm:h-12 w-full rounded-md flex items-center justify-center text-sm sm:text-base cursor-pointer transition-colors touch-manipulation",
+      "h-10 sm:h-12 w-full rounded-md flex flex-col items-center justify-center text-sm sm:text-base cursor-pointer transition-colors touch-manipulation border",
       {
-        "bg-red-300 text-red-900 cursor-not-allowed font-medium": !isAllowed,
-        "bg-green-300 text-green-900 hover:bg-green-400 active:bg-green-500 font-medium": isAllowed && !isSelected,
-        "bg-primary text-primary-foreground": isSelected,
-        "font-bold border-2 border-primary": isToday && !isSelected,
+        "bg-transparent border-transparent text-white/20 cursor-not-allowed": !isAllowed,
+        "bg-white/[0.07] border-white/[0.08] text-white/80 hover:bg-white/[0.12] hover:border-white/[0.18]": isAllowed && !isSelected,
+        "bg-teal-500/20 border-teal-500/50 text-teal-300 font-semibold": isSelected,
+        "ring-2 ring-teal-500": isToday && !isSelected,
       }
     );
   };
@@ -138,7 +138,7 @@ export function VisualCalendar({
   };
 
   // Obtener todos los horarios posibles
-  const allTimeSlots = config?.timeSlots?.map(slot => slot.start) || [];
+  const allTimeSlots = config?.timeSlots?.map(slot => slot.start) || ["08:30", "10:00", "14:00", "15:30"];
 
   return (
     <div className="space-y-6">
@@ -182,7 +182,7 @@ export function VisualCalendar({
         {/* Leyenda */}
         <div className="mt-4 flex flex-wrap gap-4 text-xs">
           <div className="flex items-center gap-1">
-            <div className="h-3 w-3 rounded bg-white border border-gray-300"></div>
+            <div className="h-3 w-3 rounded bg-white/[0.08] border border-white/[0.25]"></div>
             <span>Disponible</span>
           </div>
           <div className="flex items-center gap-1">
@@ -216,31 +216,37 @@ export function VisualCalendar({
                   className={cn(
                     "justify-start",
                     {
-                      "bg-red-300 text-red-900 hover:bg-red-300 border-red-500 font-medium": !isAvailable,
-                      "bg-green-300 text-green-900 hover:bg-green-400 border-green-500 font-medium": isAvailable && !isSelected,
+                      "bg-white/[0.02] text-white/20 border-white/[0.05] cursor-not-allowed": !isAvailable,
+                      "bg-white/[0.07] text-white/75 hover:bg-white/[0.12] border-white/[0.10]": isAvailable && !isSelected,
                     }
                   )}
                 >
                   {formatTime(slot)}
-                  {!isAvailable && " (Ocupado)"}
+                  {!isAvailable && " (No disponible)"}
                 </Button>
               );
             })}
           </div>
 
-          {availableSlots.length === 0 && (
-            <p className="text-sm text-muted-foreground mt-2">
-              No hay horarios disponibles para esta fecha
-            </p>
-          )}
+          {availableSlots.length === 0 && (() => {
+            const todayCol = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Bogota' });
+            const isToday = selectedDate === todayCol;
+            return (
+              <p className="text-sm text-muted-foreground mt-2">
+                {isToday
+                  ? "Los horarios de hoy ya pasaron. Puedes crear la cita sin hora específica, o elige otra fecha."
+                  : "No hay horarios disponibles para esta fecha (todos ocupados)."}
+              </p>
+            );
+          })()}
 
           <div className="mt-4 flex flex-wrap gap-4 text-xs">
             <div className="flex items-center gap-1">
-              <div className="h-3 w-3 rounded bg-green-300 border border-green-500"></div>
+              <div className="h-3 w-3 rounded bg-white/[0.07] border border-white/[0.15]"></div>
               <span>Libre</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="h-3 w-3 rounded bg-red-300 border border-red-500"></div>
+              <div className="h-3 w-3 rounded bg-white/[0.02] border border-white/[0.06]"></div>
               <span>Ocupado</span>
             </div>
           </div>

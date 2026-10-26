@@ -1,8 +1,7 @@
 import { storagePut, storageGet } from "../storage";
 import { getPool } from "../db";
 import { ENV } from "../_core/env";
-// mysql2 no está disponible en este entorno — tipos definidos localmente
-type MysqlConnection = any;
+// mysql2 removed - backup service pending PostgreSQL migration
 import { createReadStream } from "fs";
 import { createWriteStream } from "fs";
 import { tmpdir } from "os";
@@ -58,7 +57,7 @@ export async function createDatabaseBackup(
       throw new Error("Database pool not available");
     }
 
-    const connection = await (pool as any).getConnection();
+    const connection = await pool.getConnection();
     try {
       // Get all tables
       const [tables] = await connection.query(
@@ -183,7 +182,7 @@ export async function createDatabaseBackup(
  * Get row counts for all tables
  */
 async function getTableRowCounts(
-  connection: MysqlConnection
+  connection: any
 ): Promise<Record<string, number>> {
   const [tables] = await connection.query(
     "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE()"
@@ -206,7 +205,7 @@ async function getTableRowCounts(
  * Get table checksums for verification
  */
 async function getTableChecksums(
-  connection: MysqlConnection
+  connection: any
 ): Promise<Record<string, string>> {
   const [tables] = await connection.query(
     "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE()"
@@ -233,7 +232,7 @@ async function getTableChecksums(
  * Get summary of data by origin
  */
 async function getDataOriginSummary(
-  connection: MysqlConnection
+  connection: any
 ): Promise<{ manual: number; system: number }> {
   const tablesWithOrigin = [
     "clients",

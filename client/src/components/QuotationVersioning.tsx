@@ -68,15 +68,15 @@ export function QuotationVersioning({
 
   return (
     <>
-      <Card className="border-blue-200 bg-blue-50/50">
+      <Card className="border-blue-500/25 bg-blue-500/10/50">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <Copy className="h-4 w-4 text-blue-600" />
+              <Copy className="h-4 w-4 text-blue-400" />
               Versionado de Cotización
             </CardTitle>
             {isLocked && (
-              <Badge variant="secondary" className="bg-amber-100 text-amber-800 flex items-center gap-1">
+              <Badge variant="secondary" className="bg-amber-500/15 text-amber-300 flex items-center gap-1">
                 <Lock className="h-3 w-3" />
                 Bloqueada
               </Badge>
@@ -88,7 +88,7 @@ export function QuotationVersioning({
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div>
               <span className="text-muted-foreground">Versión actual:</span>
-              <p className="font-semibold text-blue-700">v{versionNumber}</p>
+              <p className="font-semibold text-blue-300">v{versionNumber}</p>
             </div>
             <div>
               <span className="text-muted-foreground">Tipo:</span>
@@ -98,7 +98,7 @@ export function QuotationVersioning({
 
           {/* Listado de versiones */}
           {versionChain && versionChain.length > 0 && (
-            <div className="bg-white rounded p-2 border border-blue-100">
+            <div className="bg-card rounded p-2 border border-white/[0.08]">
               <p className="text-xs font-medium text-muted-foreground mb-2">Historial de versiones:</p>
               <div className="flex flex-wrap gap-2">
                 {versionChain.map((version: any, index: number) => (
@@ -108,7 +108,7 @@ export function QuotationVersioning({
                     className={
                       version.id === quotationId
                         ? "bg-blue-600 text-white"
-                        : "border-blue-200 text-blue-700"
+                        : "border-blue-500/25 text-blue-300"
                     }
                   >
                     v{version.versionNumber}

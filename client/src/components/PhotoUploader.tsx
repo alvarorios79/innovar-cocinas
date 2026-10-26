@@ -116,8 +116,8 @@ export function PhotoUploader({
       }
 
       // Validar tamaño (12MB por archivo)
-      if (file.size > 12 * 1024 * 1024) {
-        toast.error(`${file.name} es muy grande (máx 12MB)`);
+      if (file.size > 20 * 1024 * 1024) {
+        toast.error(`${file.name} es muy grande (máx 20MB)`);
         continue;
       }
 
@@ -290,7 +290,7 @@ export function PhotoUploader({
           <div>
             <p className="font-medium">Arrastra archivos aquí o haz clic para seleccionar</p>
             <p className="text-sm text-muted-foreground">
-              PNG, JPG, WEBP, PDF hasta 10MB (máx. {maxFiles} archivos)
+              PNG, JPG, WEBP, PDF hasta 20MB (máx. {maxFiles} archivos)
             </p>
           </div>
           <div className="flex gap-2 mt-2">

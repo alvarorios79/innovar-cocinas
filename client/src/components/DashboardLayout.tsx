@@ -19,9 +19,11 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
 import {
   LayoutDashboard,
+  Home,
   LogOut,
   FolderKanban,
   FileText,
@@ -42,11 +44,13 @@ import {
   Trash2,
   BarChart3,
   Package,
-  Ruler,
+  BookOpen,
+  ClipboardCheck,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from "./DashboardLayoutSkeleton";
+import { NotificationBell } from "./NotificationBell";
 import { Button } from "./ui/button";
 
 // ── Tipos ────────────────────────────────────────────────────────────────────
@@ -63,47 +67,59 @@ type MenuSection = {
   items: MenuItem[];
 };
 
-// ── Panel home por rol ────────────────────────────────────────────────────────
-const rolePanelItem: Record<string, MenuItem> = {
-  super_admin: { icon: LayoutDashboard, label: "Panel CEO",          path: "/", iconColor: "#1DB5A8" },
-  admin:       { icon: Shield,          label: "Panel Admin",        path: "/", iconColor: "#1DB5A8" },
-  disenador:   { icon: Palette,         label: "Panel Diseño",       path: "/", iconColor: "#ec4899" },
-  jefe_taller: { icon: Wrench,          label: "Panel Jefe Taller",  path: "/", iconColor: "#f97316" },
-  operario:    { icon: Package,         label: "Panel Operario",     path: "/", iconColor: "#3b82f6" },
-  medidor:     { icon: Ruler,           label: "Mis Visitas",        path: "/medidor", iconColor: "#1DB5A8" },
-};
-
 // ── Estructura de navegación ─────────────────────────────────────────────────
 const menuSections: MenuSection[] = [
   {
     title: "Principal",
     items: [
-      // Placeholder — se reemplaza dinámicamente por rolePanelItem según el rol
-      { icon: LayoutDashboard, label: "__home__", path: "/", iconColor: "#1DB5A8" },
-      { icon: LayoutDashboard, label: "Dashboard", path: "/ceo-dashboard",
-        roles: ["super_admin", "admin"], iconColor: "#06b6d4" },
+      { icon: Home,            label: "Inicio",    path: "/", iconColor: "#1DB5A8",
+        roles: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario", "contador"] },
+      { icon: LayoutDashboard, label: "Financiero", path: "/ceo-dashboard",
+        roles: ["super_admin", "admin"], iconColor: "#0ea5e9" },
     ],
   },
   {
-    title: "CRM / Clientes",
+    title: "Gestión",
     items: [
-      { icon: Users, label: "Clientes", path: "/clients", iconColor: "#0ea5e9" },
+      { icon: CalendarCheck, label: "Citas",         path: "/appointments-calendar",
+        roles: ["super_admin", "admin", "comercial"], iconColor: "#3b82f6" },
+      { icon: Users,         label: "Clientes",      path: "/clients",
+        roles: ["super_admin", "admin", "comercial"], iconColor: "#0ea5e9" },
+      { icon: ClipboardCheck, label: "Levantamientos", path: "/levantamientos",
+        roles: ["medidor", "super_admin", "admin", "comercial", "disenador"], iconColor: "#1DB5A8" },
+      { icon: FileText,      label: "Cotizaciones",  path: "/quotations",
+        roles: ["super_admin", "admin", "comercial"], iconColor: "#6366f1" },
+      { icon: FolderKanban,  label: "Proyectos",     path: "/projects", iconColor: "#8b5cf6",
+        roles: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario", "contador"] },
+    ],
+  },
+  {
+    title: "Producción",
+    items: [
+      { icon: Palette,       label: "Diseño",        path: "/design",
+        roles: ["super_admin", "admin", "disenador", "jefe_taller", "operario"], iconColor: "#ec4899" },
+      { icon: Wrench,        label: "Producción",    path: "/production",
+        roles: ["super_admin", "admin", "disenador", "jefe_taller", "operario"], iconColor: "#f59e0b" },
+      { icon: Truck,         label: "Instalaciones", path: "/calendar",
+        roles: ["super_admin", "admin", "comercial", "jefe_taller", "operario"], iconColor: "#f97316" },
+      { icon: ClipboardList, label: "Tareas",        path: "/tasks", iconColor: "#22c55e",
+        roles: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario", "contador"] },
     ],
   },
   {
     title: "Comercial",
     items: [
-      // Pipeline solo visible para comercial (es su panel home)
-      { icon: KanbanSquare,  label: "Pipeline",     path: "/comercial",
-        roles: ["comercial"], iconColor: "#1DB5A8" },
-      { icon: FileText,      label: "Cotizaciones",  path: "/quotations",  iconColor: "#6366f1" },
-      { icon: CalendarCheck, label: "Citas",         path: "/appointments-calendar", iconColor: "#3b82f6" },
+      { icon: KanbanSquare,  label: "Pipeline",      path: "/comercial",
+        roles: ["super_admin", "admin", "comercial"], iconColor: "#1DB5A8" },
+      { icon: Star,          label: "Postventa",     path: "/postventa",
+        roles: ["super_admin", "admin", "comercial"], iconColor: "#eab308" },
     ],
   },
   {
-    title: "Proyectos",
+    title: "Visitas Técnicas",
     items: [
-      { icon: FolderKanban, label: "Proyectos", path: "/projects", iconColor: "#8b5cf6" },
+      { icon: CalendarCheck, label: "Visitas Técnicas", path: "/medidor",
+        roles: ["medidor"], iconColor: "#f59e0b" },
     ],
   },
   {
@@ -111,69 +127,35 @@ const menuSections: MenuSection[] = [
     items: [
       { icon: DollarSign, label: "Contabilidad", path: "/accounting",
         roles: ["super_admin", "admin"], iconColor: "#10b981" },
-      { icon: BarChart3,  label: "Rentabilidad", path: "/profitability-dashboard",
-        roles: ["super_admin", "admin"], iconColor: "#06b6d4" },
-    ],
-  },
-  {
-    title: "Diseño",
-    items: [
-      { icon: Palette, label: "Diseño", path: "/design",
-        roles: ["super_admin", "admin", "disenador"], iconColor: "#ec4899" },
-    ],
-  },
-  {
-    title: "Producción",
-    items: [
-      { icon: Wrench,        label: "Producción", path: "/production",
-        roles: ["super_admin", "admin", "jefe_taller", "operario"], iconColor: "#f59e0b" },
-      { icon: ClipboardList, label: "Tareas",     path: "/tasks", iconColor: "#22c55e" },
-    ],
-  },
-  {
-    title: "Instalaciones",
-    items: [
-      { icon: Truck, label: "Instalaciones", path: "/calendar",
-        roles: ["super_admin", "admin", "jefe_taller", "operario"], iconColor: "#f97316" },
-    ],
-  },
-  {
-    title: "Postventa",
-    items: [
-      { icon: Star, label: "Postventa", path: "/postventa", iconColor: "#eab308" },
-    ],
-  },
-  {
-    title: "Visitas Técnicas",
-    items: [
-      { icon: Ruler, label: "Mis Visitas",      path: "/medidor",
-        roles: ["medidor"], iconColor: "#1DB5A8" },
-      { icon: Ruler, label: "Visitas Técnicas", path: "/visitas-tecnicas",
-        roles: ["super_admin", "admin", "comercial"], iconColor: "#1DB5A8" },
+      { icon: BookOpen,   label: "Contador",      path: "/contador",
+        roles: ["super_admin", "admin", "contador"], iconColor: "#34d399" },
     ],
   },
   {
     title: "Administración",
     items: [
       { icon: Shield,     label: "Admin",              path: "/admin",
-        roles: ["super_admin", "admin"], iconColor: "#94a3b8" },
+        roles: ["super_admin"], iconColor: "#94a3b8" },
       { icon: Calculator, label: "Motor de Cotización", path: "/pricing-config",
-        roles: ["super_admin", "admin"], iconColor: "#06b6d4" },
+        roles: ["super_admin"], iconColor: "#06b6d4" },
       { icon: Package,    label: "Herrajes",            path: "/herrajes",
         roles: ["super_admin", "admin"], iconColor: "#a78bfa" },
-      { icon: ImageIcon,  label: "Galerías",            path: "/galerias", iconColor: "#a855f7" },
+      { icon: ImageIcon,  label: "Galerías",            path: "/galerias",
+        roles: ["super_admin", "admin", "comercial"], iconColor: "#a855f7" },
     ],
   },
 ];
 
 // ── Etiquetas de rol ─────────────────────────────────────────────────────────
 const roleLabels: Record<string, { label: string; color: string }> = {
-  super_admin: { label: "Super Admin", color: "bg-purple-500/15 text-purple-300 border-purple-400/25" },
+  super_admin: { label: "Super Admin", color: "bg-purple-500/15 text-purple-300 border-purple-500/40/25" },
   admin:       { label: "Admin",       color: "bg-[#6ACFC7]/15 text-[#6ACFC7] border-[#6ACFC7]/25" },
   comercial:   { label: "Comercial",   color: "bg-[#6ACFC7]/10 text-[#88d9d3] border-[#6ACFC7]/20" },
   disenador:   { label: "Diseñador",   color: "bg-indigo-500/15 text-indigo-300 border-indigo-400/25" },
   jefe_taller: { label: "Jefe Taller", color: "bg-amber-500/15 text-amber-300 border-amber-400/25" },
   operario:    { label: "Operario",    color: "bg-white/10 text-white/60 border-white/15" },
+  medidor:     { label: "Medidor",     color: "bg-amber-500/15 text-amber-300 border-amber-400/25" },
+  contador:    { label: "Contador",    color: "bg-violet-500/15 text-violet-300 border-violet-400/25" },
   user:        { label: "Usuario",     color: "bg-white/10 text-white/60 border-white/15" },
 };
 
@@ -248,7 +230,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <h1 className="text-lg font-semibold" style={{ color: "#FFFFFF" }}>Bienvenido</h1>
             <p className="text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>Inicia sesión para acceder al sistema.</p>
           </div>
-          <Button onClick={() => { window.location.href = "/login"; }} size="lg"
+          <Button onClick={() => { window.location.href = getLoginUrl(); }} size="lg"
             className="w-full font-semibold transition-all"
             style={{ background: "#6ACFC7", color: "#0C1A1A" }}>
             Iniciar Sesión
@@ -261,9 +243,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <SidebarProvider
       defaultOpen={true}
-      style={{ "--sidebar-width": `${sidebarWidth}px`, "--sidebar-width-icon": "72px", "--sidebar-background": "#0A1616" } as CSSProperties}
+      style={{ "--sidebar-width": `${sidebarWidth}px`, "--sidebar-background": "#0A1616" } as CSSProperties}
     >
-      <DashboardLayoutContent setSidebarWidth={setSidebarWidth}>
+      <DashboardLayoutContent setSidebarWidth={setSidebarWidth} sidebarWidth={sidebarWidth}>
         {children}
       </DashboardLayoutContent>
     </SidebarProvider>
@@ -274,9 +256,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 type DashboardLayoutContentProps = {
   children: React.ReactNode;
   setSidebarWidth: (width: number) => void;
+  sidebarWidth: number;
 };
 
-function DashboardLayoutContent({ children, setSidebarWidth }: DashboardLayoutContentProps) {
+function DashboardLayoutContent({ children, setSidebarWidth, sidebarWidth }: DashboardLayoutContentProps) {
   const { user, logout } = useAuth();
   const [location, setLocation] = useLocation();
   const { state, toggleSidebar } = useSidebar();
@@ -287,20 +270,13 @@ function DashboardLayoutContent({ children, setSidebarWidth }: DashboardLayoutCo
   const userRole = (user as any)?.role ?? "user";
   const roleInfo = roleLabels[userRole] ?? roleLabels["user"];
 
-  // Panel home del rol actual (comercial usa Pipeline como su home)
-  const homeItem: MenuItem = userRole === "comercial"
-    ? { icon: KanbanSquare, label: "Pipeline", path: "/comercial", iconColor: "#1DB5A8" }
-    : userRole === "medidor"
-    ? { icon: Ruler, label: "Mis Visitas", path: "/medidor", iconColor: "#1DB5A8" }
-    : (rolePanelItem[userRole] ?? rolePanelItem["super_admin"]);
-
   // Filtrar secciones y ítems según el rol del usuario
   const visibleSections = menuSections
     .map((section) => ({
       ...section,
-      items: section.items
-        .filter((item) => !item.roles || item.roles.includes(userRole))
-        .map((item) => item.label === "__home__" ? homeItem : item),
+      items: section.items.filter(
+        (item) => !item.roles || item.roles.includes(userRole)
+      ),
     }))
     .filter((section) => section.items.length > 0);
 
@@ -313,8 +289,8 @@ function DashboardLayoutContent({ children, setSidebarWidth }: DashboardLayoutCo
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizing) return;
-      // Sidebar is always anchored at x=0, so width = cursor x position
-      const newWidth = e.clientX;
+      const sidebarLeft = sidebarRef.current?.getBoundingClientRect().left ?? 0;
+      const newWidth = e.clientX - sidebarLeft;
       if (newWidth >= MIN_WIDTH && newWidth <= MAX_WIDTH) setSidebarWidth(newWidth);
     };
     const handleMouseUp = () => setIsResizing(false);
@@ -334,11 +310,11 @@ function DashboardLayoutContent({ children, setSidebarWidth }: DashboardLayoutCo
 
   return (
     <>
-      <Sidebar
-        ref={sidebarRef as React.Ref<HTMLDivElement>}
-        collapsible="icon"
-        className="border-r border-white/[0.06] bg-[#0C1A1A]"
-      >
+      <div className="relative" ref={sidebarRef}>
+        <Sidebar
+          collapsible="icon"
+          className="border-r border-white/[0.06] bg-[#0C1A1A]"
+        >
           {/* Header — logo */}
           <SidebarHeader className="h-16 justify-center border-b border-white/[0.06] bg-[#0C1A1A]">
             <button
@@ -462,21 +438,28 @@ function DashboardLayoutContent({ children, setSidebarWidth }: DashboardLayoutCo
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarFooter>
-      </Sidebar>
+        </Sidebar>
 
-      {/* Handle de resize — fixed, aligned to the sidebar's right edge via CSS var */}
-      {!isCollapsed && (
-        <div
-          className="fixed top-0 h-full w-1 cursor-col-resize transition-colors z-50"
-          style={{ left: "calc(var(--sidebar-width) - 1px)", backgroundColor: "transparent" }}
-          onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.backgroundColor = "rgba(106,207,199,0.40)")}
-          onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.backgroundColor = "transparent")}
-          onMouseDown={() => setIsResizing(true)}
-        />
-      )}
+        {/* Handle de resize */}
+        {!isCollapsed && (
+          <div
+            className="absolute top-0 right-0 w-1 h-full cursor-col-resize transition-colors"
+            style={{ zIndex: 50, backgroundColor: "transparent" }}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.backgroundColor = "rgba(106,207,199,0.40)")}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.backgroundColor = "transparent")}
+            onMouseDown={() => setIsResizing(true)}
+          />
+        )}
+      </div>
 
       {/* Contenido principal */}
-      <SidebarInset>
+      <SidebarInset
+        style={{
+          marginLeft: isMobile ? undefined : (isCollapsed ? 78 : sidebarWidth),
+          transition: "margin-left 0.2s ease",
+          minWidth: 0,
+        }}
+      >
         {isMobile && (
           <div className="flex border-b h-14 items-center justify-between px-3 sticky top-0 z-40"
             style={{ backgroundColor: "#0C1A1A", borderColor: "rgba(106,207,199,0.10)" }}>
@@ -487,7 +470,10 @@ function DashboardLayoutContent({ children, setSidebarWidth }: DashboardLayoutCo
                 {activeMenuItem?.label ?? "Menú"}
               </span>
             </div>
-            <img src="/logo-light.png" alt="INNOVAR" style={{ height: 32, width: 32, objectFit: "contain" }} />
+            <div className="flex items-center gap-2">
+              <NotificationBell />
+              <img src="/logo-light.png" alt="INNOVAR" style={{ height: 32, width: 32, objectFit: "contain" }} />
+            </div>
           </div>
         )}
         {/* Top header bar — desktop */}
@@ -522,6 +508,7 @@ function DashboardLayoutContent({ children, setSidebarWidth }: DashboardLayoutCo
               <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border ${roleInfo.color}`}>
                 {roleInfo.label}
               </span>
+              <NotificationBell />
               <div
                 className="h-9 w-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0"
                 style={{ background: "#6ACFC7" }}
@@ -533,7 +520,7 @@ function DashboardLayoutContent({ children, setSidebarWidth }: DashboardLayoutCo
         )}
 
         <main className="flex-1 min-h-screen" style={{ background: "#0C1A1A" }}>
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             {children}
           </div>
         </main>

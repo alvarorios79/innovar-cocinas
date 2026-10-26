@@ -4,6 +4,7 @@ import { Download, X, Eye, Loader2, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import { downloadPDFiOS } from "@/lib/pdf-download";
+import { toast } from "sonner";
 
 // Configurar worker de PDF.js
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
@@ -63,21 +64,30 @@ export function PDFPreviewBeforeSave({
   };
 
   const handleDownload = async () => {
-    const downloadUrl = pdfUrl.replace("?preview=true", "").replace("&preview=true", "");
+    const downloadUrl = pdfUrl.replace("&preview=true", "").replace("?preview=true", "");
     const cleanName = quotationNumber.replace(/[^a-zA-Z0-9\-_\s]/g, '').replace(/\s+/g, '_');
     const filename = `${cleanName}.pdf`;
-    
-    if (isIOS) {
-      // En iOS, usar la función compatible
-      await downloadPDFiOS(downloadUrl, filename);
-    } else {
-      // En desktop, usar método tradicional
-      const link = document.createElement("a");
-      link.href = downloadUrl;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+
+    try {
+      if (isIOS) {
+        // En iOS, usar la función compatible (ya tiene manejo de errores)
+        await downloadPDFiOS(downloadUrl, filename);
+      } else {
+        // En desktop, verificar que el archivo existe antes de descargar
+        const response = await fetch(downloadUrl, { method: 'HEAD' });
+        if (!response.ok) {
+          toast.error("El PDF ya no está disponible. Genera el PDF nuevamente.");
+          return;
+        }
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    } catch {
+      toast.error("Error al descargar el PDF. Intenta generarlo nuevamente.");
     }
   };
 
@@ -117,7 +127,7 @@ export function PDFPreviewBeforeSave({
       <DialogContent className="max-w-5xl w-[95vw] h-[95vh] flex flex-col p-4">
         <DialogHeader className="pb-2">
           <DialogTitle className="flex items-center gap-2">
-            <Eye className="h-5 w-5 text-teal-600" />
+            <Eye className="h-5 w-5 text-teal-400" />
             Vista Previa del PDF
           </DialogTitle>
           <DialogDescription>
@@ -125,22 +135,13 @@ export function PDFPreviewBeforeSave({
           </DialogDescription>
         </DialogHeader>
 
-        {/* Botón de cierre en esquina superior derecha */}
-        <button
-          onClick={() => onOpenChange(false)}
-          className="absolute top-4 right-4 z-50 p-2 bg-white rounded-full shadow-lg hover:bg-gray-100"
-          title="Cerrar"
-        >
-          <X className="h-5 w-5" />
-        </button>
-
         {!isPdfUrlAvailable ? (
           // Si no hay URL, mostrar mensaje de error
           <div className="flex-1 flex flex-col items-center justify-center gap-4 p-6">
             <AlertCircle className="h-12 w-12 text-red-500" />
             <div className="text-center">
-              <p className="font-semibold text-gray-900">PDF no disponible</p>
-              <p className="text-sm text-gray-600 mt-2">El PDF aún no se ha generado. Por favor, intenta más tarde.</p>
+              <p className="font-semibold text-foreground">PDF no disponible</p>
+              <p className="text-sm text-muted-foreground mt-2">El PDF aún no se ha generado. Por favor, intenta más tarde.</p>
             </div>
           </div>
         ) : isIOS ? (
@@ -148,8 +149,8 @@ export function PDFPreviewBeforeSave({
           <div className="flex-1 flex flex-col items-center justify-center gap-4 p-6">
             <AlertCircle className="h-12 w-12 text-amber-500" />
             <div className="text-center">
-              <p className="font-semibold text-gray-900">Vista previa no disponible en iPhone</p>
-              <p className="text-sm text-gray-600 mt-2">Toca el botón de abajo para ver el PDF en pantalla completa</p>
+              <p className="font-semibold text-foreground">Vista previa no disponible en iPhone</p>
+              <p className="text-sm text-muted-foreground mt-2">Toca el botón de abajo para ver el PDF en pantalla completa</p>
             </div>
             <Button
               onClick={() => window.open(cleanPdfUrl, '_blank')}
@@ -163,7 +164,7 @@ export function PDFPreviewBeforeSave({
           <>
             {/* Controles de navegación y zoom */}
             {!isGenerating && !isLoading && numPages > 0 && (
-              <div className="flex items-center justify-between px-3 py-2 bg-gray-100 rounded-md text-sm flex-wrap gap-2">
+              <div className="flex items-center justify-between px-3 py-2 bg-white/[0.06] rounded-md text-sm flex-wrap gap-2">
                 <div className="flex items-center gap-1">
                   <Button
                     variant="outline"
@@ -222,12 +223,12 @@ export function PDFPreviewBeforeSave({
 
             <div 
               ref={containerRef}
-              className="flex-1 relative bg-gray-200 rounded-md overflow-auto min-h-0"
+              className="flex-1 relative bg-white/[0.10] rounded-md overflow-auto min-h-0"
               style={{ maxHeight: 'calc(95vh - 200px)' }}
             >
               {(isGenerating || isLoading) && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-gray-200">
-                  <Loader2 className="h-8 w-8 animate-spin text-teal-600 mb-2" />
+                <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-white/[0.10]">
+                  <Loader2 className="h-8 w-8 animate-spin text-teal-400 mb-2" />
                   <div className="text-gray-500">
                     {isGenerating ? "Generando vista previa..." : "Cargando PDF..."}
                   </div>
@@ -242,7 +243,7 @@ export function PDFPreviewBeforeSave({
                     onLoadError={onDocumentLoadError}
                     loading={
                       <div className="flex flex-col items-center justify-center py-8">
-                        <Loader2 className="h-8 w-8 animate-spin text-teal-600 mb-2" />
+                        <Loader2 className="h-8 w-8 animate-spin text-teal-400 mb-2" />
                         <span className="text-gray-500">Cargando documento...</span>
                       </div>
                     }

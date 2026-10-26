@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
-import { Calendar, Phone, FileText, Users, Trash2, Plus, Bell, Key, Wrench, CheckSquare, Square, Eye, EyeOff, Search, Cake, DollarSign } from "lucide-react";
+import { Calendar, Phone, FileText, Users, Trash2, Plus, Bell, Key, Wrench, CheckSquare, Square, Eye, EyeOff, Search, Cake, DollarSign, ClipboardList } from "lucide-react";
 import { KpiCard, KpiGrid } from "@/components/KpiCard";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RemindersPanel } from "@/components/RemindersPanel";
@@ -24,6 +24,167 @@ import { formatPrice } from "@/lib/formatters";
 import { PageHeader } from "@/components/PageHeader";
 import { WhatsAppStatusPanel } from "@/components/WhatsAppStatusPanel";
 
+// ── Levantamientos Tab ────────────────────────────────────────────────────────
+const WORK_LABELS: Record<string, string> = {
+  cocina: "Cocina",
+  closet: "Closet",
+  puertas: "Puertas",
+  centro_tv: "Centro TV",
+};
+
+const STATUS_LABELS: Record<string, { label: string; className: string }> = {
+  borrador: { label: "Borrador", className: "bg-yellow-500/15 text-yellow-400" },
+  enviada: { label: "Enviado", className: "bg-teal-500/15 text-teal-400" },
+  convertida: { label: "Convertido", className: "bg-green-500/15 text-green-400" },
+};
+
+function LevantamientosTab() {
+  const [selectedVisit, setSelectedVisit] = useState<any>(null);
+  const { data: visits = [] } = trpc.technicalVisits.list.useQuery(undefined);
+
+  if ((visits as any[]).length === 0) {
+    return (
+      <Card>
+        <CardContent className="pt-10 pb-10 text-center text-muted-foreground">
+          <ClipboardList className="h-10 w-10 mx-auto mb-3 opacity-30" />
+          <p>No hay levantamientos registrados aún.</p>
+          <p className="text-sm mt-1">Los medidores enviarán sus visitas técnicas aquí.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (selectedVisit) {
+    return (
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" size="sm" onClick={() => setSelectedVisit(null)}>← Volver</Button>
+            <CardTitle className="flex items-center gap-2">
+              <ClipboardList className="h-5 w-5 text-teal-400" />
+              Levantamiento — {selectedVisit.clientName}
+            </CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div><span className="text-muted-foreground">Trabajo:</span> <span className="font-medium">{WORK_LABELS[selectedVisit.workType] || selectedVisit.workType}</span></div>
+            <div><span className="text-muted-foreground">Estado:</span> <Badge className={(STATUS_LABELS[selectedVisit.status] || STATUS_LABELS.borrador).className}>{(STATUS_LABELS[selectedVisit.status] || STATUS_LABELS.borrador).label}</Badge></div>
+            <div><span className="text-muted-foreground">Teléfono:</span> <span className="font-medium">{selectedVisit.clientPhone || "—"}</span></div>
+            <div><span className="text-muted-foreground">Dirección:</span> <span className="font-medium">{selectedVisit.clientAddress || "—"}</span></div>
+            <div><span className="text-muted-foreground">Medidor:</span> <span className="font-medium">{selectedVisit.createdByName || "—"}</span></div>
+            <div><span className="text-muted-foreground">Fecha:</span> <span className="font-medium">{selectedVisit.createdAt ? new Date(selectedVisit.createdAt).toLocaleDateString("es-CO") : "—"}</span></div>
+          </div>
+
+          {selectedVisit.measurements && Object.keys(selectedVisit.measurements).length > 0 && (
+            <div>
+              <h4 className="font-semibold text-teal-400 mb-2">Medidas</h4>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {Object.entries(selectedVisit.measurements).map(([k, v]: any) => (
+                  <div key={k} className="bg-white/[0.04] rounded p-2 text-sm">
+                    <div className="text-muted-foreground text-xs">{k}</div>
+                    <div className="font-medium">{String(v)}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {selectedVisit.notes && (
+            <div>
+              <h4 className="font-semibold text-teal-400 mb-2">Notas</h4>
+              <p className="text-sm bg-white/[0.04] rounded p-3">{selectedVisit.notes}</p>
+            </div>
+          )}
+
+          {selectedVisit.technicalEvaluation && (
+            <div>
+              <h4 className="font-semibold text-teal-400 mb-2">Evaluación técnica</h4>
+              <p className="text-sm">{selectedVisit.technicalEvaluation}</p>
+            </div>
+          )}
+
+          {(selectedVisit.photos || []).length > 0 && (
+            <div>
+              <h4 className="font-semibold text-teal-400 mb-2">Fotos ({(selectedVisit.photos || []).length})</h4>
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                {(selectedVisit.photos || []).map((photo: any) => (
+                  <a key={photo.id} href={photo.url} target="_blank" rel="noopener noreferrer">
+                    <img src={photo.url} alt={photo.fileName} className="w-full aspect-square object-cover rounded border border-white/10 hover:border-teal-400 transition-colors" />
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Acciones */}
+          <div className="flex flex-wrap gap-2 pt-4 border-t border-white/10">
+            {selectedVisit.status !== "convertida" && (
+              <Button
+                className="bg-teal-600 hover:bg-teal-700 text-white"
+                onClick={() => {
+                  const params = new URLSearchParams();
+                  params.set("new", "1");
+                  if (selectedVisit.clientId) params.set("clientId", String(selectedVisit.clientId));
+                  if (selectedVisit.workType) params.set("workType", selectedVisit.workType);
+                  window.location.href = "/cotizaciones?" + params.toString();
+                }}
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Crear cotización
+              </Button>
+            )}
+            {selectedVisit.status === "enviada" && (
+              <span className="text-xs text-amber-400 self-center">
+                ⚠️ Pendiente de cotización
+              </span>
+            )}
+            {selectedVisit.status === "convertida" && (
+              <span className="text-xs text-emerald-400 self-center">
+                ✓ Convertido a proyecto
+              </span>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <ClipboardList className="h-5 w-5 text-teal-400" />
+          Levantamientos Técnicos
+        </CardTitle>
+        <CardDescription>Visitas técnicas enviadas por el equipo de medidores.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2">
+          {(visits as any[]).map((visit: any) => (
+            <div
+              key={visit.id}
+              onClick={() => setSelectedVisit(visit)}
+              className="flex items-center justify-between p-3 rounded-lg border border-white/[0.06] hover:border-teal-500/30 bg-white/[0.02] hover:bg-white/[0.04] cursor-pointer transition-colors"
+            >
+              <div>
+                <p className="font-medium text-sm">{visit.clientName}</p>
+                <p className="text-xs text-muted-foreground">{WORK_LABELS[visit.workType] || visit.workType} · {visit.clientAddress || "Sin dirección"}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge className={(STATUS_LABELS[visit.status] || STATUS_LABELS.borrador).className}>
+                  {(STATUS_LABELS[visit.status] || STATUS_LABELS.borrador).label}
+                </Badge>
+                <span className="text-xs text-muted-foreground">{visit.createdAt ? new Date(visit.createdAt).toLocaleDateString("es-CO") : ""}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function Admin() {
   const { user, isAuthenticated, loading } = useAuth();
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
@@ -38,7 +199,7 @@ export default function Admin() {
   const [createUserForm, setCreateUserForm] = useState({
     name: "",
     email: "",
-    role: "user" as "user" | "admin" | "super_admin" | "comercial" | "disenador" | "jefe_taller" | "operario" | "medidor",
+    role: "user" as "user" | "admin" | "super_admin",
     password: "" as string | undefined,
     birthDate: "" as string | undefined,
   });
@@ -128,6 +289,16 @@ export default function Admin() {
       utils.appointments.listPaginated.invalidate();
       toast.success("Cotización enviada al cliente");
     },
+  });
+
+  const medidores = (allUsers as any[]).filter((u: any) => u.role === "medidor");
+
+  const assignMedidorMutation = trpc.appointments.assignMedidor.useMutation({
+    onSuccess: () => {
+      utils.appointments.listPaginated.invalidate();
+      toast.success("Medidor asignado");
+    },
+    onError: () => toast.error("Error al asignar medidor"),
   });
 
   const updateUserRole = trpc.userManagement.updateRole.useMutation({
@@ -259,6 +430,54 @@ export default function Admin() {
       toast.error(error.message || "Error al actualizar cliente");
     },
   });
+
+  // ── Crear Cita Dialog ────────────────────────────────────────────────────────
+  const [showCrearCitaDialog, setShowCrearCitaDialog] = useState(false);
+  const [crearCitaForm, setCrearCitaForm] = useState({
+    name: "", phone: "", address: "", workTypes: [] as string[], date: "", time: "",
+  });
+  const [crearCitaMedidorId, setCrearCitaMedidorId] = useState<number | null>(null);
+  const [crearCitaLoading, setCrearCitaLoading] = useState(false);
+
+  const getOrCreateClientMutation = trpc.clients.getOrCreateByWhatsApp.useMutation();
+  const createAppointmentMutation = trpc.appointments.create.useMutation({
+    onSuccess: () => {
+      utils.appointments.listPaginated.invalidate();
+    },
+  });
+
+  const handleCrearCita = async () => {
+    if (!crearCitaForm.name.trim() || !crearCitaForm.phone.trim() || crearCitaForm.workTypes.length === 0) {
+      toast.error("Completa nombre, teléfono y al menos un tipo de trabajo");
+      return;
+    }
+    setCrearCitaLoading(true);
+    try {
+      const client = await getOrCreateClientMutation.mutateAsync({
+        name: crearCitaForm.name,
+        whatsappPhone: crearCitaForm.phone,
+        address: crearCitaForm.address || undefined,
+      });
+      if (!client) throw new Error("No se pudo crear el cliente");
+      const result = await createAppointmentMutation.mutateAsync({
+        clientId: client.id,
+        workTypes: crearCitaForm.workTypes as any[],
+        scheduledDateStr: crearCitaForm.date || undefined,
+        scheduledTimeStr: crearCitaForm.time || undefined,
+      });
+      if (crearCitaMedidorId && (result as any)?.id) {
+        await assignMedidorMutation.mutateAsync({ appointmentId: (result as any).id, medidorId: crearCitaMedidorId });
+      }
+      toast.success("Cita creada exitosamente");
+      setShowCrearCitaDialog(false);
+      setCrearCitaForm({ name: "", phone: "", address: "", workTypes: [], date: "", time: "" });
+      setCrearCitaMedidorId(null);
+    } catch (e: any) {
+      toast.error(e.message || "Error al crear la cita");
+    } finally {
+      setCrearCitaLoading(false);
+    }
+  };
 
   // Funciones para selección múltiple
   const toggleSelectAppointment = (id: number) => {
@@ -538,49 +757,56 @@ export default function Admin() {
           <TabsList className="grid w-full grid-cols-2 sm:grid-cols-6 h-auto gap-2 bg-transparent p-1">
             <TabsTrigger 
               value="appointments" 
-              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-50 transition-colors"
+              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-500/10 transition-colors"
             >
               Citas
             </TabsTrigger>
             <TabsTrigger 
               value="advisory" 
-              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-50 transition-colors"
+              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-500/10 transition-colors"
             >
               Asesoría
             </TabsTrigger>
             <TabsTrigger 
               value="quotations" 
-              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-50 transition-colors"
+              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-500/10 transition-colors"
             >
               Cotizaciones
             </TabsTrigger>
             <TabsTrigger 
               value="clients" 
-              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-50 transition-colors"
+              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-500/10 transition-colors"
             >
               Clientes
             </TabsTrigger>
             <TabsTrigger 
               value="users" 
-              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-slate-500 data-[state=active]:text-white hover:bg-slate-100 transition-colors"
+              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-slate-500 data-[state=active]:text-white hover:bg-white/[0.06] transition-colors"
             >
               Usuarios
             </TabsTrigger>
             <TabsTrigger 
               value="hardware" 
-              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-50 transition-colors"
+              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-500/10 transition-colors"
             >
               Herrajes
             </TabsTrigger>
-            <TabsTrigger 
-              value="projects" 
-              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-50 transition-colors"
+            <TabsTrigger
+              value="projects"
+              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-500/10 transition-colors"
             >
               Proyectos
             </TabsTrigger>
+            <TabsTrigger
+              value="levantamientos"
+              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-500/10 transition-colors"
+            >
+              <ClipboardList className="h-3 w-3 mr-1 inline" />
+              Levantamientos
+            </TabsTrigger>
             {(user?.role === "super_admin" || user?.role === "admin") && (
               <Link href="/profitability-dashboard">
-                <Button variant="outline" className="text-xs sm:text-sm px-2 py-2 bg-teal-50 hover:bg-teal-100 text-teal-700 border-teal-300">
+                <Button variant="outline" className="text-xs sm:text-sm px-2 py-2 bg-teal-500/10 hover:bg-teal-500/15 text-teal-300 border-teal-300">
                   <DollarSign className="h-4 w-4 mr-1" />
                   Rentabilidad
                 </Button>
@@ -590,14 +816,14 @@ export default function Admin() {
               <>
                 <TabsTrigger 
                   value="pricing" 
-                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-emerald-600 data-[state=active]:text-white hover:bg-emerald-100 transition-colors"
+                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-emerald-600 data-[state=active]:text-white hover:bg-emerald-500/15 transition-colors"
                 >
                   <DollarSign className="h-4 w-4 mr-1" />
                   Precios
                 </TabsTrigger>
                 <TabsTrigger 
                   value="system-zone" 
-                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-red-600 data-[state=active]:text-white hover:bg-red-100 transition-colors"
+                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-red-600 data-[state=active]:text-white hover:bg-red-500/15 transition-colors"
                 >
                   <Wrench className="h-4 w-4 mr-1" />
                   Limpieza
@@ -625,12 +851,111 @@ export default function Admin() {
                         Eliminar ({selectedAppointments.length})
                       </Button>
                     )}
-                    <Link href="/#agendar-cita">
-                      <Button>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Crear Cita
-                      </Button>
-                    </Link>
+                    <Dialog open={showCrearCitaDialog} onOpenChange={setShowCrearCitaDialog}>
+                      <DialogTrigger asChild>
+                        <Button>
+                          <Plus className="mr-2 h-4 w-4" />
+                          Crear Cita
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>Nueva Cita</DialogTitle>
+                          <DialogDescription>Agenda una visita de medición para un cliente</DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-2">
+                          <div className="space-y-1">
+                            <Label>Nombre del cliente *</Label>
+                            <Input
+                              value={crearCitaForm.name}
+                              onChange={e => setCrearCitaForm(f => ({ ...f, name: e.target.value }))}
+                              placeholder="Nombre completo"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label>WhatsApp *</Label>
+                            <Input
+                              value={crearCitaForm.phone}
+                              onChange={e => setCrearCitaForm(f => ({ ...f, phone: e.target.value }))}
+                              placeholder="3XXXXXXXXX"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label>Dirección</Label>
+                            <Input
+                              value={crearCitaForm.address}
+                              onChange={e => setCrearCitaForm(f => ({ ...f, address: e.target.value }))}
+                              placeholder="Dirección del proyecto"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label>Tipo de trabajo *</Label>
+                            <div className="grid grid-cols-2 gap-2 pt-1">
+                              {(["cocina", "closet", "puertas", "centro_tv"] as const).map(wt => (
+                                <label key={wt} className="flex items-center gap-2 cursor-pointer">
+                                  <Checkbox
+                                    checked={crearCitaForm.workTypes.includes(wt)}
+                                    onCheckedChange={checked => setCrearCitaForm(f => ({
+                                      ...f,
+                                      workTypes: checked
+                                        ? [...f.workTypes, wt]
+                                        : f.workTypes.filter(w => w !== wt),
+                                    }))}
+                                  />
+                                  <span className="text-sm">
+                                    {wt === "centro_tv" ? "Centro TV" : wt.charAt(0).toUpperCase() + wt.slice(1)}
+                                  </span>
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1">
+                              <Label>Fecha</Label>
+                              <Input
+                                type="date"
+                                value={crearCitaForm.date}
+                                onChange={e => setCrearCitaForm(f => ({ ...f, date: e.target.value }))}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label>Hora</Label>
+                              <Input
+                                type="time"
+                                value={crearCitaForm.time}
+                                onChange={e => setCrearCitaForm(f => ({ ...f, time: e.target.value }))}
+                              />
+                            </div>
+                          </div>
+                          {medidores.length > 0 && (
+                            <div className="space-y-1">
+                              <Label>Medidor (opcional)</Label>
+                              <Select
+                                value={crearCitaMedidorId ? String(crearCitaMedidorId) : "none"}
+                                onValueChange={v => setCrearCitaMedidorId(v === "none" ? null : Number(v))}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Sin asignar" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="none">Sin asignar</SelectItem>
+                                  {medidores.map((m: any) => (
+                                    <SelectItem key={m.id} value={String(m.id)}>{m.name}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          )}
+                          <Button
+                            onClick={handleCrearCita}
+                            disabled={crearCitaLoading}
+                            className="w-full bg-teal-600 hover:bg-teal-700 text-white"
+                          >
+                            {crearCitaLoading ? "Creando..." : "Crear Cita"}
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 </div>
               </CardHeader>
@@ -691,6 +1016,32 @@ export default function Admin() {
                               <p className="text-sm break-words min-w-0">
                                 <span className="font-medium">Notas:</span> {apt.notes}
                               </p>
+                            )}
+
+                            {/* Asignación de medidor */}
+                            {medidores.length > 0 && (
+                              <div className="flex items-center gap-2 pt-1">
+                                <span className="text-sm font-medium text-muted-foreground shrink-0">Medidor:</span>
+                                <Select
+                                  value={apt.assignedMedidorId ? String(apt.assignedMedidorId) : "none"}
+                                  onValueChange={(val) =>
+                                    assignMedidorMutation.mutate({
+                                      appointmentId: apt.id,
+                                      medidorId: val === "none" ? null : Number(val),
+                                    })
+                                  }
+                                >
+                                  <SelectTrigger className="h-7 text-xs w-[140px]">
+                                    <SelectValue placeholder="Sin asignar" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="none">Sin asignar</SelectItem>
+                                    {medidores.map((m: any) => (
+                                      <SelectItem key={m.id} value={String(m.id)}>{m.name}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
                             )}
                           </div>
                           <div className="flex flex-col gap-2">
@@ -939,11 +1290,11 @@ export default function Admin() {
 
           {/* Quotations Tab */}
           <TabsContent value="quotations" className="space-y-3">
-            <Card className="border-teal-200 bg-gradient-to-br from-teal-50 to-white">
+            <Card className="border-teal-500/25 bg-gradient-to-br from-teal-950/30 to-white">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle className="text-teal-700">Sistema de Cotizaciones</CardTitle>
+                    <CardTitle className="text-teal-300">Sistema de Cotizaciones</CardTitle>
                     <CardDescription>Crea y gestiona cotizaciones profesionales con PDF y envío automático</CardDescription>
                   </div>
                   <Link href="/quotations">
@@ -957,7 +1308,7 @@ export default function Admin() {
               <CardContent className="pt-3">
                 <div className="grid gap-3 md:grid-cols-3">
                   <div className="flex items-start gap-3 p-3 rounded-lg bg-[#162828] border border-teal-100">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 font-bold">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-teal-500/15 flex items-center justify-center text-teal-400 font-bold">
                       1
                     </div>
                     <div>
@@ -966,7 +1317,7 @@ export default function Admin() {
                     </div>
                   </div>
                   <div className="flex items-start gap-3 p-3 rounded-lg bg-[#162828] border border-teal-100">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 font-bold">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-teal-500/15 flex items-center justify-center text-teal-400 font-bold">
                       2
                     </div>
                     <div>
@@ -975,7 +1326,7 @@ export default function Admin() {
                     </div>
                   </div>
                   <div className="flex items-start gap-3 p-3 rounded-lg bg-[#162828] border border-teal-100">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 font-bold">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-teal-500/15 flex items-center justify-center text-teal-400 font-bold">
                       3
                     </div>
                     <div>
@@ -1125,7 +1476,7 @@ export default function Admin() {
                                   <div className="flex items-center gap-2">
                                     <h3 className="font-semibold">{client.name}</h3>
                                     {client.internalManagement && (
-                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200">
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-500/15 text-amber-300 border border-amber-500/25">
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
                                           <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                                         </svg>
@@ -1246,11 +1597,6 @@ export default function Admin() {
                               <SelectValue placeholder="Selecciona un rol" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="comercial">Comercial</SelectItem>
-                              <SelectItem value="disenador">Diseñador</SelectItem>
-                              <SelectItem value="jefe_taller">Jefe de Taller</SelectItem>
-                              <SelectItem value="operario">Operario</SelectItem>
-                              <SelectItem value="medidor">Técnico de Medidas</SelectItem>
                               <SelectItem value="user">Usuario</SelectItem>
                               {user?.role === "super_admin" && (
                                 <SelectItem value="admin">Administrador</SelectItem>
@@ -1336,52 +1682,38 @@ export default function Admin() {
                   <div className="space-y-6">
                     {/* Equipo de Trabajo, Clientes Reales y Usuarios de Prueba */}
                     {(() => {
-                      // Equipo de trabajo REAL - definido por emails específicos
-                      const realTeamEmails = [
-                        'mcfy8jgnym@privaterelay.appleid.com', // Alvaro Rios - Super Admin
-                        'alejoile300@gmail.com',                // Alejo Gutiérrez - Diseñador
-                        'martha79s@hotmail.com',                // Martha Serna - Comercial
-                        'jefe.taller@innovar.temp',             // Luis Cardoso - Jefe de Taller
-                        'operario@innovar.temp'                 // Daniel Beltran - Operario
-                      ];
-                      
-                      // Función para verificar si es del equipo de trabajo real
+                      // Roles que pertenecen al equipo de trabajo.
+                      // Al agregar un nuevo colaborador con uno de estos roles, aparece
+                      // automáticamente en "Equipo de Trabajo" sin modificar código.
+                      const TEAM_ROLES = ['super_admin', 'admin', 'comercial', 'disenador', 'jefe_taller', 'operario', 'medidor', 'contador'];
+
+                      // Un usuario ES del equipo si tiene un rol de equipo asignado
                       const isRealTeamMember = (u: typeof allUsers[0]) => {
-                        const email = (u.email || '').toLowerCase();
-                        return realTeamEmails.includes(email);
+                        return TEAM_ROLES.includes(u.role);
                       };
-                      
-                      // Función para detectar usuarios de prueba
+
+                      // Un usuario ES de prueba si tiene patrones de test en email/nombre
+                      // (los miembros del equipo nunca son de prueba)
                       const isTestUser = (u: typeof allUsers[0]) => {
-                        // Si es del equipo real, NO es usuario de prueba
                         if (isRealTeamMember(u)) return false;
-                        
+
                         const email = (u.email || '').toLowerCase();
                         const name = (u.name || '').toLowerCase();
-                        
-                        // Lista de usuarios excluidos adicionales (clientes reales que podrían parecer de prueba)
+
                         const excludedNames = ['alvaro pruebas'];
                         if (excludedNames.some(n => name === n)) return false;
-                        
-                        // Cualquier usuario con rol del equipo que NO esté en la lista real es de prueba
-                        const teamRoles = ['super_admin', 'admin', 'comercial', 'disenador', 'jefe_taller', 'operario'];
-                        if (teamRoles.includes(u.role)) return true;
-                        
-                        // Patrones específicos en email
+
                         const testEmailPatterns = ['test@', 'test.', 'prueba@', 'ejemplo@', 'example@', 'demo@', 'fake@', 'dummy@', 'admin-bulk', 'newadmin', 'newsuperadmin'];
                         const hasTestEmailPattern = testEmailPatterns.some(p => email.includes(p));
-                        
-                        // Dominios de prueba (excluye @innovar.temp porque el equipo real lo usa)
+
                         const testDomains = ['@test.com', '@example.com', '@prueba.com', '@demo.com', '@fake.com', '@testing.com'];
                         const hasTestDomain = testDomains.some(d => email.endsWith(d));
-                        
-                        // Nombres que claramente son de prueba
+
                         const testNamePatterns = ['cliente test', 'test client', 'usuario test', 'test user', 'cliente prueba', 'usuario prueba', 'cliente de prueba', 'test timezone', 'admin test', 'new admin', 'new super admin'];
                         const hasTestNamePattern = testNamePatterns.some(p => name.includes(p));
-                        
-                        // Email genérico de prueba
+
                         const isGenericTestEmail = (email.startsWith('test') || email.startsWith('prueba') || email.startsWith('cliente-test') || email.startsWith('admin-bulk') || email.startsWith('newadmin') || email.startsWith('newsuperadmin'));
-                        
+
                         return hasTestEmailPattern || hasTestDomain || hasTestNamePattern || isGenericTestEmail;
                       };
                       
@@ -1436,7 +1768,8 @@ export default function Admin() {
                                               usr.role === "disenador" ? "bg-cyan-600" :
                                               usr.role === "jefe_taller" ? "bg-orange-600" :
                                               usr.role === "operario" ? "bg-yellow-600 text-black" :
-                                              usr.role === "medidor" ? "bg-teal-600" : ""
+                                              usr.role === "medidor" ? "bg-purple-600" :
+                                              usr.role === "contador" ? "bg-teal-600" : ""
                                             }
                                           >
                                             {usr.role === "super_admin" ? "Super Admin" :
@@ -1445,7 +1778,8 @@ export default function Admin() {
                                              usr.role === "disenador" ? "Diseñador" :
                                              usr.role === "jefe_taller" ? "Jefe de Taller" :
                                              usr.role === "operario" ? "Operario" :
-                                             usr.role === "medidor" ? "Técnico Medidas" : "Usuario"}
+                                             usr.role === "medidor" ? "Medidor" :
+                                             usr.role === "contador" ? "Contador" : "Usuario"}
                                           </Badge>
                                           {usr.id === user?.id && (
                                             <Badge variant="outline" className="text-xs">Tú</Badge>
@@ -1577,7 +1911,8 @@ export default function Admin() {
                                               usr.role === "disenador" ? "bg-cyan-600" :
                                               usr.role === "jefe_taller" ? "bg-orange-600" :
                                               usr.role === "operario" ? "bg-yellow-600 text-black" :
-                                              usr.role === "medidor" ? "bg-teal-600" : ""
+                                              usr.role === "medidor" ? "bg-purple-600" :
+                                              usr.role === "contador" ? "bg-teal-600" : ""
                                             }
                                           >
                                             {usr.role === "super_admin" ? "Super Admin" :
@@ -1586,7 +1921,8 @@ export default function Admin() {
                                              usr.role === "disenador" ? "Diseñador" :
                                              usr.role === "jefe_taller" ? "Jefe de Taller" :
                                              usr.role === "operario" ? "Operario" :
-                                             usr.role === "medidor" ? "Técnico Medidas" : "Usuario"}
+                                             usr.role === "medidor" ? "Medidor" :
+                                             usr.role === "contador" ? "Contador" : "Usuario"}
                                           </Badge>
                                           {usr.id === user?.id && (
                                             <Badge variant="outline" className="text-xs">Tú</Badge>
@@ -1669,14 +2005,14 @@ export default function Admin() {
                           {/* Usuarios de Prueba */}
                           {testUsers.length > 0 && (
                             <div className="space-y-3">
-                              <div className="flex items-center justify-between pt-4 border-t border-dashed border-orange-300">
+                              <div className="flex items-center justify-between pt-4 border-t border-dashed border-orange-500/30">
                                 <div className="flex items-center gap-2">
                                   <Checkbox
                                     checked={testUsers.every(u => selectedUsers.includes(u.id))}
                                     onCheckedChange={() => toggleSelectAllUsers(testUsers)}
                                   />
                                   <h3 className="font-semibold text-lg text-white/45">⚠️ Usuarios de Prueba</h3>
-                                  <Badge variant="outline" className="border-orange-400 text-white/45">{testUsers.length}</Badge>
+                                  <Badge variant="outline" className="border-orange-500/40 text-white/45">{testUsers.length}</Badge>
                                 </div>
                                 <div className="flex gap-2 flex-wrap">
                                   <Button
@@ -1708,7 +2044,7 @@ export default function Admin() {
                                     <Button
                                       size="sm"
                                       variant="outline"
-                                      className="border-red-400 text-red-600 hover:bg-red-50"
+                                      className="border-red-400 text-red-400 hover:bg-red-500/10"
                                       onClick={() => handleBulkDelete('users')}
                                     >
                                       <Trash2 className="h-4 w-4 mr-2" />
@@ -1718,7 +2054,7 @@ export default function Admin() {
                                   <Button
                                     size="sm"
                                     variant="outline"
-                                    className="border-orange-400 text-white/45 hover:bg-orange-50"
+                                    className="border-orange-500/40 text-white/45 hover:bg-orange-500/10"
                                     onClick={() => {
                                       const testUserIds = testUsers.map(u => u.id);
                                       setSelectedUsers(prev => {
@@ -1732,13 +2068,13 @@ export default function Admin() {
                                   </Button>
                                 </div>
                               </div>
-                              <p className="text-sm text-muted-foreground bg-orange-50 p-2 rounded">
+                              <p className="text-sm text-muted-foreground bg-orange-500/10 p-2 rounded">
                                 Estos usuarios fueron detectados como cuentas de prueba basado en patrones en su email o nombre. 
                                 Puedes seleccionarlos y eliminarlos para limpiar la base de datos.
                               </p>
                               <div className="space-y-3">
                                 {testUsers.map((usr) => (
-                                  <div key={usr.id} className="border border-orange-200 rounded-lg p-3 sm:p-4 space-y-2 bg-orange-50/50">
+                                  <div key={usr.id} className="border border-orange-500/25 rounded-lg p-3 sm:p-4 space-y-2 bg-orange-500/10/50">
                                     <div className="flex items-start gap-3">
                                       <Checkbox
                                         checked={selectedUsers.includes(usr.id)}
@@ -1749,7 +2085,7 @@ export default function Admin() {
                                         <div className="space-y-1 flex-1">
                                           <div className="flex items-center gap-2 flex-wrap">
                                             <h3 className="font-semibold">{usr.name || "Sin nombre"}</h3>
-                                            <Badge variant="outline" className="border-orange-400 text-white/45">
+                                            <Badge variant="outline" className="border-orange-500/40 text-white/45">
                                               Prueba
                                             </Badge>
                                           </div>
@@ -1796,7 +2132,7 @@ export default function Admin() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-teal-600" />
+                  <FileText className="h-5 w-5 text-teal-400" />
                   Gestión de Proyectos
                 </CardTitle>
                 <CardDescription>
@@ -1814,13 +2150,18 @@ export default function Admin() {
             </Card>
           </TabsContent>
 
+          {/* Levantamientos Tab */}
+          <TabsContent value="levantamientos" className="space-y-4">
+            <LevantamientosTab />
+          </TabsContent>
+
           {/* Pricing Config Tab - Solo Super Admin */}
           {user?.role === "super_admin" && (
             <TabsContent value="pricing" className="space-y-4">
-              <Card className="border-emerald-200 bg-emerald-50/50">
+              <Card className="border-emerald-200 bg-emerald-500/10/50">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <DollarSign className="h-5 w-5 text-emerald-600" />
+                    <DollarSign className="h-5 w-5 text-emerald-400" />
                     Configuración de Precios
                   </CardTitle>
                   <CardDescription>
@@ -1876,7 +2217,7 @@ export default function Admin() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Key className="h-5 w-5 text-emerald-600" />
+              <Key className="h-5 w-5 text-emerald-400" />
               Contraseña Reseteada
             </DialogTitle>
             <DialogDescription>
@@ -1900,7 +2241,7 @@ export default function Admin() {
                 </p>
               </div>
             </div>
-            <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded">
+            <p className="text-xs text-amber-400 bg-amber-500/10 p-2 rounded">
               ⚠️ Esta contraseña solo se mostrará una vez. Asegúrate de guardarla o compartirla ahora.
             </p>
           </div>

@@ -7,8 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { 
-  Calculator, 
+import {
+  Calculator,
   DollarSign,
   TrendingUp,
   Download,
@@ -17,10 +17,13 @@ import {
   ArrowLeft,
   Edit2,
   Trash2,
+  CreditCard,
+  FileText,
 } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Link } from "wouter";
 import { ExportExpensesButton } from "@/components/ExportExpensesButton";
+import { ExportExpensesWordButton } from "@/components/ExportExpensesWordButton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,28 +36,151 @@ import {
 import { useAuth } from "@/_core/hooks/useAuth";
 import { ExpenseImportModal } from "@/components/ExpenseImportModal";
 import { ReceiptUpload } from "@/components/ReceiptUpload";
+import { Textarea } from "@/components/ui/textarea";
+import { PaymentsSummary } from "@/components/PaymentsSummary";
+import { PaymentsTable } from "@/components/PaymentsTable";
 import { AccountingClosureTab } from "@/components/AccountingClosureTab";
 import { ClosureReportTab } from "@/components/ClosureReportTab";
 import { ConfirmedClosuresTab } from "@/components/ConfirmedClosuresTab";
 import { ClosedProjectsTab } from "@/components/ClosedProjectsTab";
 import { Upload, CheckCircle2, Archive } from "lucide-react";
 
-// Categorías operativas (gastos de bodega)
-const OPERATIVE_CATEGORIES = [
-  { value: "arriendo",              label: "Arriendo" },
-  { value: "energia",               label: "Luz / Energía" },
-  { value: "agua",                  label: "Agua" },
-  { value: "internet",              label: "Internet" },
-  { value: "aseo",                  label: "Insumos de aseo" },
-  { value: "papeleria",             label: "Insumos papelería" },
-  { value: "cortesia_cliente",      label: "Cortesía atención cliente" },
-  { value: "gasolina_vehiculos",    label: "Gasolina vehículos" },
-  { value: "mantenimiento_moto",    label: "Mantenimiento moto" },
-  { value: "mantenimiento_bodega",  label: "Mantenimiento bodega" },
-  { value: "mantenimiento_maquinaria", label: "Mantenimiento maquinaria" },
-  { value: "nomina",                label: "Nómina trabajadores" },
-  { value: "otro",                  label: "Otro" },
-] as const;
+// Jerarquía de categorías operativas
+const OPERATIVE_HIERARCHY: Record<string, { label: string; subcategories: { value: string; label: string }[] }> = {
+  bodega_admin: {
+    label: "Bodega y Administración",
+    subcategories: [
+      { value: "arriendo", label: "Arriendo bodega" },
+      { value: "energia", label: "Energía" },
+      { value: "agua", label: "Agua" },
+      { value: "internet", label: "Internet" },
+      { value: "aseo", label: "Aseo e insumos" },
+      { value: "papeleria", label: "Papelería" },
+      { value: "reparaciones", label: "Reparaciones y mantenimiento" },
+      { value: "jardineria", label: "Jardinería / jardín" },
+    ],
+  },
+  vehiculos: {
+    label: "Vehículos",
+    subcategories: [
+      { value: "gasolina_moto", label: "Gasolina Moto Innovar / Remolque" },
+      { value: "gasolina_luchito", label: "Gasolina Luchito" },
+      { value: "gasolina_alvaro", label: "Gasolina Álvaro" },
+      { value: "taller_repuestos", label: "Taller y repuestos moto" },
+    ],
+  },
+  nominas: {
+    label: "Nóminas y Personal",
+    subcategories: [
+      { value: "nomina_operario", label: "Daniel Beltrán — Operario" },
+      { value: "nomina_disenador", label: "Alejandro Gutiérrez — Diseñador" },
+      { value: "nomina_contador", label: "Felipe Idárraga — Contador" },
+      { value: "nomina_jardinero", label: "Jardinero (pago suelto)" },
+      { value: "seguridad_social", label: "Seguridad social" },
+      { value: "industria_comercio", label: "Industria y comercio" },
+    ],
+  },
+  herramientas: {
+    label: "Herramientas",
+    subcategories: [
+      { value: "compra_herramientas", label: "Compra de herramientas" },
+      { value: "mantenimiento_herramientas", label: "Mantenimiento de herramientas" },
+    ],
+  },
+  dotacion_seguridad: {
+    label: "Dotación y Seguridad",
+    subcategories: [
+      { value: "dotacion", label: "Dotación" },
+      { value: "seguridad", label: "Seguridad" },
+    ],
+  },
+  viaticos_alimentacion: {
+    label: "Viáticos y Alimentación",
+    subcategories: [
+      { value: "viaticos", label: "Viáticos" },
+      { value: "alimentacion", label: "Alimentación" },
+    ],
+  },
+};
+
+// Jerarquía de categorías para proyectos (materiales_proyecto)
+const PROJECT_HIERARCHY: Record<string, { label: string; subcategories: { value: string; label: string }[] }> = {
+  madera_tableros: {
+    label: "Madera y Tableros",
+    subcategories: [
+      { value: "mademax", label: "Mademax" },
+      { value: "moduofi", label: "Moduofi" },
+      { value: "metales_maderas", label: "Metales y Maderas" },
+      { value: "aglocol", label: "Aglocol" },
+      { value: "otro_madera", label: "Otro proveedor madera" },
+    ],
+  },
+  herrajes: {
+    label: "Herrajes",
+    subcategories: [
+      { value: "el_ebanista", label: "El Ebanista" },
+      { value: "otro_herraje", label: "Otro proveedor herrajes" },
+    ],
+  },
+  mano_de_obra: {
+    label: "Mano de obra",
+    subcategories: [
+      { value: "instalacion", label: "Instalación" },
+      { value: "marmol_superficies", label: "Mármol y superficies" },
+      { value: "electricidad", label: "Electricidad" },
+      { value: "otro_mano_obra", label: "Otro subcontratista" },
+    ],
+  },
+  pintura_acabados: {
+    label: "Pintura y acabados",
+    subcategories: [
+      { value: "pintura", label: "Pintura" },
+      { value: "lacado", label: "Lacado / laminado" },
+    ],
+  },
+  transporte: {
+    label: "Transporte e instalación",
+    subcategories: [
+      { value: "transporte_materiales", label: "Transporte de materiales" },
+      { value: "flete", label: "Flete instalación" },
+    ],
+  },
+  otros_proyecto: {
+    label: "Otros materiales",
+    subcategories: [
+      { value: "tornilleria", label: "Tornillería y fijaciones" },
+      { value: "silicona_pegante", label: "Silicona y pegantes" },
+      { value: "otro_proyecto", label: "Otro" },
+    ],
+  },
+};
+
+// Helper: buscar label de una categoría/subcategoría
+function getCategoryLabel(operativeCategory: string, subcategory?: string | null): string {
+  // Buscar operativeCategory como valor de subcategoría dentro de la jerarquía
+  for (const [, cat] of Object.entries(OPERATIVE_HIERARCHY)) {
+    const sub = cat.subcategories.find(s => s.value === operativeCategory);
+    if (sub) return `${cat.label} / ${sub.label}`;
+  }
+  // Buscar operativeCategory como clave de categoría padre
+  const parentCat = OPERATIVE_HIERARCHY[operativeCategory];
+  if (parentCat) return parentCat.label;
+  // Buscar en PROJECT_HIERARCHY también
+  for (const [, cat] of Object.entries(PROJECT_HIERARCHY)) {
+    const sub = cat.subcategories.find(s => s.value === (subcategory || operativeCategory));
+    if (sub) return `${cat.label} / ${sub.label}`;
+  }
+  const projCat = PROJECT_HIERARCHY[operativeCategory];
+  if (projCat) return projCat.label;
+  // Legacy fallback
+  const legacyLabels: Record<string, string> = {
+    arriendo: "Arriendo", energia: "Energía", agua: "Agua", internet: "Internet",
+    mantenimiento: "Mantenimiento", herramientas: "Herramientas", jardineria: "Jardinería",
+    reparaciones: "Reparaciones", transporte: "Transporte", papeleria: "Papelería",
+    aseo: "Aseo", otro: "Otro",
+  };
+  return legacyLabels[operativeCategory] || operativeCategory;
+}
 
 const GENERAL_CATEGORIES = [
   { value: "materiales", label: "Materiales" },
@@ -73,7 +199,10 @@ export default function Accounting() {
   const utils = trpc.useUtils();
   const [expenseType, setExpenseType] = useState<ExpenseType>("materiales_proyecto");
   const [projectId, setProjectId] = useState<string>("");
+  const [operativeCategoryGroup, setOperativeCategoryGroup] = useState<string>("");
   const [operativeCategory, setOperativeCategory] = useState<string>("");
+  const [projectCategoryGroup, setProjectCategoryGroup] = useState<string>("");
+  const [expenseSubcategory, setExpenseSubcategory] = useState<string>("");
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [expenseDate, setExpenseDate] = useState(new Date().toISOString().split("T")[0]);
@@ -86,13 +215,55 @@ export default function Accounting() {
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [receiptUrl, setReceiptUrl] = useState<string>("");
   const [receiptFileName, setReceiptFileName] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<"expenses" | "closure" | "confirmed" | "closed" | "reports">("expenses");
+  const [activeTab, setActiveTab] = useState<"expenses" | "movimientos" | "closure" | "confirmed" | "closed" | "reports">("expenses");
+
+  // ── Movimientos state ──────────────────────────────────────────────────────
+  const [movClientId, setMovClientId] = useState<string>("");
+  const [movProjectId, setMovProjectId] = useState<string>("");
+  const [movAmount, setMovAmount] = useState("");
+  const [movMovementType, setMovMovementType] = useState<"payment" | "discount" | "surcharge">("payment");
+  const [movType, setMovType] = useState<"advance" | "final" | "partial" | "other">("advance");
+  const [movMethod, setMovMethod] = useState<"transfer" | "cash" | "check" | "other">("transfer");
+  const [movDate, setMovDate] = useState(new Date().toISOString().split("T")[0]);
+  const [movNotes, setMovNotes] = useState("");
+  const [movSubmitting, setMovSubmitting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [filterProjectId, setFilterProjectId] = useState<string>("");
 
   // Queries
   const { data: projects } = trpc.projects.list.useQuery();
   const { data: expenses } = trpc.expenses.getAll.useQuery();
+
+  // ── Movimientos queries ────────────────────────────────────────────────────
+  const movProjectIdNum = movProjectId ? parseInt(movProjectId) : 0;
+  const { data: movPayments = [], refetch: refetchMovPayments } = trpc.payments.getByProject.useQuery(
+    { projectId: movProjectIdNum },
+    { enabled: movProjectIdNum > 0 }
+  );
+  const { data: movProjectDetail, refetch: refetchMovProjectDetail } = trpc.projects.getById.useQuery(
+    { id: movProjectIdNum },
+    { enabled: movProjectIdNum > 0 }
+  );
+
+  // Clientes únicos derivados de los proyectos ya cargados
+  const uniqueClients = useMemo(() => {
+    if (!projects) return [];
+    const seen = new Set<number>();
+    const clients: { id: number; name: string }[] = [];
+    for (const p of projects as any[]) {
+      if (p.client && !seen.has(p.client.id)) {
+        seen.add(p.client.id);
+        clients.push({ id: p.client.id, name: p.client.name });
+      }
+    }
+    return clients.sort((a, b) => a.name.localeCompare(b.name));
+  }, [projects]);
+
+  // Proyectos del cliente seleccionado
+  const clientFilteredProjects = useMemo(() => {
+    if (!projects || !movClientId) return [];
+    return (projects as any[]).filter(p => p.client?.id?.toString() === movClientId);
+  }, [projects, movClientId]);
 
   // Check if user has permission to import
   const canImport = user?.role === "admin" || user?.role === "super_admin";
@@ -101,7 +272,10 @@ export default function Accounting() {
   const resetForm = () => {
     // NO resetear expenseType - el usuario lo selecciona una sola vez
     setProjectId("");
+    setOperativeCategoryGroup("");
     setOperativeCategory("");
+    setProjectCategoryGroup("");
+    setExpenseSubcategory("");
     setDescription("");
     setAmount("");
     setExpenseDate(new Date().toISOString().split("T")[0]);
@@ -144,6 +318,50 @@ export default function Accounting() {
     },
   });
 
+  // ── Movimientos mutations ──────────────────────────────────────────────────
+  const createMovMutation = trpc.payments.create.useMutation({
+    onSuccess: () => {
+      toast.success("Movimiento registrado correctamente");
+      refetchMovPayments();
+      refetchMovProjectDetail();
+      setMovAmount("");
+      setMovNotes("");
+    },
+    onError: (error: any) => toast.error(error.message || "Error al registrar movimiento"),
+  });
+
+  const deleteMovMutation = trpc.payments.delete.useMutation({
+    onSuccess: () => {
+      toast.success("Movimiento eliminado");
+      refetchMovPayments();
+      refetchMovProjectDetail();
+    },
+    onError: (error: any) => toast.error(error.message || "Error al eliminar movimiento"),
+  });
+
+  const generateStatementMut = trpc.payments.generateStatement.useMutation();
+
+  const handleMovSubmit = async () => {
+    if (!movProjectId || !movAmount || parseFloat(movAmount) <= 0) {
+      toast.error("Selecciona un proyecto y un monto válido");
+      return;
+    }
+    setMovSubmitting(true);
+    try {
+      await createMovMutation.mutateAsync({
+        projectId: movProjectIdNum,
+        amount: parseFloat(movAmount),
+        type: movType,
+        receivedAt: new Date(movDate),
+        method: movMethod,
+        movementType: movMovementType,
+        notes: movNotes || undefined,
+      });
+    } finally {
+      setMovSubmitting(false);
+    }
+  };
+
   // Export handler
   const handleExportExpenses = async () => {
     try {
@@ -162,7 +380,7 @@ export default function Accounting() {
         expense.expenseType === 'materiales_proyecto' ? 'Proyecto' : 'Operativo',
         expense.description,
         expense.amount.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-        expense.operativeCategory || expense.generalCategory || '-',
+        getCategoryLabel(expense.operativeCategory || '', expense.subcategory),
         expense.projectId ? `COT-${expense.projectId}` : '-'
       ]);
 
@@ -236,8 +454,12 @@ export default function Accounting() {
       return;
     }
 
-    if (expenseType === "gasto_operativo" && !operativeCategory) {
+    if (expenseType === "gasto_operativo" && !operativeCategoryGroup) {
       toast.error("Selecciona una categoría operativa");
+      return;
+    }
+    if (expenseType === "gasto_operativo" && !operativeCategory) {
+      toast.error("Selecciona una subcategoría operativa");
       return;
     }
 
@@ -251,19 +473,23 @@ export default function Accounting() {
           amount: parseFloat(amount),
           expenseDate,
           expenseType,
-          operativeCategory: expenseType === "gasto_operativo" ? (operativeCategory as any) : undefined,
-          generalCategory: expenseType === "materiales_proyecto" ? "materiales" : "servicios",
+          operativeCategory: expenseType === "gasto_operativo" ? operativeCategory :
+                             expenseType === "materiales_proyecto" ? projectCategoryGroup : undefined,
+          subcategory: expenseSubcategory || undefined,
+          generalCategory: expenseType === "materiales_proyecto" ? (projectCategoryGroup || "materiales") : "servicios",
           receiptUrl: receiptUrl || undefined,
         });
       } else {
         await createExpense.mutateAsync({
           expenseType,
           projectId: expenseType === "materiales_proyecto" ? parseInt(projectId) : undefined,
-          operativeCategory: expenseType === "gasto_operativo" ? (operativeCategory as any) : undefined,
+          operativeCategory: expenseType === "gasto_operativo" ? operativeCategory : 
+                             expenseType === "materiales_proyecto" ? projectCategoryGroup : undefined,
+          subcategory: expenseSubcategory || undefined,
           description: description.trim(),
           amount: parseFloat(amount),
           expenseDate,
-          generalCategory: expenseType === "materiales_proyecto" ? "materiales" : "servicios",
+          generalCategory: expenseType === "materiales_proyecto" ? (projectCategoryGroup || "materiales") : "servicios",
           receiptUrl: receiptUrl || undefined,
         });
       }
@@ -276,7 +502,14 @@ export default function Accounting() {
     setEditingId(expense.id);
     setExpenseType(expense.expenseType);
     setProjectId(expense.projectId?.toString() || "");
-    setOperativeCategory(expense.operativeCategory || "");
+    // Reconstruct group from saved operativeCategory
+    const savedOpCat = expense.operativeCategory || "";
+    const foundGroup = Object.entries(OPERATIVE_HIERARCHY).find(([, cat]) =>
+      cat.subcategories.some(s => s.value === savedOpCat)
+    );
+    setOperativeCategoryGroup(foundGroup ? foundGroup[0] : "");
+    setOperativeCategory(savedOpCat);
+    setExpenseSubcategory(expense.subcategory || "");
     setDescription(expense.description);
     setAmount(expense.amount.toString());
     setExpenseDate(new Date(expense.expenseDate).toISOString().split("T")[0]);
@@ -333,6 +566,15 @@ export default function Accounting() {
               <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
               <span className="hidden sm:inline">Gastos</span>
               <span className="sm:hidden">Gastos</span>
+            </Button>
+            <Button
+              variant={activeTab === "movimientos" ? "default" : "ghost"}
+              onClick={() => setActiveTab("movimientos")}
+              className="rounded-b-none whitespace-nowrap text-xs sm:text-sm md:text-base px-2 sm:px-3 md:px-4"
+            >
+              <CreditCard className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Movimientos</span>
+              <span className="sm:hidden">Mov.</span>
             </Button>
             <Button
               variant={activeTab === "closure" ? "default" : "ghost"}
@@ -418,36 +660,87 @@ export default function Accounting() {
               {/* SECCIÓN 2: Campos Dinámicos */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {expenseType === "materiales_proyecto" ? (
-                  <div>
-                    <Label htmlFor="project">Proyecto *</Label>
-                    <Select value={projectId} onValueChange={(v: any) => setProjectId(v)}>
-                      <SelectTrigger id="project" className="h-12">
-                        <SelectValue placeholder="Selecciona un proyecto" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {projects?.map((p: any) => (
-                          <SelectItem key={p.id} value={p.id.toString()}>
-                            {p.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div className="space-y-3">
+                    <div>
+                      <Label htmlFor="project">Proyecto *</Label>
+                      <Select value={projectId} onValueChange={(v: any) => setProjectId(v)}>
+                        <SelectTrigger id="project" className="h-12">
+                          <SelectValue placeholder="Selecciona un proyecto" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {projects?.map((p: any) => (
+                            <SelectItem key={p.id} value={p.id.toString()}>
+                              {p.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="projCatGroup">Categoría del gasto *</Label>
+                      <Select value={projectCategoryGroup} onValueChange={(v) => {
+                        setProjectCategoryGroup(v);
+                        setExpenseSubcategory("");
+                      }}>
+                        <SelectTrigger id="projCatGroup" className="h-12">
+                          <SelectValue placeholder="Tipo de gasto" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(PROJECT_HIERARCHY).map(([key, cat]) => (
+                            <SelectItem key={key} value={key}>{cat.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {projectCategoryGroup && (
+                      <div>
+                        <Label htmlFor="projCatSub">Proveedor / detalle</Label>
+                        <Select value={expenseSubcategory} onValueChange={setExpenseSubcategory}>
+                          <SelectTrigger id="projCatSub" className="h-12">
+                            <SelectValue placeholder="Selecciona proveedor o detalle" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {PROJECT_HIERARCHY[projectCategoryGroup]?.subcategories.map((s) => (
+                              <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                   </div>
                 ) : (
-                  <div>
-                    <Label htmlFor="category">Categoría Operativa *</Label>
-                    <Select value={operativeCategory} onValueChange={(v: any) => setOperativeCategory(v)}>
-                      <SelectTrigger id="category" className="h-12">
-                        <SelectValue placeholder="Selecciona una categoría" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {OPERATIVE_CATEGORIES.map((c: any) => (
-                          <SelectItem key={c.value} value={c.value}>
-                            {c.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div className="space-y-3">
+                    <div>
+                      <Label htmlFor="catGroup">Categoría *</Label>
+                      <Select value={operativeCategoryGroup} onValueChange={(v) => {
+                        setOperativeCategoryGroup(v);
+                        setOperativeCategory(""); // reset subcategoría al cambiar grupo
+                      }}>
+                        <SelectTrigger id="catGroup" className="h-12">
+                          <SelectValue placeholder="Selecciona una categoría" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(OPERATIVE_HIERARCHY).map(([key, cat]) => (
+                            <SelectItem key={key} value={key}>{cat.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {operativeCategoryGroup && (
+                      <div>
+                        <Label htmlFor="catSub">Subcategoría *</Label>
+                        <Select value={operativeCategory} onValueChange={setOperativeCategory}>
+                          <SelectTrigger id="catSub" className="h-12">
+                            <SelectValue placeholder="Selecciona una subcategoría" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {OPERATIVE_HIERARCHY[operativeCategoryGroup]?.subcategories.map((s) => (
+                              <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -534,11 +827,44 @@ export default function Accounting() {
                 <CardTitle>Historial de Gastos</CardTitle>
                 <CardDescription>Últimos gastos registrados</CardDescription>
               </div>
-              <ExportExpensesButton
-                expenses={filteredExpenses as any}
-                filename={`Gastos_INNOVAR_${new Date().toISOString().slice(0, 10)}`}
-                label="Exportar Excel"
-              />
+              <div className="flex gap-2 flex-wrap justify-end">
+                <ExportExpensesButton
+                  expenses={filteredExpenses as any}
+                  filter="all"
+                  filename={`Gastos_INNOVAR_${new Date().toISOString().slice(0, 10)}`}
+                  label="Excel Todo"
+                />
+                <ExportExpensesButton
+                  expenses={filteredExpenses as any}
+                  filter="proyecto"
+                  filename={`Gastos_Proyecto_${new Date().toISOString().slice(0, 10)}`}
+                  label="Excel Proyecto"
+                />
+                <ExportExpensesButton
+                  expenses={filteredExpenses as any}
+                  filter="bodega"
+                  filename={`Gastos_Bodega_${new Date().toISOString().slice(0, 10)}`}
+                  label="Excel Bodega"
+                />
+                <ExportExpensesWordButton
+                  expenses={filteredExpenses as any}
+                  filter="all"
+                  filename={`Informe_Gastos_INNOVAR_${new Date().toISOString().slice(0, 10)}`}
+                  label="Word Todo"
+                />
+                <ExportExpensesWordButton
+                  expenses={filteredExpenses as any}
+                  filter="proyecto"
+                  filename={`Informe_Gastos_Proyecto_${new Date().toISOString().slice(0, 10)}`}
+                  label="Word Proyecto"
+                />
+                <ExportExpensesWordButton
+                  expenses={filteredExpenses as any}
+                  filter="bodega"
+                  filename={`Informe_Gastos_Bodega_${new Date().toISOString().slice(0, 10)}`}
+                  label="Word Bodega"
+                />
+              </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -619,6 +945,7 @@ export default function Accounting() {
                     <th className="text-left py-3 px-4 font-semibold text-slate-400 text-xs uppercase tracking-wide">Descripción</th>
                     <th className="text-left py-3 px-4 font-semibold text-slate-400 text-xs uppercase tracking-wide">Cliente</th>
                     <th className="text-left py-3 px-4 font-semibold text-slate-400 text-xs uppercase tracking-wide">Tipo</th>
+                    <th className="text-left py-3 px-4 font-semibold text-slate-400 text-xs uppercase tracking-wide">Categoría</th>
                     <th className="text-right py-3 px-4 font-semibold text-slate-400 text-xs uppercase tracking-wide">Monto</th>
                     <th className="text-center py-3 px-4 font-semibold text-slate-400 text-xs uppercase tracking-wide">Comprobante</th>
                     {canEditDelete && <th className="text-center py-3 px-4 font-semibold text-slate-400 text-xs uppercase tracking-wide">Acciones</th>}
@@ -639,6 +966,13 @@ export default function Accounting() {
                           {expense.expenseType === "materiales_proyecto" ? "Proyecto" : "Operativo"}
                         </Badge>
                       </td>
+                      <td className="py-3 px-4 text-xs text-gray-300">
+                        {expense.operativeCategory
+                          ? getCategoryLabel(expense.operativeCategory, expense.subcategory)
+                          : expense.subcategory
+                          ? expense.subcategory
+                          : <span className="text-gray-500">—</span>}
+                      </td>
                       <td className="py-3 px-4 text-right font-semibold">
                         ${expense.amount.toLocaleString()}
                       </td>
@@ -655,7 +989,7 @@ export default function Accounting() {
                             <span className="hidden md:inline text-xs">Ver</span>
                           </a>
                         ) : (
-                          <span className="text-slate-600 text-xs">-</span>
+                          <span className="text-muted-foreground text-xs">-</span>
                         )}
                       </td>
                       {canEditDelete && (
@@ -751,6 +1085,210 @@ export default function Accounting() {
           </AlertDialogContent>
         </AlertDialog>
         </>
+        )}
+
+        {/* MOVIMIENTOS TAB */}
+        {activeTab === "movimientos" && (
+          <div className="space-y-6">
+            {/* Formulario de registro */}
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle>Registrar Movimiento</CardTitle>
+                <CardDescription>Registra un abono, descuento o recargo y asígnalo al proyecto del cliente</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {/* Cliente → Proyecto */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label>Cliente *</Label>
+                      <Select
+                        value={movClientId}
+                        onValueChange={(v) => { setMovClientId(v); setMovProjectId(""); }}
+                      >
+                        <SelectTrigger className="h-12">
+                          <SelectValue placeholder="Selecciona un cliente" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-72 overflow-y-auto">
+                          {uniqueClients.map((c) => (
+                            <SelectItem key={c.id} value={c.id.toString()}>{c.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Proyecto *</Label>
+                      <Select
+                        value={movProjectId}
+                        onValueChange={setMovProjectId}
+                        disabled={!movClientId}
+                      >
+                        <SelectTrigger className="h-12">
+                          <SelectValue placeholder={movClientId ? "Selecciona un proyecto" : "Primero selecciona un cliente"} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {clientFilteredProjects.map((p: any) => (
+                            <SelectItem key={p.id} value={p.id.toString()}>{p.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Tipo de movimiento + Tipo de pago */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label>Tipo de Movimiento *</Label>
+                      <Select value={movMovementType} onValueChange={(v: any) => setMovMovementType(v)}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="payment">Pago / Abono</SelectItem>
+                          <SelectItem value="discount">Descuento</SelectItem>
+                          <SelectItem value="surcharge">Recargo</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Tipo de Pago *</Label>
+                      <Select value={movType} onValueChange={(v: any) => setMovType(v)}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="advance">Adelanto (60%)</SelectItem>
+                          <SelectItem value="final">Final (40%)</SelectItem>
+                          <SelectItem value="partial">Parcial</SelectItem>
+                          <SelectItem value="other">Otro</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Monto + Fecha */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label>Monto *</Label>
+                      <Input
+                        type="number"
+                        placeholder="0"
+                        value={movAmount}
+                        onChange={(e: any) => setMovAmount(e.target.value)}
+                        min="0"
+                        step="100"
+                        className="h-12"
+                      />
+                    </div>
+                    <div>
+                      <Label>Fecha *</Label>
+                      <Input
+                        type="date"
+                        value={movDate}
+                        onChange={(e: any) => setMovDate(e.target.value)}
+                        className="h-12"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Método */}
+                  <div>
+                    <Label>Método de Pago</Label>
+                    <Select value={movMethod} onValueChange={(v: any) => setMovMethod(v)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="transfer">Transferencia</SelectItem>
+                        <SelectItem value="cash">Efectivo</SelectItem>
+                        <SelectItem value="check">Cheque</SelectItem>
+                        <SelectItem value="other">Otro</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Notas */}
+                  <div>
+                    <Label>Notas (opcional)</Label>
+                    <Textarea
+                      placeholder="Notas sobre este movimiento..."
+                      value={movNotes}
+                      onChange={(e: any) => setMovNotes(e.target.value)}
+                      rows={2}
+                    />
+                  </div>
+
+                  <div className="flex justify-end pt-2">
+                    <Button
+                      onClick={handleMovSubmit}
+                      disabled={movSubmitting || !movProjectId || !movAmount || parseFloat(movAmount || "0") <= 0}
+                      className="h-12 px-8 text-base font-semibold bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      {movSubmitting ? "Registrando..." : "Registrar Movimiento"}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Resumen financiero del proyecto seleccionado */}
+            {movProjectId && (movProjectDetail as any)?.financialInfo && (
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-white/45 mb-3">Resumen del Proyecto</p>
+                <PaymentsSummary
+                  totalAmount={(movProjectDetail as any).financialInfo.totalAmount || 0}
+                  totalPaid={(movProjectDetail as any).financialInfo.totalPaid || 0}
+                  balance={(movProjectDetail as any).financialInfo.dynamicBalance || 0}
+                  discounts={(movProjectDetail as any).financialInfo.totalDiscounts || 0}
+                  surcharges={(movProjectDetail as any).financialInfo.totalSurcharges || 0}
+                  totalCobrado={(movProjectDetail as any).financialInfo.totalCobrado || 0}
+                />
+              </div>
+            )}
+
+            {/* Historial de movimientos del proyecto */}
+            {movProjectId && (
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-white/45">Historial de Movimientos</p>
+                  <Button
+                    size="sm"
+                    onClick={async () => {
+                      if (!movProjectIdNum) return;
+                      try {
+                        toast.info("Generando estado de cuenta...");
+                        const result = await generateStatementMut.mutateAsync({ projectId: movProjectIdNum });
+                        const bytes = Uint8Array.from(atob(result.base64), c => c.charCodeAt(0));
+                        const blob = new Blob([bytes], { type: "application/pdf" });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url; a.download = result.filename;
+                        document.body.appendChild(a); a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        toast.success("✅ Estado de cuenta descargado");
+                      } catch (err: any) {
+                        toast.error("Error: " + (err.message || "Intente de nuevo"));
+                      }
+                    }}
+                    disabled={generateStatementMut.isPending}
+                    className="bg-teal-600 hover:bg-teal-700 text-white h-8 px-4 text-sm font-semibold"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    {generateStatementMut.isPending ? "Generando..." : "📄 Estado de Cuenta PDF"}
+                  </Button>
+                </div>
+                <PaymentsTable
+                  payments={movPayments as any}
+                  projectId={movProjectIdNum > 0 ? movProjectIdNum : undefined}
+                  isLoading={false}
+                  isAdmin={canEditDelete ?? false}
+                  onDelete={async (paymentId) => { await deleteMovMutation.mutateAsync({ paymentId }); }}
+                  isDeleting={deleteMovMutation.isPending}
+                />
+              </div>
+            )}
+          </div>
         )}
 
         {/* CLOSURE TAB */}

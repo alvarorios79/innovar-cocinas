@@ -12,6 +12,7 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { Calendar, Phone, Calculator, CheckCircle2, ArrowRight, MapPin, MessageCircle, Globe } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { getLoginUrl } from "@/const";
 import { Link, useLocation } from "wouter";
 import { NotificationBell } from "@/components/NotificationBell";
 import { MobileNav } from "@/components/MobileNav";
@@ -126,8 +127,15 @@ export default function Home() {
     }
   }, [clientProfile]);
 
+  // Medidor selector: solo para admin/comercial
+  const canAssignMedidor = isAuthenticated && ["admin", "super_admin", "comercial"].includes(user?.role || "");
+  const [selectedMedidorId, setSelectedMedidorId] = useState<number | null>(null);
+  const { data: allUsers = [] } = trpc.userManagement.listAll.useQuery(undefined, { enabled: canAssignMedidor });
+  const medidores = (allUsers as any[]).filter((u: any) => u.role === "medidor");
+
   const createClientMutation = trpc.clients.getOrCreateByWhatsApp.useMutation();
   const createAppointmentMutation = trpc.appointments.create.useMutation();
+  const assignMedidorMutation = trpc.appointments.assignMedidor.useMutation();
   const createAdvisoryMutation = trpc.advisory.create.useMutation();
   const createEstimateMutation = trpc.estimates.create.useMutation();
 
@@ -167,6 +175,14 @@ export default function Home() {
         notes: appointmentForm.notes || undefined,
       });
 
+      // Si admin/comercial asignó un medidor, guardar la asignación
+      if (canAssignMedidor && selectedMedidorId && result.id) {
+        await assignMedidorMutation.mutateAsync({
+          appointmentId: result.id,
+          medidorId: selectedMedidorId,
+        });
+      }
+
       toast.success("¡Cita agendada exitosamente!", {
         description: "Te contactaremos pronto por WhatsApp al " + appointmentForm.whatsappPhone,
       });
@@ -187,6 +203,7 @@ export default function Home() {
       });
       setAppointmentDate("");
       setAppointmentTime("");
+      setSelectedMedidorId(null);
     } catch (error: any) {
       // Mostrar mensaje específico si el horario está ocupado
       if (error?.message?.includes("ocupado")) {
@@ -310,23 +327,35 @@ export default function Home() {
   };
 
   // Roles del equipo de trabajo que ven el TeamDashboard
-  const teamRoles = ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"];
+  const teamRoles = ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario", "medidor", "contador"];
   const isTeamMember = isAuthenticated && user?.role && teamRoles.includes(user.role);
+
+  // Redirigir comercial via useEffect (no durante render)
+  useEffect(() => {
+    if (isAuthenticated && user?.role === "comercial") {
+      setLocation("/comercial");
+    }
+  }, [isAuthenticated, user?.role]);
+
+  // Redirigir medidor a su portal
+  useEffect(() => {
+    if (isAuthenticated && user?.role === "medidor") {
+      setLocation("/medidor");
+    }
+  }, [isAuthenticated, user?.role]);
 
   // Si es operario, mostrar el OperarioDashboard simplificado
   if (isAuthenticated && user?.role === "operario") {
     return <OperarioDashboard />;
   }
 
-  // Si es comercial, redirigir automáticamente al Panel Comercial
+  // Si es comercial, mostrar null mientras redirige
   if (isAuthenticated && user?.role === "comercial") {
-    setLocation("/comercial");
     return null;
   }
 
-  // Si es medidor, redirigir al portal de visitas
+  // Si es medidor, mostrar null mientras redirige a su portal
   if (isAuthenticated && user?.role === "medidor") {
-    setLocation("/medidor");
     return null;
   }
 
@@ -665,6 +694,27 @@ export default function Home() {
                         onChange={(e) => setAppointmentForm({ ...appointmentForm, notes: e.target.value })}
                       />
                     </div>
+
+                    {/* Selector de medidor — solo visible para admin/comercial */}
+                    {canAssignMedidor && (medidores as any[]).length > 0 && (
+                      <div className="space-y-2 border-t pt-4">
+                        <Label htmlFor="apt-medidor">Asignar medidor (opcional)</Label>
+                        <Select
+                          value={selectedMedidorId ? String(selectedMedidorId) : "none"}
+                          onValueChange={(val) => setSelectedMedidorId(val === "none" ? null : Number(val))}
+                        >
+                          <SelectTrigger id="apt-medidor">
+                            <SelectValue placeholder="Sin asignar" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Sin asignar</SelectItem>
+                            {(medidores as any[]).map((m: any) => (
+                              <SelectItem key={m.id} value={String(m.id)}>{m.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
 
                     {/* Resumen de confirmación antes de agendar */}
                     {appointmentDate && appointmentTime && (() => {

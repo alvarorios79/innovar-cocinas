@@ -8,6 +8,8 @@ import { DoorConfigurator, DoorConfig } from "@/components/DoorConfigurator";
 import { TVCenterConfigurator, TVCenterConfig } from "@/components/TVCenterConfigurator";
 import { KitchenConfigurator, KitchenConfig } from "@/components/KitchenConfigurator";
 import { CountertopConfigurator, CountertopConfig, defaultCountertopConfig } from "@/components/CountertopConfigurator";
+import { MuebleCocinaConfigurator, MuebleCocinaConfig, defaultMuebleCocinaConfig, calcularMuebleCocina } from "@/components/MuebleCocinaConfigurator";
+import { BathroomConfigurator, BathroomConfig } from "@/components/BathroomConfigurator";
 import { PDFPreviewBeforeSave } from "@/components/PDFPreviewBeforeSave";
 import { PDFContentEditor } from "@/components/PDFContentEditor";
 import { Button } from "@/components/ui/button";
@@ -29,7 +31,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-import { Plus, Trash2, FileText, Send, Eye, Pencil, Mail, Search, X, UserPlus, FolderPlus, ChefHat, Ruler, Package, Sofa, DoorOpen, Tv, Wrench, LayoutGrid, Calendar, User, Building2, Truck, Sparkles, CircleDollarSign, Lightbulb, Palette, Edit3, Lock, Unlock, ArrowLeft, Copy, Archive, SlidersHorizontal } from "lucide-react";
+import { Plus, Trash2, FileText, Send, Eye, Pencil, Mail, Search, X, UserPlus, FolderPlus, ChefHat, Ruler, Package, Sofa, DoorOpen, Tv, Wrench, LayoutGrid, Calendar, User, Building2, Truck, Sparkles, CircleDollarSign, Lightbulb, Palette, Edit3, Lock, Unlock, ArrowLeft, Copy, Archive, SlidersHorizontal, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/formatters";
 import { CreateQuickClientDialog } from "@/components/CreateQuickClientDialog";
@@ -58,6 +60,7 @@ interface AcabadosConfig {
 }
 
 interface QuotationItem {
+  _id?: string; // ID estable para React key — evita bugs de reconciliación
   itemNumber: number;
   itemType: string;
   description: string;
@@ -72,6 +75,8 @@ interface QuotationItem {
   doorConfig?: DoorConfig;
   tvCenterConfig?: TVCenterConfig;
   countertopConfig?: CountertopConfig;
+  muebleCocinaConfig?: MuebleCocinaConfig;
+  bathroomConfig?: BathroomConfig;
   acabadosConfig?: AcabadosConfig;
 }
 
@@ -102,23 +107,32 @@ function buildKitchenDescription(config: KitchenConfig): string {
   const parts: string[] = [];
   const km = config.kitchenModules || {};
   const sm = config.specialModules || {};
-  if (km.esquinero1x1)        parts.push("esquinero 1×1");
-  if (km.esquineroSuperior)   parts.push("esquinero superior");
-  if (km.cajoneroTriple)      parts.push("cajonero triple");
-  if (km.cajoneroDoble)       parts.push("cajonero doble");
-  if (km.basurero)            parts.push("basurero integrado");
-  if (km.moduloEstufaHorno || sm.torreHornos) parts.push("módulo estufa y horno");
-  if (km.moduloAlmacInf)      parts.push("módulo almacenamiento inferior");
-  if (km.moduloAlmacSup || sm.alacenaEntrepanos || sm.alacenaHerraje) parts.push("módulo almacenamiento superior");
-  if (km.moduloExtractor)     parts.push("módulo extractor");
-  if (km.moduloMicroondas)    parts.push("módulo de microondas");
-  if (km.especiero)           parts.push("especiero");
-  if (km.botellero)           parts.push("botellero");
-  if (km.moduloRepisa)        parts.push("módulo repisa");
+  const kmQ = (v: any) => typeof v === 'boolean' ? (v ? 1 : 0) : (v || 0);
+  if (kmQ(km.esquinero1x1) > 0)      parts.push(`${kmQ(km.esquinero1x1) > 1 ? kmQ(km.esquinero1x1)+"× " : ""}esquinero 1×1`);
+  if (kmQ(km.esquineroSuperior) > 0) parts.push(`${kmQ(km.esquineroSuperior) > 1 ? kmQ(km.esquineroSuperior)+"× " : ""}esquinero superior`);
+  if (kmQ(km.cajoneroTriple) > 0)    parts.push(`${kmQ(km.cajoneroTriple) > 1 ? kmQ(km.cajoneroTriple)+"× " : ""}cajonero triple`);
+  if (kmQ(km.cajoneroDoble) > 0)     parts.push(`${kmQ(km.cajoneroDoble) > 1 ? kmQ(km.cajoneroDoble)+"× " : ""}cajonero doble`);
+  if (kmQ(km.basurero) > 0)          parts.push(`${kmQ(km.basurero) > 1 ? kmQ(km.basurero)+"× " : ""}basurero integrado`);
+  if (kmQ(km.moduloEstufaHorno) > 0 || sm.torreHornos) parts.push("módulo estufa y horno");
+  if (kmQ(km.moduloAlmacInf) > 0)   parts.push(`${kmQ(km.moduloAlmacInf) > 1 ? kmQ(km.moduloAlmacInf)+"× " : ""}alm. inferior`);
+  if (kmQ(km.moduloAlmacSup) > 0 || sm.alacenaEntrepanos || sm.alacenaHerraje) parts.push("alm. superior");
+  if (kmQ(km.moduloExtractor) > 0)  parts.push("extractor");
+  if (kmQ(km.moduloMicroondas) > 0) parts.push("microondas");
+  if (kmQ(km.especiero) > 0)        parts.push(`${kmQ(km.especiero) > 1 ? kmQ(km.especiero)+"× " : ""}especiero`);
+  if (kmQ(km.botellero) > 0)        parts.push(`${kmQ(km.botellero) > 1 ? kmQ(km.botellero)+"× " : ""}botellero`);
+  if (kmQ(km.moduloRepisa) > 0)     parts.push(`${kmQ(km.moduloRepisa) > 1 ? kmQ(km.moduloRepisa)+"× " : ""}repisa`);
+  if (kmQ((km as any).lateralNichoNevera) > 0)    parts.push(`${kmQ((km as any).lateralNichoNevera)}× lat. nicho nevera`);
+  if (kmQ((km as any).lateralMuebleSuperior) > 0) parts.push(`${kmQ((km as any).lateralMuebleSuperior)}× lat. sup.`);
+  if (kmQ((km as any).lateralMuebleInferior) > 0) parts.push(`${kmQ((km as any).lateralMuebleInferior)}× lat. inf.`);
   if (km.luzLed || config.ledLighting > 0) parts.push("luz LED");
   if (sm.nichoNevecon)        parts.push("nicho para nevecón");
   if (sm.nichoNevera)         parts.push("nicho para nevera");
-  if (config.island?.enabled && config.island.meters > 0) parts.push(`isla ${config.island.meters}ml`);
+  if (config.island?.enabled && config.island.meters > 0) {
+    const islandCtNames: Record<string, string> = { quarzone: "Quarzone", sinterizado: "sinterizado", granito: "granito" };
+    const islandMesonText = config.island.countertopType ? ` con mesón en ${islandCtNames[config.island.countertopType] || config.island.countertopType}` : "";
+    const islandLateralsText = (config.island.incluyeLateralesIsla ?? config.island.hasLaterals) ? " y laterales" : "";
+    parts.push(`isla ${config.island.meters}ml${islandMesonText}${islandLateralsText}`);
+  }
   if (config.bar?.enabled && config.bar.meters > 0)       parts.push(`barra ${config.bar.meters}ml`);
 
   const modulosText = parts.length > 0 ? ` Módulos: ${parts.join(", ")}.` : "";
@@ -127,9 +141,18 @@ function buildKitchenDescription(config: KitchenConfig): string {
     quarzone: "Quarzone", sinterizado: "porcelanato sinterizado",
     granito: "granito", acero: "acero inoxidable",
   };
-  const mesonText = config.countertop?.type
-    ? ` Mesón en ${countertopNames[config.countertop.type] || config.countertop.type}.`
-    : "";
+  const ct = config.countertop;
+  let mesonText = "";
+  if (ct?.type) {
+    const mesonNombre = countertopNames[ct.type] || ct.type;
+    const mesonExtras: string[] = [];
+    if (ct.incluyeLaterales) mesonExtras.push(`${ct.cantLaterales || 1} lateral${(ct.cantLaterales || 1) > 1 ? 'es' : ''}`);
+    if (ct.incluyeRegrueso) mesonExtras.push("regrueso");
+    if (ct.incluyeLavaplatos) mesonExtras.push("lavaplatos y pegado");
+    if (ct.depthSurcharge === "30percent") mesonExtras.push("fondo 61-90cm (+30%)");
+    if (ct.depthSurcharge === "double") mesonExtras.push("fondo 91-120cm (×2)");
+    mesonText = ` Mesón en ${mesonNombre}${mesonExtras.length > 0 ? ' con ' + mesonExtras.join(', ') : ''}.`;
+  }
 
   return `Cocina integral ${clase}${meters}. Material aglomerado tipo RH, color a elegir por el cliente.${modulosText}${mesonText} (Diseño por definir)`;
 }
@@ -169,6 +192,23 @@ function buildTVDescription(_config: import("@/components/TVCenterConfigurator")
   return "Material aglomerado tipo RH, color a elegir por el cliente con: mueble flotante, pantalla para soporte TV, alistonado, repisas. (Diseño por definir)";
 }
 
+function buildBathroomDescription(config: BathroomConfig): string {
+  const typeLabel = config.furnitureType === 'flotante' ? 'Mueble de Baño Flotante' : 'Mueble de Baño de Piso con Pata';
+  const qty = config.quantity > 1 ? `${config.quantity} unidades — ` : '';
+  let desc = `${qty}${typeLabel} — ${config.width}cm ancho × ${config.depth}cm prof. × ${config.height}cm alto. `;
+  if (config.includeMadera !== false) {
+    desc += 'Madera aglomerada tipo RH de alta presión, cantos rígidos en puertas y tapas. ';
+  }
+  desc += config.sinkType === 'excavado' ? 'Con lavamanos excavado integrado. ' : 'Para lavamanos de sobreponer. ';
+  if (config.hasExcavado && config.excavadoMaterial) {
+    desc += `Excavado en ${config.excavadoMaterial} — incluye salpicadero 10cm, llave/grifo no incluida. `;
+  }
+  if (config.hasMeson && config.mesonMaterial) {
+    desc += `Mesón en ${config.mesonMaterial} — incluye salpicadero 10cm, llave/grifo y lavamanos no incluidos. `;
+  }
+  return desc.trim();
+}
+
 export default function Quotations() {
   const utils = trpc.useUtils();
   const { user } = useAuth();
@@ -178,44 +218,46 @@ export default function Quotations() {
   const { prices, isLoading: isPricingLoading, getPrice } = usePricing();
   const { data: allPricing } = trpc.pricing.getAll.useQuery();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [fromVisitId, setFromVisitId] = useState<number | null>(null);
+  const [pendingWaUrl, setPendingWaUrl] = useState<string | null>(null);
   const [lockConfirmDialog, setLockConfirmDialog] = useState<{ open: boolean; quotationId: number | null; isLocking: boolean }>({ open: false, quotationId: null, isLocking: false });
   
   // Abrir diálogo automáticamente si viene con ?new en la URL
+  // También pre-llena clientId y workType si vienen de un levantamiento técnico
+  // Nota: useLocation() de Wouter solo devuelve el path — los query params se leen de window.location.search
   useEffect(() => {
-    if (location.includes("?new") || location.includes("&new")) {
-      setShowCreateDialog(true);
-    }
-  }, [location]);
-
-  // Detectar si viene desde una visita técnica (?fromVisit=ID)
-  const fromVisitParams = useMemo(() => {
     const search = window.location.search;
-    if (!search.includes("fromVisit")) return null;
-    const p = new URLSearchParams(search);
-    const id = p.get("fromVisit");
-    if (!id) return null;
-    return {
-      visitId:    parseInt(id),
-      clientName: p.get("clientName") ?? "",
-      clientPhone: p.get("clientPhone") ?? "",
-      workType:   p.get("workType") ?? "",
-    };
+    if (!search) return;
+    const params = new URLSearchParams(search);
+    const hasNew = params.has("new");
+    const visitIdParam = params.get("fromVisit");
+    if (visitIdParam) setFromVisitId(parseInt(visitIdParam));
+    if (hasNew || visitIdParam) {
+      setShowCreateDialog(true);
+      const clientId = params.get("clientId");
+      const wt = params.get("workType");
+      const workTypesParam = params.get("workTypes");
+      if (clientId) {
+        setSelectedClient(parseInt(clientId));
+      } else {
+        const clientNameParam = params.get("clientName");
+        if (clientNameParam) {
+          const decoded = decodeURIComponent(clientNameParam);
+          const found = (clients as any[]).find((cl: any) =>
+            cl.name?.toLowerCase().trim() === decoded.toLowerCase().trim()
+          );
+          if (found) {
+            setSelectedClient(found.id);
+          } else {
+            setPendingClientName(decoded);
+          }
+        }
+      }
+      if (wt) setWorkType(wt);
+      else if (workTypesParam) setWorkType(workTypesParam.split(",")[0]);
+    }
   }, [location]);
 
-  const markVisitConverted = trpc.technicalVisits.markConverted.useMutation();
-
-  useEffect(() => {
-    if (fromVisitParams) {
-      setShowCreateDialog(true);
-      if (fromVisitParams.workType) {
-        const wt = fromVisitParams.workType === "centro_tv" ? "centro_tv"
-          : fromVisitParams.workType === "puertas" ? "puerta"
-          : fromVisitParams.workType === "closet"  ? "closet"
-          : "cocina";
-        setWorkType(wt);
-      }
-    }
-  }, [fromVisitParams?.visitId]);
   const [editingQuotation, setEditingQuotation] = useState<number | null>(null);
   const [selectedClient, setSelectedClient] = useState<number | null>(null);
   const VENDOR_OPTIONS = ["Alvaro Ríos", "Martha Serna"];
@@ -224,9 +266,9 @@ export default function Quotations() {
   const [vendorName, setVendorName] = useState(() => resolveVendor(user?.name));
   const [workType, setWorkType] = useState("");
 
-  // Sync vendorName when auth loads asynchronously
+  // Sync vendorName when auth loads asynchronously — solo si NO hay cotización en edición
   useEffect(() => {
-    if (user?.name) setVendorName(resolveVendor(user.name));
+    if (user?.name && !editingQuotation) setVendorName(resolveVendor(user.name));
   }, [user?.name]);
   
   // Estados para vista previa antes de guardar
@@ -246,6 +288,7 @@ export default function Quotations() {
   const [filterAmountMax, setFilterAmountMax] = useState<string>("");
   const [filterHasProject, setFilterHasProject] = useState<string>("all"); // all | yes | no
   const [showFilters, setShowFilters] = useState(false);
+  const [modulosOpenSet, setModulosOpenSet] = useState<Set<number>>(new Set());
   
   // Estados para editor de contenido PDF
   const [pdfEditorOpen, setPdfEditorOpen] = useState(false);
@@ -262,6 +305,7 @@ export default function Quotations() {
   
   // Estado para descuento
   const [discountPercent, setDiscountPercent] = useState<number>(0);
+  const [includeIva, setIncludeIva] = useState<boolean>(false);
 
   // Notas y condiciones
   const [generalNotes, setGeneralNotes] = useState<string>(INNOVAR_NOTAS_DEFAULT);
@@ -298,12 +342,24 @@ export default function Quotations() {
           meters: 0,
           countertopType: "",
           hasLaterals: false,
+          incluyeLateralesIsla: false,
+          incluyeRegrueso: false,
+          incluyeSalpicaderoAlto: false,
+          incluyeLavaplatos: false,
+          incluyeLedIsla: false,
+          ledMLIsla: 0,
+          modulosDescriptivos: {},
         },
         bar: {
           enabled: false,
           meters: 0,
           countertopType: "",
           hasLateral: false,
+          barraAlturaLateral: 90,
+          incluyePedestal: false,
+          incluyeHerraje: false,
+          esImportado: false,
+          precioImportadoML: undefined,
         },
         ledLighting: 0,
         paintedDoors: {
@@ -335,6 +391,19 @@ export default function Quotations() {
   });
   const quotations = quotationsData?.data || [];
   const { data: clients = [] } = trpc.clients.list.useQuery();
+  const [pendingClientName, setPendingClientName] = useState<string | null>(null);
+
+  // Resolución diferida de cliente por nombre (cuando clients no estaba listo al llegar URL param)
+  useEffect(() => {
+    if (!pendingClientName || !(clients as any[]).length) return;
+    const found = (clients as any[]).find((cl: any) =>
+      cl.name?.toLowerCase().trim() === pendingClientName.toLowerCase().trim()
+    );
+    if (found) {
+      setSelectedClient(found.id);
+      setPendingClientName(null);
+    }
+  }, [clients, pendingClientName]);
 
   // Filtrar cotizaciones
   const filteredQuotations = quotations.filter((quot: any) => {
@@ -395,19 +464,13 @@ export default function Quotations() {
     filterHasProject !== "all";
 
   const createQuotation = trpc.quotations.create.useMutation({
-    onSuccess: (data: any) => {
+    onSuccess: () => {
       utils.quotations.list.invalidate();
       utils.quotations.listPaginatedGrouped.invalidate();
       toast.success("Cotización creada exitosamente");
       setShowCreateDialog(false);
       resetForm();
-      // Si venía de una visita técnica, marcarla como convertida
-      if (fromVisitParams?.visitId) {
-        markVisitConverted.mutate({
-          visitId:     fromVisitParams.visitId,
-          quotationId: data?.id,
-        });
-      }
+      setFromVisitId(null);
     },
     onError: (error) => {
       toast.error(error.message || "Error al crear cotización");
@@ -479,13 +542,13 @@ export default function Quotations() {
   });
 
   const sendWhatsApp = trpc.quotations.sendByWhatsApp.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       utils.quotations.list.invalidate();
       utils.quotations.listPaginatedGrouped.invalidate();
-      toast.success("Cotizacion enviada por WhatsApp");
+      toast.success('PDF generado y cotización marcada como enviada ✅');
     },
     onError: (error) => {
-      toast.error(error.message || "Error al enviar por WhatsApp");
+      toast.error(error.message || "Error al preparar el envío por WhatsApp");
     },
   });
 
@@ -493,7 +556,8 @@ export default function Quotations() {
 
   const previewPDF = trpc.quotations.previewPDF.useMutation({
     onSuccess: (data) => {
-      const previewUrl = `${data.downloadUrl}?preview=true`;
+      // Usar & para no romper el query string existente (downloadUrl ya tiene ?name=...)
+      const previewUrl = `${data.downloadUrl}&preview=true`;
       setPreviewBeforeSaveUrl(previewUrl);
       setPreviewBeforeSaveOpen(true);
     },
@@ -610,12 +674,13 @@ export default function Quotations() {
     setGeneralNotes(INNOVAR_NOTAS_DEFAULT);
     setPaymentTerms("60% anticipo — 40% a la entrega de la obra");
     setDeliveryTime("25 días hábiles a partir de la aprobación del render final");
-    setItems([{ 
-      itemNumber: 1, 
-      itemType: "", 
-      description: "", 
-      quantity: "", 
-      totalPrice: 0, 
+    setItems([{
+      _id: `item_${Date.now()}_${Math.random()}`,
+      itemNumber: 1,
+      itemType: "",
+      description: "",
+      quantity: "",
+      totalPrice: 0,
       includesFixedCosts: false,
       fixedCostsAmount: 600000, // Valor por defecto
       kitchenConfig: {
@@ -639,12 +704,24 @@ export default function Quotations() {
           meters: 0,
           countertopType: "",
           hasLaterals: false,
+          incluyeLateralesIsla: false,
+          incluyeRegrueso: false,
+          incluyeSalpicaderoAlto: false,
+          incluyeLavaplatos: false,
+          incluyeLedIsla: false,
+          ledMLIsla: 0,
+          modulosDescriptivos: {},
         },
         bar: {
           enabled: false,
           meters: 0,
           countertopType: "",
           hasLateral: false,
+          barraAlturaLateral: 90,
+          incluyePedestal: false,
+          incluyeHerraje: false,
+          esImportado: false,
+          precioImportadoML: undefined,
         },
         ledLighting: 0,
         paintedDoors: {
@@ -694,25 +771,54 @@ export default function Quotations() {
       });
       
       setEditingQuotation(quotationId);
-      setSelectedClient(quotationGroup.clientId);
-      setVendorName(quotationGroup.vendorName);
-      setWorkType(quotationGroup.productType);
+      // Usar selectedVersion (el row real de la cotización) — quotationGroup no tiene estos campos directamente
+      setSelectedClient(selectedVersion.clientId ?? quotationData?.clientId ?? null);
+      setVendorName(resolveVendor(selectedVersion.vendorName ?? quotationData?.vendorName));
+      setWorkType(selectedVersion.productType ?? quotationData?.productType ?? "otro");
       
       // Cargar descuento si existe
       const quotationDiscount = (quotationData as any)?.discountPercent;
       setDiscountPercent(quotationDiscount ? parseFloat(quotationDiscount) : 0);
+      setIncludeIva((quotationData as any)?.includeIva === 1);
 
       // Cargar notas y condiciones
+      // generalNotes en DB puede tener "Condiciones de pago:" y "Tiempo de entrega:" ya appended
+      // (se concatenaron al guardar). Al cargar, separamos para evitar duplicación.
       const loadedNotes = (quotationData as any)?.generalNotes;
-      setGeneralNotes(loadedNotes && loadedNotes.trim() ? loadedNotes : INNOVAR_NOTAS_DEFAULT);
-      const loadedPayment = (quotationData as any)?.paymentTerms;
-      setPaymentTerms(loadedPayment && loadedPayment.trim() ? loadedPayment : "60% anticipo — 40% a la entrega de la obra");
-      const loadedDelivery = (quotationData as any)?.deliveryTime;
-      setDeliveryTime(loadedDelivery && loadedDelivery.trim() ? loadedDelivery : "25 días hábiles a partir de la aprobación del render final");
+      if (loadedNotes && loadedNotes.trim()) {
+        const SEP = '\n\nCondiciones de pago:';
+        const sepIdx = loadedNotes.lastIndexOf(SEP);
+        if (sepIdx !== -1) {
+          // Extraer notas limpias (antes del separador)
+          const cleanNotes = loadedNotes.substring(0, sepIdx);
+          const condPart = loadedNotes.substring(sepIdx + 2); // "\nCondiciones de pago:..."
+          const pagoMatch = condPart.match(/Condiciones de pago:\s*(.+?)(?:\n|$)/);
+          const entregaMatch = condPart.match(/Tiempo de entrega:\s*(.+?)(?:\n|$)/);
+          setGeneralNotes(cleanNotes.trim() || INNOVAR_NOTAS_DEFAULT);
+          setPaymentTerms(pagoMatch?.[1]?.trim() || "60% anticipo — 40% a la entrega de la obra");
+          setDeliveryTime(entregaMatch?.[1]?.trim() || "25 días hábiles a partir de la aprobación del render final");
+        } else {
+          setGeneralNotes(loadedNotes);
+          setPaymentTerms("60% anticipo — 40% a la entrega de la obra");
+          setDeliveryTime("25 días hábiles a partir de la aprobación del render final");
+        }
+      } else {
+        setGeneralNotes(INNOVAR_NOTAS_DEFAULT);
+        setPaymentTerms("60% anticipo — 40% a la entrega de la obra");
+        setDeliveryTime("25 días hábiles a partir de la aprobación del render final");
+      }
       
       // Cargar items si existen
       if (quotationData && quotationData.items && Array.isArray(quotationData.items)) {
-        setItems(quotationData.items.map((item: any) => ({
+        // Aviso si la cotización tiene closets, puertas o centro TV
+        const hasAutoCalcItems = quotationData.items.some((it: any) =>
+          ['closet', 'puerta', 'centro_tv'].includes(it.itemType)
+        );
+        if (hasAutoCalcItems) {
+          toast.info("Esta cotización tiene closets, puertas o centros de TV. Si modificas su configuración, el precio se recalculará con las tarifas actuales.");
+        }
+        setItems(quotationData.items.map((item: any, idx: number) => ({
+          _id: `db_${item.id || idx}_${Date.now()}`,
           itemNumber: item.itemNumber,
           itemType: item.itemType || "",
           description: item.description,
@@ -796,6 +902,7 @@ export default function Quotations() {
             transportCost: item.doorConfig.transportCost ?? 150000,
             notes: item.doorConfig.notes || "",
           } : undefined,
+          bathroomConfig: item.bathroomConfig || undefined,
           countertopConfig: item.countertopConfig ? {
             mesones: item.countertopConfig.mesones || [{
               id: `meson-legacy-${Date.now()}`,
@@ -821,6 +928,7 @@ export default function Quotations() {
             transportCost: item.countertopConfig.transportCost ?? 150000,
           } : undefined,
           kitchenConfig: item.kitchenConfig ? {
+            ...item.kitchenConfig, // preserva notes, mlPriceCode, layout, paintedDoors, specialFinishes, doorsAndCovers
             shape: item.kitchenConfig.shape ?? "",
             totalMeters: item.kitchenConfig.totalMeters ?? 0,
             includeUpperModule: item.kitchenConfig.includeUpperModule ?? false,
@@ -842,18 +950,49 @@ export default function Quotations() {
               meters: item.kitchenConfig.island?.meters ?? 0,
               countertopType: item.kitchenConfig.island?.countertopType ?? "",
               hasLaterals: item.kitchenConfig.island?.hasLaterals ?? false,
+              incluyeLateralesIsla: item.kitchenConfig.island?.incluyeLateralesIsla ?? item.kitchenConfig.island?.hasLaterals ?? false,
+              incluyeRegrueso: item.kitchenConfig.island?.incluyeRegrueso ?? item.kitchenConfig.island?.hasLaterals ?? false,
+              incluyeSalpicaderoAlto: item.kitchenConfig.island?.incluyeSalpicaderoAlto ?? false,
+              incluyeLavaplatos: item.kitchenConfig.island?.incluyeLavaplatos ?? false,
+              incluyeLedIsla: item.kitchenConfig.island?.incluyeLedIsla ?? false,
+              ledMLIsla: item.kitchenConfig.island?.ledMLIsla ?? 0,
+              modulosDescriptivos: item.kitchenConfig.island?.modulosDescriptivos ?? {},
             },
             bar: {
               enabled: item.kitchenConfig.bar?.enabled ?? false,
               meters: item.kitchenConfig.bar?.meters ?? 0,
               countertopType: item.kitchenConfig.bar?.countertopType ?? "",
               hasLateral: item.kitchenConfig.bar?.hasLateral ?? false,
+              barraAlturaLateral: item.kitchenConfig.bar?.barraAlturaLateral ?? 90,
+              incluyePedestal: item.kitchenConfig.bar?.incluyePedestal ?? false,
+              incluyeHerraje: item.kitchenConfig.bar?.incluyeHerraje ?? false,
+              esImportado: item.kitchenConfig.bar?.esImportado ?? false,
+              precioImportadoML: item.kitchenConfig.bar?.precioImportadoML ?? undefined,
             },
             ledLighting: item.kitchenConfig.ledLighting ?? 0,
-            kitchenModules: item.kitchenConfig.kitchenModules ? {
-              ...item.kitchenConfig.kitchenModules,
-              luzLed: item.kitchenConfig.kitchenModules.luzLed ?? false,
-            } : undefined,
+            kitchenModules: item.kitchenConfig.kitchenModules ? (() => {
+              const km = item.kitchenConfig.kitchenModules!;
+              const toNum = (v: any) => typeof v === 'boolean' ? (v ? 1 : 0) : (v ?? 0);
+              return {
+                esquineroSuperior:     toNum(km.esquineroSuperior),
+                moduloAlmacSup:        toNum(km.moduloAlmacSup),
+                moduloExtractor:       toNum(km.moduloExtractor),
+                moduloMicroondas:      toNum(km.moduloMicroondas),
+                especiero:             toNum(km.especiero),
+                botellero:             toNum(km.botellero),
+                moduloRepisa:          toNum(km.moduloRepisa),
+                esquinero1x1:          toNum(km.esquinero1x1),
+                cajoneroTriple:        toNum(km.cajoneroTriple),
+                cajoneroDoble:         toNum(km.cajoneroDoble),
+                basurero:              toNum(km.basurero),
+                moduloEstufaHorno:     toNum(km.moduloEstufaHorno),
+                moduloAlmacInf:        toNum(km.moduloAlmacInf),
+                lateralNichoNevera:    toNum((km as any).lateralNichoNevera),
+                lateralMuebleSuperior: toNum((km as any).lateralMuebleSuperior),
+                lateralMuebleInferior: toNum((km as any).lateralMuebleInferior),
+                luzLed: km.luzLed ?? false,
+              };
+            })() : undefined,
           } : {
             shape: "",
             totalMeters: 0,
@@ -878,12 +1017,24 @@ export default function Quotations() {
               meters: 0,
               countertopType: "",
               hasLaterals: false,
+              incluyeLateralesIsla: false,
+              incluyeRegrueso: false,
+              incluyeSalpicaderoAlto: false,
+              incluyeLavaplatos: false,
+              incluyeLedIsla: false,
+              ledMLIsla: 0,
+              modulosDescriptivos: {},
             },
             bar: {
               enabled: false,
               meters: 0,
               countertopType: "",
               hasLateral: false,
+              barraAlturaLateral: 90,
+              incluyePedestal: false,
+              incluyeHerraje: false,
+              esImportado: false,
+              precioImportadoML: undefined,
             },
             ledLighting: 0,
             paintedDoors: {
@@ -895,7 +1046,15 @@ export default function Quotations() {
               spiceQty: 0,
               golaQty: 0,
             },
-          }
+          },
+          // Para mueble_cocina: la config se guardó dentro de kitchenConfig — restaurarla aquí
+          muebleCocinaConfig: item.itemType === 'mueble_cocina' && item.kitchenConfig && (item.kitchenConfig as any).tipoPieza
+            ? item.kitchenConfig as any
+            : undefined,
+          // Para acabados_especiales: la config también se guardó dentro de kitchenConfig
+          acabadosConfig: item.itemType === 'acabados_especiales' && item.kitchenConfig
+            ? item.kitchenConfig as any
+            : undefined,
         })));
       }
       
@@ -909,6 +1068,7 @@ export default function Quotations() {
     setItems([
       ...items,
       {
+        _id: `item_${Date.now()}_${Math.random()}`,
         itemNumber: items.length + 1,
         itemType: "",
         description: "",
@@ -937,12 +1097,24 @@ export default function Quotations() {
             meters: 0,
             countertopType: "",
             hasLaterals: false,
+            incluyeLateralesIsla: false,
+            incluyeRegrueso: false,
+            incluyeSalpicaderoAlto: false,
+            incluyeLavaplatos: false,
+            incluyeLedIsla: false,
+            ledMLIsla: 0,
+            modulosDescriptivos: {},
           },
           bar: {
             enabled: false,
             meters: 0,
             countertopType: "",
             hasLateral: false,
+            barraAlturaLateral: 90,
+            incluyePedestal: false,
+            incluyeHerraje: false,
+            esImportado: false,
+            precioImportadoML: undefined,
           },
           ledLighting: 0,
           paintedDoors: {
@@ -965,12 +1137,12 @@ export default function Quotations() {
       toast.error("Debe haber al menos un ítem");
       return;
     }
-    const newItems = items.filter((_, i) => i !== index);
-    // Renumerar items
-    newItems.forEach((item, i) => {
-      item.itemNumber = i + 1;
-    });
-    setItems(newItems);
+    // Bug A fix: usar map inmutable en lugar de forEach con mutación directa
+    setItems(
+      items
+        .filter((_, i) => i !== index)
+        .map((item, i) => ({ ...item, itemNumber: i + 1 }))
+    );
   };
 
   const updateItem = (index: number, field: keyof QuotationItem, value: any) => {
@@ -1008,7 +1180,9 @@ export default function Quotations() {
 
   const updateKitchenConfig = (index: number, field: string, value: any) => {
     const newItems = [...items];
-    const config = newItems[index].kitchenConfig!;
+    // Bug E fix: deep copy para no mutar el estado anidado original
+    const config = structuredClone(newItems[index].kitchenConfig!);
+    newItems[index] = { ...newItems[index], kitchenConfig: config };
     
     // Actualizar campo específico usando notación de punto
     const fields = field.split('.');
@@ -1017,6 +1191,18 @@ export default function Quotations() {
       current = current[fields[i]];
     }
     current[fields[fields.length - 1]] = value;
+
+    // Cuando se desmarca medidas independientes, limpiar ML de superiores/inferiores en una sola operación
+    if (field === 'independentMeters' && value === false) {
+      config.upperMeters = undefined;
+      config.lowerMeters = undefined;
+      // totalMeters vuelve al valor base (campo ml general)
+    }
+
+    // Auto-suma: cuando cambia lowerMeters o upperMeters, actualizar totalMeters
+    if (field === 'lowerMeters' || field === 'upperMeters') {
+      config.totalMeters = (config.lowerMeters || 0) + (config.upperMeters || 0);
+    }
     
     // Autocompletar descripcion si se selecciona shape y la descripcion esta vacia
     if (field === 'shape' && (!newItems[index].description || newItems[index].description.trim() === '')) {
@@ -1033,6 +1219,16 @@ export default function Quotations() {
           newItems[index].description = pricingItem.descriptionTemplate;
         }
       }
+    }
+    
+    // Guardar código de precio explícito al cambiar el tipo de cocina.
+    // Soporta valores nuevos (estandar/premium/deluxe) y legacy (L/U/lineal).
+    // El campo layout (forma física) no afecta el precio.
+    if (field === 'shape') {
+      config.mlPriceCode =
+        (value === 'premium' || value === 'U')      ? 'COCINA_ML_PREMIUM' :
+        (value === 'deluxe'  || value === 'lineal') ? 'COCINA_ML_DELUXE'  :
+                                                      'COCINA_ML_ESTANDAR';
     }
     
     // Recalcular automaticamente con el item actualizado
@@ -1128,14 +1324,25 @@ export default function Quotations() {
       total += (dc.smallCovers || 0) * getPrice('TAPA_PEQUENA');
     } else {
       // Cocinas completas: inferior y superior cobrados por separado al mismo precio/ml
-      // El precio/ml varía según la referencia (Estándar / Premium / Deluxe)
-      const mlPriceCode =
-        config.shape === 'premium' ? 'COCINA_ML_PREMIUM' :
-        config.shape === 'deluxe'  ? 'COCINA_ML_DELUXE'  :
-                                     'COCINA_ML_ESTANDAR'; // estandar + legacy (lineal/L/U)
+      // Precio/ml: usa mlPriceCode guardado (si existe).
+      // Fallback: soporta valores nuevos (premium/deluxe) y legacy (U/lineal).
+      // El layout físico (L/U/lineal como forma) NO afecta el precio — solo el tipo lo hace.
+      const mlPriceCode = config.mlPriceCode || (
+        (config.shape === 'premium' || config.shape === 'U')      ? 'COCINA_ML_PREMIUM' :
+        (config.shape === 'deluxe'  || config.shape === 'lineal') ? 'COCINA_ML_DELUXE'  :
+                                                                    'COCINA_ML_ESTANDAR'
+      );
       const mlPrice = getPrice(mlPriceCode);
-      total += resultingMeters * mlPrice; // mueble inferior
-      total += resultingMeters * mlPrice; // mueble superior
+      if (config.independentMeters && (config.lowerMeters !== undefined || config.upperMeters !== undefined)) {
+        // Modo medidas independientes: inferiores y superiores con ML distintos
+        const lowerR = Math.max(0, (config.lowerMeters || 0) - deductions);
+        const upperR = config.upperMeters || 0;
+        if (config.includeLower !== false) total += lowerR * mlPrice;
+        if (config.includeUpper !== false) total += upperR * mlPrice;
+      } else {
+        if (config.includeLower !== false) total += resultingMeters * mlPrice; // mueble inferior
+        if (config.includeUpper !== false) total += resultingMeters * mlPrice; // mueble superior
+      }
     }
 
     // 3. Muebles especiales (para cocinas completas y puertas_tapas) - precios dinámicos
@@ -1150,7 +1357,9 @@ export default function Quotations() {
     // 4. Mesón principal (usa metraje resultante automáticamente) - precios dinámicos
     // No aplica para solo_superiores ni puertas_tapas
     if (config.shape !== 'solo_superiores' && config.shape !== 'puertas_tapas' && config.countertop.type) {
-      const basePrice = config.countertop.type === "quarzone" ? getPrice('MESON_CUARZO')
+      const basePrice = (config.countertop.esImportado && config.countertop.precioImportadoML)
+                      ? config.countertop.precioImportadoML
+                      : config.countertop.type === "quarzone" ? getPrice('MESON_CUARZO')
                       : config.countertop.type === "granito"  ? getPrice('MESON_GRANITO')
                       : getPrice('MESON_SINTERIZADO');
       let countertopPrice = basePrice;
@@ -1163,26 +1372,73 @@ export default function Quotations() {
       }
       
       // Usar metraje resultante automáticamente (o totalMeters para formas especiales)
-      const metersForCountertop = isSpecialShape ? config.totalMeters : resultingMeters;
+      const metersForCountertop = isSpecialShape ? config.totalMeters
+      : (config.independentMeters && config.lowerMeters !== undefined)
+        ? Math.max(0, (config.lowerMeters || 0) - deductions)
+        : resultingMeters;
       total += metersForCountertop * countertopPrice;
+
+      // Extras del mesón: laterales, regrueso, lavaplatos
+      if (config.countertop.incluyeLaterales) {
+        const cantLat = config.countertop.cantLaterales || 1;
+        total += cantLat * 0.9 * countertopPrice;
+      }
+      if (config.countertop.incluyeRegrueso) {
+        total += 0.9 * countertopPrice;
+      }
+      if (config.countertop.incluyeLavaplatos) {
+        total += config.countertop.lavaprecio ?? getPrice('LAVAPLATOS_MESON');
+      }
     }
 
     // 5. Isla (para cocinas completas y puertas_tapas) - precios dinámicos
     if ((!isSpecialShape || config.shape === 'puertas_tapas') && config.island.enabled && config.island.meters > 0) {
-      // Muebles de isla
-      total += config.island.meters * getPrice('ISLA_ML');
+      // Muebles de isla — usa el mismo precio/ml que la cocina principal
+      const islaMlPriceCode = config.mlPriceCode || (
+        (config.shape === 'premium' || config.shape === 'U')      ? 'COCINA_ML_PREMIUM' :
+        (config.shape === 'deluxe'  || config.shape === 'lineal') ? 'COCINA_ML_DELUXE'  :
+                                                                    'COCINA_ML_ESTANDAR'
+      );
+      total += config.island.meters * getPrice(islaMlPriceCode);
+      
+      // LED de isla
+      if (config.island.incluyeLedIsla && config.island.ledMLIsla && config.island.ledMLIsla > 0) {
+        total += config.island.ledMLIsla * getPrice('LED_ML');
+      }
+      
+      // Lavaplatos de isla
+      if (config.island.incluyeLavaplatos) {
+        total += config.island.lavaprecio ?? getPrice('LAVAPLATOS_MESON');
+      }
       
       // Mesón superior de isla
       if (config.island.countertopType) {
-        const islandCountertopPrice = config.island.countertopType === "quarzone" ? getPrice('MESON_CUARZO')
-                                    : config.island.countertopType === "granito"  ? getPrice('MESON_GRANITO')
-                                    : getPrice('MESON_SINTERIZADO');
+        // Precio base del material (importado o estándar)
+        const islandMatBasePrice = (config.island.esImportado && config.island.precioImportadoML)
+          ? config.island.precioImportadoML
+          : config.island.countertopType === "quarzone" ? getPrice('MESON_CUARZO')
+          : config.island.countertopType === "granito"  ? getPrice('MESON_GRANITO')
+          : getPrice('MESON_SINTERIZADO');
+        
+        // Recargo por fondo
+        const fondoMult = config.island.depthSurcharge === 'double' ? 2
+                        : config.island.depthSurcharge === '40percent' ? 1.4
+                        : config.island.depthSurcharge === '30percent' ? (1 + getPrice('MESON_RECARGO_FONDO') / 100)
+                        : 1;
+        const islandCountertopPrice = islandMatBasePrice * fondoMult;
         total += config.island.meters * islandCountertopPrice;
         
-        // Laterales de isla
-        if (config.island.hasLaterals) {
-          total += 1.8 * islandCountertopPrice; // Lateral
-          total += 0.9 * islandCountertopPrice; // Regrueso
+        // Laterales (1.80ml = 0.90×2, CON recargo de fondo)
+        const islaAddLaterales = config.island.incluyeLateralesIsla ?? config.island.hasLaterals;
+        if (islaAddLaterales) total += 1.8 * islandCountertopPrice;
+        
+        // Regrueso (0.90ml, SIN recargo de fondo)
+        const islaAddRegrueso = config.island.incluyeRegrueso ?? config.island.hasLaterals;
+        if (islaAddRegrueso) total += 0.9 * islandMatBasePrice;
+        
+        // Salpicadero alto (metros × precio con fondo)
+        if (config.island.incluyeSalpicaderoAlto) {
+          total += config.island.meters * islandCountertopPrice;
         }
       }
     }
@@ -1192,18 +1448,30 @@ export default function Quotations() {
       // Muebles de barra
       total += config.bar.meters * getPrice('BARRA_ML');
       
+      // Pedestal metálico
+      if (config.bar.incluyePedestal) total += getPrice('BARRA_PEDESTAL');
+      
+      // Herraje de barra
+      if (config.bar.incluyeHerraje) total += getPrice('BARRA_HERRAJE');
+      
       // Mesón superior de barra
       if (config.bar.countertopType) {
-        const barCountertopPrice = config.bar.countertopType === "quarzone" ? getPrice('MESON_CUARZO')
-                                 : config.bar.countertopType === "granito"  ? getPrice('MESON_GRANITO')
-                                 : getPrice('MESON_SINTERIZADO');
-        total += config.bar.meters * barCountertopPrice;
+        const barBasePrice = (config.bar.esImportado && config.bar.precioImportadoML)
+          ? config.bar.precioImportadoML
+          : config.bar.countertopType === "quarzone" ? getPrice('MESON_CUARZO')
+          : config.bar.countertopType === "granito"  ? getPrice('MESON_GRANITO')
+          : getPrice('MESON_SINTERIZADO');
+        total += config.bar.meters * barBasePrice;
         
-        // Lateral de barra
+        // Lateral de barra (altura configurable)
         if (config.bar.hasLateral) {
-          total += 0.9 * barCountertopPrice;
+          const lateralML = (config.bar.barraAlturaLateral && config.bar.barraAlturaLateral > 0)
+            ? config.bar.barraAlturaLateral / 100
+            : 0.9;
+          total += lateralML * barBasePrice;
         }
       }
+      
     }
 
     // 7. Luz LED (no aplica para solo_inferiores ni puertas_tapas) - precio dinámico
@@ -1246,7 +1514,7 @@ export default function Quotations() {
     }
 
     // Actualizar total e descripción del item
-    const finalItems = [...items];
+    const finalItems = [...itemsArray];
     finalItems[index].totalPrice = total;
     // Auto-generar descripción si está vacía
     if (!finalItems[index].description?.trim()) {
@@ -1275,11 +1543,7 @@ export default function Quotations() {
       return;
     }
 
-    if (items.some((item) => item.itemType && !item.itemType)) {
-      toast.error("Selecciona el tipo de producto para todos los items");
-      return;
-    }
-
+    // Bug G fix: validación anterior `item.itemType && !item.itemType` siempre era false (eliminada)
     // Validar campos obligatorios según tipo de item
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
@@ -1363,12 +1627,18 @@ export default function Quotations() {
           toast.error(`Item ${i + 1}: El total del mesón debe ser mayor a 0`);
           return;
         }
+      } else if (item.itemType === "mueble_cocina") {
+        // Backward compat: cotizaciones antiguas sin muebleCocinaConfig en DB → permitir si hay precio
+        if ((!item.muebleCocinaConfig || item.muebleCocinaConfig.total <= 0) && item.totalPrice <= 0) {
+          toast.error(`Item ${i + 1}: Configura el mueble de cocina`);
+          return;
+        }
       } else if (item.itemType === "acabados_especiales") {
-        // Para acabados especiales: validar que tenga al menos un acabado
         const config = item.acabadosConfig;
         const hasDoors = config?.aluminumGlassDoors && config.aluminumGlassDoors.length > 0;
         const hasLed = config?.ledLighting?.enabled && config.ledLighting.meters > 0;
-        if (!hasDoors && !hasLed) {
+        // Backward compat: cotizaciones antiguas sin config en DB → permitir si hay precio
+        if (!hasDoors && !hasLed && item.totalPrice <= 0) {
           toast.error(`Item ${i + 1}: Agrega al menos una puerta de aluminio o metros de LED`);
           return;
         }
@@ -1440,9 +1710,23 @@ export default function Quotations() {
           total += (dc.drawerCovers || 0) * getPrice('TAPA_CAJON');
           total += (dc.smallCovers || 0) * getPrice('TAPA_PEQUENA');
         } else {
-          // Cocinas completas (Lineal, L, U, etc.): inferiores + superiores
-          total += resultingMeters * getPrice('MUEBLE_INFERIOR_ML');
-          total += resultingMeters * getPrice('MUEBLE_SUPERIOR_ML');
+          // Cocinas completas: inferior y superior al mismo precio/ml según tipo.
+          // Fallback soporta valores nuevos (estandar/premium/deluxe) y legacy (L/U/lineal).
+          const mlPriceCode2 = config.mlPriceCode || (
+            (config.shape === 'premium' || config.shape === 'U')      ? 'COCINA_ML_PREMIUM' :
+            (config.shape === 'deluxe'  || config.shape === 'lineal') ? 'COCINA_ML_DELUXE'  :
+                                                                        'COCINA_ML_ESTANDAR'
+          );
+          const mlPrice2 = getPrice(mlPriceCode2);
+          if (config.independentMeters && (config.lowerMeters !== undefined || config.upperMeters !== undefined)) {
+            const lowerR2 = Math.max(0, (config.lowerMeters || 0) - deductions);
+            const upperR2 = config.upperMeters || 0;
+            if (config.includeLower !== false) total += lowerR2 * mlPrice2;
+            if (config.includeUpper !== false) total += upperR2 * mlPrice2;
+          } else {
+            if (config.includeLower !== false) total += resultingMeters * mlPrice2; // mueble inferior
+            if (config.includeUpper !== false) total += resultingMeters * mlPrice2; // mueble superior
+          }
         }
 
         // Muebles especiales (para cocinas completas y puertas_tapas) - precios dinámicos
@@ -1457,7 +1741,9 @@ export default function Quotations() {
         // Mesón principal (usa metraje resultante automáticamente) - precios dinámicos
         // No aplica para solo_superiores ni puertas_tapas
         if (config.shape !== 'solo_superiores' && config.shape !== 'puertas_tapas' && config.countertop.type) {
-          const basePrice = config.countertop.type === "quarzone" ? getPrice('MESON_CUARZO')
+          const basePrice = (config.countertop.esImportado && config.countertop.precioImportadoML)
+                      ? config.countertop.precioImportadoML
+                      : config.countertop.type === "quarzone" ? getPrice('MESON_CUARZO')
                       : config.countertop.type === "granito"  ? getPrice('MESON_GRANITO')
                       : getPrice('MESON_SINTERIZADO');
           let countertopPrice = basePrice;
@@ -1470,26 +1756,73 @@ export default function Quotations() {
           }
           
           // Usar metraje resultante automáticamente (o totalMeters para formas especiales)
-          const metersForCountertop = isSpecialShape ? config.totalMeters : resultingMeters;
+          const metersForCountertop = isSpecialShape ? config.totalMeters
+      : (config.independentMeters && config.lowerMeters !== undefined)
+        ? Math.max(0, (config.lowerMeters || 0) - deductions)
+        : resultingMeters;
           total += metersForCountertop * countertopPrice;
+
+          // Extras del mesón: laterales, regrueso, lavaplatos
+          if (config.countertop.incluyeLaterales) {
+            const cantLat = config.countertop.cantLaterales || 1;
+            total += cantLat * 0.9 * countertopPrice;
+          }
+          if (config.countertop.incluyeRegrueso) {
+            total += 0.9 * countertopPrice;
+          }
+          if (config.countertop.incluyeLavaplatos) {
+            total += config.countertop.lavaprecio ?? getPrice('LAVAPLATOS_MESON');
+          }
         }
 
         // Isla (para cocinas completas y puertas_tapas) - precios dinámicos
         if ((!isSpecialShape || config.shape === 'puertas_tapas') && config.island.enabled && config.island.meters > 0) {
-          // Muebles de isla
-          total += config.island.meters * getPrice('ISLA_ML');
+          // Muebles de isla — usa el mismo precio/ml que la cocina principal
+          const islaMlPriceCode2 = config.mlPriceCode || (
+            (config.shape === 'premium' || config.shape === 'U')      ? 'COCINA_ML_PREMIUM' :
+            (config.shape === 'deluxe'  || config.shape === 'lineal') ? 'COCINA_ML_DELUXE'  :
+                                                                        'COCINA_ML_ESTANDAR'
+          );
+          total += config.island.meters * getPrice(islaMlPriceCode2);
+          
+          // LED de isla
+          if (config.island.incluyeLedIsla && config.island.ledMLIsla && config.island.ledMLIsla > 0) {
+            total += config.island.ledMLIsla * getPrice('LED_ML');
+          }
+          
+          // Lavaplatos de isla
+          if (config.island.incluyeLavaplatos) {
+            total += config.island.lavaprecio ?? getPrice('LAVAPLATOS_MESON');
+          }
           
           // Mesón superior de isla
           if (config.island.countertopType) {
-            const islandCountertopPrice = config.island.countertopType === "quarzone" ? getPrice('MESON_CUARZO')
-                                    : config.island.countertopType === "granito"  ? getPrice('MESON_GRANITO')
-                                    : getPrice('MESON_SINTERIZADO');
-            total += config.island.meters * islandCountertopPrice;
+            // Precio base del material (importado o estándar)
+            const islandMatBasePrice2 = (config.island.esImportado && config.island.precioImportadoML)
+              ? config.island.precioImportadoML
+              : config.island.countertopType === "quarzone" ? getPrice('MESON_CUARZO')
+              : config.island.countertopType === "granito"  ? getPrice('MESON_GRANITO')
+              : getPrice('MESON_SINTERIZADO');
             
-            // Laterales de isla
-            if (config.island.hasLaterals) {
-              total += 1.8 * islandCountertopPrice; // Lateral
-              total += 0.9 * islandCountertopPrice; // Regrueso
+            // Recargo por fondo
+            const fondoMult2 = config.island.depthSurcharge === 'double' ? 2
+                            : config.island.depthSurcharge === '40percent' ? 1.4
+                            : config.island.depthSurcharge === '30percent' ? (1 + getPrice('MESON_RECARGO_FONDO') / 100)
+                            : 1;
+            const islandCountertopPrice2 = islandMatBasePrice2 * fondoMult2;
+            total += config.island.meters * islandCountertopPrice2;
+            
+            // Laterales (1.80ml = 0.90×2, CON recargo de fondo)
+            const islaAddLaterales2 = config.island.incluyeLateralesIsla ?? config.island.hasLaterals;
+            if (islaAddLaterales2) total += 1.8 * islandCountertopPrice2;
+            
+            // Regrueso (0.90ml, SIN recargo de fondo)
+            const islaAddRegrueso2 = config.island.incluyeRegrueso ?? config.island.hasLaterals;
+            if (islaAddRegrueso2) total += 0.9 * islandMatBasePrice2;
+            
+            // Salpicadero alto (metros × precio con fondo)
+            if (config.island.incluyeSalpicaderoAlto) {
+              total += config.island.meters * islandCountertopPrice2;
             }
           }
         }
@@ -1499,18 +1832,30 @@ export default function Quotations() {
           // Muebles de barra
           total += config.bar.meters * getPrice('BARRA_ML');
           
+          // Pedestal metálico
+          if (config.bar.incluyePedestal) total += getPrice('BARRA_PEDESTAL');
+          
+          // Herraje de barra
+          if (config.bar.incluyeHerraje) total += getPrice('BARRA_HERRAJE');
+          
           // Mesón superior de barra
           if (config.bar.countertopType) {
-            const barCountertopPrice = config.bar.countertopType === "quarzone" ? getPrice('MESON_CUARZO')
-                                 : config.bar.countertopType === "granito"  ? getPrice('MESON_GRANITO')
-                                 : getPrice('MESON_SINTERIZADO');
-            total += config.bar.meters * barCountertopPrice;
+            const barBasePrice = (config.bar.esImportado && config.bar.precioImportadoML)
+              ? config.bar.precioImportadoML
+              : config.bar.countertopType === "quarzone" ? getPrice('MESON_CUARZO')
+              : config.bar.countertopType === "granito"  ? getPrice('MESON_GRANITO')
+              : getPrice('MESON_SINTERIZADO');
+            total += config.bar.meters * barBasePrice;
             
-            // Lateral de barra
+            // Lateral de barra (altura configurable)
             if (config.bar.hasLateral) {
-              total += 0.9 * barCountertopPrice;
+              const lateralML = (config.bar.barraAlturaLateral && config.bar.barraAlturaLateral > 0)
+                ? config.bar.barraAlturaLateral / 100
+                : 0.9;
+              total += lateralML * barBasePrice;
             }
           }
+          
         }
 
         // Luz LED (no aplica para solo_inferiores ni puertas_tapas) - precio dinámico
@@ -1574,6 +1919,42 @@ export default function Quotations() {
           totalPrice: config.total,
         };
       }
+      // Para mueble_cocina (Piezas de Cocina): generar descripción automática
+      if (item.itemType === "mueble_cocina" && item.muebleCocinaConfig) {
+        const cfg = item.muebleCocinaConfig;
+        const LABELS: Record<string, string> = {
+          isla: "Isla", barra: "Barra", mueble_alto: "Muebles Altos", mueble_bajo: "Muebles Bajos",
+          nicho_nevecon: "Nicho Nevecón (100cm)", nicho_nevera: "Nicho Nevera (75cm)",
+          alacena_entrepanos: "Alacena Entrepaños (50cm)", alacena_herraje: "Alacena Herraje (50cm)",
+          torre_hornos: "Torre de Hornos (70cm)",
+        };
+        const labelMat: Record<string, string> = { granito: "Granito", cuarzo: "Cuarzo", sinterizado: "Sinterizado" };
+        const piezasFijas = ["nicho_nevecon","nicho_nevera","alacena_entrepanos","alacena_herraje","torre_hornos"];
+        const parts: string[] = [LABELS[cfg.tipoPieza] || cfg.tipoPieza];
+        if (!piezasFijas.includes(cfg.tipoPieza)) {
+          if (cfg.tipoPieza !== "barra" && cfg.madreraML > 0) parts.push(`${cfg.madreraML}ml madera`);
+          if (cfg.incluyeMeson || cfg.tipoPieza === "barra") parts.push(`mesón ${labelMat[cfg.mesonMaterial]} ${cfg.mesonML}ml`);
+          if (cfg.tipoPieza === "mueble_alto" && cfg.incluyeLed) parts.push("con LED");
+          if (cfg.incluyeLavaplatos) parts.push("lavaplatos");
+          if (cfg.tipoPieza === "barra") { if (cfg.incluyePedestal) parts.push("pedestal"); if (cfg.incluyeHerraje) parts.push("herraje"); }
+          if (cfg.incluyePintado && cfg.subtotalPintado > 0) parts.push("pintado alto brillo");
+          // Módulos descriptivos
+          const mods = cfg.modulosDescriptivos || {};
+          const modActivos = Object.entries(mods).filter(([,v]) => v).map(([k]) => {
+            const MAP: Record<string,string> = {
+              esquineroSuperior:"esquinero sup", moduloExtractor:"extractor", moduloMicroondas:"microondas",
+              especiero:"especiero", botellero:"botellero", moduloRepisa:"repisa", moduloAlmacSup:"almac. sup",
+              esquinero1x1:"esquinero 1×1", cajoneroTriple:"cajonero triple", cajoneroDoble:"cajonero doble",
+              basurero:"basurero", moduloEstufaHorno:"estufa/horno", moduloAlmacInf:"almac. inf",
+            };
+            return MAP[k] || k;
+          });
+          if (modActivos.length) parts.push(modActivos.join(", "));
+        }
+        if (cfg.notas) parts.push(cfg.notas);
+        // Guardamos muebleCocinaConfig dentro de kitchenConfig (campo JSON existente en DB)
+        return { ...item, description: parts.join(" · "), quantity: "1", totalPrice: cfg.total, kitchenConfig: cfg };
+      }
       // Para herrajes: generar descripción automática y cantidad basada en selecciones
       if (item.itemType === "herrajes" && item.hardwareSelections && item.hardwareSelections.length > 0) {
         const description = item.hardwareSelections.map(s => `${s.name} x${s.quantity}`).join(", ");
@@ -1629,7 +2010,10 @@ export default function Quotations() {
       }
       if (item.itemType === "closet" && item.closetConfig) {
         const desc = item.description?.trim() || buildClosetDescription(item.closetConfig);
-        return { ...item, description: desc, quantity: item.quantity || "1" };
+        const qty = parseInt(item.quantity || "1") || 1;
+        const transport = item.includesFixedCosts ? (item.fixedCostsAmount ?? 600000) : 0;
+        const correctedTotal = item.closetConfig.subtotal * qty + transport;
+        return { ...item, description: desc, quantity: String(qty), totalPrice: correctedTotal };
       }
       if (item.itemType === "puerta" && item.doorConfig) {
         const desc = item.description?.trim() || buildDoorDescription(item.doorConfig);
@@ -1651,8 +2035,9 @@ export default function Quotations() {
         id: editingQuotation,
         clientId: selectedClient,
         vendorName,
-        productType: (workType || items[0]?.itemType || "otro") as "cocina" | "closet" | "puerta" | "centro_tv" | "herrajes" | "mesones" | "otro",
+        productType: (() => { const validTypes = ["cocina","closet","puerta","centro_tv","herrajes","mesones","mueble_cocina","acabados_especiales","otro"] as const; const pt = workType || items[0]?.itemType || "otro"; return (validTypes.includes(pt as any) ? pt : "otro") as typeof validTypes[number]; })(),
         discountPercent,
+        includeIva,
         generalNotes: notesWithTerms,
         items: itemsWithDescriptions,
       });
@@ -1661,10 +2046,12 @@ export default function Quotations() {
       createQuotation.mutate({
         clientId: selectedClient,
         vendorName,
-        productType: (workType || items[0]?.itemType || "otro") as "cocina" | "closet" | "puerta" | "centro_tv" | "herrajes" | "mesones" | "otro",
+        productType: (() => { const validTypes = ["cocina","closet","puerta","centro_tv","herrajes","mesones","mueble_cocina","acabados_especiales","otro"] as const; const pt = workType || items[0]?.itemType || "otro"; return (validTypes.includes(pt as any) ? pt : "otro") as typeof validTypes[number]; })(),
         discountPercent,
+        includeIva,
         generalNotes: notesWithTerms,
         items: itemsWithDescriptions,
+        technicalVisitId: fromVisitId ?? undefined,
       });
     }
   };
@@ -1673,16 +2060,16 @@ export default function Quotations() {
 
   const getStatusBadge = (status: string) => {
     const badges = {
-      draft: <span className="px-2 py-1 bg-gray-200 text-gray-800 rounded text-xs">Borrador</span>,
-      sent: <span className="px-2 py-1 bg-blue-200 text-blue-800 rounded text-xs">Enviada</span>,
-      approved: <span className="px-2 py-1 bg-green-200 text-green-800 rounded text-xs">Aprobada</span>,
-      rejected: <span className="px-2 py-1 bg-red-200 text-red-800 rounded text-xs">Rechazada</span>,
+      draft: <span className="px-2 py-1 bg-white/[0.10] text-foreground rounded text-xs">Borrador</span>,
+      sent: <span className="px-2 py-1 bg-blue-500/20 text-blue-300 rounded text-xs">Enviada</span>,
+      approved: <span className="px-2 py-1 bg-green-500/20 text-green-300 rounded text-xs">Aprobada</span>,
+      rejected: <span className="px-2 py-1 bg-red-200 text-red-300 rounded text-xs">Rechazada</span>,
     };
     return badges[status as keyof typeof badges] || status;
   };
 
   return (
-    <div className="pb-20 md:pb-6">
+    <div className="container mx-auto py-6 pb-20 md:pb-6">
       <PageHeader
         title="Cotizaciones"
         subtitle="Gestiona y controla las cotizaciones de proyectos"
@@ -1864,37 +2251,37 @@ export default function Quotations() {
           <div className="flex items-center gap-2 mt-2 flex-wrap">
             <span className="text-xs text-white/45">{filteredQuotations.length} resultado{filteredQuotations.length !== 1 ? "s" : ""}</span>
             {filterStatus !== "all" && (
-              <span className="flex items-center gap-1 text-xs bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-full px-2 py-0.5">
+              <span className="flex items-center gap-1 text-xs bg-indigo-500/10 text-indigo-300 border border-indigo-100 rounded-full px-2 py-0.5">
                 Estado: {filterStatus === "draft" ? "Borrador" : filterStatus === "sent" ? "Enviada" : filterStatus === "approved" ? "Aprobada" : "Rechazada"}
                 <button onClick={() => setFilterStatus("all")}><X className="h-3 w-3" /></button>
               </span>
             )}
             {filterDateFrom && (
-              <span className="flex items-center gap-1 text-xs bg-blue-50 text-blue-700 border border-blue-100 rounded-full px-2 py-0.5">
+              <span className="flex items-center gap-1 text-xs bg-blue-500/10 text-blue-300 border border-blue-100 rounded-full px-2 py-0.5">
                 Desde: {new Date(filterDateFrom + "T00:00:00").toLocaleDateString("es-CO")}
                 <button onClick={() => setFilterDateFrom("")}><X className="h-3 w-3" /></button>
               </span>
             )}
             {filterDateTo && (
-              <span className="flex items-center gap-1 text-xs bg-blue-50 text-blue-700 border border-blue-100 rounded-full px-2 py-0.5">
+              <span className="flex items-center gap-1 text-xs bg-blue-500/10 text-blue-300 border border-blue-100 rounded-full px-2 py-0.5">
                 Hasta: {new Date(filterDateTo + "T00:00:00").toLocaleDateString("es-CO")}
                 <button onClick={() => setFilterDateTo("")}><X className="h-3 w-3" /></button>
               </span>
             )}
             {filterAmountMin && (
-              <span className="flex items-center gap-1 text-xs bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full px-2 py-0.5">
+              <span className="flex items-center gap-1 text-xs bg-emerald-500/10 text-emerald-300 border border-emerald-100 rounded-full px-2 py-0.5">
                 Min: ${Number(filterAmountMin).toLocaleString("es-CO")}
                 <button onClick={() => setFilterAmountMin("")}><X className="h-3 w-3" /></button>
               </span>
             )}
             {filterAmountMax && (
-              <span className="flex items-center gap-1 text-xs bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full px-2 py-0.5">
+              <span className="flex items-center gap-1 text-xs bg-emerald-500/10 text-emerald-300 border border-emerald-100 rounded-full px-2 py-0.5">
                 Max: ${Number(filterAmountMax).toLocaleString("es-CO")}
                 <button onClick={() => setFilterAmountMax("")}><X className="h-3 w-3" /></button>
               </span>
             )}
             {filterHasProject !== "all" && (
-              <span className="flex items-center gap-1 text-xs bg-amber-50 text-amber-700 border border-amber-100 rounded-full px-2 py-0.5">
+              <span className="flex items-center gap-1 text-xs bg-amber-500/10 text-amber-300 border border-amber-100 rounded-full px-2 py-0.5">
                 {filterHasProject === "yes" ? "Con proyecto" : "Sin proyecto"}
                 <button onClick={() => setFilterHasProject("all")}><X className="h-3 w-3" /></button>
               </span>
@@ -1962,7 +2349,7 @@ export default function Quotations() {
                     <div className="flex items-center gap-2">
                       <CardTitle>{quot.quotationNumber} - {quot.client?.name}</CardTitle>
                       {quot.versionNumber > 1 && (
-                        <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded">V{quot.versionNumber}</span>
+                        <span className="px-2 py-1 bg-blue-500/15 text-blue-300 text-xs font-semibold rounded">V{quot.versionNumber}</span>
                       )}
                     </div>
                     <p className="text-sm text-muted-foreground mt-1">
@@ -1971,7 +2358,8 @@ export default function Quotations() {
                        quot.productType === "puerta" ? "Puertas" :
                        quot.productType === "centro_tv" ? "Centro de TV" :
                        quot.productType === "herrajes" ? "Herrajes" :
-                       quot.productType === "mesones" ? "Mesones" : "Otro"}
+                       quot.productType === "mesones" ? "Mesón Solo" :
+                       quot.productType === "mueble_cocina" ? "Piezas de Cocina" : "Otro"}
                     </p>
                   </div>
                   {getStatusBadge(quot.status)}
@@ -2004,7 +2392,7 @@ export default function Quotations() {
                     </div>
                     <div>
                       <span className="text-muted-foreground block">Entrega est.</span>
-                      <span className="font-medium text-red-600">
+                      <span className="font-medium text-red-400">
                         {new Date(new Date(quot.createdAt).getTime() + 35 * 24 * 60 * 60 * 1000).toLocaleDateString("es-CO")}
                       </span>
                       <span className="block text-red-500 text-[10px]">* Tentativa</span>
@@ -2047,7 +2435,7 @@ export default function Quotations() {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                    className="border-purple-500/30 text-purple-300 hover:bg-purple-500/10"
                     onClick={() => {
                       if (quot.isLocked) {
                         toast.error("No se puede editar el contenido PDF de una cotización bloqueada. Desblóqueala primero.");
@@ -2071,7 +2459,30 @@ export default function Quotations() {
                   </Button>
 
 
-                  <Button className="bg-red-500 text-white">TEST</Button>
+                  <Button
+                    size="sm"
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                    onClick={() => {
+                      // Generar token client-side para abrir WA sincrónicamente (sin bloqueo popup)
+                      const tok = crypto.randomUUID().replace(/-/g, '');
+                      const publicLink = `https://innovar-cocinas.onrender.com/cotizacion?token=${tok}`;
+                      const rawPh = (quot.client?.whatsappPhone || '').replace(/\D/g, '');
+                      const ph = rawPh.length > 10 ? rawPh : '57' + rawPh;
+                      const totalFmt = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(Number(quot.total || 0));
+                      const validStr = quot.validUntil ? new Date(quot.validUntil).toLocaleDateString('es-CO', { timeZone: 'America/Bogota' }) : '30 días';
+                      const msg = `Hola ${quot.client?.name || 'Cliente'}, 👋\n\nLe enviamos la cotización *${quot.quotationNumber}* de *Innovar Cocinas de Diseño* por un valor de *${totalFmt}*.\n\n📄 Vea el detalle y apruébela desde aquí:\n${publicLink}\n\n📋 Válida hasta: *${validStr}*\n⏱️ Entrega estimada: *3 a 4 semanas* desde aprobación.\n\n¡Gracias por confiar en Innovar Cocinas! 🙌`;
+                      window.open(`https://wa.me/${ph}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
+                      sendWhatsApp.mutate({ id: quot.id, publicToken: tok });
+                    }}
+                    disabled={sendWhatsApp.isPending || !quot.client?.whatsappPhone}
+                    title={!quot.client?.whatsappPhone ? "El cliente no tiene teléfono WhatsApp registrado" : "Enviar cotización por WhatsApp"}
+                  >
+                    {sendWhatsApp.isPending
+                      ? <span className="h-4 w-4 mr-1 inline-block animate-spin">⏳</span>
+                      : <MessageCircle className="h-4 w-4 mr-1" />
+                    }
+                    WhatsApp
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -2079,6 +2490,8 @@ export default function Quotations() {
         </div>
       )}
       {/* END LEGACY CODE */}
+
+      {/* WhatsApp: se abre via toast action */}
 
       {/* Dialog para crear cotización */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
@@ -2095,20 +2508,6 @@ export default function Quotations() {
           </div>
 
           <form onSubmit={handleSubmit} className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
-            {/* Banner: cotización desde visita técnica */}
-            {fromVisitParams && !editingQuotation && (
-              <div className="bg-[#1DB5A8]/10 border border-[#1DB5A8]/30 rounded-lg px-4 py-3 flex items-start gap-3">
-                <span className="text-xl">📐</span>
-                <div>
-                  <p className="text-sm font-semibold text-[#1DB5A8]">Cotización desde visita técnica</p>
-                  <p className="text-xs text-gray-300 mt-0.5">
-                    Cliente: <span className="font-medium text-white">{fromVisitParams.clientName}</span>
-                    {fromVisitParams.clientPhone && ` · ${fromVisitParams.clientPhone}`}
-                  </p>
-                  <p className="text-xs text-gray-400 mt-0.5">Selecciona o crea el cliente en el formulario. Al guardar la visita quedará marcada como convertida.</p>
-                </div>
-              </div>
-            )}
             {/* Sección: Información General */}
             <div className="bg-[rgba(106,207,199,0.05)] rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 border border-[rgba(106,207,199,0.12)] shadow-sm">
               <h3 className="text-sm sm:text-base font-semibold text-white/85 flex items-center gap-2 mb-3 sm:mb-4">
@@ -2174,16 +2573,16 @@ export default function Quotations() {
             {/* Sección: Fechas */}
             <div className="bg-[rgba(106,207,199,0.05)] rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 border border-[rgba(106,207,199,0.12)] shadow-sm">
               <h3 className="text-sm sm:text-base font-semibold text-white/85 flex items-center gap-2 mb-3 sm:mb-4">
-                <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+                <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400" />
                 Fechas de la Cotización
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 md:gap-4">
                 <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)]">
                   <div className="flex items-center gap-2 mb-1 sm:mb-2">
                     <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-[rgba(106,207,199,0.15)] flex items-center justify-center">
-                      <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
+                      <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-blue-400" />
                     </div>
-                    <Label className="text-[10px] sm:text-xs font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wide">Creación</Label>
+                    <Label className="text-[10px] sm:text-xs font-medium text-blue-400 uppercase tracking-wide">Creación</Label>
                   </div>
                   <p className="text-xs sm:text-sm font-semibold text-white/85">
                     {new Date().toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
@@ -2192,9 +2591,9 @@ export default function Quotations() {
                 <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)]">
                   <div className="flex items-center gap-2 mb-1 sm:mb-2">
                     <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-[rgba(106,207,199,0.15)] flex items-center justify-center">
-                      <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-amber-600" />
+                      <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-amber-400" />
                     </div>
-                    <Label className="text-[10px] sm:text-xs font-medium text-amber-600 dark:text-amber-400 uppercase tracking-wide">Validez</Label>
+                    <Label className="text-[10px] sm:text-xs font-medium text-amber-400 uppercase tracking-wide">Validez</Label>
                   </div>
                   <p className="text-xs sm:text-sm font-semibold text-white/85">
                     {(() => {
@@ -2203,14 +2602,14 @@ export default function Quotations() {
                       return validUntil.toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
                     })()}
                   </p>
-                  <span className="text-xs text-amber-600 dark:text-amber-400">7 días</span>
+                  <span className="text-xs text-amber-400">7 días</span>
                 </div>
                 <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)]">
                   <div className="flex items-center gap-2 mb-1 sm:mb-2">
                     <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-[rgba(106,207,199,0.15)] flex items-center justify-center">
-                      <Truck className="h-3 w-3 sm:h-4 sm:w-4 text-red-600" />
+                      <Truck className="h-3 w-3 sm:h-4 sm:w-4 text-red-400" />
                     </div>
-                    <Label className="text-[10px] sm:text-xs font-medium text-red-600 dark:text-red-400 uppercase tracking-wide">Entrega Est.</Label>
+                    <Label className="text-[10px] sm:text-xs font-medium text-red-400 uppercase tracking-wide">Entrega Est.</Label>
                   </div>
                   <p className="text-xs sm:text-sm font-semibold text-white/85">
                     {(() => {
@@ -2249,7 +2648,7 @@ export default function Quotations() {
             <div className="bg-[rgba(106,207,199,0.05)] rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 border border-[rgba(106,207,199,0.12)] shadow-sm">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0 mb-3 sm:mb-4">
                 <h3 className="text-sm sm:text-base font-semibold text-white/85 flex items-center gap-2">
-                  <Package className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600" />
+                  <Package className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-400" />
                   Productos a Cotizar
                 </h3>
                 <Button 
@@ -2265,24 +2664,29 @@ export default function Quotations() {
 
               <div className="space-y-3 sm:space-y-4">
                 {items.map((item, index) => (
-                  <div key={index} className="bg-[#162828] rounded-lg sm:rounded-xl border border-[rgba(106,207,199,0.12)] shadow-sm overflow-hidden">
+                  // Bug B fix: usar _id estable en lugar de index — evita que React reutilice
+                  // nodos DOM incorrectos al eliminar items (causa del "selecciona 1 marca 2")
+                  <div key={item._id || `fallback_${item.itemNumber}`} className="bg-[#162828] rounded-lg sm:rounded-xl border border-[rgba(106,207,199,0.12)] shadow-sm overflow-hidden">
                     {/* Header del Item */}
                     <div className="bg-[rgba(106,207,199,0.07)] px-3 sm:px-4 py-2 sm:py-3 flex justify-between items-center border-b border-[rgba(106,207,199,0.12)]">
                       <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-                        <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center text-emerald-700 dark:text-emerald-300 font-bold text-xs sm:text-sm">
+                        <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-emerald-500/15 flex items-center justify-center text-emerald-300 font-bold text-xs sm:text-sm">
                           {item.itemNumber}
                         </div>
                         <span className="font-semibold text-white/85 text-sm sm:text-base">
-                          {item.itemType === 'cocina' ? 'Cocina Integral' : 
+                          {item.itemType === 'cocina' ? 'Cocina Integral' :
                            item.itemType === 'closet' ? 'Closet' :
                            item.itemType === 'puerta' ? 'Puerta' :
                            item.itemType === 'centro_tv' ? 'Centro de TV' :
-                           item.itemType === 'mesones' ? 'Mesones' :
+                           item.itemType === 'mesones' ? 'Mesón Solo' :
+                           item.itemType === 'mueble_cocina' ? 'Piezas de Cocina' :
+                           item.itemType === 'baño' ? 'Mueble de Baño' :
                            item.itemType === 'herrajes' ? 'Herrajes' :
+                           item.itemType === 'acabados_especiales' ? 'Acabados Especiales' :
                            item.itemType === 'otro' ? 'Otro' : 'Nuevo Producto'}
                         </span>
                         {item.totalPrice > 0 && (
-                          <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/50 px-2 py-1 rounded">
+                          <span className="text-sm font-bold text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded">
                             {formatPrice(item.totalPrice)}
                           </span>
                         )}
@@ -2293,7 +2697,7 @@ export default function Quotations() {
                           size="sm"
                           variant="ghost"
                           onClick={() => removeItem(index)}
-                          className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30"
+                          className="text-red-500 hover:text-red-300 hover:bg-red-500/10"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -2326,11 +2730,17 @@ export default function Quotations() {
                               <SelectItem value="puerta">
                                 <span className="flex items-center gap-2"><DoorOpen className="h-4 w-4 text-amber-500" /> Puerta</span>
                               </SelectItem>
+                              <SelectItem value="baño">
+                                <span className="flex items-center gap-2">🚿 Mueble de Baño</span>
+                              </SelectItem>
                               <SelectItem value="centro_tv">
                                 <span className="flex items-center gap-2"><Tv className="h-4 w-4 text-blue-500" /> Centro de TV</span>
                               </SelectItem>
+                              <SelectItem value="mueble_cocina">
+                                <span className="flex items-center gap-2"><ChefHat className="h-4 w-4 text-teal-400" /> Piezas de Cocina</span>
+                              </SelectItem>
                               <SelectItem value="mesones">
-                                <span className="flex items-center gap-2"><Ruler className="h-4 w-4 text-white/45" /> Mesones</span>
+                                <span className="flex items-center gap-2"><Ruler className="h-4 w-4 text-white/45" /> Mesón Solo</span>
                               </SelectItem>
                               <SelectItem value="herrajes">
                                 <span className="flex items-center gap-2"><Wrench className="h-4 w-4 text-gray-500" /> Herrajes</span>
@@ -2353,20 +2763,20 @@ export default function Quotations() {
                               Configuración de Cocina Integral
                             </h3>
                             
-                            {/* 1. Forma */}
+                            {/* 1. Tipo de Cocina (define el precio) */}
                             <div className="space-y-2">
                               <Label className="text-sm font-medium text-white/60">Tipo de Cocina</Label>
-                              <Select 
-                                value={item.kitchenConfig?.shape || ""} 
+                              <Select
+                                value={item.kitchenConfig?.shape || ""}
                                 onValueChange={(value) => updateKitchenConfig(index, "shape", value)}
                               >
-                                <SelectTrigger className="bg-[#162828] border-[rgba(106,207,199,0.18)] hover:border-orange-400 transition-colors">
-                                  <SelectValue placeholder="Selecciona la forma" />
+                                <SelectTrigger className="bg-[#162828] border-[rgba(106,207,199,0.18)] hover:border-orange-500/40 transition-colors">
+                                  <SelectValue placeholder="Selecciona el tipo" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="L">Cocina Estándar</SelectItem>
-                                  <SelectItem value="U">Cocina Premium</SelectItem>
-                                  <SelectItem value="lineal">Cocina Deluxe</SelectItem>
+                                  <SelectItem value="estandar">Cocina Estándar</SelectItem>
+                                  <SelectItem value="premium">Cocina Premium</SelectItem>
+                                  <SelectItem value="deluxe">Cocina Deluxe</SelectItem>
                                   <SelectItem value="frente_pll">Frente PLL ($650,000/ml)</SelectItem>
                                   <SelectItem value="solo_superiores">Solo Muebles Superiores ($900,000/ml)</SelectItem>
                                   <SelectItem value="solo_inferiores">Solo Muebles Inferiores ($900,000/ml)</SelectItem>
@@ -2376,8 +2786,77 @@ export default function Quotations() {
                               </Select>
                             </div>
 
-                            {/* 2. Metraje total - No aplica para puertas_tapas ni solo_acabados */}
+                            {/* 1b. Forma física (informativo, no afecta precio) */}
                             {!['puertas_tapas', 'solo_acabados'].includes(item.kitchenConfig?.shape || '') && (
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium text-white/60">Forma de la Cocina</Label>
+                              <Select
+                                value={item.kitchenConfig?.layout || ""}
+                                onValueChange={(value) => updateKitchenConfig(index, "layout", value)}
+                              >
+                                <SelectTrigger className="bg-[#162828] border-[rgba(106,207,199,0.18)] hover:border-orange-500/40 transition-colors">
+                                  <SelectValue placeholder="Selecciona la forma (opcional)" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="L">En L</SelectItem>
+                                  <SelectItem value="U">En U</SelectItem>
+                                  <SelectItem value="lineal">Lineal / Recta</SelectItem>
+                                  <SelectItem value="cuadrada">Cuadrada / Paralela</SelectItem>
+                                  <SelectItem value="isla">Con isla central</SelectItem>
+                                  <SelectItem value="otra">Otra</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            )}
+
+                            {/* 1c. Módulos incluidos — checkboxes para inferiores y superiores */}
+                            {!['puertas_tapas', 'solo_acabados', 'solo_superiores', 'solo_inferiores', 'frente_pll'].includes(item.kitchenConfig?.shape || '') && !item.kitchenConfig?.independentMeters && (
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium text-white/60">Módulos incluidos</Label>
+                              <div className="flex gap-6">
+                                <label className="flex items-center gap-2 text-sm text-white/80 cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={item.kitchenConfig?.includeLower !== false}
+                                    onChange={(e) => updateKitchenConfig(index, "includeLower", e.target.checked)}
+                                    className="h-4 w-4 accent-[#00BCD4]"
+                                  />
+                                  Muebles Inferiores
+                                </label>
+                                <label className="flex items-center gap-2 text-sm text-white/80 cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={item.kitchenConfig?.includeUpper !== false}
+                                    onChange={(e) => updateKitchenConfig(index, "includeUpper", e.target.checked)}
+                                    className="h-4 w-4 accent-[#00BCD4]"
+                                  />
+                                  Muebles Superiores
+                                </label>
+                              </div>
+                            </div>
+                            )}
+
+                            {/* Toggle: superiores e inferiores con metraje distinto */}
+                            {!['puertas_tapas', 'solo_acabados'].includes(item.kitchenConfig?.shape || '') && (
+                            <div className="flex items-center gap-2 mt-1">
+                              <input
+                                type="checkbox"
+                                id={`independentMeters-${index}`}
+                                checked={item.kitchenConfig?.independentMeters || false}
+                                onChange={(e) => {
+                                  updateKitchenConfig(index, "independentMeters", e.target.checked);
+                                }}
+                                className="h-4 w-4 accent-[#00BCD4]"
+                              />
+                              <label htmlFor={`independentMeters-${index}`} className="text-sm text-white/70 cursor-pointer">
+                                Superiores e inferiores con medidas distintas
+                              </label>
+                            </div>
+                            )}
+
+                            {/* 2. Metraje - No aplica para puertas_tapas ni solo_acabados */}
+                            {!['puertas_tapas', 'solo_acabados'].includes(item.kitchenConfig?.shape || '') && (
+                            !item.kitchenConfig?.independentMeters ? (
                             <div className="space-y-2">
                               <Label className="text-sm font-medium text-white/60 flex items-center gap-2">
                                 <Ruler className="h-4 w-4" />
@@ -2389,14 +2868,46 @@ export default function Quotations() {
                                 value={item.kitchenConfig?.totalMeters || ""}
                                 onChange={(e) => updateKitchenConfig(index, "totalMeters", parseFloat(e.target.value) || 0)}
                                 placeholder="Ej: 5.00"
-                                className="bg-[#162828] border-[rgba(106,207,199,0.18)] hover:border-orange-400 transition-colors"
+                                className="bg-[#162828] border-[rgba(106,207,199,0.18)] hover:border-orange-500/40 transition-colors"
                               />
                             </div>
+                            ) : (
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium text-white/60 flex items-center gap-2">
+                                  <Ruler className="h-4 w-4" />
+                                  ML Inferiores
+                                </Label>
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  value={item.kitchenConfig?.lowerMeters ?? ""}
+                                  onChange={(e) => updateKitchenConfig(index, "lowerMeters", parseFloat(e.target.value) || 0)}
+                                  placeholder="Ej: 1.80"
+                                  className="bg-[#162828] border-[rgba(106,207,199,0.18)] hover:border-orange-500/40 transition-colors"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium text-white/60 flex items-center gap-2">
+                                  <Ruler className="h-4 w-4" />
+                                  ML Superiores
+                                </Label>
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  value={item.kitchenConfig?.upperMeters ?? ""}
+                                  onChange={(e) => updateKitchenConfig(index, "upperMeters", parseFloat(e.target.value) || 0)}
+                                  placeholder="Ej: 1.88"
+                                  className="bg-[#162828] border-[rgba(106,207,199,0.18)] hover:border-orange-500/40 transition-colors"
+                                />
+                              </div>
+                            </div>
+                            )
                             )}
 
                             {/* Checkbox módulo superior para Frente PLL */}
                             {item.kitchenConfig?.shape === 'frente_pll' && (
-                              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-3">
+                              <div className="bg-amber-500/10 border border-amber-500/25 rounded-lg p-4 space-y-3">
                                 <div className="flex items-center space-x-2">
                                   <input
                                     type="checkbox"
@@ -2421,7 +2932,7 @@ export default function Quotations() {
                                       onChange={(e) => updateKitchenConfig(index, "upperModuleMeters", parseFloat(e.target.value) || 0)}
                                       className="mt-1"
                                     />
-                                    <p className="text-xs text-amber-700 mt-1">Ingrese los metros lineales del módulo superior (puede ser diferente al frente)</p>
+                                    <p className="text-xs text-amber-300 mt-1">Ingrese los metros lineales del módulo superior (puede ser diferente al frente)</p>
                                   </div>
                                 )}
                               </div>
@@ -2429,14 +2940,14 @@ export default function Quotations() {
 
                             {/* Sección Puertas y Tapas */}
                             {item.kitchenConfig?.shape === 'puertas_tapas' && (
-                              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 space-y-4">
-                                <h4 className="font-semibold text-purple-800 flex items-center gap-2">
+                              <div className="bg-purple-500/10 border border-purple-500/25 rounded-lg p-4 space-y-4">
+                                <h4 className="font-semibold text-purple-300 flex items-center gap-2">
                                   <span>🚪</span> Puertas y Tapas (Solo Cambio)
                                 </h4>
                                 
                                 {/* Puertas Superiores */}
                                 <div className="space-y-2">
-                                  <Label className="text-sm font-medium text-purple-700">Puertas Superiores</Label>
+                                  <Label className="text-sm font-medium text-purple-300">Puertas Superiores</Label>
                                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                     <div>
                                       <Label className="text-xs">Hasta 70cm ($120,000)</Label>
@@ -2482,7 +2993,7 @@ export default function Quotations() {
 
                                 {/* Puertas Inferiores y de Alacena */}
                                 <div className="space-y-2">
-                                  <Label className="text-sm font-medium text-purple-700">Puertas Inferiores y Alacena</Label>
+                                  <Label className="text-sm font-medium text-purple-300">Puertas Inferiores y Alacena</Label>
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     <div>
                                       <Label className="text-xs">Puertas Inferiores ($150,000)</Label>
@@ -2515,7 +3026,7 @@ export default function Quotations() {
 
                                 {/* Tapas */}
                                 <div className="space-y-2">
-                                  <Label className="text-sm font-medium text-purple-700">Tapas</Label>
+                                  <Label className="text-sm font-medium text-purple-300">Tapas</Label>
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     <div>
                                       <Label className="text-xs">Tapas de Cajón ($90,000)</Label>
@@ -2559,8 +3070,8 @@ export default function Quotations() {
                                     (dc.smallCovers || 0) * 45000;
                                   const hasItems = total > 0;
                                   return hasItems ? (
-                                    <div className="bg-purple-100 rounded p-3 mt-2">
-                                      <p className="text-sm font-semibold text-purple-800">Total Puertas y Tapas: ${total.toLocaleString('es-CO')}</p>
+                                    <div className="bg-purple-500/15 rounded p-3 mt-2">
+                                      <p className="text-sm font-semibold text-purple-300">Total Puertas y Tapas: ${total.toLocaleString('es-CO')}</p>
                                     </div>
                                   ) : null;
                                 })()}
@@ -2651,7 +3162,7 @@ export default function Quotations() {
 
                             {/* Mostrar metraje resultante y muebles - Solo para cocinas completas */}
                             {!['frente_pll', 'solo_superiores', 'solo_inferiores', 'puertas_tapas'].includes(item.kitchenConfig?.shape || '') && (
-                            <div className="p-3 bg-blue-50 rounded space-y-1">
+                            <div className="p-3 bg-blue-500/10 rounded space-y-1">
                               <p className="text-sm">
                                 <span className="font-medium">Metraje resultante:</span>{" "}
                                 {(() => {
@@ -2666,7 +3177,7 @@ export default function Quotations() {
                                   return Math.max(0, config.totalMeters - deductions).toFixed(2);
                                 })()} ml
                               </p>
-                              <p className="text-sm text-gray-600">
+                              <p className="text-sm text-muted-foreground">
                                 • Muebles Inferiores: {(() => {
                                   const config = item.kitchenConfig;
                                   if (!config || !config.specialModules) return "0.00";
@@ -2676,10 +3187,13 @@ export default function Quotations() {
                                   if (config.specialModules.alacenaEntrepanos) deductions += 0.5;
                                   if (config.specialModules.alacenaHerraje) deductions += 0.5;
                                   if (config.specialModules.torreHornos) deductions += 0.7;
-                                  return Math.max(0, config.totalMeters - deductions).toFixed(2);
+                                  const resultingM = Math.max(0, config.totalMeters - deductions);
+                                  return (config.independentMeters && config.lowerMeters !== undefined)
+                                    ? Math.max(0, (config.lowerMeters || 0) - deductions).toFixed(2)
+                                    : resultingM.toFixed(2);
                                 })()} ml
                               </p>
-                              <p className="text-sm text-gray-600">
+                              <p className="text-sm text-muted-foreground">
                                 • Muebles Superiores: {(() => {
                                   const config = item.kitchenConfig;
                                   if (!config || !config.specialModules) return "0.00";
@@ -2689,9 +3203,189 @@ export default function Quotations() {
                                   if (config.specialModules.alacenaEntrepanos) deductions += 0.5;
                                   if (config.specialModules.alacenaHerraje) deductions += 0.5;
                                   if (config.specialModules.torreHornos) deductions += 0.7;
-                                  return Math.max(0, config.totalMeters - deductions).toFixed(2);
+                                  const resultingM = Math.max(0, config.totalMeters - deductions);
+                                  return (config.independentMeters && config.upperMeters !== undefined)
+                                    ? (config.upperMeters || 0).toFixed(2)
+                                    : resultingM.toFixed(2);
                                 })()} ml
                               </p>
+                            </div>
+                            )}
+
+                            {/* 3.5 Módulos pintado de puertas y tapas */}
+                            {!['frente_pll', 'solo_superiores', 'solo_inferiores', 'puertas_tapas', 'solo_acabados'].includes(item.kitchenConfig?.shape || '') && (
+                            <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)] space-y-2 sm:space-y-3">
+                              <div className="flex items-center space-x-2">
+                                <input
+                                  type="checkbox"
+                                  id={`modulosPintado-${index}`}
+                                  checked={modulosOpenSet.has(index)}
+                                  onChange={(e) => setModulosOpenSet(prev => {
+                                    const next = new Set(prev);
+                                    if (e.target.checked) next.add(index); else next.delete(index);
+                                    return next;
+                                  })}
+                                  className="h-4 w-4 accent-teal-500"
+                                />
+                                <Label htmlFor={`modulosPintado-${index}`} className="text-xs sm:text-sm font-semibold text-white/85 cursor-pointer flex items-center gap-2">
+                                  <Palette className="h-3 w-3 sm:h-4 sm:w-4 text-teal-400" />
+                                  Módulos pintado de puertas y tapas
+                                </Label>
+                              </div>
+                              {modulosOpenSet.has(index) && (
+                              <div className="pl-4 sm:pl-6 space-y-3">
+                              <p className="text-xs text-teal-400/70">Indica cuántos de cada módulo. Descuenta del ML disponible y calcula piezas de pintura automáticamente.</p>
+
+                              {/* Tracker ML consumido */}
+                              {(() => {
+                                const kmT = (item.kitchenConfig?.kitchenModules || {}) as any;
+                                const smT = item.kitchenConfig?.specialModules || {};
+                                // Superiores e inferiores tracked por separado
+                                const SUP_ML_DEFAULT: Record<string, number> = {
+                                  esquineroSuperior:1.20, moduloAlmacSup:0.65, moduloExtractor:0.70,
+                                  moduloMicroondas:0.60, moduloExtractorMicroondas:0.70, moduloRepisa:0.30, moduloPlatero:0.70,
+                                };
+                                const INF_ML_DEFAULT: Record<string, number> = {
+                                  especiero:0.25, botellero:0.35, esquinero1x1:2.00, cajoneroTriple:0.70,
+                                  cajoneroDoble:0.60, basurero:0.50, moduloLavaplatos:0.70, moduloEstufaPuerta:0.70, moduloEstufaHorno:0.70, moduloAlmacInf:0.60,
+                                };
+                                const customMLMap = (item.kitchenConfig as any)?.kitchenModulesML || {};
+                                const toQ = (v: any) => typeof v==='boolean'?(v?1:0):(v||0);
+                                const specialML = (smT.nichoNevecon?1.00:0)+(smT.nichoNevera?0.75:0)+(smT.alacenaEntrepanos?0.55:0)+(smT.alacenaHerraje?0.55:0)+(smT.torreHornos?0.70:0);
+                                const supML = Object.entries(SUP_ML_DEFAULT).reduce((acc,[k,dflt])=>acc+toQ(kmT[k])*(customMLMap[k]??dflt), 0);
+                                const modulesML = Object.entries(INF_ML_DEFAULT).reduce((acc,[k,dflt])=>acc+toQ(kmT[k])*(customMLMap[k]??dflt), 0);
+                                const total = item.kitchenConfig?.totalMeters||0;
+                                const remaining = total - specialML - modulesML;
+                                return (
+                                  <div className="flex flex-wrap gap-3 text-xs bg-black/20 rounded p-2">
+                                    <span className="text-white/50">Total: <span className="text-white font-semibold">{total}ml</span></span>
+                                    <span className="text-white/50">Especiales: <span className="text-amber-300">{specialML.toFixed(2)}ml</span></span>
+                                    <span className="text-white/50">Sup: <span className="text-purple-300">{supML.toFixed(2)}ml</span></span>
+                                    <span className="text-white/50">Inf: <span className="text-teal-300">{modulesML.toFixed(2)}ml</span></span>
+                                    <span className="text-white/50">Restante: <span className={remaining<0?"text-red-400 font-bold":"text-emerald-400"}>{remaining.toFixed(2)}ml</span></span>
+                                  </div>
+                                );
+                              })()}
+
+                              {/* Superiores e Inferiores */}
+                              {([
+                                { title: "Superiores", mods: [
+                                  { key:"esquineroSuperior",         label:"Esq. sup. (0.60×0.60)", ml:1.20, editable:true },
+                                  { key:"moduloAlmacSup",            label:"Alm. superior",         ml:0.65, editable:true },
+                                  { key:"moduloExtractor",           label:"Extractor",             ml:0.70, editable:true },
+                                  { key:"moduloMicroondas",          label:"Microondas",            ml:0.60, editable:true },
+                                  { key:"moduloExtractorMicroondas", label:"Extractor+Microondas",  ml:0.70, editable:true },
+                                  { key:"moduloRepisa",              label:"Repisa (6 pzas)",       ml:0.30, editable:true },
+                                  { key:"moduloPlatero",             label:"Platero 2 puertas",     ml:0.70, editable:true },
+                                ]},
+                                { title: "Inferiores", mods: [
+                                  { key:"especiero",         label:"Especiero",    ml:0.25, editable:true },
+                                  { key:"botellero",         label:"Botellero",    ml:0.35, editable:true },
+                                  { key:"esquinero1x1",      label:"Esq. 1×1",    ml:2.00, editable:true },
+                                  { key:"cajoneroTriple",    label:"Caj. triple",  ml:0.70, editable:true },
+                                  { key:"cajoneroDoble",     label:"Caj. doble",   ml:0.60, editable:true },
+                                  { key:"basurero",          label:"Basurero",     ml:0.50, editable:true },
+                                  { key:"moduloLavaplatos",   label:"Lavaplatos",      ml:0.70, editable:true },
+                                  { key:"moduloEstufaPuerta", label:"Estufa c/puerta", ml:0.70, editable:true },
+                                  { key:"moduloEstufaHorno",  label:"Estufa c/horno",  ml:0.70, editable:true },
+                                  { key:"moduloAlmacInf",    label:"Almacenamiento", ml:0.60, editable:true },
+                                ]},
+                              ] as {title:string, mods:{key:string,label:string,ml:number,editable?:boolean}[]}[]).map(group => (
+                                <div key={group.title}>
+                                  <p className="text-xs font-semibold text-white/40 uppercase tracking-wide mb-1.5">{group.title}</p>
+                                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                                    {group.mods.map(({ key, label, ml, editable }) => {
+                                      const raw = (item.kitchenConfig?.kitchenModules as any)?.[key];
+                                      const qty = typeof raw==='boolean'?(raw?1:0):(raw||0);
+                                      const curML = ((item.kitchenConfig as any)?.kitchenModulesML?.[key]) ?? ml;
+                                      return (
+                                        <div key={key} className={`flex ${editable?'flex-col':'items-center'} gap-0.5 rounded px-1.5 py-1 transition-colors ${qty>0?'bg-teal-900/40 border border-teal-500/40':'bg-black/25 border border-transparent'}`}>
+                                          <div className="flex items-center gap-1">
+                                            <button type="button"
+                                              className="w-5 h-5 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 rounded text-sm leading-none"
+                                              onClick={() => {
+                                                const ni=[...items]; const c=structuredClone(ni[index].kitchenConfig!);
+                                                ni[index]={...ni[index],kitchenConfig:c};
+                                                if(!c.kitchenModules)(c as any).kitchenModules={};
+                                                (c.kitchenModules as any)[key]=Math.max(0,qty-1);
+                                                calculateKitchenTotal(index,ni);
+                                              }}>−</button>
+                                            <span className={`text-xs font-mono w-5 text-center ${qty>0?'text-teal-300 font-bold':'text-white/60'}`}>{qty}</span>
+                                            <button type="button"
+                                              className="w-5 h-5 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 rounded text-sm leading-none"
+                                              onClick={() => {
+                                                const ni=[...items]; const c=structuredClone(ni[index].kitchenConfig!);
+                                                ni[index]={...ni[index],kitchenConfig:c};
+                                                if(!c.kitchenModules)(c as any).kitchenModules={};
+                                                (c.kitchenModules as any)[key]=qty+1;
+                                                calculateKitchenTotal(index,ni);
+                                              }}>+</button>
+                                            <span className="text-xs text-white/60 flex-1 truncate">{label}</span>
+                                            {!editable && ml>0 && <span className="text-white/25 text-xs">{ml}ml</span>}
+                                          </div>
+                                          {editable && (
+                                            <div className="flex items-center gap-1 pl-1">
+                                              <input type="number" step="0.05" min="0"
+                                                className="text-xs text-teal-300 bg-transparent w-12 border-b border-teal-300/30 focus:outline-none text-right"
+                                                value={curML}
+                                                onChange={(e) => {
+                                                  const ni=[...items]; const c=structuredClone(ni[index].kitchenConfig!);
+                                                  ni[index]={...ni[index],kitchenConfig:c};
+                                                  if(!(c as any).kitchenModulesML)(c as any).kitchenModulesML={};
+                                                  (c as any).kitchenModulesML[key]=parseFloat(e.target.value)||0;
+                                                  calculateKitchenTotal(index,ni);
+                                                }}
+                                              />
+                                              <span className="text-xs text-teal-300/50">ml</span>
+                                            </div>
+                                          )}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              ))}
+
+                              {/* Laterales — no descuentan ML */}
+                              <div>
+                                <p className="text-xs font-semibold text-white/40 uppercase tracking-wide mb-1.5">Laterales <span className="normal-case text-white/25">(no descuentan ML)</span></p>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                                  {([
+                                    { key:"lateralNichoNevera",    label:"Lat. nicho nevera" },
+                                    { key:"lateralMuebleSuperior", label:"Lat. mueble sup."  },
+                                    { key:"lateralMuebleInferior", label:"Lat. mueble inf."  },
+                                  ] as {key:string,label:string}[]).map(({ key, label }) => {
+                                    const raw2 = (item.kitchenConfig?.kitchenModules as any)?.[key];
+                                    const qty2 = typeof raw2==='boolean'?(raw2?1:0):(raw2||0);
+                                    return (
+                                      <div key={key} className="flex items-center gap-1 bg-black/25 rounded px-1.5 py-1">
+                                        <button type="button"
+                                          className="w-5 h-5 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 rounded text-sm leading-none"
+                                          onClick={() => {
+                                            const ni=[...items]; const c=structuredClone(ni[index].kitchenConfig!);
+                                            ni[index]={...ni[index],kitchenConfig:c};
+                                            if(!c.kitchenModules)(c as any).kitchenModules={};
+                                            (c.kitchenModules as any)[key]=Math.max(0,qty2-1);
+                                            calculateKitchenTotal(index,ni);
+                                          }}>−</button>
+                                        <span className="text-xs text-white font-mono w-5 text-center">{qty2}</span>
+                                        <button type="button"
+                                          className="w-5 h-5 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 rounded text-sm leading-none"
+                                          onClick={() => {
+                                            const ni=[...items]; const c=structuredClone(ni[index].kitchenConfig!);
+                                            ni[index]={...ni[index],kitchenConfig:c};
+                                            if(!c.kitchenModules)(c as any).kitchenModules={};
+                                            (c.kitchenModules as any)[key]=qty2+1;
+                                            calculateKitchenTotal(index,ni);
+                                          }}>+</button>
+                                        <span className="text-xs text-white/60 flex-1 truncate">{label}</span>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                              </div>
+                              )}
                             </div>
                             )}
 
@@ -2713,6 +3407,7 @@ export default function Quotations() {
                                       <SelectValue placeholder="Selecciona tipo" />
                                     </SelectTrigger>
                                     <SelectContent>
+                                      <SelectItem value="granito">Granito ($750k/ml)</SelectItem>
                                       <SelectItem value="quarzone">Quarzone ($850k/ml)</SelectItem>
                                       <SelectItem value="sinterizado">Sinterizado ($1.2M/ml)</SelectItem>
                                     </SelectContent>
@@ -2735,6 +3430,36 @@ export default function Quotations() {
                                   </Select>
                                 </div>
                               </div>
+                              {/* Importado mesón — todos los materiales */}
+                              {item.kitchenConfig?.countertop.type && (
+                                <div className="flex flex-wrap items-center gap-2 pt-1">
+                                  <Label className="text-xs text-white/60 mr-1">Variante:</Label>
+                                  <button
+                                    type="button"
+                                    onClick={() => updateKitchenConfig(index, "countertop.esImportado", false)}
+                                    className={`px-2 py-1 rounded text-xs font-medium transition-colors ${!item.kitchenConfig?.countertop.esImportado ? 'bg-emerald-600 text-white' : 'bg-[#0C1A1A] text-white/50 hover:text-white/70'}`}
+                                  >Standard</button>
+                                  <button
+                                    type="button"
+                                    onClick={() => updateKitchenConfig(index, "countertop.esImportado", true)}
+                                    className={`px-2 py-1 rounded text-xs font-medium transition-colors ${item.kitchenConfig?.countertop.esImportado ? 'bg-amber-600 text-white' : 'bg-[#0C1A1A] text-white/50 hover:text-white/70'}`}
+                                  >Importado</button>
+                                  {item.kitchenConfig?.countertop.esImportado && (
+                                    <div className="flex items-center gap-1">
+                                      <span className="text-xs text-white/50">$/ml</span>
+                                      <Input
+                                        type="number"
+                                        step="50000"
+                                        min="0"
+                                        placeholder="Precio/ml"
+                                        value={item.kitchenConfig?.countertop.precioImportadoML || ""}
+                                        onChange={(e) => updateKitchenConfig(index, "countertop.precioImportadoML", parseInt(e.target.value) || 0)}
+                                        className="h-7 w-32 text-xs"
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                              )}
                             </div>
                             )}
 
@@ -2778,23 +3503,148 @@ export default function Quotations() {
                                           <SelectValue placeholder="Tipo" />
                                         </SelectTrigger>
                                         <SelectContent>
+                                          <SelectItem value="granito">Granito</SelectItem>
                                           <SelectItem value="quarzone">Quarzone</SelectItem>
                                           <SelectItem value="sinterizado">Sinterizado</SelectItem>
                                         </SelectContent>
                                       </Select>
                                     </div>
                                   </div>
+                                  {/* Fondo isla */}
+                                  <div>
+                                    <Label className="text-xs text-white/70">Profundidad (fondo) del mesón</Label>
+                                    <Select
+                                      value={item.kitchenConfig?.island.depthSurcharge || "none"}
+                                      onValueChange={(value) => updateKitchenConfig(index, "island.depthSurcharge", value)}
+                                    >
+                                      <SelectTrigger className="h-8 text-xs">
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="none">≤62cm — sin recargo</SelectItem>
+                                        <SelectItem value="30percent">63-90cm — +30%</SelectItem>
+                                        <SelectItem value="40percent">91-100cm — +40%</SelectItem>
+                                        <SelectItem value="double">101-120cm — ×2</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                  {/* Importado isla */}
+                                  {item.kitchenConfig?.island.countertopType && (
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      <Label className="text-xs text-white/60 mr-1">Variante:</Label>
+                                      <button
+                                        type="button"
+                                        onClick={() => updateKitchenConfig(index, "island.esImportado", false)}
+                                        className={`px-2 py-1 rounded text-xs font-medium transition-colors ${!item.kitchenConfig?.island.esImportado ? 'bg-emerald-600 text-white' : 'bg-[#0C1A1A] text-white/50 hover:text-white/70'}`}
+                                      >Standard</button>
+                                      <button
+                                        type="button"
+                                        onClick={() => updateKitchenConfig(index, "island.esImportado", true)}
+                                        className={`px-2 py-1 rounded text-xs font-medium transition-colors ${item.kitchenConfig?.island.esImportado ? 'bg-amber-600 text-white' : 'bg-[#0C1A1A] text-white/50 hover:text-white/70'}`}
+                                      >Importado</button>
+                                      {item.kitchenConfig?.island.esImportado && (
+                                        <div className="flex items-center gap-1">
+                                          <span className="text-xs text-white/50">$/ml</span>
+                                          <Input
+                                            type="number"
+                                            step="50000"
+                                            min="0"
+                                            placeholder="Precio/ml"
+                                            value={item.kitchenConfig?.island.precioImportadoML || ""}
+                                            onChange={(e) => updateKitchenConfig(index, "island.precioImportadoML", parseInt(e.target.value) || 0)}
+                                            className="h-7 w-32 text-xs"
+                                          />
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                  {/* Laterales y regrueso separados */}
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <div className="flex items-center space-x-2">
+                                      <input type="checkbox" id={`islandLaterales-${index}`}
+                                        checked={item.kitchenConfig?.island.incluyeLateralesIsla ?? false}
+                                        onChange={(e) => updateKitchenConfig(index, "island.incluyeLateralesIsla", e.target.checked)}
+                                        className="h-4 w-4" />
+                                      <Label htmlFor={`islandLaterales-${index}`} className="text-sm font-normal cursor-pointer">Laterales (+1.80ml)</Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                      <input type="checkbox" id={`islandRegrueso-${index}`}
+                                        checked={item.kitchenConfig?.island.incluyeRegrueso ?? false}
+                                        onChange={(e) => updateKitchenConfig(index, "island.incluyeRegrueso", e.target.checked)}
+                                        className="h-4 w-4" />
+                                      <Label htmlFor={`islandRegrueso-${index}`} className="text-sm font-normal cursor-pointer">Regrueso (+0.90ml)</Label>
+                                    </div>
+                                  </div>
                                   <div className="flex items-center space-x-2">
-                                    <input
-                                      type="checkbox"
-                                      id={`islandLaterals-${index}`}
-                                      checked={item.kitchenConfig?.island.hasLaterals || false}
-                                      onChange={(e) => updateKitchenConfig(index, "island.hasLaterals", e.target.checked)}
-                                      className="h-4 w-4"
-                                    />
-                                    <Label htmlFor={`islandLaterals-${index}`} className="text-sm font-normal cursor-pointer">
-                                      Incluir laterales (+1.80ml lateral + 0.90ml regrueso)
-                                    </Label>
+                                    <input type="checkbox" id={`islandSalpicadero-${index}`}
+                                      checked={item.kitchenConfig?.island.incluyeSalpicaderoAlto ?? false}
+                                      onChange={(e) => updateKitchenConfig(index, "island.incluyeSalpicaderoAlto", e.target.checked)}
+                                      className="h-4 w-4" />
+                                    <Label htmlFor={`islandSalpicadero-${index}`} className="text-sm font-normal cursor-pointer">Salpicadero alto</Label>
+                                  </div>
+                                  {/* Lavaplatos isla */}
+                                  <div className="space-y-1">
+                                    <div className="flex items-center space-x-2">
+                                      <input type="checkbox" id={`islandLavaplatos-${index}`}
+                                        checked={item.kitchenConfig?.island.incluyeLavaplatos ?? false}
+                                        onChange={(e) => updateKitchenConfig(index, "island.incluyeLavaplatos", e.target.checked)}
+                                        className="h-4 w-4" />
+                                      <Label htmlFor={`islandLavaplatos-${index}`} className="text-sm font-normal cursor-pointer">Lavaplatos</Label>
+                                    </div>
+                                    {item.kitchenConfig?.island.incluyeLavaplatos && (
+                                      <div className="flex items-center gap-2 pl-6">
+                                        <Label className="text-xs text-white/60">Precio:</Label>
+                                        <Input type="number" step="1000"
+                                          value={item.kitchenConfig?.island.lavaprecio ?? ""}
+                                          onChange={(e) => updateKitchenConfig(index, "island.lavaprecio", parseFloat(e.target.value) || undefined)}
+                                          placeholder="130,000" className="h-7 w-28 text-xs" />
+                                      </div>
+                                    )}
+                                  </div>
+                                  {/* LED isla */}
+                                  <div className="space-y-1">
+                                    <div className="flex items-center space-x-2">
+                                      <input type="checkbox" id={`islandLed-${index}`}
+                                        checked={item.kitchenConfig?.island.incluyeLedIsla ?? false}
+                                        onChange={(e) => updateKitchenConfig(index, "island.incluyeLedIsla", e.target.checked)}
+                                        className="h-4 w-4" />
+                                      <Label htmlFor={`islandLed-${index}`} className="text-sm font-normal cursor-pointer">Luz LED isla</Label>
+                                    </div>
+                                    {item.kitchenConfig?.island.incluyeLedIsla && (
+                                      <div className="flex items-center gap-2 pl-6">
+                                        <Input type="number" step="0.01"
+                                          value={item.kitchenConfig?.island.ledMLIsla ?? ""}
+                                          onChange={(e) => updateKitchenConfig(index, "island.ledMLIsla", parseFloat(e.target.value) || 0)}
+                                          placeholder="0.00" className="h-7 w-20 text-xs" />
+                                        <span className="text-xs text-white/60">ml</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                  {/* Módulos descriptivos isla */}
+                                  <div>
+                                    <Label className="text-xs text-white/60 block mb-1">Módulos (solo descriptivos)</Label>
+                                    <div className="grid grid-cols-3 gap-1">
+                                      {([
+                                        ['esquineroSuperior', 'Esq. sup.'],
+                                        ['moduloExtractor', 'Extractor'],
+                                        ['moduloMicroondas', 'Microondas'],
+                                        ['especiero', 'Especiero'],
+                                        ['botellero', 'Botellero'],
+                                        ['moduloRepisa', 'Repisa'],
+                                        ['cajoneroTriple', 'Caj. triple'],
+                                        ['cajoneroDoble', 'Caj. doble'],
+                                        ['basurero', 'Basurero'],
+                                      ] as [string, string][]).map(([key, label]) => (
+                                        <div key={key} className="flex items-center gap-1">
+                                          <input type="checkbox"
+                                            id={`isla-mod-${index}-${key}`}
+                                            checked={(item.kitchenConfig?.island.modulosDescriptivos as any)?.[key] ?? false}
+                                            onChange={(e) => updateKitchenConfig(index, `island.modulosDescriptivos.${key}`, e.target.checked)}
+                                            className="h-3 w-3" />
+                                          <Label htmlFor={`isla-mod-${index}-${key}`} className="text-xs cursor-pointer">{label}</Label>
+                                        </div>
+                                      ))}
+                                    </div>
                                   </div>
                                 </div>
                               )}
@@ -2803,7 +3653,7 @@ export default function Quotations() {
 
                             {/* 6. Barra - Para cocinas completas y puertas_tapas */}
                             {!['frente_pll', 'solo_superiores', 'solo_inferiores'].includes(item.kitchenConfig?.shape || '') && (
-                            <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-purple-100 dark:border-purple-900 space-y-2 sm:space-y-3">
+                            <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-purple-500/20 space-y-2 sm:space-y-3">
                               <div className="flex items-center space-x-2">
                                 <input
                                   type="checkbox"
@@ -2841,24 +3691,97 @@ export default function Quotations() {
                                           <SelectValue placeholder="Tipo" />
                                         </SelectTrigger>
                                         <SelectContent>
+                                          <SelectItem value="granito">Granito</SelectItem>
                                           <SelectItem value="quarzone">Quarzone</SelectItem>
                                           <SelectItem value="sinterizado">Sinterizado</SelectItem>
                                         </SelectContent>
                                       </Select>
                                     </div>
                                   </div>
+                                  {/* Lateral con altura configurable */}
+                                  <div className="space-y-1">
+                                    <div className="flex items-center space-x-2">
+                                      <input
+                                        type="checkbox"
+                                        id={`barLateral-${index}`}
+                                        checked={item.kitchenConfig?.bar.hasLateral || false}
+                                        onChange={(e) => updateKitchenConfig(index, "bar.hasLateral", e.target.checked)}
+                                        className="h-4 w-4"
+                                      />
+                                      <Label htmlFor={`barLateral-${index}`} className="text-sm font-normal cursor-pointer">
+                                        Incluir lateral
+                                      </Label>
+                                    </div>
+                                    {item.kitchenConfig?.bar.hasLateral && (
+                                      <div className="flex items-center gap-2 pl-6">
+                                        <Label className="text-sm text-white/70">Altura:</Label>
+                                        <Input
+                                          type="number"
+                                          step="1"
+                                          value={item.kitchenConfig?.bar.barraAlturaLateral ?? 90}
+                                          onChange={(e) => updateKitchenConfig(index, "bar.barraAlturaLateral", parseInt(e.target.value) || 90)}
+                                          className="h-8 w-20"
+                                        />
+                                        <span className="text-sm text-white/60">cm</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                  {/* Pedestal metálico */}
                                   <div className="flex items-center space-x-2">
                                     <input
                                       type="checkbox"
-                                      id={`barLateral-${index}`}
-                                      checked={item.kitchenConfig?.bar.hasLateral || false}
-                                      onChange={(e) => updateKitchenConfig(index, "bar.hasLateral", e.target.checked)}
+                                      id={`barPedestal-${index}`}
+                                      checked={item.kitchenConfig?.bar.incluyePedestal || false}
+                                      onChange={(e) => updateKitchenConfig(index, "bar.incluyePedestal", e.target.checked)}
                                       className="h-4 w-4"
                                     />
-                                    <Label htmlFor={`barLateral-${index}`} className="text-sm font-normal cursor-pointer">
-                                      Incluir lateral (+0.90ml fijo)
+                                    <Label htmlFor={`barPedestal-${index}`} className="text-sm font-normal cursor-pointer">
+                                      Pedestal metálico (+$250,000)
                                     </Label>
                                   </div>
+                                  {/* Herraje de barra */}
+                                  <div className="flex items-center space-x-2">
+                                    <input
+                                      type="checkbox"
+                                      id={`barHerraje-${index}`}
+                                      checked={item.kitchenConfig?.bar.incluyeHerraje || false}
+                                      onChange={(e) => updateKitchenConfig(index, "bar.incluyeHerraje", e.target.checked)}
+                                      className="h-4 w-4"
+                                    />
+                                    <Label htmlFor={`barHerraje-${index}`} className="text-sm font-normal cursor-pointer">
+                                      Herraje de barra (+$380,000)
+                                    </Label>
+                                  </div>
+                                  {/* Mesón importado */}
+                                  {item.kitchenConfig?.bar.countertopType && (
+                                    <div className="space-y-1">
+                                      <div className="flex items-center space-x-2">
+                                        <input
+                                          type="checkbox"
+                                          id={`barImportado-${index}`}
+                                          checked={item.kitchenConfig?.bar.esImportado || false}
+                                          onChange={(e) => updateKitchenConfig(index, "bar.esImportado", e.target.checked)}
+                                          className="h-4 w-4"
+                                        />
+                                        <Label htmlFor={`barImportado-${index}`} className="text-sm font-normal cursor-pointer">
+                                          Mesón importado
+                                        </Label>
+                                      </div>
+                                      {item.kitchenConfig?.bar.esImportado && (
+                                        <div className="flex items-center gap-2 pl-6">
+                                          <Label className="text-sm text-white/70">Precio/ml:</Label>
+                                          <Input
+                                            type="number"
+                                            step="1000"
+                                            value={item.kitchenConfig?.bar.precioImportadoML ?? ""}
+                                            onChange={(e) => updateKitchenConfig(index, "bar.precioImportadoML", parseFloat(e.target.value) || undefined)}
+                                            placeholder="precio/ml"
+                                            className="h-8 w-32"
+                                          />
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
                                 </div>
                               )}
                             </div>
@@ -2890,8 +3813,54 @@ export default function Quotations() {
                                   id={`paintedDoors-${index}`}
                                   checked={item.kitchenConfig?.paintedDoors?.enabled || false}
                                   onChange={(e) => {
-                                    updateKitchenConfig(index, "paintedDoors.enabled", e.target.checked);
-                                    calculateKitchenTotal(index);
+                                    const enabling = e.target.checked;
+                                    const ni = [...items];
+                                    const cfgPD = structuredClone(ni[index].kitchenConfig!);
+                                    ni[index] = { ...ni[index], kitchenConfig: cfgPD };
+                                    cfgPD.paintedDoors = { ...(cfgPD.paintedDoors || { enabled:false,upperQty:0,lowerQty:0,pantryQty:0,drawerQty:0,spiceQty:0,golaQty:0 }), enabled: enabling };
+                                    if (enabling) {
+                                      const km2 = cfgPD.kitchenModules || {};
+                                      const sm2 = cfgPD.specialModules || {};
+                                      const q2 = (v: any) => typeof v === 'boolean' ? (v ? 1 : 0) : (v || 0);
+                                      const P: Record<string, number[]> = {
+                                        // [superior, inferior, alacena, cajón, especiero, gola]
+                                        esquineroSuperior:         [1,0,0,0,0,0],
+                                        moduloAlmacSup:            [2,0,0,0,0,1],
+                                        moduloRepisa:              [6,0,0,0,0,0], // lat+espaldar+piso+techo+2 entrepaños
+                                        moduloPlatero:             [2,0,0,0,0,0], // 2 puertas superiores
+                                        moduloExtractorMicroondas: [4,0,0,0,0,0], // 2lat+base+techo
+                                        especiero:                 [0,0,0,0,1,1],
+                                        botellero:                 [0,1,0,0,0,1],
+                                        esquinero1x1:              [0,2,0,0,0,0],
+                                        cajoneroTriple:            [0,0,0,3,0,1],
+                                        cajoneroDoble:             [0,0,0,2,0,1],
+                                        basurero:                  [0,1,0,0,0,1],
+                                        moduloLavaplatos:           [0,2,0,0,0,1], // 2 puertas + gola
+                                        moduloEstufaPuerta:         [0,1,0,0,0,1],
+                                        moduloEstufaHorno:         [0,1,0,0,0,1],
+                                        moduloAlmacInf:            [0,2,0,0,0,1],
+                                        lateralMuebleSuperior:     [1,0,0,0,0,0],
+                                        lateralMuebleInferior:     [0,1,0,0,0,0],
+                                      };
+                                      let up=0,lo=0,al=0,ca=0,es=0,go=0;
+                                      for (const [k, arr] of Object.entries(P)) {
+                                        const qty = q2((km2 as any)[k]);
+                                        up+=qty*arr[0]; lo+=qty*arr[1]; al+=qty*arr[2];
+                                        ca+=qty*arr[3]; es+=qty*arr[4]; go+=qty*arr[5];
+                                      }
+                                      if (sm2.nichoNevecon)      up+=1;
+                                      if (sm2.nichoNevera)       up+=1;
+                                      if (sm2.alacenaEntrepanos) al+=1;
+                                      if (sm2.alacenaHerraje)    al+=1;
+                                      if (sm2.torreHornos)       { up+=1; ca+=1; go+=2; }
+                                      cfgPD.paintedDoors.upperQty  = up;
+                                      cfgPD.paintedDoors.lowerQty  = lo;
+                                      cfgPD.paintedDoors.pantryQty = al;
+                                      cfgPD.paintedDoors.drawerQty = ca;
+                                      cfgPD.paintedDoors.spiceQty  = es;
+                                      cfgPD.paintedDoors.golaQty   = go;
+                                    }
+                                    calculateKitchenTotal(index, ni);
                                   }}
                                   className="h-4 w-4 accent-pink-500"
                                 />
@@ -2903,84 +3872,78 @@ export default function Quotations() {
                               {item.kitchenConfig?.paintedDoors?.enabled && (
                                 <div className="grid grid-cols-2 gap-2 sm:gap-3 text-xs sm:text-sm">
                                   <div>
-                                    <Label className="text-xs text-pink-700">Puertas Superiores ($120,000)</Label>
+                                    <Label className="text-xs text-pink-300">Puertas Superiores ($120,000)</Label>
                                     <Input
                                       type="number"
                                       min="0"
                                       value={item.kitchenConfig?.paintedDoors?.upperQty || ""}
                                       onChange={(e) => {
                                         updateKitchenConfig(index, "paintedDoors.upperQty", parseInt(e.target.value) || 0);
-                                        calculateKitchenTotal(index);
                                       }}
                                       placeholder="0"
                                       className="h-8"
                                     />
                                   </div>
                                   <div>
-                                    <Label className="text-xs text-pink-700">Puertas Inferiores ($150,000)</Label>
+                                    <Label className="text-xs text-pink-300">Puertas Inferiores ($150,000)</Label>
                                     <Input
                                       type="number"
                                       min="0"
                                       value={item.kitchenConfig?.paintedDoors?.lowerQty || ""}
                                       onChange={(e) => {
                                         updateKitchenConfig(index, "paintedDoors.lowerQty", parseInt(e.target.value) || 0);
-                                        calculateKitchenTotal(index);
                                       }}
                                       placeholder="0"
                                       className="h-8"
                                     />
                                   </div>
                                   <div>
-                                    <Label className="text-xs text-pink-700">Puertas Alacena ($250,000)</Label>
+                                    <Label className="text-xs text-pink-300">Puertas Alacena ($250,000)</Label>
                                     <Input
                                       type="number"
                                       min="0"
                                       value={item.kitchenConfig?.paintedDoors?.pantryQty || ""}
                                       onChange={(e) => {
                                         updateKitchenConfig(index, "paintedDoors.pantryQty", parseInt(e.target.value) || 0);
-                                        calculateKitchenTotal(index);
                                       }}
                                       placeholder="0"
                                       className="h-8"
                                     />
                                   </div>
                                   <div>
-                                    <Label className="text-xs text-pink-700">Tapas Cajón ($80,000)</Label>
+                                    <Label className="text-xs text-pink-300">Tapas Cajón ($80,000)</Label>
                                     <Input
                                       type="number"
                                       min="0"
                                       value={item.kitchenConfig?.paintedDoors?.drawerQty || ""}
                                       onChange={(e) => {
                                         updateKitchenConfig(index, "paintedDoors.drawerQty", parseInt(e.target.value) || 0);
-                                        calculateKitchenTotal(index);
                                       }}
                                       placeholder="0"
                                       className="h-8"
                                     />
                                   </div>
                                   <div>
-                                    <Label className="text-xs text-pink-700">Tapa Especiero ($100,000)</Label>
+                                    <Label className="text-xs text-pink-300">Tapa Especiero ($100,000)</Label>
                                     <Input
                                       type="number"
                                       min="0"
                                       value={item.kitchenConfig?.paintedDoors?.spiceQty || ""}
                                       onChange={(e) => {
                                         updateKitchenConfig(index, "paintedDoors.spiceQty", parseInt(e.target.value) || 0);
-                                        calculateKitchenTotal(index);
                                       }}
                                       placeholder="0"
                                       className="h-8"
                                     />
                                   </div>
                                   <div>
-                                    <Label className="text-xs text-pink-700">Tapas Pequeña/Gola ($45,000)</Label>
+                                    <Label className="text-xs text-pink-300">Tapas Pequeña/Gola ($45,000)</Label>
                                     <Input
                                       type="number"
                                       min="0"
                                       value={item.kitchenConfig?.paintedDoors?.golaQty || ""}
                                       onChange={(e) => {
                                         updateKitchenConfig(index, "paintedDoors.golaQty", parseInt(e.target.value) || 0);
-                                        calculateKitchenTotal(index);
                                       }}
                                       placeholder="0"
                                       className="h-8"
@@ -2999,7 +3962,6 @@ export default function Quotations() {
                                   checked={item.kitchenConfig?.specialFinishes?.enabled || false}
                                   onChange={(e) => {
                                     updateKitchenConfig(index, "specialFinishes.enabled", e.target.checked);
-                                    calculateKitchenTotal(index);
                                   }}
                                   className="h-4 w-4 accent-purple-500"
                                 />
@@ -3012,18 +3974,18 @@ export default function Quotations() {
                               {item.kitchenConfig?.specialFinishes?.enabled && (
                                 <div className="space-y-4 mt-3">
                                   {/* Puertas de Aluminio con Vidrio Ahumado */}
-                                  <div className="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg space-y-2">
-                                    <Label className="text-xs font-semibold text-purple-700 dark:text-purple-300">
+                                  <div className="bg-purple-500/10 p-3 rounded-lg space-y-2">
+                                    <Label className="text-xs font-semibold text-purple-300">
                                       Puertas de Aluminio con Vidrio Ahumado - {formatPrice(getPrice('ACABADO_ALUMINIO_VIDRIO_M2'))}/m²
                                     </Label>
-                                    <p className="text-xs text-purple-600 dark:text-purple-400">
+                                    <p className="text-xs text-purple-400">
                                       Bisagras adicionales: +1 par (alto mayor a 80cm) o +2 pares (alto mayor a 140cm) a {formatPrice(getPrice('ACABADO_BISAGRA_PAR'))}/par
                                     </p>
                                     
                                     {/* Lista de puertas */}
                                     {(item.kitchenConfig?.specialFinishes?.aluminumGlassDoors || []).map((door, doorIdx) => (
                                       <div key={door.id} className="flex items-center gap-2 bg-[#162828] p-2 rounded border">
-                                        <span className="text-xs font-medium text-purple-600">#{doorIdx + 1}</span>
+                                        <span className="text-xs font-medium text-purple-400">#{doorIdx + 1}</span>
                                         <div className="flex-1 grid grid-cols-2 gap-2">
                                           <div>
                                             <Label className="text-xs">Alto (m)</Label>
@@ -3074,7 +4036,7 @@ export default function Quotations() {
                                           </div>
                                         </div>
                                         <div className="text-xs text-right min-w-[80px]">
-                                          <div className="text-purple-600 font-medium">{door.squareMeters?.toFixed(2) || '0.00'} m²</div>
+                                          <div className="text-purple-400 font-medium">{door.squareMeters?.toFixed(2) || '0.00'} m²</div>
                                           {door.extraHinges > 0 && (
                                             <div className="text-orange-500">+{door.extraHinges} par{door.extraHinges > 1 ? 'es' : ''}</div>
                                           )}
@@ -3088,7 +4050,7 @@ export default function Quotations() {
                                             updateKitchenConfig(index, "specialFinishes.aluminumGlassDoors", newDoors);
                                             calculateKitchenTotal(index);
                                           }}
-                                          className="text-red-500 hover:text-red-700 h-8 w-8 p-0"
+                                          className="text-red-500 hover:text-red-300 h-8 w-8 p-0"
                                         >
                                           <Trash2 className="h-4 w-4" />
                                         </Button>
@@ -3110,14 +4072,14 @@ export default function Quotations() {
                                         const newDoors = [...(item.kitchenConfig?.specialFinishes?.aluminumGlassDoors || []), newDoor];
                                         updateKitchenConfig(index, "specialFinishes.aluminumGlassDoors", newDoors);
                                       }}
-                                      className="w-full border-purple-300 text-purple-600 hover:bg-purple-50"
+                                      className="w-full border-purple-500/30 text-purple-400 hover:bg-purple-500/10"
                                     >
                                       <Plus className="h-4 w-4 mr-1" /> Agregar Puerta
                                     </Button>
                                   </div>
                                   
                                   {/* LED para Alacenas */}
-                                  <div className="bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-lg space-y-2">
+                                  <div className="bg-yellow-500/10 p-3 rounded-lg space-y-2">
                                     <div className="flex items-center space-x-2">
                                       <input
                                         type="checkbox"
@@ -3125,11 +4087,10 @@ export default function Quotations() {
                                         checked={item.kitchenConfig?.specialFinishes?.ledLighting?.enabled || false}
                                         onChange={(e) => {
                                           updateKitchenConfig(index, "specialFinishes.ledLighting.enabled", e.target.checked);
-                                          calculateKitchenTotal(index);
                                         }}
                                         className="h-4 w-4 accent-yellow-500"
                                       />
-                                      <Label htmlFor={`specialLed-${index}`} className="text-xs font-semibold text-yellow-700 dark:text-yellow-300 cursor-pointer">
+                                      <Label htmlFor={`specialLed-${index}`} className="text-xs font-semibold text-yellow-300 cursor-pointer">
                                         <Lightbulb className="inline h-3 w-3 mr-1" />
                                         Luz LED para Alacenas - {formatPrice(getPrice('ACABADO_LED_ML'))}/ml
                                       </Label>
@@ -3144,12 +4105,11 @@ export default function Quotations() {
                                           value={item.kitchenConfig?.specialFinishes?.ledLighting?.meters || ""}
                                           onChange={(e) => {
                                             updateKitchenConfig(index, "specialFinishes.ledLighting.meters", parseFloat(e.target.value) || 0);
-                                            calculateKitchenTotal(index);
                                           }}
                                           className="w-24 h-8"
                                           placeholder="0"
                                         />
-                                        <span className="text-xs text-yellow-600">
+                                        <span className="text-xs text-yellow-400">
                                           = {formatPrice((item.kitchenConfig?.specialFinishes?.ledLighting?.meters || 0) * getPrice('ACABADO_LED_ML'))}
                                         </span>
                                       </div>
@@ -3160,7 +4120,7 @@ export default function Quotations() {
                             </div>
 
                             {/* 10. Transporte e imprevistos - Opcional y editable */}
-                            <div className={`flex flex-col gap-2 p-3 rounded ${item.includesFixedCosts ? 'bg-green-100 border border-green-300' : 'bg-yellow-50'}`}>
+                            <div className={`flex flex-col gap-2 p-3 rounded ${item.includesFixedCosts ? 'bg-green-500/15 border border-green-300' : 'bg-yellow-500/10'}`}>
                               <div className="flex items-center space-x-2">
                                 <input
                                   type="checkbox"
@@ -3184,7 +4144,7 @@ export default function Quotations() {
                                     newItems[index].includesFixedCosts = e.target.checked;
                                     setItems(newItems);
                                   }}
-                                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                  className="h-4 w-4 rounded border-white/[0.15] text-primary focus:ring-primary"
                                 />
                                 <Label htmlFor={`fixedCosts-${index}`} className="text-sm font-normal cursor-pointer">
                                   <Truck className="inline h-4 w-4 mr-1" />
@@ -3193,7 +4153,7 @@ export default function Quotations() {
                               </div>
                               {item.includesFixedCosts && (
                                 <div className="flex items-center gap-2 ml-6">
-                                  <Label className="text-sm text-gray-600">Monto:</Label>
+                                  <Label className="text-sm text-muted-foreground">Monto:</Label>
                                   <Input
                                     type="number"
                                     value={item.fixedCostsAmount ?? 600000}
@@ -3216,15 +4176,29 @@ export default function Quotations() {
                             </div>
 
                             {/* Total calculado */}
-                            <div className="p-3 sm:p-4 bg-green-50 rounded">
-                              <p className="text-sm sm:text-lg font-bold text-green-800">
+                            <div className="p-3 sm:p-4 bg-green-500/10 rounded">
+                              <p className="text-sm sm:text-lg font-bold text-green-300">
                                 Total Cocina: {formatPrice(item.totalPrice)}
                               </p>
                             </div>
 
+                            {/* Notas adicionales — aparecen en la descripción del PDF */}
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium text-white/60">
+                                Notas adicionales <span className="text-xs text-gray-400 font-normal">(aparecen en el PDF)</span>
+                              </Label>
+                              <Textarea
+                                value={item.kitchenConfig?.notes || ""}
+                                onChange={(e) => updateKitchenConfig(index, "notes", e.target.value)}
+                                placeholder="Ej: color de puertas, acabado especial, materiales adicionales..."
+                                rows={2}
+                                className="text-sm bg-[#162828] border-[rgba(106,207,199,0.18)] text-white/85"
+                              />
+                            </div>
+
                             {/* Descripción auto-generada (editable) */}
                             <div>
-                              <Label className="text-sm font-medium text-gray-700 block mb-1">
+                              <Label className="text-sm font-medium text-muted-foreground block mb-1">
                                 Descripción del ítem <span className="text-xs text-gray-400 font-normal">(auto-generada — editable)</span>
                               </Label>
                               <Textarea
@@ -3287,7 +4261,7 @@ export default function Quotations() {
                                 newItems[index].includesFixedCosts = e.target.checked;
                                 setItems(newItems);
                               }}
-                              className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                              className="h-4 w-4 rounded border-white/[0.15] text-primary focus:ring-primary"
                             />
                             <Label htmlFor={`fixedCosts-herrajes-${index}`} className="text-sm font-normal cursor-pointer">
                               Incluye transporte e imprevistos
@@ -3337,8 +4311,8 @@ export default function Quotations() {
                                 const sqm = (door.height || 0) * (door.width || 0);
                                 const extraHinges = door.height > 1.4 ? 2 : (door.height > 0.8 ? 1 : 0);
                                 return (
-                                  <div key={doorIdx} className="flex flex-wrap items-center gap-2 p-3 bg-cyan-50 dark:bg-cyan-900/20 rounded-lg">
-                                    <span className="text-sm font-medium text-cyan-700 dark:text-cyan-300">Puerta #{doorIdx + 1}</span>
+                                  <div key={doorIdx} className="flex flex-wrap items-center gap-2 p-3 bg-cyan-500/10 rounded-lg">
+                                    <span className="text-sm font-medium text-cyan-300">Puerta #{doorIdx + 1}</span>
                                     <div className="flex items-center gap-1">
                                       <Input
                                         type="number"
@@ -3374,15 +4348,15 @@ export default function Quotations() {
                                         className="w-20 h-8 text-sm"
                                       />
                                     </div>
-                                    <span className="text-sm text-white/60 dark:text-white/40">
+                                    <span className="text-sm text-white/60">
                                       = {sqm.toFixed(2)} m²
-                                      {extraHinges > 0 && <span className="text-cyan-600"> + {extraHinges} par{extraHinges > 1 ? 'es' : ''} bisagras</span>}
+                                      {extraHinges > 0 && <span className="text-cyan-400"> + {extraHinges} par{extraHinges > 1 ? 'es' : ''} bisagras</span>}
                                     </span>
                                     <Button
                                       type="button"
                                       variant="ghost"
                                       size="sm"
-                                      className="text-red-500 hover:text-red-700 h-8 w-8 p-0"
+                                      className="text-red-500 hover:text-red-300 h-8 w-8 p-0"
                                       onClick={() => {
                                         const newItems = [...items];
                                         const doors = [...(newItems[index].acabadosConfig?.aluminumGlassDoors || [])];
@@ -3402,7 +4376,7 @@ export default function Quotations() {
                                 type="button"
                                 variant="outline"
                                 size="sm"
-                                className="text-cyan-600 border-cyan-300 hover:bg-cyan-50"
+                                className="text-cyan-400 border-cyan-300 hover:bg-cyan-500/10"
                                 onClick={() => {
                                   const newItems = [...items];
                                   const doors = [...(newItems[index].acabadosConfig?.aluminumGlassDoors || []), { height: 0, width: 0 }];
@@ -3484,7 +4458,7 @@ export default function Quotations() {
                                   newItems[index].totalPrice = calculateAcabadosTotal(newItems[index]);
                                   setItems(newItems);
                                 }}
-                                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                className="h-4 w-4 rounded border-white/[0.15] text-primary focus:ring-primary"
                               />
                               <Label htmlFor={`fixedCosts-acabados-${index}`} className="text-sm font-normal cursor-pointer flex items-center gap-2">
                                 <Truck className="h-4 w-4" />
@@ -3508,8 +4482,8 @@ export default function Quotations() {
                             </div>
                             
                             {/* Total */}
-                            <div className="p-3 bg-cyan-100 dark:bg-cyan-900/30 rounded-lg">
-                              <p className="text-lg font-bold text-cyan-700 dark:text-cyan-300">
+                            <div className="p-3 bg-cyan-100 rounded-lg">
+                              <p className="text-lg font-bold text-cyan-300">
                                 Total Acabados: {formatPrice(item.totalPrice || 0)}
                               </p>
                             </div>
@@ -3523,7 +4497,8 @@ export default function Quotations() {
                               config={item.closetConfig || null}
                               onChange={(config: ClosetConfig) => {
                                 const newItems = [...items];
-                                let total = config.subtotal;
+                                const qty = parseInt(newItems[index].quantity || "1") || 1;
+                                let total = config.subtotal * qty;
                                 // Incluir transporte si está marcado
                                 if (newItems[index].includesFixedCosts) {
                                   total += (newItems[index].fixedCostsAmount || 600000);
@@ -3540,6 +4515,40 @@ export default function Quotations() {
                               }}
                             />
 
+                            {/* Campo cantidad de closets */}
+                            <div className="mt-4 flex items-center gap-3 p-3 bg-purple-500/10 border border-purple-500/25 rounded-lg">
+                              <Label className="text-sm font-medium text-purple-300 flex items-center gap-2 whitespace-nowrap">
+                                <Sofa className="h-4 w-4" />
+                                Cantidad de closets:
+                              </Label>
+                              <Input
+                                type="number"
+                                min="1"
+                                max="20"
+                                step="1"
+                                value={item.quantity || "1"}
+                                onChange={(e) => {
+                                  const qty = Math.max(1, parseInt(e.target.value) || 1);
+                                  const newItems = [...items];
+                                  const subtotal = newItems[index].closetConfig?.subtotal || 0;
+                                  const transport = newItems[index].includesFixedCosts
+                                    ? (newItems[index].fixedCostsAmount ?? 600000) : 0;
+                                  newItems[index] = {
+                                    ...newItems[index],
+                                    quantity: String(qty),
+                                    totalPrice: subtotal * qty + transport,
+                                  };
+                                  setItems(newItems);
+                                }}
+                                className="w-24 h-9 text-center font-semibold"
+                              />
+                              {parseInt(item.quantity || "1") > 1 && item.closetConfig?.subtotal > 0 && (
+                                <span className="text-xs text-purple-300">
+                                  {parseInt(item.quantity)} × {formatPrice(item.closetConfig.subtotal)} = {formatPrice(item.closetConfig.subtotal * parseInt(item.quantity))}
+                                </span>
+                              )}
+                            </div>
+
                             {/* Checkbox de transporte para closets */}
                             <div className="flex items-center space-x-2 mt-4 flex-wrap gap-2">
                               <input
@@ -3548,22 +4557,23 @@ export default function Quotations() {
                                 checked={item.includesFixedCosts || false}
                                 onChange={(e) => {
                                   const newItems = [...items];
-                                  const closetTotal = newItems[index].closetConfig?.subtotal || 0;
+                                  const qty = parseInt(newItems[index].quantity || "1") || 1;
+                                  const closetSubtotal = newItems[index].closetConfig?.subtotal || 0;
                                   const fixedAmount = newItems[index].fixedCostsAmount ?? 600000;
 
                                   if (e.target.checked) {
-                                    newItems[index].totalPrice = closetTotal + fixedAmount;
+                                    newItems[index].totalPrice = closetSubtotal * qty + fixedAmount;
                                     if (newItems[index].fixedCostsAmount === undefined) {
                                       newItems[index].fixedCostsAmount = 600000;
                                     }
                                   } else {
-                                    newItems[index].totalPrice = closetTotal;
+                                    newItems[index].totalPrice = closetSubtotal * qty;
                                   }
 
                                   newItems[index].includesFixedCosts = e.target.checked;
                                   setItems(newItems);
                                 }}
-                                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                className="h-4 w-4 rounded border-white/[0.15] text-primary focus:ring-primary"
                               />
                               <Label htmlFor={`fixedCosts-closet-${index}`} className="text-sm font-normal cursor-pointer">
                                 Incluye transporte e imprevistos
@@ -3574,9 +4584,10 @@ export default function Quotations() {
                                   value={item.fixedCostsAmount ?? 600000}
                                   onChange={(e) => {
                                     const newItems = [...items];
-                                    const closetTotal = newItems[index].closetConfig?.subtotal || 0;
+                                    const qty = parseInt(newItems[index].quantity || "1") || 1;
+                                    const closetSubtotal = newItems[index].closetConfig?.subtotal || 0;
                                     const newAmount = e.target.value === '' ? 0 : parseFloat(e.target.value);
-                                    newItems[index].totalPrice = closetTotal + newAmount;
+                                    newItems[index].totalPrice = closetSubtotal * qty + newAmount;
                                     newItems[index].fixedCostsAmount = newAmount;
                                     setItems(newItems);
                                   }}
@@ -3589,7 +4600,7 @@ export default function Quotations() {
 
                             {/* Descripción auto-generada (editable) */}
                             <div className="mt-4">
-                              <Label className="text-sm font-medium text-gray-700 block mb-1">
+                              <Label className="text-sm font-medium text-muted-foreground block mb-1">
                                 Descripción del ítem <span className="text-xs text-gray-400 font-normal">(auto-generada — editable)</span>
                               </Label>
                               <Textarea
@@ -3651,7 +4662,7 @@ export default function Quotations() {
                                   newItems[index].includesFixedCosts = e.target.checked;
                                   setItems(newItems);
                                 }}
-                                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                className="h-4 w-4 rounded border-white/[0.15] text-primary focus:ring-primary"
                               />
                               <Label htmlFor={`fixedCosts-puerta-${index}`} className="text-sm font-normal cursor-pointer">
                                 Incluye transporte e imprevistos
@@ -3677,7 +4688,7 @@ export default function Quotations() {
 
                             {/* Descripción auto-generada (editable) */}
                             <div className="mt-4">
-                              <Label className="text-sm font-medium text-gray-700 block mb-1">
+                              <Label className="text-sm font-medium text-muted-foreground block mb-1">
                                 Descripción del ítem <span className="text-xs text-gray-400 font-normal">(auto-generada — editable)</span>
                               </Label>
                               <Textarea
@@ -3688,6 +4699,25 @@ export default function Quotations() {
                                 className="text-sm bg-[#162828] border-[rgba(106,207,199,0.18)] text-white/85"
                               />
                             </div>
+                          </>
+                        )}
+
+                        {/* Campos dinámicos para MUEBLE DE BAÑO */}
+                        {item.itemType === "baño" && (
+                          <>
+                            <BathroomConfigurator
+                              config={item.bathroomConfig || null}
+                              onChange={(config: BathroomConfig) => {
+                                const newItems = [...items];
+                                newItems[index] = {
+                                  ...newItems[index],
+                                  bathroomConfig: config,
+                                  totalPrice: config.subtotal,
+                                  description: buildBathroomDescription(config),
+                                };
+                                setItems(newItems);
+                              }}
+                            />
                           </>
                         )}
 
@@ -3711,7 +4741,7 @@ export default function Quotations() {
                             />
                             {/* Descripción auto-generada (editable) */}
                             <div className="mt-4">
-                              <Label className="text-sm font-medium text-gray-700 block mb-1">
+                              <Label className="text-sm font-medium text-muted-foreground block mb-1">
                                 Descripción del ítem <span className="text-xs text-gray-400 font-normal">(auto-generada — editable)</span>
                               </Label>
                               <Textarea
@@ -3743,8 +4773,24 @@ export default function Quotations() {
                           </>
                         )}
 
+                        {/* Configurador de Mueble de Cocina (Isla / Barra / Muebles Altos / Muebles Bajos) */}
+                        {item.itemType === "mueble_cocina" && (
+                          <MuebleCocinaConfigurator
+                            config={item.muebleCocinaConfig || calcularMuebleCocina(defaultMuebleCocinaConfig("isla"))}
+                            onChange={(config: MuebleCocinaConfig) => {
+                              const newItems = [...items];
+                              newItems[index] = {
+                                ...newItems[index],
+                                muebleCocinaConfig: config,
+                                totalPrice: config.total,
+                              };
+                              setItems(newItems);
+                            }}
+                          />
+                        )}
+
                         {/* Campos estándar para otros tipos */}
-                        {item.itemType !== "cocina" && item.itemType !== "herrajes" && item.itemType !== "closet" && item.itemType !== "puerta" && item.itemType !== "centro_tv" && item.itemType !== "mesones" && (
+                        {item.itemType !== "cocina" && item.itemType !== "herrajes" && item.itemType !== "closet" && item.itemType !== "puerta" && item.itemType !== "centro_tv" && item.itemType !== "mesones" && item.itemType !== "mueble_cocina" && (
                           <>
                             <div>
                               <Label>Descripción *</Label>
@@ -3818,7 +4864,7 @@ export default function Quotations() {
                                   newItems[index].includesFixedCosts = e.target.checked;
                                   setItems(newItems);
                                 }}
-                                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                className="h-4 w-4 rounded border-white/[0.15] text-primary focus:ring-primary"
                               />
                               <Label htmlFor={`fixedCosts-${index}`} className="text-sm font-normal cursor-pointer">
                                 Incluye transporte e imprevistos
@@ -3892,7 +4938,7 @@ export default function Quotations() {
                         onClick={() => setDiscountPercent(discountPercent === val ? 0 : val)}
                         className={`px-2 py-0.5 rounded text-xs font-semibold transition-all border ${
                           discountPercent === val
-                            ? "bg-[#162828] text-emerald-700 border-white"
+                            ? "bg-[#162828] text-emerald-300 border-white"
                             : "bg-[#162828]/20 text-white border-white/30 hover:bg-[#162828]/30"
                         }`}
                       >
@@ -3911,6 +4957,24 @@ export default function Quotations() {
                   </div>
                 </div>
                 
+                {/* IVA */}
+                <div className="flex justify-between items-center gap-3">
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={includeIva}
+                      onChange={(e) => setIncludeIva(e.target.checked)}
+                      className="w-4 h-4 rounded accent-white cursor-pointer"
+                    />
+                    <span className="text-white/90 text-sm sm:text-base">IVA 19%</span>
+                  </label>
+                  {includeIva && (
+                    <span className="text-base sm:text-lg font-semibold text-white/90">
+                      +{formatPrice(calculateTotal() * (1 - discountPercent / 100) * 0.19)}
+                    </span>
+                  )}
+                </div>
+
                 {/* Separador */}
                 <div className="border-t border-white/30"></div>
                 
@@ -3921,9 +4985,9 @@ export default function Quotations() {
                       <CircleDollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                     </div>
                     <div>
-                      <p className="text-white/80 text-xs sm:text-sm font-medium">Total Final</p>
+                      <p className="text-white/80 text-xs sm:text-sm font-medium">Total Final{includeIva ? " (con IVA)" : ""}</p>
                       <p className="text-white text-lg sm:text-xl md:text-2xl font-bold">
-                        {formatPrice(calculateTotal() * (1 - discountPercent / 100))}
+                        {formatPrice(calculateTotal() * (1 - discountPercent / 100) * (includeIva ? 1.19 : 1))}
                       </p>
                     </div>
                   </div>
@@ -3932,11 +4996,11 @@ export default function Quotations() {
             </div>
 
             {/* Notas y Condiciones */}
-            <div className="space-y-4 border border-gray-200 rounded-xl p-4 bg-gray-50">
-              <h3 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">Notas y Condiciones</h3>
+            <div className="space-y-4 border border-white/[0.10] rounded-xl p-4 bg-white/[0.03]">
+              <h3 className="font-semibold text-muted-foreground text-sm uppercase tracking-wide">Notas y Condiciones</h3>
 
               <div>
-                <Label className="text-sm font-medium text-gray-700 block mb-1">
+                <Label className="text-sm font-medium text-muted-foreground block mb-1">
                   Notas generales <span className="text-xs text-gray-400 font-normal">(editables)</span>
                 </Label>
                 <Textarea
@@ -3949,7 +5013,7 @@ export default function Quotations() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-sm font-medium text-gray-700 block mb-1">Condiciones de pago</Label>
+                  <Label className="text-sm font-medium text-muted-foreground block mb-1">Condiciones de pago</Label>
                   <Input
                     value={paymentTerms}
                     onChange={(e) => setPaymentTerms(e.target.value)}
@@ -3957,7 +5021,7 @@ export default function Quotations() {
                   />
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-gray-700 block mb-1">Tiempo de entrega</Label>
+                  <Label className="text-sm font-medium text-muted-foreground block mb-1">Tiempo de entrega</Label>
                   <Input
                     value={deliveryTime}
                     onChange={(e) => setDeliveryTime(e.target.value)}
@@ -3985,7 +5049,7 @@ export default function Quotations() {
                   type="button"
                   variant="outline"
                   onClick={() => setShowCreateDialog(false)}
-                  className="px-4 sm:px-6 text-sm sm:text-base border-slate-300 hover:bg-slate-100 dark:border-slate-600 dark:hover:bg-slate-800 flex-1 sm:flex-none"
+                  className="px-4 sm:px-6 text-sm sm:text-base border-white/[0.15] hover:bg-white/[0.06] flex-1 sm:flex-none"
                 >
                   Cancelar
                 </Button>

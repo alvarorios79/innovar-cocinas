@@ -212,7 +212,7 @@ export default function Postventa() {
         icon={<ShieldCheck className="h-5 w-5" />}
         showBack={false}
         actions={
-          <Button variant="outline" size="sm" onClick={() => refetch()} className="gap-2 text-slate-600">
+          <Button variant="outline" size="sm" onClick={() => refetch()} className="gap-2 text-muted-foreground">
             <RefreshCw className="h-3.5 w-3.5" /> Actualizar
           </Button>
         }
@@ -248,9 +248,9 @@ export default function Postventa() {
 
       {/* Alertas de vencimiento próximas */}
       {overdueFollowUps > 0 && (
-        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 flex items-center gap-3">
+        <div className="mb-4 rounded-lg border border-amber-500/25 bg-amber-500/10 px-4 py-3 flex items-center gap-3">
           <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0" />
-          <p className="text-sm text-amber-800">
+          <p className="text-sm text-amber-300">
             Tienes <strong>{overdueFollowUps}</strong> seguimiento{overdueFollowUps > 1 ? "s" : ""} o revisión{overdueFollowUps > 1 ? "es" : ""} que ya debería{overdueFollowUps > 1 ? "n" : ""} haberse contactado.
             <button className="underline ml-2 font-semibold" onClick={() => setFilterStatus("seguimientos_due")}>
               Ver ahora
@@ -285,7 +285,7 @@ export default function Postventa() {
       {/* Lista de proyectos */}
       {loadingRec ? (
         <div className="space-y-2">
-          {[1, 2, 3].map((i) => <div key={i} className="h-20 rounded-xl bg-slate-100 animate-pulse" />)}
+          {[1, 2, 3].map((i) => <div key={i} className="h-20 rounded-xl bg-white/[0.06] animate-pulse" />)}
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-16 text-slate-400">
@@ -376,7 +376,7 @@ export default function Postventa() {
           <DialogHeader>
             <DialogTitle>Marcar como resuelto</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-slate-600 mb-3">{resolveDialog?.title}</p>
+          <p className="text-sm text-muted-foreground mb-3">{resolveDialog?.title}</p>
           <form onSubmit={handleResolve} className="space-y-3">
             <div className="space-y-1">
               <Label className="text-xs">¿Cómo se resolvió? <span className="text-slate-400">(opcional)</span></Label>
@@ -438,12 +438,12 @@ function ProjectPostventaCard({
           {/* Info */}
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-1.5 mb-0.5">
-              <span className="text-sm font-semibold text-slate-800 truncate">{project.name}</span>
+              <span className="text-sm font-semibold text-foreground truncate">{project.name}</span>
               <Badge variant="outline" className="text-[10px] px-1.5 py-0 shrink-0">
                 {WORK_TYPE_LABELS[project.workType] ?? project.workType}
               </Badge>
               {overdueRecs.length > 0 && (
-                <Badge className="text-[10px] px-1.5 py-0 shrink-0 bg-amber-100 text-amber-700 border-amber-200">
+                <Badge className="text-[10px] px-1.5 py-0 shrink-0 bg-amber-500/15 text-amber-300 border-amber-500/25">
                   {overdueRecs.length} vencido{overdueRecs.length > 1 ? "s" : ""}
                 </Badge>
               )}
@@ -490,14 +490,14 @@ function ProjectPostventaCard({
 
       {/* Reclamaciones expandidas */}
       {expanded && (
-        <div className="border-t border-slate-100 bg-slate-50">
+        <div className="border-t border-white/[0.08] bg-white/[0.03]">
           {project.reclamaciones.length === 0 ? (
             <div className="px-4 py-6 text-center text-xs text-slate-400">
               <CheckCircle2 className="h-6 w-6 mx-auto mb-1 text-emerald-400" />
               Sin reclamaciones — proyecto sin novedades
             </div>
           ) : (
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-white/[0.08]">
               {project.reclamaciones.map((rec) => (
                 <ReclamacionRow
                   key={rec.id}
@@ -534,7 +534,7 @@ function ReclamacionRow({
     : null;
 
   return (
-    <div className={`px-4 py-3 flex flex-col sm:flex-row sm:items-start gap-2 ${isOverdue ? "bg-amber-50" : ""}`}>
+    <div className={`px-4 py-3 flex flex-col sm:flex-row sm:items-start gap-2 ${isOverdue ? "bg-amber-500/10" : ""}`}>
       {/* Ícono tipo */}
       <div className="shrink-0 mt-0.5">
         <TypeIcon className="h-4 w-4" style={{ color: typeConf.color }} />
@@ -542,7 +542,7 @@ function ReclamacionRow({
 
       {/* Contenido */}
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-slate-800 leading-tight">{rec.title}</p>
+        <p className="text-sm font-medium text-foreground leading-tight">{rec.title}</p>
         <div className="flex flex-wrap gap-2 mt-1">
           <span className="text-[11px] font-medium" style={{ color: typeConf.color }}>{typeConf.label}</span>
           <span className="text-[11px] text-slate-400">·</span>
@@ -550,13 +550,13 @@ function ReclamacionRow({
           {scheduledLabel && (
             <>
               <span className="text-[11px] text-slate-400">·</span>
-              <span className={`text-[11px] ${isOverdue ? "text-amber-600 font-semibold" : "text-slate-500"}`}>
+              <span className={`text-[11px] ${isOverdue ? "text-amber-400 font-semibold" : "text-slate-500"}`}>
                 {isOverdue ? "⚠ Vence " : ""}{scheduledLabel}
               </span>
             </>
           )}
           {rec.resolvedAt && rec.resolvedNotes && (
-            <span className="text-[11px] text-emerald-600 italic">"{rec.resolvedNotes}"</span>
+            <span className="text-[11px] text-emerald-400 italic">"{rec.resolvedNotes}"</span>
           )}
         </div>
       </div>

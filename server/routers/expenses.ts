@@ -25,11 +25,7 @@ export const expensesRouter = router({
         projectClientName: z.string().optional(),
         generalCategory: z.enum(["materiales", "mano_de_obra", "alquiler", "servicios", "transporte", "mantenimiento", "otros"]),
         subcategory: z.string().optional(),
-        operativeCategory: z.enum([
-          "arriendo", "energia", "agua", "internet", "mantenimiento",
-          "herramientas", "jardineria", "reparaciones", "transporte",
-          "papeleria", "aseo", "otro"
-        ]).optional(),
+        operativeCategory: z.string().optional(), // Acepta categorías legacy y nuevas
         description: z.string().min(1, "La descripción es requerida"),
         amount: z.number().positive("El valor debe ser mayor a 0"),
         expenseDate: z.string(), // ISO date string

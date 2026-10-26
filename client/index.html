@@ -5,121 +5,92 @@
     <meta charset="UTF-8" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <title>Innovar Cocinas de Diseño</title>
+      content="width=device-width, initial-scale=1.0" />
+    <title>InnovarCocinas</title>
     <meta name="google" content="notranslate" />
-    <meta name="description" content="Gestión interna de proyectos, cotizaciones, citas y producción para Innovar Cocinas de Diseño en Pereira" />
-
-    <!-- PWA / Theme -->
-    <meta name="theme-color" content="#1DB5A8" />
-    <meta name="msapplication-TileColor" content="#0C1A1A" />
-    <meta name="msapplication-TileImage" content="/icon-192.png" />
-
-    <!-- iOS PWA: instalar como app nativa desde Safari -->
+    <meta name="description" content="Agenda citas y solicita estimados para cocinas integrales, closets, puertas y centros de TV en Pereira" />
+    <meta name="theme-color" content="#14b8a6" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Innovar" />
-
-    <!-- Android PWA -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="InnovarCitas" />
     <meta name="mobile-web-app-capable" content="yes" />
-
-    <!-- Manifest -->
     <link rel="manifest" href="/manifest.json" />
-
-    <!-- Favicons -->
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
-
-    <!-- Apple Touch Icons (iOS Safari — uno por tamaño para mayor compatibilidad) -->
-    <link rel="apple-touch-icon" sizes="60x60"  href="/icon-60.png" />
-    <link rel="apple-touch-icon" sizes="76x76"  href="/icon-76.png" />
-    <link rel="apple-touch-icon" sizes="120x120" href="/icon-120.png" />
-    <link rel="apple-touch-icon" sizes="152x152" href="/icon-152.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/icon-180.png" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-    <script>
-      // Suppress Vite HMR errors immediately
-      (function() {
-        const originalError = console.error;
-        console.error = function(...args) {
-          const msg = String(args[0] || '');
-          if (msg.includes('[vite]') || msg.includes('WebSocket') || msg.includes('failed to connect')) {
-            return;
-          }
-          originalError.apply(console, args);
-        };
-      })();
-    </script>
   </head>
 
   <body>
     <div id="root"></div>
-    <script>
-      // Intercept Vite HMR before it loads
-      (function() {
-        const originalFetch = window.fetch;
-        window.fetch = function(...args) {
-          const url = args[0];
-          if (typeof url === 'string' && url.includes('@vite/client')) {
-            return originalFetch.apply(this, args).then(response => {
-              if (response.ok) {
-                return response.text().then(text => {
-                  const modifiedText = text.replace(
-                    /protocol:\s*['"]wss?['"]/g,
-                    "protocol: 'wss'"
-                  ).replace(
-                    /host:\s*['"]localhost['"]/g,
-                    "host: 'invalid'"
-                  );
-                  return new Response(modifiedText, response);
-                });
-              }
-              return response;
-            });
-          }
-          return originalFetch.apply(this, args);
-        };
-        
-        const originalError = console.error;
-        console.error = function(...args) {
-          const msg = String(args[0] || '');
-          if (msg.includes('[vite]') || msg.includes('WebSocket')) {
-            return;
-          }
-          originalError.apply(console, args);
-        };
-      })();
-    </script>
     <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Diagnóstico: captura error real del bundle via dynamic import() -->
+    <script type="module">
+    (async function() {
+      // Esperar un momento para que el módulo estático intente cargarse
+      await new Promise(function(r){ setTimeout(r, 3000); });
+      var root = document.getElementById('root');
+      if (root && root.children.length > 0) return; // React montó OK
+
+      function showErr(msg) {
+        if (!root || root.children.length > 0) return;
+        root.innerHTML =
+          '<div style="padding:20px;font-family:monospace;font-size:12px;background:#000;color:#0f0;min-height:100vh;word-break:break-all">' +
+          '<b style="color:#f44">ERROR — React no montó</b><br><br>' +
+          '<b>UA:</b> ' + navigator.userAgent + '<br><br>' +
+          '<b>Error:</b><br>' + String(msg) +
+          '</div>';
+      }
+
+      // Buscar el bundle principal en el DOM
+      var scripts = document.querySelectorAll('script[type=module][src]');
+      var mainSrc = null;
+      for (var i = 0; i < scripts.length; i++) {
+        var s = scripts[i];
+        if (s.src && (s.src.indexOf('/assets/index-') !== -1 || s.src.indexOf('/src/main') !== -1)) {
+          mainSrc = s.src;
+          break;
+        }
+      }
+
+      if (mainSrc) {
+        try {
+          // dynamic import() en Safari SÍ da el error real (a diferencia del event listener)
+          await import(mainSrc);
+          // Si llegó aquí sin error pero React no montó, es un problema de ejecución
+          showErr('Bundle cargado sin error pero React no montó. URL: ' + mainSrc);
+        } catch(e) {
+          showErr((e && e.stack) ? e.stack : (e && e.message ? e.message : String(e)));
+        }
+      } else {
+        showErr('No se encontró el bundle principal en el DOM. Scripts: ' +
+          Array.from(document.querySelectorAll('script[src]')).map(function(s){ return s.src; }).join(', '));
+      }
+    })();
+    </script>
+
     <script>
-      // En desarrollo: desregistrar SWs para que Vite HMR funcione sin caché
       if ('serviceWorker' in navigator) {
-        const isDev = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+        var isDev = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
         if (isDev) {
-          navigator.serviceWorker.getRegistrations().then(regs => {
-            regs.forEach(r => r.unregister());
+          navigator.serviceWorker.getRegistrations().then(function(regs) {
+            regs.forEach(function(r){ r.unregister(); });
           });
-          // Limpiar todas las caches del browser en dev
           if ('caches' in window) {
-            caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+            caches.keys().then(function(keys){ keys.forEach(function(k){ caches.delete(k); }); });
           }
         } else {
-          // Solo registrar SW en producción
-          window.addEventListener('load', () => {
+          window.addEventListener('load', function() {
             navigator.serviceWorker.register('/sw.js')
-              .then(r => console.log('SW registrado:', r))
-              .catch(e => console.log('SW error:', e));
+              .then(function(r){ console.log('SW registrado:', r); })
+              .catch(function(e){ console.log('SW error:', e); });
           });
         }
       }
     </script>
-    <script
-      defer
-      src="%VITE_ANALYTICS_ENDPOINT%/umami"
-      data-website-id="%VITE_ANALYTICS_WEBSITE_ID%"></script>
   </body>
 
 </html>

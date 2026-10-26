@@ -1,5 +1,5 @@
 // client/src/pages/Medidor.tsx
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useSearch } from "wouter";
 import { Pizarra, type PizarraRef, type PizarraStatus } from "@/components/Pizarra";
 import { trpc } from "@/lib/trpc";
@@ -393,10 +393,14 @@ export default function Medidor() {
   const photoInputRef = useRef<HTMLInputElement>(null);
   const pdfInputRef = useRef<HTMLInputElement>(null);
   const pizarraRef = useRef<PizarraRef>(null);
+  // Fecha congelada: se calcula una sola vez al montar Medidor para que el src del iframe no cambie
+  const pizarraDate = useRef(new Date().toISOString());
   const [pizarraUploading, setPizarraUploading] = useState(false);
   // null = todavía no llegó pizarra:status; true/false = estado real
   const [pizarraHasContent, setPizarraHasContent] = useState<boolean | null>(null);
   const [pizarraFullscreen, setPizarraFullscreen] = useState(false);
+  // Callback estable para evitar que el useEffect de Pizarra.tsx se re-ejecute en cada render
+  const onPizarraStatus = useCallback((s: PizarraStatus) => setPizarraHasContent(s.hasContent), []);
 
   useEffect(() => {
     if (pizarraFullscreen) {
@@ -1798,9 +1802,9 @@ export default function Medidor() {
                 levantamientoId={String(selectedVisit?.id ?? visitDetail?.id ?? "new")}
                 job={visitDetail?.clientName ?? selectedVisit?.clientName ?? ""}
                 who={user?.name ?? ""}
-                date={new Date().toISOString()}
+                date={pizarraDate.current}
                 height={pizarraFullscreen ? "calc(100dvh - 53px)" : "580px"}
-                onStatus={(s: PizarraStatus) => setPizarraHasContent(s.hasContent)}
+                onStatus={onPizarraStatus}
               />
             </div>
           )}

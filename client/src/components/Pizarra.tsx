@@ -196,9 +196,15 @@ export const Pizarra = forwardRef<PizarraRef, PizarraProps>(function Pizarra(
     },
   }));
 
-  const params = new URLSearchParams({ levantamientoId, job, who });
-  if (date) params.set('date', date);
-  const src = `/pizarra-v9.3.html?${params.toString()}`;
+  // Congelar src: se calcula una sola vez al montar.
+  // Cambios en job/who/date NO recargan el iframe — usar setParams() para actualizarlos en caliente.
+  const srcRef = useRef<string | null>(null);
+  if (!srcRef.current) {
+    const p = new URLSearchParams({ levantamientoId, job, who });
+    if (date) p.set('date', date);
+    srcRef.current = `/pizarra-v9.3.html?${p.toString()}`;
+  }
+  const src = srcRef.current;
 
   return (
     <div

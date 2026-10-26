@@ -80,6 +80,8 @@ body {
   touch-action: manipulation; -webkit-user-select: none; user-select: none;
 }
 .pm-btn:hover, .pm-btn:active { background: var(--accent-soft); }
+.pm-btn:disabled { opacity: .45; cursor: default; background: transparent; }
+.pm-btn.pm-lock { font-weight: 600; }
 .pm-btn.pm-danger { color: var(--danger); }
 #pm-sep { height: 1px; background: var(--line); margin: 3px 0; }
 #pm-confirm { padding: 6px 4px 2px; }
@@ -184,6 +186,8 @@ body {
 <input type="file" id="fileCam" accept="image/*" capture="environment" hidden>
 <input type="file" id="fileGal" accept="image/*" multiple hidden>
 <div id="photoMenu" hidden role="menu" aria-label="Opciones de foto">
+  <button type="button" class="pm-btn pm-lock" id="pm-lock">🔒 Bloquear foto</button>
+  <div class="pm-sep2" style="height:1px;background:var(--line);margin:3px 0"></div>
   <button type="button" class="pm-btn" id="pm-dup">Duplicar (con anotaciones)</button>
   <button type="button" class="pm-btn" id="pm-dupclean">Duplicar sin anotaciones</button>
   <button type="button" class="pm-btn" id="pm-front">Traer al frente</button>
@@ -380,6 +384,16 @@ function drawPhoto(p) {
   else { ctx.fillStyle = '#e5e7eb'; ctx.fillRect(p.x, p.y, p.w, p.h); }
   ctx.strokeStyle = 'rgba(0,0,0,.28)'; ctx.lineWidth = 1 / view.k; ctx.strokeRect(p.x, p.y, p.w, p.h);
 }
+// Candado pequeño en la esquina de una foto bloqueada (solo en pantalla, no sale en el PDF).
+function drawLockBadge(p) {
+  const k = view.k, u = 1 / k, s = 26 * u, x = p.x + 8 * u, y = p.y + 8 * u;
+  ctx.save(); ctx.globalAlpha = 0.92; ctx.fillStyle = '#ffffff'; ctx.strokeStyle = 'rgba(0,0,0,.35)'; ctx.lineWidth = u;
+  pill(x, y, s, s, 7 * u); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#111827'; ctx.strokeStyle = '#111827'; ctx.lineWidth = 2 * u;
+  ctx.fillRect(x + 7 * u, y + 12.5 * u, 12 * u, 9 * u);
+  ctx.beginPath(); ctx.arc(x + 13 * u, y + 12.5 * u, 4.2 * u, Math.PI, 0); ctx.stroke();
+  ctx.restore();
+}
 function drawShape(it) {
   ctx.strokeStyle = it.c; ctx.lineWidth = it.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.beginPath();
   if (it.t === 'e') ctx.ellipse(it.x, it.y, it.rx, it.ry, 0, 0, Math.PI * 2);
@@ -402,11 +416,12 @@ function draw() {
   for (const it of items) if (it.t === 'p') drawItem(it);
   for (const it of items) if (it.t !== 'p') drawItem(it);
   if (cur) drawItem(cur);
+  for (const it of items) if (it.t === 'p' && it.locked) drawLockBadge(it);
   if (sel && tool === 'move') {
     const b = bounds(sel), k = view.k;
     ctx.save(); ctx.strokeStyle = T.accent; ctx.lineWidth = 1.5 / k; ctx.setLineDash([6 / k, 4 / k]);
     ctx.strokeRect(b[0], b[1], b[2] - b[0], b[3] - b[1]); ctx.restore();
-    if (sel.t === 'p') { const s = 14 / k; ctx.fillStyle = T.accent; ctx.fillRect(b[2] - s / 2, b[3] - s / 2, s, s); }
+    if (sel.t === 'p' && !sel.locked) { const s = 14 / k; ctx.fillStyle = T.accent; ctx.fillRect(b[2] - s / 2, b[3] - s / 2, s, s); }
   }
   if (scratchPrev && scratchPrev.length) {
     ctx.save(); ctx.globalAlpha = 0.38; ctx.fillStyle = '#ef4444';
@@ -662,12 +677,12 @@ function beginTool(e, sx, sy) {
   else if (tool === 'move') {
     if (sel && sel.t === 'p') {
       const b = bounds(sel), hs = 22 / view.k;
-      if (Math.abs(w[0] - b[2]) < hs && Math.abs(w[1] - b[3]) < hs) { drag = { resize: true, base: items, orig: sel, sx: w[0], pushed: false }; syncBtns(); return; }
+      if (!sel.locked && Math.abs(w[0] - b[2]) < hs && Math.abs(w[1] - b[3]) < hs) { drag = { resize: true, base: items, orig: sel, sx: w[0], pushed: false }; syncBtns(); return; }
     }
     let found = null;
     for (let i = items.length - 1; i >= 0; i--) if (hit(items[i], w[0], w[1], tol)) { found = items[i]; break; }
     sel = found;
-    if (found) drag = { base: items, orig: found, sx: w[0], sy: w[1], pushed: false };
+    if (found && !found.locked) drag = { base: items, orig: found, sx: w[0], sy: w[1], pushed: false };
     syncBtns();
     schedule();
   }
@@ -790,7 +805,7 @@ async function addPhotos(files) {
 $('#shoot').addEventListener('click', () => $('#fileCam').click());
 $('#gallery').addEventListener('click', () => $('#fileGal').click());
 for (const id of ['#fileCam', '#fileGal']) $(id).addEventListener('change', e => { addPhotos([...e.target.files]); e.target.value = ''; });
-delBtn.addEventListener('click', () => { if (!sel) return; pushHist(); items = items.filter(i => i !== sel); sel = null; syncBtns(); save(); schedule(); });
+delBtn.addEventListener('click', () => { if (!sel) return; if (sel.locked) { hint.textContent = 'La foto está bloqueada. Desbloquéala para eliminarla.'; return; } pushHist(); items = items.filter(i => i !== sel); sel = null; syncBtns(); save(); schedule(); });
 
 /* ---------- controles ---------- */
 function setTool(t) {
@@ -829,6 +844,9 @@ function showPhotoMenu() {
   const menu = $('#photoMenu'); if (!menu) return;
   if (drag || !sel || sel.t !== 'p' || tool !== 'move') { menu.style.display = 'none'; return; }
   menu.style.display = 'flex';
+  $('#pm-lock').textContent = sel.locked ? '🔓 Desbloquear foto' : '🔒 Bloquear foto';
+  const delB = $('#pm-del'); delB.disabled = !!sel.locked; delB.textContent = sel.locked ? 'Eliminar (desbloquea primero)' : 'Eliminar foto…';
+  if (sel.locked && pmConfirm) pmConfirm.hidden = true;
   const br = board.getBoundingClientRect(), G = 8, vw = window.innerWidth, vh = window.innerHeight;
   const mw = menu.offsetWidth, mh = menu.offsetHeight;
   let l = br.left + sel.x * view.k + view.x, t = br.top + sel.y * view.k + view.y;
@@ -857,7 +875,7 @@ $('#pm-dup').addEventListener('click', () => {
   if (!sel || sel.t !== 'p') return;
   const off = CELL;
   // La copia comparte la misma imagen guardada (mismo id): no duplica almacenamiento ni peso.
-  const newPhoto = { ...sel, x: sel.x + off, y: sel.y + off };
+  const newPhoto = { ...sel, locked: false, x: sel.x + off, y: sel.y + off };
   const annots = photoAnnotations(sel).map(it => moved(it, off, off));
   pushHist(); items = [...items, newPhoto, ...annots];
   sel = newPhoto; hidePhotoMenu(); save(); schedule(); syncBtns();
@@ -865,9 +883,16 @@ $('#pm-dup').addEventListener('click', () => {
 $('#pm-dupclean').addEventListener('click', () => {
   if (!sel || sel.t !== 'p') return;
   const off = CELL;
-  const newPhoto = { ...sel, x: sel.x + off, y: sel.y + off };
+  const newPhoto = { ...sel, locked: false, x: sel.x + off, y: sel.y + off };
   pushHist(); items = [...items, newPhoto];
   sel = newPhoto; hidePhotoMenu(); save(); schedule(); syncBtns();
+});
+$('#pm-lock').addEventListener('click', () => {
+  if (!sel || sel.t !== 'p') return;
+  const n = { ...sel, locked: !sel.locked };
+  pushHist(); items = items.map(i => i === sel ? n : i); sel = n;
+  hint.textContent = n.locked ? 'Foto bloqueada: no se mueve ni cambia de tamaño. Puedes seguir anotando encima.' : 'Foto desbloqueada.';
+  save(); schedule(); syncBtns();
 });
 $('#pm-front').addEventListener('click', () => {
   if (!sel || sel.t !== 'p') return;
@@ -880,10 +905,10 @@ $('#pm-back').addEventListener('click', () => {
   const arr = [...items]; arr.splice(arr.indexOf(sel), 1); arr.unshift(sel);
   items = arr; hidePhotoMenu(); save(); schedule();
 });
-$('#pm-del').addEventListener('click', () => { if (pmConfirm) pmConfirm.hidden = false; showPhotoMenu(); });
+$('#pm-del').addEventListener('click', () => { if (!sel || sel.locked) return; if (pmConfirm) pmConfirm.hidden = false; showPhotoMenu(); });
 $('#pm-delno').addEventListener('click', () => { if (pmConfirm) pmConfirm.hidden = true; showPhotoMenu(); });
 $('#pm-delok').addEventListener('click', () => {
-  if (!sel || sel.t !== 'p') return;
+  if (!sel || sel.t !== 'p' || sel.locked) return;
   // La imagen sigue en IndexedDB hasta la próxima apertura (así "Deshacer" la recupera completa);
   // al abrir se limpian las imágenes que ya ninguna foto usa.
   pushHist(); items = items.filter(i => i !== sel);
@@ -934,14 +959,36 @@ const ensureImg = p => new Promise(res => {
   if (im.complete && im.naturalWidth) return res();
   im.addEventListener('load', () => res(), { once: true }); im.addEventListener('error', () => res(), { once: true });
 });
-function contentBounds() {
+function contentBounds(list) {
   let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
-  for (const it of items) { const b = bounds(it); x0 = Math.min(x0, b[0]); y0 = Math.min(y0, b[1]); x1 = Math.max(x1, b[2]); y1 = Math.max(y1, b[3]); }
+  for (const it of (list || items)) { const b = bounds(it); x0 = Math.min(x0, b[0]); y0 = Math.min(y0, b[1]); x1 = Math.max(x1, b[2]); y1 = Math.max(y1, b[3]); }
   x0 = Math.floor((x0 - CELL) / CELL) * CELL; y0 = Math.floor((y0 - CELL) / CELL) * CELL;
   x1 = Math.ceil((x1 + CELL) / CELL) * CELL; y1 = Math.ceil((y1 + CELL) / CELL) * CELL;
   if (x1 - x0 < CELL * 8) x1 = x0 + CELL * 8;
   if (y1 - y0 < CELL * 6) y1 = y0 + CELL * 6;
   return [x0, y0, x1, y1];
+}
+// Agrupa los elementos por cercanía: cada zona de trabajo (cocina, baño, fachada…) sale en su propia página.
+// Así un elemento perdido lejos no encoge todo el resto hasta volverlo ilegible.
+function clusterItems() {
+  const pad = CELL * 3;
+  let g = items.map(it => { const b = bounds(it); return { b: [b[0] - pad, b[1] - pad, b[2] + pad, b[3] + pad], its: [it] }; });
+  const hits = (A, B) => A[0] <= B[2] && B[0] <= A[2] && A[1] <= B[3] && B[1] <= A[3];
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (let i = 0; i < g.length; i++) {
+      for (let j = g.length - 1; j > i; j--) {
+        if (hits(g[i].b, g[j].b)) {
+          const A = g[i].b, B = g[j].b;
+          g[i] = { b: [Math.min(A[0], B[0]), Math.min(A[1], B[1]), Math.max(A[2], B[2]), Math.max(A[3], B[3])], its: g[i].its.concat(g[j].its) };
+          g.splice(j, 1); changed = true;
+        }
+      }
+    }
+  }
+  g.sort((a, b) => (a.b[1] - b.b[1]) || (a.b[0] - b.b[0]));
+  return g.map(z => z.its);
 }
 function drawGridWorld(b, s) {
   if (gridMode === 'hidden') return;
@@ -975,32 +1022,39 @@ async function buildPdf() {
   await Promise.all(pendingLoads);
   await Promise.all(items.filter(i => i.t === 'p' && i.src).map(ensureImg));
   exportNum = new Map(); let n = 0; for (const it of items) if (it.t === 'm') exportNum.set(it, ++n);
-  const b = contentBounds(), W = b[2] - b[0], H = b[3] - b[1], land = W >= H;
-  const pw = land ? 841.89 : 595.28, ph = land ? 595.28 : 841.89, M = 28, headH = 50;
-  const aw = pw - 2 * M, ah = ph - 2 * M - headH - 14;
-  let iw = aw, ih = iw * H / W; if (ih > ah) { ih = ah; iw = ih * W / H; }
-  const ladder = [[300, 0.9, 2.4], [300, 0.85, 2.4], [250, 0.9, 2.4], [250, 0.85, 2.3], [220, 0.85, 2.2], [200, 0.82, 2.0], [180, 0.8, 2.0], [150, 0.75, 2.0]];
-  let canvas = null, canvasDpi = 0, pick = null;
-  for (const [dpi, q, lim] of ladder) {
-    if ((iw * dpi / 72) * (ih * dpi / 72) > 12e6) continue;
-    if (canvasDpi !== dpi) { canvas = renderBoard(b, Math.round(iw * dpi / 72)); canvasDpi = dpi; await new Promise(r => setTimeout(r, 0)); }
-    const url = canvas.toDataURL('image/jpeg', q), bytes = Math.round((url.length - 23) * 0.75);
-    pick = { url, bytes, dpi, q }; if (bytes <= lim * MB) break;
-  }
+  const zones = clusterItems().map(list => { const b = contentBounds(list), W = b[2] - b[0], H = b[3] - b[1]; return { b, W, H, land: W >= H }; });
+  const nz = zones.length, M = 28, headH = 50, TOTAL_MB = 2.4, budget = Math.max(0.3, TOTAL_MB / nz) * MB;
+  const ladder = [[300, 0.9], [300, 0.85], [250, 0.88], [220, 0.85], [200, 0.82], [180, 0.8], [150, 0.75], [120, 0.7]];
   // Fecha: preferir param URL, luego fecha actual
   const when = _dateParam
     ? new Date(_dateParam).toLocaleString('es', { dateStyle: 'long' })
     : new Date().toLocaleString('es', { dateStyle: 'long', timeStyle: 'short' });
   const scaleTxt = `1 cuadro = ${fmt(cellVal)} ${unit}`;
-  const doc = new jsPDF({ orientation: land ? 'l' : 'p', unit: 'pt', format: 'a4', compress: true });
+  const dims = z => z.land ? [841.89, 595.28] : [595.28, 841.89];
+  const doc = new jsPDF({ orientation: zones[0].land ? 'l' : 'p', unit: 'pt', format: 'a4', compress: true });
   doc.setProperties({ title: job || 'Levantamiento de medidas', subject: 'Levantamiento de medidas', author: who, creator: 'Pizarra del Medidor' });
-  doc.setTextColor(23, 34, 45); doc.setFont('helvetica', 'bold'); doc.setFontSize(15);
-  doc.text(job || 'Levantamiento de medidas', M, M + 14);
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(86, 102, 122);
-  doc.text(`Medidor: ${who || 'sin nombre'}   |   ${when}   |   Escala: ${scaleTxt}`, M, M + 30);
-  const ix = M + (aw - iw) / 2, iy = M + headH;
-  doc.addImage(pick.url, 'JPEG', ix, iy, iw, ih, undefined, 'FAST');
-  doc.setDrawColor(190, 200, 212); doc.setLineWidth(0.5); doc.rect(ix, iy, iw, ih);
+  let pick = null;
+  for (let zi = 0; zi < nz; zi++) {
+    const Z = zones[zi], [pw, ph] = dims(Z), b = Z.b;
+    if (zi > 0) doc.addPage('a4', Z.land ? 'l' : 'p');
+    const aw = pw - 2 * M, ah = ph - 2 * M - headH - 14;
+    let iw = aw, ih = iw * Z.H / Z.W; if (ih > ah) { ih = ah; iw = ih * Z.W / Z.H; }
+    let canvas = null, canvasDpi = 0; pick = null;
+    for (const [d0, q] of ladder) {
+      // limita los píxeles totales para no agotar la memoria de la tablet
+      const dpi = Math.min(d0, Math.sqrt(12e6 / ((iw / 72) * (ih / 72))));
+      if (canvasDpi !== dpi) { canvas = renderBoard(b, Math.round(iw * dpi / 72)); canvasDpi = dpi; await new Promise(r => setTimeout(r, 0)); }
+      const url = canvas.toDataURL('image/jpeg', q), bytes = Math.round((url.length - 23) * 0.75);
+      pick = { url, bytes, dpi: Math.round(dpi), q }; if (bytes <= budget) break;
+    }
+    doc.setTextColor(23, 34, 45); doc.setFont('helvetica', 'bold'); doc.setFontSize(15);
+    doc.text((job || 'Levantamiento de medidas') + (nz > 1 ? `  ·  Zona ${zi + 1} de ${nz}` : ''), M, M + 14);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(86, 102, 122);
+    doc.text(`Medidor: ${who || 'sin nombre'}   |   ${when}   |   Escala: ${scaleTxt}`, M, M + 30);
+    const ix = M + (aw - iw) / 2, iy = M + headH;
+    doc.addImage(pick.url, 'JPEG', ix, iy, iw, ih, undefined, 'FAST');
+    doc.setDrawColor(190, 200, 212); doc.setLineWidth(0.5); doc.rect(ix, iy, iw, ih);
+  }
   doc.addPage('a4', 'p'); const DW = 595.28, DH = 841.89; let y = M + 14;
   const line = (text, size, bold, gap, color) => {
     doc.setFont('helvetica', bold ? 'bold' : 'normal'); doc.setFontSize(size); doc.setTextColor(...(color || [23, 34, 45]));
@@ -1023,7 +1077,7 @@ async function buildPdf() {
   if (!notes.length) line('No hay notas de texto.', 10.5, false, 0, [86, 102, 122]);
   notes.forEach((t, i) => line(`${i + 1}.   ${t.s}`, 10.5, false, 0));
   const total = doc.getNumberOfPages();
-  for (let p = 1; p <= total; p++) { doc.setPage(p); const w = p === 1 ? pw : DW, h = p === 1 ? ph : DH; doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(120, 130, 142); doc.text(`Página ${p} de ${total}`, w - M, h - 14, { align: 'right' }); }
+  for (let p = 1; p <= total; p++) { doc.setPage(p); const w = doc.internal.pageSize.getWidth(), h = doc.internal.pageSize.getHeight(); doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(120, 130, 142); doc.text(`Página ${p} de ${total}`, w - M, h - 14, { align: 'right' }); }
   const blob = doc.output('blob');
   const name = `Levantamiento_${slug(job) || 'sin-nombre'}_${new Date().toISOString().slice(0, 10)}.pdf`;
   return { blob, name, dpi: pick.dpi, q: pick.q };

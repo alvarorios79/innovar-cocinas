@@ -74,7 +74,7 @@ body {
   pointer-events: auto; -webkit-overflow-scrolling: touch;
 }
 .pm-btn {
-  display: block; width: 100%; text-align: left; padding: 11px 16px;
+  display: block; width: 100%; text-align: left; padding: 0 16px; min-height: 44px;
   border: none; background: transparent; color: var(--fg);
   font: 500 14px var(--font-ui); border-radius: 8px; cursor: pointer;
   touch-action: manipulation; -webkit-user-select: none; user-select: none;
@@ -225,7 +225,7 @@ const HINTS = {
   measure: 'Medir: arrastra de un punto a otro. Al soltar, confirma la medida o escribe la real.',
   text: 'Texto: toca la hoja donde quieras escribir y pulsa Enter.',
   erase: 'Borrar: pasa sobre trazos, medidas o textos. Las fotos se quitan con Mover y «Quitar selección».',
-  move: 'Mover: arrastra cualquier elemento. En una foto seleccionada, la esquina inferior derecha cambia su tamaño.',
+  move: 'Mover: toca una foto para ver su menú (duplicar, eliminar…). Arrastra para moverla; la esquina inferior derecha cambia su tamaño. Dos dedos mueven y acercan la hoja.',
   hand: 'Mano: arrastra para desplazar la hoja. Con dos dedos puedes acercar y alejar.'
 };
 const CURS = { pen: 'crosshair', line: 'crosshair', measure: 'crosshair', text: 'text', erase: 'cell', move: 'default', hand: 'grab' };
@@ -430,8 +430,13 @@ const IDB = (() => {
     const t = db.transaction('photos', mode), rq = fn(t.objectStore('photos'));
     t.oncomplete = () => res(rq && rq.result); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error);
   }));
-  return { put: (id, v) => tx('readwrite', s => s.put(v, id)), get: id => tx('readonly', s => s.get(id)), del: id => tx('readwrite', s => s.delete(id)) };
+  return { put: (id, v) => tx('readwrite', s => s.put(v, id)), get: id => tx('readonly', s => s.get(id)), del: id => tx('readwrite', s => s.delete(id)), keys: () => tx('readonly', s => s.getAllKeys()) };
 })();
+// Limpia de IndexedDB las imágenes que ya ninguna foto usa (se llama una vez al abrir).
+function gcPhotos() {
+  const used = new Set(items.filter(i => i.t === 'p').map(i => i.id));
+  IDB.keys().then(ks => (ks || []).forEach(k => { if (!used.has(k)) IDB.del(k).catch(() => {}); })).catch(() => {});
+}
 function restorePhotos() {
   for (const p of items) {
     if (p.t !== 'p') continue;
@@ -631,7 +636,6 @@ const r2 = n => Math.round(n * 100) / 100;
 const eraseRadius = () => Math.max(4, Math.round(size * 2.5));
 
 cv.addEventListener('pointerdown', e => {
-  const _pm = $('#photoMenu'); if (_pm && _pm.style.display === 'flex') return;
   e.preventDefault();
   if (txtState) commitText(false);
   const [sx, sy] = evPos(e);
@@ -640,7 +644,10 @@ cv.addEventListener('pointerdown', e => {
   try { cv.setPointerCapture(e.pointerId); } catch (_) {}
   ptrs.set(e.pointerId, { x: sx, y: sy, type: e.pointerType });
   const touches = [...ptrs.values()].filter(p => p.type === 'touch').length;
-  const navTouch = e.pointerType === 'touch' && (!fingerDraw || touches >= 2);
+  // Un dedo actúa como la herramienta en Mover, Borrar y Texto (seleccionar, arrastrar, tocar la foto).
+  // En Lápiz/Recta/Medir un dedo mueve la hoja (salvo "Dibujar con el dedo"). Dos dedos siempre mueven/acercan.
+  const fingerIsTool = fingerDraw || tool === 'move' || tool === 'erase' || tool === 'text';
+  const navTouch = e.pointerType === 'touch' && (!fingerIsTool || touches >= 2);
   if (navTouch || tool === 'hand') { cur = null; drag = null; eraseRing = null; rebase(); cv.style.cursor = 'grabbing'; return; }
   if (nav) return;
   beginTool(e, sx, sy);
@@ -655,12 +662,13 @@ function beginTool(e, sx, sy) {
   else if (tool === 'move') {
     if (sel && sel.t === 'p') {
       const b = bounds(sel), hs = 22 / view.k;
-      if (Math.abs(w[0] - b[2]) < hs && Math.abs(w[1] - b[3]) < hs) { drag = { resize: true, base: items, orig: sel, sx: w[0], pushed: false }; return; }
+      if (Math.abs(w[0] - b[2]) < hs && Math.abs(w[1] - b[3]) < hs) { drag = { resize: true, base: items, orig: sel, sx: w[0], pushed: false }; syncBtns(); return; }
     }
     let found = null;
     for (let i = items.length - 1; i >= 0; i--) if (hit(items[i], w[0], w[1], tol)) { found = items[i]; break; }
-    sel = found; syncBtns();
+    sel = found;
     if (found) drag = { base: items, orig: found, sx: w[0], sy: w[1], pushed: false };
+    syncBtns();
     schedule();
   }
 }
@@ -808,27 +816,33 @@ $$('[data-sz]').forEach(b => b.addEventListener('click', () => setSize(+b.datase
 $('#szSlider').addEventListener('input', e => setSize(+e.target.value));
 /* ── Menu contextual de foto ─────────────────────────────────────────────── */
 const photoMenu = $('#photoMenu'), pmConfirm = $('#pm-confirm');
+// Anotaciones que "pertenecen" a la foto: las que tienen su centro dentro de ella.
 function photoAnnotations(photo) {
-  const px0 = photo.x, py0 = photo.y, px1 = photo.x + photo.w, py1 = photo.y + photo.h;
   return items.filter(it => {
     if (it.t === 'p') return false;
-    const b = bounds(it);
-    return b[0] < px1 && b[2] > px0 && b[1] < py1 && b[3] > py0;
+    const b = bounds(it), cx = (b[0] + b[2]) / 2, cy = (b[1] + b[3]) / 2;
+    return cx >= photo.x && cx <= photo.x + photo.w && cy >= photo.y && cy <= photo.y + photo.h;
   });
 }
+// Coloca el menú siempre dentro de la pantalla: debajo de la foto, o arriba, o al lado, o encima de ella.
 function showPhotoMenu() {
   const menu = $('#photoMenu'); if (!menu) return;
-  if (!sel || sel.t !== 'p' || tool !== 'move') { menu.style.display = 'none'; return; }
-  const br = board.getBoundingClientRect();
-  const sx = sel.x * view.k + view.x, sy = sel.y * view.k + view.y;
-  const sw = sel.w * view.k, sh = sel.h * view.k;
-  let mx = br.left + sx + (sw - 200) / 2;
-  let my = br.top  + sy + sh + 8;
-  mx = Math.max(8, Math.min(mx, window.innerWidth - 210));
-  if (my + 260 > window.innerHeight) my = br.top + sy - 10 - Math.min(200, my + 260 - window.innerHeight);
-  menu.style.left = mx + 'px';
-  menu.style.top  = my + 'px';
+  if (drag || !sel || sel.t !== 'p' || tool !== 'move') { menu.style.display = 'none'; return; }
   menu.style.display = 'flex';
+  const br = board.getBoundingClientRect(), G = 8, vw = window.innerWidth, vh = window.innerHeight;
+  const mw = menu.offsetWidth, mh = menu.offsetHeight;
+  let l = br.left + sel.x * view.k + view.x, t = br.top + sel.y * view.k + view.y;
+  let r = l + sel.w * view.k, b = t + sel.h * view.k;
+  l = Math.max(l, br.left); t = Math.max(t, br.top); r = Math.min(r, br.right); b = Math.min(b, br.bottom);
+  if (r <= l || b <= t) { l = br.left; t = br.top; r = br.right; b = br.bottom; }
+  let x = (l + r) / 2 - mw / 2, y;
+  if (b + G + mh <= vh - G) y = b + G;
+  else if (t - G - mh >= G) y = t - G - mh;
+  else if (r + G + mw <= vw - G) { x = r + G; y = t; }
+  else if (l - G - mw >= G) { x = l - G - mw; y = t; }
+  else y = b - mh - G;
+  menu.style.left = clamp(x, G, Math.max(G, vw - mw - G)) + 'px';
+  menu.style.top  = clamp(y, G, Math.max(G, vh - mh - G)) + 'px';
 }
 function hidePhotoMenu() {
   const menu = $('#photoMenu'), conf = $('#pm-confirm');
@@ -842,8 +856,8 @@ document.addEventListener('pointerdown', e => {
 $('#pm-dup').addEventListener('click', () => {
   if (!sel || sel.t !== 'p') return;
   const off = CELL;
-  const newPhoto = { ...sel, id: uid(), x: sel.x + off, y: sel.y + off };
-  if (sel.src) IDB.put(newPhoto.id, sel.src).then(() => { persisted.add(newPhoto.id); }).catch(() => {});
+  // La copia comparte la misma imagen guardada (mismo id): no duplica almacenamiento ni peso.
+  const newPhoto = { ...sel, x: sel.x + off, y: sel.y + off };
   const annots = photoAnnotations(sel).map(it => moved(it, off, off));
   pushHist(); items = [...items, newPhoto, ...annots];
   sel = newPhoto; hidePhotoMenu(); save(); schedule(); syncBtns();
@@ -851,8 +865,7 @@ $('#pm-dup').addEventListener('click', () => {
 $('#pm-dupclean').addEventListener('click', () => {
   if (!sel || sel.t !== 'p') return;
   const off = CELL;
-  const newPhoto = { ...sel, id: uid(), x: sel.x + off, y: sel.y + off };
-  if (sel.src) IDB.put(newPhoto.id, sel.src).then(() => { persisted.add(newPhoto.id); }).catch(() => {});
+  const newPhoto = { ...sel, x: sel.x + off, y: sel.y + off };
   pushHist(); items = [...items, newPhoto];
   sel = newPhoto; hidePhotoMenu(); save(); schedule(); syncBtns();
 });
@@ -867,15 +880,13 @@ $('#pm-back').addEventListener('click', () => {
   const arr = [...items]; arr.splice(arr.indexOf(sel), 1); arr.unshift(sel);
   items = arr; hidePhotoMenu(); save(); schedule();
 });
-$('#pm-del').addEventListener('click', () => { if (pmConfirm) pmConfirm.hidden = false; });
-$('#pm-delno').addEventListener('click', () => { if (pmConfirm) pmConfirm.hidden = true; });
+$('#pm-del').addEventListener('click', () => { if (pmConfirm) pmConfirm.hidden = false; showPhotoMenu(); });
+$('#pm-delno').addEventListener('click', () => { if (pmConfirm) pmConfirm.hidden = true; showPhotoMenu(); });
 $('#pm-delok').addEventListener('click', () => {
   if (!sel || sel.t !== 'p') return;
-  const id = sel.id;
+  // La imagen sigue en IndexedDB hasta la próxima apertura (así "Deshacer" la recupera completa);
+  // al abrir se limpian las imágenes que ya ninguna foto usa.
   pushHist(); items = items.filter(i => i !== sel);
-  if (!items.some(i => i.t === 'p' && i.id === id)) {
-    IDB.del(id).catch(() => {}); persisted.delete(id);
-  }
   sel = null; hidePhotoMenu(); save(); schedule(); syncBtns();
 });
 $('#undo').addEventListener('click', undo); $('#redo').addEventListener('click', redo);
@@ -933,6 +944,11 @@ function contentBounds() {
   return [x0, y0, x1, y1];
 }
 function drawGridWorld(b, s) {
+  if (gridMode === 'hidden') return;
+  ctx.save(); if (gridMode === 'dim') ctx.globalAlpha = 0.3;
+  try { drawGridLines(b, s); } finally { ctx.restore(); }
+}
+function drawGridLines(b, s) {
   for (const major of [false, true]) {
     ctx.strokeStyle = major ? T.major : T.minor; ctx.lineWidth = (major ? 1.8 : 1.2) / s; ctx.beginPath();
     for (let i = Math.ceil(b[0] / CELL); i * CELL <= b[2]; i++) { if ((i % MAJOR === 0) !== major) continue; ctx.moveTo(i * CELL, b[1]); ctx.lineTo(i * CELL, b[3]); }
@@ -1090,7 +1106,7 @@ readTheme();
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readTheme);
 new MutationObserver(readTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 new ResizeObserver(resize).observe(board);
-if (!load()) seedExample(); else restorePhotos();
+if (!load()) seedExample(); else { restorePhotos(); gcPhotos(); }
 $('#cell').value = cellVal; $('#unit').value = unit; $('#snap').checked = snap; $('#finger').checked = fingerDraw; $('#holdOn').checked = holdOn; $('#job').value = job; $('#who').value = who; $('#gridModeBtn').value = gridMode; $('#cellPxSlider').value = cellPx;
 initDownloads(3);
 setColor(color); setTool('pen'); setSize(size); syncBtns(); resize();

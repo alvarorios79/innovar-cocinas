@@ -47,6 +47,8 @@ export interface PizarraRef {
   requestPdf(): Promise<PizarraPdf | null>;
   /** Actualiza job/who sin recargar el iframe (útil si el nombre del cliente cambia mid-session). */
   setParams(params: { job?: string; who?: string }): void;
+  /** Solicita pantalla completa sobre el iframe (nativo del navegador). */
+  requestFullscreen(): void;
 }
 
 export interface PizarraProps {
@@ -130,6 +132,14 @@ export const Pizarra = forwardRef<PizarraRef, PizarraProps>(function Pizarra(
         '*'
       );
     },
+
+    requestFullscreen() {
+      const el = iframeRef.current as any;
+      if (!el) return;
+      if (el.requestFullscreen) el.requestFullscreen();
+      else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+      else if (el.mozRequestFullScreen) el.mozRequestFullScreen();
+    },
   }));
 
   // Construir URL del iframe
@@ -154,7 +164,7 @@ export const Pizarra = forwardRef<PizarraRef, PizarraProps>(function Pizarra(
         src={src}
         style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
         title="Pizarra del Medidor"
-        allow="camera"                  // para tomar fotos con el iPad
+        allow="camera; fullscreen"      // cámara iPad + pantalla completa
         sandbox="allow-scripts allow-same-origin allow-forms allow-downloads"
       />
     </div>

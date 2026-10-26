@@ -477,7 +477,7 @@ export default function Medidor() {
   const { data: detailData, refetch: refetchDetail } = trpc.technicalVisits.getById.useQuery(
     { visitId: selectedVisit?.id || "" },
     {
-      enabled: view === "detail" && !!selectedVisit,
+      enabled: view === "detail" && (!!selectedVisit || !!visitDetail),
     }
   );
 
@@ -493,6 +493,7 @@ export default function Medidor() {
   const deletePhoto = trpc.technicalVisits.deletePhoto.useMutation();
   const compressPdf = trpc.technicalVisits.compressPdf.useMutation();
   const deletePdf = trpc.technicalVisits.deletePdf.useMutation();
+  const utils = trpc.useUtils();
   const submitVisit = trpc.technicalVisits.submit.useMutation();
   const saveSignature = trpc.technicalVisits.saveSignature.useMutation();
   const deleteVisitMutation = trpc.technicalVisits.delete.useMutation();
@@ -713,19 +714,31 @@ export default function Medidor() {
     if (!visitId) { toast.error("No hay visita seleccionada"); return; }
     setPizarraUploading(true);
     try {
+      // requestPdf() lanza Error si la pizarra envía pizarra:pdfError (hoja vacía, fallo, etc.)
+      // Devuelve null solo en timeout (15 s sin respuesta) — no debería ocurrir normalmente
       const pdf = await pizarraRef.current?.requestPdf();
-      if (!pdf) { toast.info("La pizarra está vacía — dibuja algo primero"); return; }
-      await compressPdf.mutateAsync({
+      if (!pdf) { setPizarraUploading(false); return; }
+      const result = await compressPdf.mutateAsync({
         visitId,
         fileName: pdf.name,
         fileData: pdf.dataUrl,
         category: "pdf_plano",
       });
-      toast.success(`Pizarra exportada (${pdf.mb} MB)`);
-      refetchDetail();
-      refetchVisits();
+      toast.success(`Pizarra guardada (${pdf.mb} MB)`);
+      // Actualizar visitDetail de inmediato sin esperar el refetch
+      setVisitDetail(prev => prev ? {
+        ...prev,
+        pdfs: [...(prev.pdfs ?? []), { id: result.id, url: result.url, fileName: pdf.name } as any],
+      } : prev);
+      // Invalidar la query para que se refresque en background (funciona aunque la query esté disabled)
+      utils.technicalVisits.getById.invalidate({ visitId: Number(visitId) });
     } catch (err: any) {
-      toast.error(`Error al exportar pizarra: ${err?.message || "Error desconocido"}`);
+      const reason = err?.message ?? "Error desconocido";
+      const msg =
+        reason === "empty"       ? "La pizarra está vacía — dibuja o mide algo primero" :
+        reason === "empty-area"  ? "No hay nada en el área seleccionada" :
+                                   `Error al exportar pizarra: ${reason}`;
+      toast.error(msg);
     } finally {
       setPizarraUploading(false);
     }
@@ -1682,7 +1695,7 @@ export default function Medidor() {
               Planos y documentos
             </h2>
             <div className="space-y-2">
-              {visit.pdfs?.map((pdf) => (
+              {(visitDetail?.pdfs ?? visit.pdfs)?.map((pdf) => (
                 <div key={pdf.id} className="flex items-center justify-between bg-[#0C1A1A] rounded-lg p-3">
                   <div className="flex items-center gap-2">
                     <File className="h-4 w-4 text-[#1DB5A8]" />

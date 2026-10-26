@@ -580,6 +580,37 @@ export const technicalVisitsRouter = router({
       return { id: String(pdf.id), url, savedPercent };
     }),
 
+  // ── Eliminar PDF de un levantamiento ─────────────────────────────────────────
+  deletePdf: protectedProcedure
+    .input(z.object({ pdfId: z.coerce.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB no disponible" });
+
+      const [pdf] = await db
+        .select()
+        .from(technicalVisitPdfs)
+        .where(eq(technicalVisitPdfs.id, input.pdfId));
+
+      if (!pdf) throw new TRPCError({ code: "NOT_FOUND", message: "PDF no encontrado" });
+
+      const [visit] = await db
+        .select()
+        .from(technicalVisits)
+        .where(eq(technicalVisits.id, pdf.visitId));
+
+      if (visit && ctx.user.role === "medidor" && visit.createdBy !== ctx.user.id) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso" });
+      }
+      if (visit && (visit.status === "cot_hecha" || visit.status === "cot_enviada")) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "No se puede eliminar PDFs de un levantamiento con cotización generada" });
+      }
+
+      await db.delete(technicalVisitPdfs).where(eq(technicalVisitPdfs.id, input.pdfId));
+
+      return { success: true };
+    }),
+
   // ── Guardar firma del cliente ───────────────────────────────────────────────
   saveSignature: protectedProcedure
     .input(z.object({

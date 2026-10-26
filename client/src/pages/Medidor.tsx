@@ -162,7 +162,7 @@ const MEASUREMENT_FIELDS: Record<WorkType, Array<{ key: keyof Measurements; labe
   ],
 };
 
-const TECHNICAL_CHECKLIST: Record<WorkType, Array<{ key: keyof TechnicalChecklist; label: string }>> = {
+const TECHNICAL_CHECKLIST: Record<string, Array<{ key: any; label: string }>> = {
   cocina: [
     { key: "puntoGas", label: "Punto de gas" },
     { key: "puntoHidraulico", label: "Punto hidráulico" },
@@ -172,27 +172,27 @@ const TECHNICAL_CHECKLIST: Record<WorkType, Array<{ key: keyof TechnicalChecklis
     { key: "columnas", label: "Columnas" },
     { key: "pisoNivelado", label: "Piso nivelado" },
     { key: "techoNivelado", label: "Techo nivelado" },
-    { key: "otro", label: "Otro" },
+    { key: "otro" as any, label: "Otro" },
   ],
   closet: [
     { key: "murosTerminados", label: "Muros terminados" },
     { key: "pisoTerminado", label: "Piso terminado" },
     { key: "tomasElectricas", label: "Tomas eléctricas" },
     { key: "ventanas", label: "Ventanas cercanas" },
-    { key: "otro", label: "Otro" },
+    { key: "otro" as any, label: "Otro" },
   ],
   puertas: [
     { key: "escuadraValidada", label: "Escuadra validada" },
     { key: "grosorMuroValidado", label: "Grosor de muro validado" },
     { key: "aperturaValidada", label: "Apertura validada" },
-    { key: "otro", label: "Otro" },
+    { key: "otro" as any, label: "Otro" },
   ],
   centro_tv: [
     { key: "tomasElectricas", label: "Tomas eléctricas" },
     { key: "puntoTV", label: "Punto TV" },
     { key: "internet", label: "Internet" },
     { key: "canalizaciones", label: "Canalizaciones" },
-    { key: "otro", label: "Otro" },
+    { key: "otro" as any, label: "Otro" },
   ],
 };
 
@@ -578,7 +578,7 @@ export default function Medidor() {
 
   const updateUnidad = (wt: WorkType, idx: number, dim: string, val: string) => {
     const units = [...getUnidades(wt)];
-    units[idx] = { ...units[idx], [dim]: dim === 'descripcion' ? val : (val ? parseFloat(val) : undefined) };
+    units[idx] = { ...units[idx], [dim]: dim === 'descripcion' ? val : (val ? parseFloat(val) : undefined) } as any;
     setLocalMeasurements((prev: any) => ({ ...prev, [`_${wt}_unidades`]: units }));
   };
 
@@ -740,11 +740,13 @@ export default function Medidor() {
       // Invalidar la query para que se refresque en background (funciona aunque la query esté disabled)
       utils.technicalVisits.getById.invalidate({ visitId: Number(visitId) });
     } catch (err: any) {
-      const reason = err?.message ?? "Error desconocido";
+      const reason = err?.message ?? err?.data?.message ?? "Error desconocido";
+      const httpCode = err?.data?.httpStatus;
       const msg =
         reason === "empty"       ? "La pizarra está vacía — dibuja o mide algo primero" :
         reason === "empty-area"  ? "No hay nada en el área seleccionada" :
-                                   `Error al exportar pizarra: ${reason}`;
+                                   `Error al exportar pizarra: ${reason}${httpCode ? ` (HTTP ${httpCode})` : ""}`;
+      console.error("[handleExportPizarra] Error completo:", err);
       toast.error(msg);
     } finally {
       setPizarraUploading(false);
@@ -1569,13 +1571,13 @@ export default function Medidor() {
                     <label className="flex items-center gap-3 p-2 rounded hover:bg-[#0C1A1A] cursor-pointer">
                       <input
                         type="checkbox"
-                        checked={!!localChecklist[item.key]}
+                        checked={!!(localChecklist as any)[item.key]}
                         onChange={(e) => setLocalChecklist({ ...localChecklist, [item.key]: e.target.checked })}
                         className="h-4 w-4 rounded border-[#1DB5A8]/40 text-[#1DB5A8] focus:ring-[#1DB5A8]"
                       />
                       <span className="text-sm text-white">{item.label}</span>
                     </label>
-                    {item.key === "otro" && !!localChecklist["otro"] && (
+                    {(item.key as string) === "otro" && !!(localChecklist as any)["otro"] && (
                       <input
                         type="text"
                         placeholder="Describe qué es..."

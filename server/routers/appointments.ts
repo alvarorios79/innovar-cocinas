@@ -162,7 +162,7 @@ export const appointmentsRouter = router({
           const whatsappClientLink = whatsapp.generateClientConfirmationLink({
             clientPhone: client.whatsappPhone,
             clientName: client.name,
-            scheduledDate: scheduledDate ? new Date(scheduledDate as string) : undefined,
+            scheduledDate: scheduledDate ? new Date(scheduledDate as unknown as string) : undefined,
             workTypes: input.workTypes,
             notes: input.notes ? sanitizeText(input.notes) : undefined,
             citaLink: citaPublicUrl,
@@ -172,7 +172,7 @@ export const appointmentsRouter = router({
           const updatedClient = await db.getClientById(client.id);
           if (updatedClient?.userId && scheduledDate) {
             try {
-              const _scheduledDateObj = new Date(scheduledDate as string);
+              const _scheduledDateObj = new Date(scheduledDate as unknown as string);
               const dateFormatted = _scheduledDateObj.toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Bogota' });
               const timeFormatted = _scheduledDateObj.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'America/Bogota' });
               await db.createNotification({
@@ -194,7 +194,7 @@ export const appointmentsRouter = router({
               const result = await whatsappCloud.sendAppointmentConfirmation(
                 client.whatsappPhone,
                 client.name,
-                new Date(scheduledDate as string),
+                new Date(scheduledDate as unknown as string),
                 input.workTypes[0] || "cocina",
                 citaPublicUrl
               );
@@ -612,8 +612,8 @@ export const appointmentsRouter = router({
           if (!dbConn) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB no disponible" });
           const [apt] = await dbConn
             .select()
-            .from(appointments)
-            .where(eq(appointments.id, input.id))
+            .from(appointmentsTable)
+            .where(eq(appointmentsTable.id, input.id))
             .limit(1);
           if (!apt) throw new TRPCError({ code: "NOT_FOUND", message: "Cita no encontrada" });
           if (apt.assignedMedidorId !== ctx.user.id) {

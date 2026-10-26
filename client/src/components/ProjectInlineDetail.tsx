@@ -360,7 +360,7 @@ export function ProjectInlineDetail({
       toast.success(result.message);
       if (user?.role === "jefe_taller" || user?.role === "operario") {
         // Jefe/operario: abre WhatsApp de la empresa para que admin reenvie al cliente
-        const msg = `📋 Avance listo: *${result.stageLabel}* - Proyecto "${projectDetail.name}"
+        const msg = `📋 Avance listo: *${result.stageLabel}* - Proyecto "${projectDetail?.name}"
 
 Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${result.whatsAppLink ? `\n\nEnlace directo al cliente:\n${result.whatsAppLink}` : ''}`;
         window.open(`https://wa.me/573136802025?text=${encodeURIComponent(msg)}`, "_blank");

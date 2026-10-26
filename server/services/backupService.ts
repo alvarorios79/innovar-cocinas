@@ -57,7 +57,7 @@ export async function createDatabaseBackup(
       throw new Error("Database pool not available");
     }
 
-    const connection = await pool.getConnection();
+    const connection = await (pool as any).getConnection();
     try {
       // Get all tables
       const [tables] = await connection.query(

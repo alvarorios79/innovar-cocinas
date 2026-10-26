@@ -33,7 +33,7 @@ const REMINDER_STEPS: Record<number, ReminderStep> = {
 
 async function runApprovalReminders(): Promise<void> {
   try {
-    const pendingProjects = await db.getProjectsPendingApproval();
+    const pendingProjects = await (db as any).getProjectsPendingApproval?.() ?? [];
 
     for (const project of pendingProjects) {
       try {

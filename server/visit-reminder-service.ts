@@ -36,16 +36,15 @@ async function getTomorrowVisitsWithMedidor() {
   const endOfDay = new Date(tomorrow);
   endOfDay.setHours(23, 59, 59, 999);
 
+  const tv = technicalVisits as any;
   const visits = await database
     .select()
     .from(technicalVisits)
     .where(
       and(
-        // @ts-ignore
-        gte(technicalVisits.scheduledDate, startOfDay),
-        // @ts-ignore
-        lte(technicalVisits.scheduledDate, endOfDay),
-        isNotNull(technicalVisits.assignedTo)
+        gte(tv.scheduledDate, startOfDay),
+        lte(tv.scheduledDate, endOfDay),
+        isNotNull(tv.assignedTo)
       )
     );
 
@@ -75,12 +74,12 @@ export async function sendVisitReminders(): Promise<{
     for (const visit of visits) {
       // Evitar duplicados dentro del mismo día
       if (notifiedVisits.has(visit.id)) continue;
-      if (!visit.assignedTo) continue;
+      if (!(visit as any).assignedTo) continue;
 
       try {
         const { createAndSendNotification } = await import("./push-notifications");
 
-        const scheduledDate = visit.scheduledDate ? new Date(visit.scheduledDate) : new Date();
+        const scheduledDate = (visit as any).scheduledDate ? new Date((visit as any).scheduledDate) : new Date();
         const dateFormatted = scheduledDate.toLocaleDateString("es-CO", {
           weekday: "long",
           day:     "2-digit",
@@ -90,7 +89,7 @@ export async function sendVisitReminders(): Promise<{
           timeZone: "America/Bogota",
         });
 
-        await createAndSendNotification(visit.assignedTo, {
+        await createAndSendNotification((visit as any).assignedTo, {
           title: `📐 Visita técnica mañana`,
           body:  `${visit.clientName}${visit.clientAddress ? ` · ${visit.clientAddress}` : ""} — ${dateFormatted}`,
           type:  "proyecto",
@@ -100,7 +99,7 @@ export async function sendVisitReminders(): Promise<{
         notifiedVisits.add(visit.id);
         sent++;
         console.log(
-          `[VisitReminder] Notificación enviada al medidor ${visit.assignedTo} ` +
+          `[VisitReminder] Notificación enviada al medidor ${(visit as any).assignedTo} ` +
           `para visita ${visit.id} (${visit.clientName})`
         );
       } catch (err) {

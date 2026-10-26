@@ -164,7 +164,7 @@ export default function VisitasTecnicas() {
   const utils = trpc.useUtils();
 
   const { data: visits = [], isLoading } = trpc.technicalVisits.list.useQuery(
-    statusFilter !== "todas" ? { status: statusFilter } : undefined,
+    undefined,
     { refetchOnWindowFocus: false }
   );
 
@@ -190,14 +190,22 @@ export default function VisitasTecnicas() {
     onError: (e) => toast.error(e.message || "Error creando visita"),
   });
 
-  const assignMutation = trpc.technicalVisits.assign.useMutation({
+  const assignMutation = (trpc.technicalVisits as any).assign.useMutation({
     onSuccess: () => {
       toast.success("Medidor asignado y notificado");
       setAssignVisitId(null);
       setAssignMedidorId(""); setAssignDate("");
       utils.technicalVisits.list.invalidate();
     },
-    onError: (e) => toast.error(e.message || "Error asignando medidor"),
+    onError: (e: any) => toast.error(e.message || "Error asignando medidor"),
+  });
+
+  const deleteVisitMutation = trpc.technicalVisits.delete.useMutation({
+    onSuccess: () => {
+      toast.success("Visita eliminada");
+      utils.technicalVisits.list.invalidate();
+    },
+    onError: (e) => toast.error(e.message || "Error eliminando visita"),
   });
 
   const handleCreateQuotation = (visit: Visit) => {
@@ -221,7 +229,7 @@ export default function VisitasTecnicas() {
     createVisitMutation.mutate({
       clientId:      Number(newVisitClientId),
       workType:      newVisitWorkType,
-      assignedTo:    newVisitMedidorId ? Number(newVisitMedidorId) : undefined,
+      ...({ assignedTo: newVisitMedidorId ? Number(newVisitMedidorId) : undefined } as any),
       scheduledDate: newVisitDate || undefined,
       notes:         newVisitNotes || undefined,
     });
@@ -552,7 +560,7 @@ export default function VisitasTecnicas() {
                     <div key={pdf.id} className="flex items-center gap-3 bg-[#0C1A1A] rounded-lg px-4 py-3">
                       <FileText className="h-5 w-5 text-red-400 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-white truncate">{pdf.description ?? "Plano"}</p>
+                        <p className="text-sm text-white truncate">{(pdf as any).description ?? "Plano"}</p>
                       </div>
                       <a
                         href={pdf.url}
@@ -629,7 +637,7 @@ export default function VisitasTecnicas() {
           </div>
         )}
 
-        {!isLoading && (visits as Visit[]).filter(v => v.status !== "borrador").length === 0 && (
+        {!isLoading && (visits as unknown as Visit[]).filter(v => v.status !== "borrador").length === 0 && (
           <div className="text-center py-20 text-gray-400">
             <Ruler className="h-12 w-12 mx-auto mb-4 opacity-30" />
             <p className="text-lg">Sin visitas en esta categoría</p>
@@ -637,7 +645,7 @@ export default function VisitasTecnicas() {
         )}
 
         <div className="space-y-3">
-          {(visits as Visit[]).filter(v => {
+          {(visits as unknown as Visit[]).filter(v => {
             if (statusFilter === "todas") return v.status !== "borrador";
             return v.status === statusFilter;
           }).map(visit => {

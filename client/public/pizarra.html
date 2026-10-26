@@ -1,3 +1,4 @@
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Pizarra del Medidor</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -342,7 +343,7 @@ function draw() {
     if (sel.t === 'p') { const s = 14 / k; ctx.fillStyle = T.accent; ctx.fillRect(b[2] - s / 2, b[3] - s / 2, s, s); }
   }
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  if (eraseRing) { ctx.strokeStyle = T.accent; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(eraseRing[0], eraseRing[1], 14, 0, 7); ctx.stroke(); }
+  if (eraseRing) { ctx.strokeStyle = T.accent; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(eraseRing[0], eraseRing[1], eraseRadius(), 0, 7); ctx.stroke(); }
   zoomLbl.textContent = Math.round(view.k * 100) + '%';
 }
 
@@ -438,11 +439,11 @@ function spread() { const ps = [...ptrs.values()]; return ps.length > 1 ? Math.h
 function rebase() { const c = centroid(); nav = { d: spread(), k0: view.k, wx: (c[0] - view.x) / view.k, wy: (c[1] - view.y) / view.k }; }
 function navMove() {
   const c = centroid(), d = spread();
-  if (nav.d > 0 && d > 0) view.k = clamp(nav.k0 * d / nav.d, 0.2, 4);
+  if (nav.d > 0 && d > 0) view.k = clamp(nav.k0 * d / nav.d, 0.25, 8);
   view.x = c[0] - nav.wx * view.k; view.y = c[1] - nav.wy * view.k; schedule();
 }
 function zoomAt(sx, sy, f) {
-  const nk = clamp(view.k * f, 0.2, 4), wx = (sx - view.x) / view.k, wy = (sy - view.y) / view.k;
+  const nk = clamp(view.k * f, 0.25, 8), wx = (sx - view.x) / view.k, wy = (sy - view.y) / view.k;
   view.k = nk; view.x = sx - wx * nk; view.y = sy - wy * nk; schedule(); save();
 }
 
@@ -509,9 +510,36 @@ function armHold() {
   holdT = setTimeout(() => { if (!cur || cur.t !== 's' || nav) return; const r = recognize(cur); if (r) { cur = r; holdShape = true; schedule(); } }, 550);
 }
 
+
+/* ---------- tachado inteligente (zigzag) ---------- */
+function isScratch(pts) {
+  if (pts.length < 10) return false;
+  let pathLen = 0;
+  for (let i = 1; i < pts.length; i++) pathLen += Math.hypot(pts[i][0] - pts[i-1][0], pts[i][1] - pts[i-1][1]);
+  if (pathLen * view.k < 80) return false; // demasiado corto para ser un tachado
+  let rev = 0, sdx = 0;
+  for (let i = 1; i < pts.length; i++) {
+    const dx = pts[i][0] - pts[i-1][0];
+    if (Math.abs(dx) < 2) continue;
+    const s = Math.sign(dx);
+    if (sdx && s !== sdx) rev++;
+    sdx = s;
+  }
+  if (rev < 4) return false; // necesita al menos 4 inversiones (2 zig-zags completos)
+  const net = Math.hypot(pts[pts.length-1][0] - pts[0][0], pts[pts.length-1][1] - pts[0][1]);
+  return net < pathLen * 0.4; // el desplazamiento neto es <40% del recorrido total
+}
+function scratchErase(pts) {
+  const tol = eraseRadius() / view.k;
+  const toErase = items.filter(it => it.t !== 'p' && pts.some((q, i) => i % 4 === 0 && hit(it, q[0], q[1], tol)));
+  if (!toErase.length) return;
+  pushHist(); items = items.filter(it => !toErase.includes(it)); save();
+}
+
 /* ---------- puntero ---------- */
 const widthFor = e => (e.pointerType === 'pen' && e.pressure > 0) ? Math.round(size * (0.45 + 1.1 * e.pressure) * 10) / 10 : size;
 const r2 = n => Math.round(n * 100) / 100;
+const eraseRadius = () => size === 2 ? 10 : size === 4 ? 18 : 30;
 
 cv.addEventListener('pointerdown', e => {
   e.preventDefault();
@@ -547,7 +575,7 @@ function beginTool(e, sx, sy) {
   }
 }
 function eraseAt(w, sx, sy) {
-  eraseRing = [sx, sy]; const tol = 14 / view.k;
+  eraseRing = [sx, sy]; const tol = eraseRadius() / view.k;
   const keep = items.filter(it => it.t === 'p' || !hit(it, w[0], w[1], tol));
   if (keep.length !== items.length) { if (!drag.pushed) { pushHist(); drag.pushed = true; } items = keep; save(); }
   schedule();
@@ -594,13 +622,24 @@ function endPointer(e, cancelled) {
   if (!ptrs.has(e.pointerId)) return;
   ptrs.delete(e.pointerId);
   if (nav) {
-    if (ptrs.size === 0) { nav = null; cv.style.cursor = CURS[tool]; save(); } else rebase();
+    if (ptrs.size === 0) {
+      if (cancelled && e.pointerType === 'touch') {
+        const _nav = nav;
+        setTimeout(() => { if (ptrs.size === 0 && nav === _nav) { nav = null; cv.style.cursor = CURS[tool]; save(); } }, 80);
+      } else { nav = null; cv.style.cursor = CURS[tool]; save(); }
+    } else rebase();
     return;
   }
   clearTimeout(holdT); holdShape = false;
   if (cur && !cancelled) {
     if (tool === 'line' && Math.hypot(cur.p[1][0] - cur.p[0][0], cur.p[1][1] - cur.p[0][1]) * view.k < 6) cur = null;
-    if (cur && (tool === 'pen' || tool === 'line')) { pushHist(); items = [...items, cur]; cur = null; save(); }
+    if (cur && (tool === 'pen' || tool === 'line')) {
+      if (tool === 'pen' && cur.t === 's' && !holdShape && isScratch(cur.p)) {
+        scratchErase(cur.p); cur = null;
+      } else {
+        pushHist(); items = [...items, cur]; cur = null; save();
+      }
+    }
     else if (cur && tool === 'measure') {
       const m = cur; cur = null;
       if (Math.hypot(m.b[0] - m.a[0], m.b[1] - m.a[1]) * view.k >= 8) {
@@ -858,6 +897,11 @@ async function initDownloads(tries) {
   try { DL = (window.claude && window.claude.use) ? await window.claude.use('downloads') : null; } catch (_) { DL = null; }
   if (!DL && tries > 0) return setTimeout(() => initDownloads(tries - 1), 1200);
 }
+
+/* ---------- bloquear gestos del navegador (iPad Safari) ---------- */
+window.addEventListener('gesturestart',  e => e.preventDefault(), { passive: false });
+window.addEventListener('gesturechange', e => e.preventDefault(), { passive: false });
+window.addEventListener('gestureend',    e => e.preventDefault(), { passive: false });
 
 /* ---------- arranque ---------- */
 readTheme();

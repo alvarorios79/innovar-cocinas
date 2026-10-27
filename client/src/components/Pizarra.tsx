@@ -79,18 +79,6 @@ export const Pizarra = forwardRef<PizarraRef, PizarraProps>(function Pizarra(
       if (!e.data || typeof e.data !== 'object') return;
       const { type, levantamientoId: lid } = e.data;
 
-      // Log de diagnóstico para todos los mensajes pizarra:*
-      if (typeof type === 'string' && type.startsWith('pizarra:')) {
-        const dataUrlLen = typeof e.data.dataUrl === 'string' ? e.data.dataUrl.length : null;
-        const origin = e.origin || '(mismo origen)';
-        if (dataUrlLen !== null) {
-          const sizeMB = (dataUrlLen * 0.75 / 1024 / 1024).toFixed(2);
-          console.log(`[Pizarra] ${type} | origen: ${origin} | levId: ${lid ?? '?'} | dataUrl: ${dataUrlLen} chars (~${sizeMB} MB PDF)`);
-        } else {
-          console.log(`[Pizarra] ${type} | origen: ${origin} | levId: ${lid ?? '?'} |`, JSON.stringify(e.data).slice(0, 200));
-        }
-      }
-
       // Pizarra lista
       if (type === 'pizarra:ready') {
         onReady?.();
@@ -202,7 +190,7 @@ export const Pizarra = forwardRef<PizarraRef, PizarraProps>(function Pizarra(
   if (!srcRef.current) {
     const p = new URLSearchParams({ levantamientoId, job, who });
     if (date) p.set('date', date);
-    srcRef.current = `/pizarra-v9.3.html?${p.toString()}`;
+    srcRef.current = `/pizarra-v95.html?${p.toString()}`;
   }
   const src = srcRef.current;
 

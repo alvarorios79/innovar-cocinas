@@ -270,7 +270,7 @@ let cur = null, sel = null, drag = null, nav = null, eraseRing = null, txtState 
 let penDown = false, lastPen = 0, dpr = 1, raf = 0, saveT = 0, confirmT = 0;
 let holdOn = true, holdT = 0, holdAnchor = null, holdShape = false;
 let pdfArea = 'auto', lastPick = null, pick = null;
-const VERSION = 'v9.3';
+const VERSION = 'v9.5';
 const EMBEDDED = window.parent !== window;
 const notifyParent = m => { if (EMBEDDED) { try { window.parent.postMessage({ ...m, levantamientoId: _levantamientoId }, '*'); } catch (_) {} } };
 let job = _jobParam, who = _whoParam, DL = null, exporting = false, exportNum = null;

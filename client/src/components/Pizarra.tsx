@@ -190,7 +190,7 @@ export const Pizarra = forwardRef<PizarraRef, PizarraProps>(function Pizarra(
   if (!srcRef.current) {
     const p = new URLSearchParams({ levantamientoId, job, who });
     if (date) p.set('date', date);
-    srcRef.current = `/pizarra-v95.html?${p.toString()}`;
+    srcRef.current = `/pizarra-v96.html?${p.toString()}`;
   }
   const src = srcRef.current;
 

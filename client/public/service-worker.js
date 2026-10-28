@@ -1,5 +1,5 @@
 // Service Worker para INNOVAR Cocinas - Soporte Offline
-const CACHE_NAME = 'innovar-v1';
+const CACHE_NAME = 'innovar-v2';
 const OFFLINE_URL = '/offline.html';
 
 const CACHE_URLS = [

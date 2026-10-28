@@ -102,6 +102,14 @@ const OPERATIVE_HIERARCHY: Record<string, { label: string; subcategories: { valu
       { value: "alimentacion", label: "Alimentación" },
     ],
   },
+  proveedor_insumos: {
+    label: "Proveedor de Insumos",
+    subcategories: [
+      { value: "insumos_generales", label: "Insumos generales" },
+      { value: "silicones_adhesivos", label: "Silicones y adhesivos" },
+      { value: "consumibles_taller", label: "Consumibles de taller" },
+    ],
+  },
 };
 
 // Jerarquía de categorías para proyectos (materiales_proyecto)

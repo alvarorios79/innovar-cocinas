@@ -125,6 +125,13 @@ export function CEODashboard() {
           icon={<TrendingUp className="h-5 w-5" />}
           accent="#F59E0B"
         />
+        <KpiCard
+          label="Dinero Disponible Est."
+          value={formatCurrency(dineroDisponible)}
+          helper="Margen neto menos reserva fija mensual"
+          icon={<DollarSign className="h-5 w-5" />}
+          accent={dineroDisponible >= 0 ? "#22C55E" : "#EF4444"}
+        />
       </KpiGrid>
 
       {/* ── Flujo de caja ── */}

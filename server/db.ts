@@ -63,7 +63,8 @@ import {
   accountingClosureOperationalExpenses,
   InsertAccountingClosureOperationalExpense,
   closureAuditLog,
-  InsertClosureAuditLog
+  InsertClosureAuditLog,
+  fixedExpenseConfig
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { randomUUID } from 'crypto';
@@ -1421,6 +1422,46 @@ export async function updateFinancialSettings(id: number, data: Partial<InsertFi
   await db.update(financialSettings).set(data).where(eq(financialSettings.id, id));
 }
 
+// ── Gastos Fijos Mensuales ──────────────────────────────────────────────────
+
+export async function getFixedExpenseConfig() {
+  const db = await getDb();
+  if (!db) return [];
+  return await db
+    .select()
+    .from(fixedExpenseConfig)
+    .orderBy(fixedExpenseConfig.sortOrder);
+}
+
+export async function upsertFixedExpenseConfig(
+  items: { concept: string; monthlyAmount: number; sortOrder: number; notes?: string | null }[]
+) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.delete(fixedExpenseConfig);
+  if (items.length > 0) {
+    await db.insert(fixedExpenseConfig).values(
+      items.map((item) => ({
+        concept: item.concept,
+        monthlyAmount: item.monthlyAmount.toString(),
+        sortOrder: item.sortOrder,
+        notes: item.notes ?? null,
+        isActive: 1,
+      }))
+    );
+  }
+}
+
+export async function getMonthlyFixedExpenseTotal(): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  const result = await db
+    .select({ total: sql<number>`COALESCE(SUM(CAST("monthlyAmount" AS DECIMAL(12,2))), 0)` })
+    .from(fixedExpenseConfig)
+    .where(eq(fixedExpenseConfig.isActive, 1));
+  return parseFloat(result[0]?.total?.toString() || '0');
+}
+
 export async function getGlobalFinancialDashboard() {
   const db = await getDb();
   if (!db) return { totalRevenue: 0, totalExpenses: 0, balance: 0 };
@@ -1807,6 +1848,7 @@ export async function getCEOFinancialMetrics() {
       rentabilidad: 0,
       descuentos: 0,
       sobrecargas: 0,
+      fixedMonthlyReserve: 0,
     };
   }
 
@@ -1862,6 +1904,9 @@ export async function getCEOFinancialMetrics() {
       ? (margen / ingresosRecibidos) * 100
       : 0;
 
+    // 5️⃣ Reserva mensual de gastos fijos configurables
+    const fixedMonthlyReserve = await getMonthlyFixedExpenseTotal();
+
     return {
       ingresosRecibidos,
       totalVendido,
@@ -1871,6 +1916,7 @@ export async function getCEOFinancialMetrics() {
       rentabilidad,
       descuentos: totalDescuentos,
       sobrecargas: totalSobrecargas,
+      fixedMonthlyReserve,
     };
   } catch (error) {
     console.error("[getCEOFinancialMetrics] Error:", error);
@@ -1883,6 +1929,7 @@ export async function getCEOFinancialMetrics() {
       rentabilidad: 0,
       descuentos: 0,
       sobrecargas: 0,
+      fixedMonthlyReserve: 0,
     };
   }
 }

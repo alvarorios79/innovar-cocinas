@@ -3063,9 +3063,9 @@ export async function createAccountingClosure(data: {
     for (const project of projectsData) {
       // PASO 2A: Calcular ingresos, descuentos y recargos
       const paymentsDetailResult = await tx.select({
-        payments: sql<number>`COALESCE(SUM(CASE WHEN movementType = 'payment' THEN amount ELSE 0 END), 0)`,
-        discounts: sql<number>`COALESCE(SUM(CASE WHEN movementType = 'discount' THEN amount ELSE 0 END), 0)`,
-        surcharges: sql<number>`COALESCE(SUM(CASE WHEN movementType = 'surcharge' THEN amount ELSE 0 END), 0)`
+        payments: sql<number>`COALESCE(SUM(CASE WHEN "movementType" = 'payment' THEN amount ELSE 0 END), 0)`,
+        discounts: sql<number>`COALESCE(SUM(CASE WHEN "movementType" = 'discount' THEN amount ELSE 0 END), 0)`,
+        surcharges: sql<number>`COALESCE(SUM(CASE WHEN "movementType" = 'surcharge' THEN amount ELSE 0 END), 0)`
       })
       .from(payments)
       .where(eq(payments.projectId, project.id));
@@ -4289,9 +4289,9 @@ export async function getEligibleProjectsForAccountingClosure() {
       // Obtener pagos, descuentos y recargos del proyecto
       const paymentsResult = await db
         .select({
-          totalPayments: sql<number>`COALESCE(SUM(CASE WHEN movementType = 'payment' THEN amount ELSE 0 END), 0)`,
-          totalDiscounts: sql<number>`COALESCE(SUM(CASE WHEN movementType = 'discount' THEN amount ELSE 0 END), 0)`,
-          totalSurcharges: sql<number>`COALESCE(SUM(CASE WHEN movementType = 'surcharge' THEN amount ELSE 0 END), 0)`
+          totalPayments: sql<number>`COALESCE(SUM(CASE WHEN "movementType" = 'payment' THEN amount ELSE 0 END), 0)`,
+          totalDiscounts: sql<number>`COALESCE(SUM(CASE WHEN "movementType" = 'discount' THEN amount ELSE 0 END), 0)`,
+          totalSurcharges: sql<number>`COALESCE(SUM(CASE WHEN "movementType" = 'surcharge' THEN amount ELSE 0 END), 0)`
         })
         .from(payments)
         .where(

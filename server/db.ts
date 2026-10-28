@@ -3221,21 +3221,14 @@ export async function getAccountingClosures(filters?: {
  * Get operational expenses for a closure
  */
 export async function getClosureOperationalExpenses(closureId: number) {
-  const pool = await getPool();
-  if (!pool) return [];
-  
-  const conn = await pool.getConnection();
-  try {
-    const [rows] = await conn.execute(
-      `SELECT * FROM accountingClosureOperationalExpenses 
-       WHERE closureId = ? 
-       ORDER BY expenseDate DESC`,
-      [closureId]
-    );
-    return rows as any[];
-  } finally {
-    conn.release();
-  }
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db
+    .select()
+    .from(accountingClosureOperationalExpenses)
+    .where(eq(accountingClosureOperationalExpenses.closureId, closureId))
+    .orderBy(desc(accountingClosureOperationalExpenses.expenseDate));
+  return rows;
 }
 
 /**

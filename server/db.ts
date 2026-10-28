@@ -1284,7 +1284,8 @@ export async function deleteExpense(id: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  await db.delete(expenses).where(eq(expenses.id, id));
+  // Soft delete: marca deletedAt en vez de borrar permanentemente
+  await db.update(expenses).set({ deletedAt: new Date() }).where(eq(expenses.id, id));
 }
 
 // ============ AUDIT LOGS ============

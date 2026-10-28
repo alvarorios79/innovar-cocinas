@@ -114,7 +114,7 @@ const PROJECT_GROUP_TO_CATEGORY: Record<string, string> = {
   otros_proyecto:   "otros",
 };
 
-const PROJECT_HIERARCHY, { label: string; subcategories: { value: string; label: string }[] }> = {
+const PROJECT_HIERARCHY: Record<string, { label: string; subcategories: { value: string; label: string }[] }> = {
   madera_tableros: {
     label: "Madera y Tableros",
     subcategories: [

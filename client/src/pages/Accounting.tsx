@@ -104,7 +104,17 @@ const OPERATIVE_HIERARCHY: Record<string, { label: string; subcategories: { valu
 };
 
 // Jerarquía de categorías para proyectos (materiales_proyecto)
-const PROJECT_HIERARCHY: Record<string, { label: string; subcategories: { value: string; label: string }[] }> = {
+// Mapea las claves de PROJECT_HIERARCHY al enum generalCategory del schema
+const PROJECT_GROUP_TO_CATEGORY: Record<string, string> = {
+  madera_tableros:  "materiales",
+  herrajes:         "materiales",
+  mano_de_obra:     "mano_de_obra",
+  pintura_acabados: "materiales",
+  transporte:       "transporte",
+  otros_proyecto:   "otros",
+};
+
+const PROJECT_HIERARCHY, { label: string; subcategories: { value: string; label: string }[] }> = {
   madera_tableros: {
     label: "Madera y Tableros",
     subcategories: [
@@ -476,7 +486,7 @@ export default function Accounting() {
           operativeCategory: expenseType === "gasto_operativo" ? operativeCategory :
                              expenseType === "materiales_proyecto" ? projectCategoryGroup : undefined,
           subcategory: expenseSubcategory || undefined,
-          generalCategory: expenseType === "materiales_proyecto" ? (projectCategoryGroup || "materiales") : "servicios",
+          generalCategory: expenseType === "materiales_proyecto" ? (PROJECT_GROUP_TO_CATEGORY[projectCategoryGroup] || "materiales") : "servicios",
           receiptUrl: receiptUrl || undefined,
         });
       } else {
@@ -489,7 +499,7 @@ export default function Accounting() {
           description: description.trim(),
           amount: parseFloat(amount),
           expenseDate,
-          generalCategory: expenseType === "materiales_proyecto" ? (projectCategoryGroup || "materiales") : "servicios",
+          generalCategory: expenseType === "materiales_proyecto" ? (PROJECT_GROUP_TO_CATEGORY[projectCategoryGroup] || "materiales") : "servicios",
           receiptUrl: receiptUrl || undefined,
         });
       }

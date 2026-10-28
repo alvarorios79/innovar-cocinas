@@ -104,7 +104,7 @@ const OPERATIVE_HIERARCHY: Record<string, { label: string; subcategories: { valu
 };
 
 // Jerarquía de categorías para proyectos (materiales_proyecto)
-// Mapea las claves de PROJECT_HIERARCHY al enum generalCategory del schema
+// Mapea las claves de PROJECT_HIERARCHY al enum generalCategory del schema (v2)
 const PROJECT_GROUP_TO_CATEGORY: Record<string, string> = {
   madera_tableros:  "materiales",
   herrajes:         "materiales",

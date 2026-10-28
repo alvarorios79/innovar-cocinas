@@ -13,6 +13,16 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Package, Plus, Trash2, Wrench, Truck, MoreHorizontal,
   TrendingDown, Receipt,
 } from "lucide-react";
@@ -36,6 +46,7 @@ interface Props {
 
 export function ProjectExpensesSection({ projectId, isAdmin, onTotalChange }: Props) {
   const [open, setOpen] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   const [form, setForm] = useState({
     description: "",
     amount: "",
@@ -202,7 +213,7 @@ export function ProjectExpensesSection({ projectId, isAdmin, onTotalChange }: Pr
                     variant="ghost"
                     size="sm"
                     className="h-7 w-7 p-0 text-slate-400 hover:text-red-500 shrink-0"
-                    onClick={() => deleteExpense.mutate(exp.id)}
+                    onClick={() => setDeleteConfirmId(exp.id)}
                     disabled={deleteExpense.isPending}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
@@ -298,6 +309,30 @@ export function ProjectExpensesSection({ projectId, isAdmin, onTotalChange }: Pr
           </form>
         </DialogContent>
       </Dialog>
+      <AlertDialog open={deleteConfirmId !== null} onOpenChange={(o) => { if (!o) setDeleteConfirmId(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar gasto</AlertDialogTitle>
+            <AlertDialogDescription>
+              ¿Seguro que deseas eliminar este gasto? Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              onClick={() => {
+                if (deleteConfirmId !== null) {
+                  deleteExpense.mutate(deleteConfirmId);
+                  setDeleteConfirmId(null);
+                }
+              }}
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

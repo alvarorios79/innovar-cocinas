@@ -13,7 +13,39 @@ export const financialSettingsRouter = router({
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Failed to fetch financial settings",
-      
+      });
+    }
+  }),
+
+  update: protectedProcedure
+    .input(
+      z.object({
+        outstandingThresholdPercent: z.number().min(0).max(100).optional(),
+        collectionThresholdPercent: z.number().min(0).max(100).optional(),
+        lowProfitThresholdPercent: z.number().min(0).max(100).optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.user.role !== "super_admin") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only super_admin can update financial settings",
+        });
+      }
+      try {
+        const current = await getFinancialSettings();
+        const settingsId = current?.id ?? 1;
+        const updated = await updateFinancialSettings(settingsId, input);
+        return updated;
+      } catch (error) {
+        console.error("[financialSettings.update] Error:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: error instanceof Error ? error.message : "Failed to update financial settings",
+        });
+      }
+    }),
+
   getFixedExpenses: protectedProcedure.query(async () => {
     try {
       return await getFixedExpenseConfig();
@@ -44,40 +76,6 @@ export const financialSettingsRouter = router({
       } catch (error) {
         console.error("[financialSettings.updateFixedExpenses] Error:", error);
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Error guardando gastos fijos" });
-      }
-    }),
-});
-    }
-  }),
-
-  update: protectedProcedure
-    .input(
-      z.object({
-        outstandingThresholdPercent: z.number().min(0).max(100).optional(),
-        collectionThresholdPercent: z.number().min(0).max(100).optional(),
-        lowProfitThresholdPercent: z.number().min(0).max(100).optional(),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      // Only super_admin can update
-      if (ctx.user.role !== "super_admin") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Only super_admin can update financial settings",
-        });
-      }
-
-      try {
-        const current = await getFinancialSettings();
-        const settingsId = current?.id ?? 1;
-        const updated = await updateFinancialSettings(settingsId, input);
-        return updated;
-      } catch (error) {
-        console.error("[financialSettings.update] Error:", error);
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: error instanceof Error ? error.message : "Failed to update financial settings",
-        });
       }
     }),
 });

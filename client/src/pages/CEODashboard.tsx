@@ -62,6 +62,8 @@ export function CEODashboard() {
   const gastos            = Number(ceoMetrics?.gastos) || 0;
   const margen            = Number(ceoMetrics?.margen) || 0;
   const rentabilidad      = Number(ceoMetrics?.rentabilidad) || 0;
+  const fixedMonthlyReserve = Number(ceoMetrics?.fixedMonthlyReserve) || 0;
+  const dineroDisponible  = margen - fixedMonthlyReserve;
   const cashFlowData      = dashboardData?.cashFlow || [];
 
   const pctPorCobrar = totalVendido > 0 ? ((porCobrar / totalVendido) * 100).toFixed(1) : "0";
@@ -101,7 +103,7 @@ export function CEODashboard() {
       </KpiGrid>
 
       {/* ── Fila 2: KPIs financieros ── */}
-      <KpiGrid cols={3} className="mb-8">
+      <KpiGrid cols={4} className="mb-8">
         <KpiCard
           label="Gastos Totales"
           value={formatCurrency(gastos)}

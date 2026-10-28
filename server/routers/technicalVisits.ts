@@ -735,20 +735,7 @@ export const technicalVisitsRouter = router({
             console.error('[Levantamiento submit] Error campanilla:', notifErr2);
           }
 
-          // WhatsApp
-          if (user.phone) {
-            try {
-              const wac = await import('../whatsapp-cloud');
-              let msg = '\u{1F4D0} *Nuevo levantamiento t\u00e9cnico enviado*\n\n';
-              msg += '\u{1F464} *Cliente:* ' + clientName + '\n';
-              msg += '\u{1F6E0}\uFE0F *Tipo:* ' + tipoTrabajo + '\n';
-              msg += '\u{1F4CD} *Direcci\u00f3n:* ' + direccion + '\n';
-              if (telefono) msg += '\u{1F4F1} *Tel cliente:* ' + telefono + '\n';
-              msg += '\nRevisa la pesta\u00f1a Levantamientos en el panel.';
-              await wac.sendTextMessage(user.phone, msg);
-            } catch (waErr) {
-              console.error('[Levantamiento submit] Error WhatsApp:', waErr);
-            }
+          // WhatsApp Cloud API no activo en producción — campanilla interna es suficiente.
           }
         }
       } catch (notifErr) {

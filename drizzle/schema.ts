@@ -908,3 +908,14 @@ export const technicalVisitPdfs = pgTable("technical_visit_pdfs", {
 }, (table) => [
 	index("technicalVisitPdfs_visitId_idx").on(table.visitId),
 ]);
+
+export const fixedExpenseConfig = pgTable("fixedExpenseConfig", {
+	id: serial('id').primaryKey(),
+	concept: varchar({ length: 255 }).notNull(),
+	monthlyAmount: decimal({ precision: 12, scale: 2 }).notNull().default('0'),
+	isActive: integer().default(1).notNull(),
+	sortOrder: integer().default(0).notNull(),
+	notes: text(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+});

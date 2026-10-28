@@ -736,7 +736,6 @@ export const technicalVisitsRouter = router({
           }
 
           // WhatsApp Cloud API no activo en producción — campanilla interna es suficiente.
-          }
         }
       } catch (notifErr) {
         console.error('[Levantamiento submit] Error notificando equipo:', notifErr);

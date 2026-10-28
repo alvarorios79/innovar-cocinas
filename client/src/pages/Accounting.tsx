@@ -95,9 +95,10 @@ const OPERATIVE_HIERARCHY: Record<string, { label: string; subcategories: { valu
     ],
   },
   viaticos_alimentacion: {
-    label: "Viáticos y Alimentación",
+    label: "Viáticos, Peajes y Alimentación",
     subcategories: [
       { value: "viaticos", label: "Viáticos" },
+      { value: "peajes", label: "Peajes" },
       { value: "alimentacion", label: "Alimentación" },
     ],
   },

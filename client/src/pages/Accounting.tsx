@@ -19,6 +19,7 @@ import {
   Trash2,
   CreditCard,
   FileText,
+  Settings,
 } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Link } from "wouter";
@@ -234,7 +235,14 @@ export default function Accounting() {
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [receiptUrl, setReceiptUrl] = useState<string>("");
   const [receiptFileName, setReceiptFileName] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<"expenses" | "movimientos" | "closure" | "confirmed" | "closed" | "reports">("expenses");
+  const [activeTab, setActiveTab] = useState<"expenses" | "movimientos" | "closure" | "confirmed" | "closed" | "reports" | "config">("expenses");
+  const { data: fixedExpenses, refetch: refetchFixed } = trpc.financialSettings.getFixedExpenses.useQuery();
+  const updateFixedMutation = trpc.financialSettings.updateFixedExpenses.useMutation({
+    onSuccess: () => { toast.success("Gastos fijos actualizados"); refetchFixed(); },
+    onError: () => toast.error("Error al guardar"),
+  });
+  const [editingFixed, setEditingFixed] = useState<{ concept: string; monthlyAmount: number; sortOrder: number; notes: string | null }[]>([]);
+  const [fixedEditing, setFixedEditing] = useState(false);
 
   // ── Movimientos state ──────────────────────────────────────────────────────
   const [movClientId, setMovClientId] = useState<string>("");
@@ -630,6 +638,15 @@ export default function Accounting() {
               <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
               <span className="hidden sm:inline">Reportes</span>
               <span className="sm:hidden">Rep.</span>
+            </Button>
+            <Button
+              variant={activeTab === "config" ? "default" : "ghost"}
+              onClick={() => setActiveTab("config")}
+              className="rounded-b-none whitespace-nowrap text-xs sm:text-sm md:text-base px-2 sm:px-3 md:px-4"
+            >
+              <Settings className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Configuración</span>
+              <span className="sm:hidden">Config.</span>
             </Button>
           </div>
         </div>
@@ -1329,6 +1346,127 @@ export default function Accounting() {
         {activeTab === "reports" && (
           <ClosureReportTab />
         )}
+        {/* CONFIG TAB — Gastos fijos mensuales */}
+        {activeTab === "config" && (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="h-5 w-5" />
+                  Gastos Fijos Mensuales
+                </CardTitle>
+                <CardDescription>
+                  Define los costos fijos recurrentes del negocio. Se usan para calcular el dinero realmente disponible en el panel financiero.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {!fixedEditing ? (
+                  <div className="space-y-4">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="text-left py-2 pr-4 font-medium text-muted-foreground">Concepto</th>
+                            <th className="text-right py-2 px-4 font-medium text-muted-foreground">Valor mensual</th>
+                            <th className="text-left py-2 pl-4 font-medium text-muted-foreground">Notas</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(fixedExpenses ?? []).map((item: any) => (
+                            <tr key={item.id} className="border-b hover:bg-muted/30">
+                              <td className="py-2 pr-4">{item.concept}</td>
+                              <td className="py-2 px-4 text-right font-mono">
+                                ${parseFloat(item.monthlyAmount).toLocaleString('es-CO')}
+                              </td>
+                              <td className="py-2 pl-4 text-muted-foreground text-xs">{item.notes ?? ""}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                        <tfoot>
+                          <tr className="border-t-2">
+                            <td className="py-3 pr-4 font-semibold">Total mensual</td>
+                            <td className="py-3 px-4 text-right font-bold font-mono text-emerald-600">
+                              ${(fixedExpenses ?? []).reduce((acc: number, i: any) => acc + parseFloat(i.monthlyAmount), 0).toLocaleString('es-CO')}
+                            </td>
+                            <td />
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={() => {
+                      setEditingFixed((fixedExpenses ?? []).map((i: any) => ({
+                        concept: i.concept,
+                        monthlyAmount: parseFloat(i.monthlyAmount),
+                        sortOrder: i.sortOrder,
+                        notes: i.notes ?? null,
+                      })));
+                      setFixedEditing(true);
+                    }}>
+                      <Edit2 className="h-4 w-4 mr-2" /> Editar gastos fijos
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {editingFixed.map((item, idx) => (
+                      <div key={idx} className="flex gap-3 items-center">
+                        <Input
+                          className="flex-1"
+                          value={item.concept}
+                          onChange={(e) => {
+                            const upd = [...editingFixed];
+                            upd[idx] = { ...upd[idx], concept: e.target.value };
+                            setEditingFixed(upd);
+                          }}
+                          placeholder="Concepto"
+                        />
+                        <Input
+                          className="w-40 text-right"
+                          type="number"
+                          value={item.monthlyAmount}
+                          onChange={(e) => {
+                            const upd = [...editingFixed];
+                            upd[idx] = { ...upd[idx], monthlyAmount: parseFloat(e.target.value) || 0 };
+                            setEditingFixed(upd);
+                          }}
+                          placeholder="Valor"
+                        />
+                        <Input
+                          className="w-48"
+                          value={item.notes ?? ""}
+                          onChange={(e) => {
+                            const upd = [...editingFixed];
+                            upd[idx] = { ...upd[idx], notes: e.target.value || null };
+                            setEditingFixed(upd);
+                          }}
+                          placeholder="Notas (opcional)"
+                        />
+                        <Button variant="ghost" size="sm" onClick={() => {
+                          setEditingFixed(editingFixed.filter((_, i) => i !== idx));
+                        }}><X className="h-4 w-4" /></Button>
+                      </div>
+                    ))}
+                    <div className="flex gap-3 items-center justify-between flex-wrap">
+                      <Button variant="outline" size="sm" onClick={() => {
+                        setEditingFixed([...editingFixed, { concept: "", monthlyAmount: 0, sortOrder: editingFixed.length, notes: null }]);
+                      }}>+ Agregar fila</Button>
+                      <div className="flex gap-2">
+                        <Button variant="ghost" size="sm" onClick={() => setFixedEditing(false)}>Cancelar</Button>
+                        <Button size="sm" onClick={() => {
+                          const items = editingFixed.map((item, i) => ({ ...item, sortOrder: i }));
+                          updateFixedMutation.mutate(items);
+                          setFixedEditing(false);
+                        }} disabled={updateFixedMutation.isPending}>
+                          {updateFixedMutation.isPending ? "Guardando..." : "Guardar cambios"}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
       </div>
     </div>
   );

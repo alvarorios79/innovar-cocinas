@@ -57,6 +57,13 @@ export async function checkAndSendAutoReminders() {
         continue;
       }
 
+      // Cap: máximo 3 recordatorios automáticos por tarea.
+      // Después de 3, la tarea sigue visible en el panel pero no genera más push ni campanilla.
+      // Esto evita saturar la bandeja cuando una tarea manual no se marca completa a tiempo.
+      if ((task.reminderCount ?? 0) >= 3) {
+        continue;
+      }
+
       // Verificar si ya se envió un recordatorio automático hoy
       if (task.lastReminderSentAt) {
         const lastReminder = new Date(task.lastReminderSentAt);

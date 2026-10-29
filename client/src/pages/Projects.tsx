@@ -203,7 +203,7 @@ export default function Projects() {
   const [searchTerm, setSearchTerm] = useState("");
   
   // Estado para tab de archivado (inicializar desde localStorage)
-  const [archiveTab, setArchiveTab] = useState<'active' | 'archived'>(() => {
+  const [archiveTab, setArchiveTab] = useState<'active' | 'archived' | 'closed'>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('projectsArchiveTab');
       return (saved === 'archived' || saved === 'active') ? saved : 'active';
@@ -229,7 +229,8 @@ export default function Projects() {
     page: projectPage,
     limit: PROJECTS_PER_PAGE,
     ...(statusFilter !== "all" && { status: statusFilter }),
-    archived: archiveTab === 'archived',
+    archived: archiveTab === 'archived' ? true : archiveTab === 'active' ? false : undefined,
+    closed: archiveTab === 'closed' ? true : undefined,
   });
   const projects = projectsData?.data || [];
   
@@ -655,6 +656,19 @@ export default function Projects() {
             }`}
           >
             Archivados
+          </Button>
+
+          <Button
+            variant={archiveTab === 'closed' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setArchiveTab('closed')}
+            className={`text-sm font-medium transition-colors ${
+              archiveTab === 'closed'
+                ? 'bg-[#162828] shadow-sm text-foreground'
+                : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+            }`}
+          >
+            Cerrados
           </Button>
         </div>
         

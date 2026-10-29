@@ -179,6 +179,7 @@ export const projectsRouter = router({
         limit: z.number().min(1).max(100).optional().default(50),
         status: z.string().optional(),
         archived: z.boolean().optional(),
+        closed: z.boolean().optional(),
       }).optional())
       .query(async ({ ctx, input }) => {
         const role = ctx.user.role;
@@ -189,6 +190,7 @@ export const projectsRouter = router({
           limit,
           status: input?.status,
           archived: input?.archived,
+          closed: input?.closed,
         });
         let filteredData: typeof result.data = result.data || [];
         if (role === "disenador") {

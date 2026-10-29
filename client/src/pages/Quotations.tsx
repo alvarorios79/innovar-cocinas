@@ -286,6 +286,7 @@ export default function Quotations() {
   const [filterAmountMin, setFilterAmountMin] = useState<string>("");
   const [filterAmountMax, setFilterAmountMax] = useState<string>("");
   const [filterHasProject, setFilterHasProject] = useState<string>("all"); // all | yes | no
+  const [activeGroup, setActiveGroup] = useState<"activas" | "pendientes" | "completadas" | "rechazadas" | "sin_respuesta">("activas");
   const [showFilters, setShowFilters] = useState(false);
   const [modulosOpenSet, setModulosOpenSet] = useState<Set<number>>(new Set());
   
@@ -2308,56 +2309,77 @@ export default function Quotations() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-8">
-          {([
-            { key: 'activas',       label: 'Activas',            color: 'text-teal-400',   dot: 'bg-teal-400' },
-            { key: 'pendientes',    label: 'Pendientes',          color: 'text-blue-400',   dot: 'bg-blue-400' },
-            { key: 'completadas',   label: 'Completadas',         color: 'text-green-400',  dot: 'bg-green-400' },
-            { key: 'rechazadas',    label: 'Rechazadas',          color: 'text-red-400',    dot: 'bg-red-400' },
-            { key: 'sin_respuesta', label: 'Sin respuesta',       color: 'text-gray-400',   dot: 'bg-gray-400' },
-          ] as const).map(({ key, label, color, dot }) => {
-            const items = groupedQuotations[key];
-            if (items.length === 0) return null;
-            return (
-              <div key={key}>
-                <div className="flex items-center gap-2 mb-3">
-                  <span className={`w-2 h-2 rounded-full ${dot}`} />
-                  <h3 className={`text-sm font-semibold uppercase tracking-wide ${color}`}>{label}</h3>
-                  <span className="text-xs text-white/30 ml-1">({items.length})</span>
-                </div>
-                <div className="grid gap-4">
-                  {items.map((group: any) => (
-                    <QuotationGroupCard
-                      key={group.baseQuotationId}
-                      group={group}
-                      client={group.client}
-                      onEdit={(quotation) => handleEdit(quotation.id)}
-                      onViewPDF={(quotation) => handlePreviewClick(quotation.id, `${group.quotationNumber} - ${group.client?.name || 'Cliente'}`)}
-                      onSend={(quotation) => handleEmailClick(quotation.id, group.client?.email || "", group.quotationNumber, group.client?.name || "Cliente")}
-                      onCreateVersion={(quotation) => {
-                        if (window.confirm(`¿Crear nueva versión de la cotización ${group.quotationNumber}?`)) {
-                          createVersion.mutate({ quotationId: quotation.id });
-                        }
-                      }}
-                      onCreateProject={(quotation) => {
-                        setPendingQuotationForProject(quotation);
-                        setInitialPaymentModalOpen(true);
-                      }}
-                      onEditPDF={(quotation) => handleOpenPdfEditor(quotation.id)}
-                      onToggleLock={(quotation) => {
-                        toggleLock.mutate({ id: quotation.id });
-                      }}
-                      onDelete={(quotation) => {
-                        if (window.confirm(`¿Eliminar la cotización ${group.quotationNumber}?\n\nEsta acción no se puede deshacer.`)) {
-                          deleteQuotation.mutate({ id: quotation.id });
-                        }
-                      }}
-                    />
-                  ))}
-                </div>
-              </div>
-            );
-          })}
+        <div>
+          {/* Pestañas de navegación */}
+          <div className="flex gap-1 flex-wrap mb-6 bg-white/[0.04] p-1 rounded-xl w-fit">
+            {([
+              { key: 'activas',       label: 'Activas',        dot: 'bg-teal-400'  },
+              { key: 'pendientes',    label: 'Pendientes',     dot: 'bg-blue-400'  },
+              { key: 'completadas',   label: 'Completadas',    dot: 'bg-green-400' },
+              { key: 'rechazadas',    label: 'Rechazadas',     dot: 'bg-red-400'   },
+              { key: 'sin_respuesta', label: 'Sin respuesta',  dot: 'bg-gray-400'  },
+            ] as const).map(({ key, label, dot }) => {
+              const count = groupedQuotations[key].length;
+              const isActive = activeGroup === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => setActiveGroup(key)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    isActive
+                      ? "bg-[#162828] text-foreground border border-white/[0.08] shadow-sm"
+                      : "text-muted-foreground hover:text-foreground hover:bg-white/[0.04]"
+                  }`}
+                >
+                  <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
+                  {label}
+                  <span className={`text-xs px-1.5 py-0.5 rounded-full ${isActive ? "bg-white/10 text-white/70" : "bg-white/[0.06] text-white/30"}`}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Contenido de la pestaña activa */}
+          <div className="grid gap-4">
+            {groupedQuotations[activeGroup].length === 0 ? (
+              <Card>
+                <CardContent className="py-8 text-center text-muted-foreground">
+                  No hay cotizaciones en este grupo
+                </CardContent>
+              </Card>
+            ) : (
+              groupedQuotations[activeGroup].map((group: any) => (
+                <QuotationGroupCard
+                  key={group.baseQuotationId}
+                  group={group}
+                  client={group.client}
+                  onEdit={(quotation) => handleEdit(quotation.id)}
+                  onViewPDF={(quotation) => handlePreviewClick(quotation.id, `${group.quotationNumber} - ${group.client?.name || 'Cliente'}`)}
+                  onSend={(quotation) => handleEmailClick(quotation.id, group.client?.email || "", group.quotationNumber, group.client?.name || "Cliente")}
+                  onCreateVersion={(quotation) => {
+                    if (window.confirm(`¿Crear nueva versión de la cotización ${group.quotationNumber}?`)) {
+                      createVersion.mutate({ quotationId: quotation.id });
+                    }
+                  }}
+                  onCreateProject={(quotation) => {
+                    setPendingQuotationForProject(quotation);
+                    setInitialPaymentModalOpen(true);
+                  }}
+                  onEditPDF={(quotation) => handleOpenPdfEditor(quotation.id)}
+                  onToggleLock={(quotation) => {
+                    toggleLock.mutate({ id: quotation.id });
+                  }}
+                  onDelete={(quotation) => {
+                    if (window.confirm(`¿Eliminar la cotización ${group.quotationNumber}?\n\nEsta acción no se puede deshacer.`)) {
+                      deleteQuotation.mutate({ id: quotation.id });
+                    }
+                  }}
+                />
+              ))
+            )}
+          </div>
         </div>
       )}
 

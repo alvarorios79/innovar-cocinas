@@ -4676,8 +4676,8 @@ export async function calculateClosurePreview(projectIds: number[]) {
   for (const project of projectsData) {
     // Calcular precio neto: original - descuentos + recargos
     const paymentsResult = await db.select({
-      discounts: sql<number>`COALESCE(SUM(CASE WHEN movementType = 'discount' THEN amount ELSE 0 END), 0)`,
-      surcharges: sql<number>`COALESCE(SUM(CASE WHEN movementType = 'surcharge' THEN amount ELSE 0 END), 0)`
+      discounts: sql<number>`COALESCE(SUM(CASE WHEN "movementType" = 'discount' THEN amount ELSE 0 END), 0)`,
+      surcharges: sql<number>`COALESCE(SUM(CASE WHEN "movementType" = 'surcharge' THEN amount ELSE 0 END), 0)`
     })
     .from(payments)
     .where(eq(payments.projectId, project.id));

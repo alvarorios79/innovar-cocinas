@@ -1,6 +1,6 @@
 import PDFDocument from "pdfkit";
 import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, AlignmentType, BorderStyle, WidthType, ShadingType, HeadingLevel } from "docx";
-import { getClosureDetails, getClosureProjects } from "../db";
+import { getClosureDetails, getClosureProjects } from "./db";
 
 const TEAL = "#00BCD4";
 const DARK = "#1A1A2E";

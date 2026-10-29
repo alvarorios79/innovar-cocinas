@@ -4290,7 +4290,7 @@ export async function getEligibleProjectsForAccountingClosure() {
       
       // Solo incluir si balance = 0 (pagos completados)
       // Esto asegura que SOLO proyectos completamente pagados aparezcan en el listado
-      if (Math.abs(balance) < 0.01) { // Usar comparación con tolerancia decimal
+      if (balance <= 0.01) { // pagado exacto (≈0) o con descuento posterior al pago (negativo)
         // Obtener nombre del cliente
         const clientData = await db
           .select({ name: clients.name })

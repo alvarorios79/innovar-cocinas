@@ -575,7 +575,7 @@ export const accountingClosuresRouter = router({
         };
       } catch (error) {
         console.error("[AccountingClosures] Error generating PDF:", error);
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Error al generar PDF" });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Error PDF: " + String(error) });
       }
     }),
 
@@ -594,7 +594,7 @@ export const accountingClosuresRouter = router({
         };
       } catch (error) {
         console.error("[AccountingClosures] Error generating Word:", error);
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Error al generar Word" });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Error Word: " + String(error) });
       }
     }),
 

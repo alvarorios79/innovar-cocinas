@@ -18,6 +18,7 @@ export function ClosureReportTab() {
   const [showFilters, setShowFilters] = useState(false);
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
   const [confirmingClosureId, setConfirmingClosureId] = useState<number | null>(null);
+  const utils = trpc.useUtils();
 
   // Queries
   const { data: reports, isLoading: reportsLoading, refetch: refetchReports } = trpc.accountingClosures.getReportsByPeriod.useQuery(
@@ -51,75 +52,36 @@ export function ClosureReportTab() {
   const handleDownloadPDF = async (closureId: number) => {
     setDownloadingId(closureId);
     try {
-      const result = await trpc.accountingClosures.generatePDF.useQuery(
-        { closureId },
-        { enabled: false }
-      ).refetch();
-      
-      const pdfData = result.data;
-      if (!pdfData) throw new Error("No PDF data received");
-      
-      // Create blob from HTML
-      const blob = new Blob([pdfData.html], { type: "text/html" });
-      const url = URL.createObjectURL(blob);
-      
-      // Create iframe for printing
-      const iframe = document.createElement("iframe");
-      iframe.style.display = "none";
-      iframe.src = url;
-      document.body.appendChild(iframe);
-      
-      // Wait for iframe to load then print
-      iframe.onload = () => {
-        iframe.contentWindow?.print();
-        setTimeout(() => {
-          document.body.removeChild(iframe);
-          URL.revokeObjectURL(url);
-        }, 100);
-      };
-      
-      toast.success("✅ PDF generado. Se abrirá la vista previa de impresión");
+      const result = await utils.accountingClosures.downloadPDF.fetch({ closureId });
+      const bytes = Uint8Array.from(atob(result.base64), c => c.charCodeAt(0));
+      const blob = new Blob([bytes], { type: result.mimeType });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = result.filename;
+      link.click();
+      toast.success("✅ PDF descargado");
     } catch (error) {
       console.error("Error downloading PDF:", error);
-      toast.error("❌ Error al generar el PDF");
+      toast.error("❌ Error al generar el PDF: " + String(error));
     } finally {
       setDownloadingId(null);
     }
   };
 
-  const handleDownloadExcel = async (closureId: number) => {
+  const handleDownloadWord = async (closureId: number) => {
     setDownloadingId(closureId);
     try {
-      const result = await trpc.accountingClosures.generateExcel.useQuery(
-        { closureId },
-        { enabled: false }
-      ).refetch();
-      
-      const excelData = result.data;
-      if (!excelData) throw new Error("No Excel data received");
-      
-      // Decode base64 to binary
-      const binaryString = atob(excelData.buffer);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-      
-      // Create blob and download
-      const blob = new Blob([bytes], { type: excelData.mimeType });
-      const url = URL.createObjectURL(blob);
+      const result = await utils.accountingClosures.downloadWord.fetch({ closureId });
+      const bytes = Uint8Array.from(atob(result.base64), c => c.charCodeAt(0));
+      const blob = new Blob([bytes], { type: result.mimeType });
       const link = document.createElement("a");
-      link.href = url;
-      link.download = excelData.filename;
-      document.body.appendChild(link);
+      link.href = URL.createObjectURL(blob);
+      link.download = result.filename;
       link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      
-      toast.success("✅ Excel descargado exitosamente");
+      toast.success("✅ Word descargado");
     } catch (error) {
-      console.error("Error downloading Excel:", error);
-      toast.error("❌ Error al descargar el Excel");
+      console.error("Error downloading Word:", error);
+      toast.error("❌ Error al generar Word: " + String(error));
     } finally {
       setDownloadingId(null);
     }
@@ -345,12 +307,12 @@ export function ClosureReportTab() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleDownloadExcel(closure.id)}
+                        onClick={() => handleDownloadWord(closure.id)}
                         disabled={downloadingId === closure.id}
                         className="text-green-400 hover:text-green-300 hover:bg-green-500/10 border-green-500/25"
                       >
                         <Download className="h-4 w-4 mr-1" />
-                        {downloadingId === closure.id ? "Generando..." : "Excel"}
+                        {downloadingId === closure.id ? "Generando..." : "Word"}
                       </Button>
                       {closure.status === "draft" && (
                         <Button

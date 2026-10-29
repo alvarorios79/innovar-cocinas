@@ -225,6 +225,9 @@ export default function Projects() {
   const [showAdvanceConfirmDialog, setShowAdvanceConfirmDialog] = useState(false);
   const [projectToAdvance, setProjectToAdvance] = useState<any>(null);
   
+  // Conteos para las pestañas
+  const { data: tabCounts } = trpc.projects.getCounts.useQuery();
+
   const { data: projectsData, isLoading: loadingProjects } = trpc.projects.listPaginated.useQuery({
     page: projectPage,
     limit: PROJECTS_PER_PAGE,
@@ -643,6 +646,11 @@ export default function Projects() {
             }`}
           >
             En Curso
+            {tabCounts?.active !== undefined && (
+              <span className="ml-1.5 bg-teal-600/30 text-teal-300 text-xs font-semibold px-1.5 py-0.5 rounded-full">
+                {tabCounts.active}
+              </span>
+            )}
           </Button>
 
           <Button
@@ -656,6 +664,11 @@ export default function Projects() {
             }`}
           >
             Archivados
+            {tabCounts?.archived !== undefined && (
+              <span className="ml-1.5 bg-teal-600/30 text-teal-300 text-xs font-semibold px-1.5 py-0.5 rounded-full">
+                {tabCounts.archived}
+              </span>
+            )}
           </Button>
 
           <Button
@@ -669,6 +682,11 @@ export default function Projects() {
             }`}
           >
             Cerrados
+            {tabCounts?.closed !== undefined && (
+              <span className="ml-1.5 bg-teal-600/30 text-teal-300 text-xs font-semibold px-1.5 py-0.5 rounded-full">
+                {tabCounts.closed}
+              </span>
+            )}
           </Button>
         </div>
         

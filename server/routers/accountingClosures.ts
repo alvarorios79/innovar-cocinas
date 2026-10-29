@@ -3,6 +3,7 @@ import { router, protectedProcedure, adminProcedure, superAdminProcedure } from 
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import { accountingClosures, accountingClosureProjects } from "../../drizzle/schema";
+import { generateClosurePDFBuffer, generateClosureDocxBuffer } from "../closure-export";
 import {
   getPendingClosureProjects,
   createAccountingClosure,
@@ -557,5 +558,44 @@ export const accountingClosuresRouter = router({
       }
     }),
 
+
+
+  /**
+   * Download closure as real PDF binary (pdfkit)
+   */
+  downloadPDF: adminProcedure
+    .input(z.object({ closureId: z.number() }))
+    .query(async ({ input }) => {
+      try {
+        const buffer = await generateClosurePDFBuffer(input.closureId);
+        return {
+          base64: buffer.toString("base64"),
+          filename: `cierre-contable-${input.closureId}.pdf`,
+          mimeType: "application/pdf",
+        };
+      } catch (error) {
+        console.error("[AccountingClosures] Error generating PDF:", error);
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Error al generar PDF" });
+      }
+    }),
+
+  /**
+   * Download closure as Word document (docx)
+   */
+  downloadWord: adminProcedure
+    .input(z.object({ closureId: z.number() }))
+    .query(async ({ input }) => {
+      try {
+        const buffer = await generateClosureDocxBuffer(input.closureId);
+        return {
+          base64: buffer.toString("base64"),
+          filename: `cierre-contable-${input.closureId}.docx`,
+          mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        };
+      } catch (error) {
+        console.error("[AccountingClosures] Error generating Word:", error);
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Error al generar Word" });
+      }
+    }),
 
 });

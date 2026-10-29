@@ -90,7 +90,7 @@ export const accountingClosuresRouter = router({
         console.error("[AccountingClosures] Error creating closure:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: `Error al crear cierre: ${error instanceof Error ? error.message : String(error)}`,
+          message: "Error al crear cierre contable",
         });
       }
     }),

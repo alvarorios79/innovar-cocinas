@@ -2103,7 +2103,6 @@ export default function Quotations() {
                 status: filterStatus,
                 dateFrom: filterDateFrom,
                 dateTo: filterDateTo,
-                archived: archiveTab === 'archived',
               }}
             />
             <div className="hidden sm:block">

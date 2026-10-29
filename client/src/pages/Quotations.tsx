@@ -280,7 +280,7 @@ export default function Quotations() {
   const [filterClient, setFilterClient] = useState<string>("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [quotationPage, setQuotationPage] = useState(1);
-  const QUOTATIONS_PER_PAGE = 50;
+  const QUOTATIONS_PER_PAGE = 500; // Cargar todo — clasificación por tabs no funciona con paginación parcial
   const [filterDateFrom, setFilterDateFrom] = useState<string>("");
   const [filterDateTo, setFilterDateTo] = useState<string>("");
   const [filterAmountMin, setFilterAmountMin] = useState<string>("");

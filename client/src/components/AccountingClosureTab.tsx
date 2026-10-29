@@ -446,7 +446,7 @@ export function AccountingClosureTab() {
                                 link.download = result.filename;
                                 link.click();
                               } catch (err) {
-                                toast.error("Error al generar PDF");
+                                toast.error("PDF: " + String(err));
                               }
                             }}
                           >
@@ -467,7 +467,7 @@ export function AccountingClosureTab() {
                                 link.download = result.filename;
                                 link.click();
                               } catch (err) {
-                                toast.error("Error al generar Word");
+                                toast.error("Word: " + String(err));
                               }
                             }}
                           >

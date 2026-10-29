@@ -374,7 +374,7 @@ export const quotationsRouter = router({
     listPaginated: protectedProcedure
       .input(z.object({
         page: z.number().min(1).optional().default(1),
-        limit: z.number().min(1).max(100).optional().default(50),
+        limit: z.number().min(1).max(2000).optional().default(50),
         status: z.string().optional(),
       }).optional())
       .query(async ({ ctx, input }) => {
@@ -401,7 +401,7 @@ export const quotationsRouter = router({
     listPaginatedGrouped: protectedProcedure
       .input(z.object({
         page: z.number().min(1).optional().default(1),
-        limit: z.number().min(1).max(100).optional().default(50),
+        limit: z.number().min(1).max(2000).optional().default(50),
         status: z.string().optional(),
       }).optional())
       .query(async ({ ctx, input }) => {

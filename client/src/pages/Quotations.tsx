@@ -466,10 +466,14 @@ export default function Quotations() {
   const getQuotationGroup = (group: any): 'pendientes' | 'sin_respuesta' | 'rechazadas' | 'activas' | 'completadas' => {
     const av = group.activeVersion;
     if (!av) return 'pendientes';
-    if (av.isArchived === 1) return 'sin_respuesta';
+    // Rechazadas — antes que isArchived
     if (av.status === 'rejected') return 'rechazadas';
+    // Completadas — prioridad sobre isArchived (proyectos entregados archivados manualmente)
     if (av.status === 'approved' && group.projectStatus === 'entregado') return 'completadas';
+    // Activas — aprobadas con proyecto en curso
     if (av.status === 'approved') return 'activas';
+    // isArchived=1 — descartadas manualmente (después de verificar approved)
+    if (av.isArchived === 1) return 'sin_respuesta';
     const createdDate = new Date(av.createdAt);
     const validUntilDate = av.validUntil ? new Date(av.validUntil) : new Date(createdDate.getTime() + 7 * 24 * 60 * 60 * 1000);
     const isExpired = validUntilDate < new Date();

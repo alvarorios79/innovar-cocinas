@@ -279,7 +279,6 @@ export default function Quotations() {
   // Estados para filtros
   const [filterClient, setFilterClient] = useState<string>("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [archiveTab, setArchiveTab] = useState<"active" | "archived">("active");
   const [quotationPage, setQuotationPage] = useState(1);
   const QUOTATIONS_PER_PAGE = 50;
   const [filterDateFrom, setFilterDateFrom] = useState<string>("");
@@ -387,7 +386,6 @@ export default function Quotations() {
     page: quotationPage,
     limit: QUOTATIONS_PER_PAGE,
     status: filterStatus !== "all" ? filterStatus : undefined,
-    archived: archiveTab === "archived",
   });
   const quotations = quotationsData?.data || [];
   const { data: clients = [] } = trpc.clients.list.useQuery();
@@ -462,6 +460,29 @@ export default function Quotations() {
     !!filterAmountMin ||
     !!filterAmountMax ||
     filterHasProject !== "all";
+
+  // Clasificación automática en 5 grupos
+  const getQuotationGroup = (group: any): 'pendientes' | 'sin_respuesta' | 'rechazadas' | 'activas' | 'completadas' => {
+    const av = group.activeVersion;
+    if (!av) return 'pendientes';
+    if (av.isArchived === 1) return 'sin_respuesta';
+    if (av.status === 'rejected') return 'rechazadas';
+    if (av.status === 'approved' && group.projectStatus === 'entregado') return 'completadas';
+    if (av.status === 'approved') return 'activas';
+    const createdDate = new Date(av.createdAt);
+    const validUntilDate = av.validUntil ? new Date(av.validUntil) : new Date(createdDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const isExpired = validUntilDate < new Date();
+    if (isExpired) return 'sin_respuesta';
+    return 'pendientes';
+  };
+
+  const groupedQuotations = {
+    pendientes: filteredQuotations.filter((g: any) => getQuotationGroup(g) === 'pendientes'),
+    sin_respuesta: filteredQuotations.filter((g: any) => getQuotationGroup(g) === 'sin_respuesta'),
+    rechazadas: filteredQuotations.filter((g: any) => getQuotationGroup(g) === 'rechazadas'),
+    activas: filteredQuotations.filter((g: any) => getQuotationGroup(g) === 'activas'),
+    completadas: filteredQuotations.filter((g: any) => getQuotationGroup(g) === 'completadas'),
+  };
 
   const createQuotation = trpc.quotations.create.useMutation({
     onSuccess: () => {
@@ -2108,17 +2129,6 @@ export default function Quotations() {
         }
       />
 
-      <div className="mb-6">
-        <ArchiveFilterTabs
-          activeTab={archiveTab}
-          onTabChange={setArchiveTab}
-          tabs={[
-            { id: "active", label: "Activas" },
-            { id: "archived", label: "Archivadas" },
-          ]}
-        />
-      </div>
-
       {/* Filtros */}
       <div className="mb-4">
         {/* Barra de búsqueda rápida + toggle filtros */}
@@ -2299,42 +2309,56 @@ export default function Quotations() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4">
-          {(() => {
-            return null;
-          })()}
-          {filteredQuotations.map((group: any) => (
-            <QuotationGroupCard
-              key={group.baseQuotationId}
-              group={group}
-              client={group.client}
-              archiveTab={archiveTab}
-              onEdit={(quotation) => handleEdit(quotation.id)}
-              onViewPDF={(quotation) => handlePreviewClick(quotation.id, `${group.quotationNumber} - ${group.client?.name || 'Cliente'}`)}
-              onSend={(quotation) => handleEmailClick(quotation.id, group.client?.email || "", group.quotationNumber, group.client?.name || "Cliente")}
-              onCreateVersion={(quotation) => {
-                if (window.confirm(`¿Crear nueva versión de la cotización ${group.quotationNumber}?`)) {
-                  createVersion.mutate({ quotationId: quotation.id });
-                }
-              }}
-              onCreateProject={(quotation) => {
-                setPendingQuotationForProject(quotation);
-                setInitialPaymentModalOpen(true);
-              }}
-              onEditPDF={(quotation) => handleOpenPdfEditor(quotation.id)}
-              onToggleLock={(quotation) => {
-                toggleLock.mutate({ id: quotation.id });
-              }}
-              onArchive={() => {
-                utils.quotations.listPaginatedGrouped.invalidate();
-              }}
-              onDelete={(quotation) => {
-                if (window.confirm(`¿Eliminar la cotización ${group.quotationNumber}?\n\nEsta acción no se puede deshacer.`)) {
-                  deleteQuotation.mutate({ id: quotation.id });
-                }
-              }}
-            />
-          ))}
+        <div className="space-y-8">
+          {([
+            { key: 'activas',       label: 'Activas',            color: 'text-teal-400',   dot: 'bg-teal-400' },
+            { key: 'pendientes',    label: 'Pendientes',          color: 'text-blue-400',   dot: 'bg-blue-400' },
+            { key: 'completadas',   label: 'Completadas',         color: 'text-green-400',  dot: 'bg-green-400' },
+            { key: 'rechazadas',    label: 'Rechazadas',          color: 'text-red-400',    dot: 'bg-red-400' },
+            { key: 'sin_respuesta', label: 'Sin respuesta',       color: 'text-gray-400',   dot: 'bg-gray-400' },
+          ] as const).map(({ key, label, color, dot }) => {
+            const items = groupedQuotations[key];
+            if (items.length === 0) return null;
+            return (
+              <div key={key}>
+                <div className="flex items-center gap-2 mb-3">
+                  <span className={`w-2 h-2 rounded-full ${dot}`} />
+                  <h3 className={`text-sm font-semibold uppercase tracking-wide ${color}`}>{label}</h3>
+                  <span className="text-xs text-white/30 ml-1">({items.length})</span>
+                </div>
+                <div className="grid gap-4">
+                  {items.map((group: any) => (
+                    <QuotationGroupCard
+                      key={group.baseQuotationId}
+                      group={group}
+                      client={group.client}
+                      onEdit={(quotation) => handleEdit(quotation.id)}
+                      onViewPDF={(quotation) => handlePreviewClick(quotation.id, `${group.quotationNumber} - ${group.client?.name || 'Cliente'}`)}
+                      onSend={(quotation) => handleEmailClick(quotation.id, group.client?.email || "", group.quotationNumber, group.client?.name || "Cliente")}
+                      onCreateVersion={(quotation) => {
+                        if (window.confirm(`¿Crear nueva versión de la cotización ${group.quotationNumber}?`)) {
+                          createVersion.mutate({ quotationId: quotation.id });
+                        }
+                      }}
+                      onCreateProject={(quotation) => {
+                        setPendingQuotationForProject(quotation);
+                        setInitialPaymentModalOpen(true);
+                      }}
+                      onEditPDF={(quotation) => handleOpenPdfEditor(quotation.id)}
+                      onToggleLock={(quotation) => {
+                        toggleLock.mutate({ id: quotation.id });
+                      }}
+                      onDelete={(quotation) => {
+                        if (window.confirm(`¿Eliminar la cotización ${group.quotationNumber}?\n\nEsta acción no se puede deshacer.`)) {
+                          deleteQuotation.mutate({ id: quotation.id });
+                        }
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 

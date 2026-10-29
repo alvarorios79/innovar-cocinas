@@ -693,7 +693,7 @@ export async function getProjectsByStatus(status: string) {
     .orderBy(desc(projects.createdAt));
 }
 
-export async function getAllProjectsPaginated(options?: { page?: number; limit?: number; status?: string; archived?: boolean }) {
+export async function getAllProjectsPaginated(options?: { page?: number; limit?: number; status?: string; archived?: boolean; closed?: boolean }) {
   const db = await getDb();
   if (!db) return { data: [], total: 0 };
 
@@ -707,8 +707,15 @@ export async function getAllProjectsPaginated(options?: { page?: number; limit?:
     whereConditions = and(whereConditions, eq(projects.status, options.status as any));
   }
 
-  if (options?.archived !== undefined) {
-    whereConditions = and(whereConditions, eq(projects.isArchived, options.archived ? 1 : 0));
+  if (options?.closed === true) {
+    // Cerrados: archivados CON cierre contable asignado
+    whereConditions = and(whereConditions, eq(projects.isArchived, 1), isNotNull(projects.accountingClosureId));
+  } else if (options?.archived === true) {
+    // Archivados: archivados SIN cierre contable (pendientes de cierre)
+    whereConditions = and(whereConditions, eq(projects.isArchived, 1), isNull(projects.accountingClosureId));
+  } else if (options?.archived === false) {
+    // Activos: no archivados
+    whereConditions = and(whereConditions, eq(projects.isArchived, 0));
   }
 
   const projectsList = await db.select().from(projects)

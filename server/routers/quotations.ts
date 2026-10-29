@@ -403,7 +403,6 @@ export const quotationsRouter = router({
         page: z.number().min(1).optional().default(1),
         limit: z.number().min(1).max(100).optional().default(50),
         status: z.string().optional(),
-        archived: z.boolean().optional(),
       }).optional())
       .query(async ({ ctx, input }) => {
         if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
@@ -415,7 +414,6 @@ export const quotationsRouter = router({
           page,
           limit,
           status: input?.status,
-          archived: input?.archived,
         });
         
         // Obtener todos los clientes para mapear
@@ -3153,6 +3151,39 @@ export const quotationsRouter = router({
           });
         }
         
+        return { success: true, message: "Cotización rechazada" };
+      }),
+
+    // Rechazar cotización desde enlace público (sin auth, solo token)
+    publicReject: publicProcedure
+      .input(z.object({
+        token: z.string(),
+        reason: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const quotation = await db.getQuotationByPublicToken(input.token);
+        if (!quotation) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Enlace no válido o expirado" });
+        }
+        if (quotation.status === "rejected") {
+          return { success: true, message: "Cotización ya estaba rechazada" };
+        }
+        if (quotation.status === "approved") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Esta cotización ya fue aprobada" });
+        }
+        await db.updateQuotation(quotation.id, {
+          status: "rejected",
+          clientResponseStatus: "rejected",
+          rejectionReason: input.reason || "",
+        });
+        // Notificar al equipo
+        const clientData = await db.getClientById(quotation.clientId);
+        try {
+          await sendPushToRole("admin", {
+            title: "Cotización Rechazada",
+            body: `El cliente ${clientData?.name || ""} rechazó la cotización ${quotation.quotationNumber}${input.reason ? ". Motivo: " + input.reason : ""}`,
+          });
+        } catch (e) { /* notificación no crítica */ }
         return { success: true, message: "Cotización rechazada" };
       }),
 

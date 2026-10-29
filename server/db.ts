@@ -4674,21 +4674,18 @@ export async function calculateClosurePreview(projectIds: number[]) {
 
   // PASO 2: Procesar cada proyecto
   for (const project of projectsData) {
-    // Calcular ingresos (pagos del proyecto)
+    // Calcular precio neto: original - descuentos + recargos
     const paymentsResult = await db.select({
-      total: sql<number>`COALESCE(SUM(CAST(amount AS DECIMAL(12,2))), 0)`
+      discounts: sql<number>`COALESCE(SUM(CASE WHEN movementType = 'discount' THEN amount ELSE 0 END), 0)`,
+      surcharges: sql<number>`COALESCE(SUM(CASE WHEN movementType = 'surcharge' THEN amount ELSE 0 END), 0)`
     })
     .from(payments)
-    .where(
-      and(
-        eq(payments.projectId, project.id),
-        eq(payments.movementType, 'payment')
-      )
-    );
+    .where(eq(payments.projectId, project.id));
 
-    const projectRevenue = parseFloat(
-      paymentsResult[0]?.total?.toString() || '0'
-    );
+    const totalDiscounts = parseFloat(paymentsResult[0]?.discounts?.toString() || '0');
+    const totalSurcharges = parseFloat(paymentsResult[0]?.surcharges?.toString() || '0');
+    const originalPrice = parseFloat(project.totalAmount?.toString() || '0');
+    const projectRevenue = originalPrice - totalDiscounts + totalSurcharges;
 
     // Calcular gastos de proyecto (solo materiales_proyecto)
     const projectExpensesResult = await db.select({

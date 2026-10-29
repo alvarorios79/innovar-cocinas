@@ -10,6 +10,10 @@ export default function PublicQuotation() {
   const token = useTokenFromUrl();
   const [approved, setApproved] = useState(false);
   const [approving, setApproving] = useState(false);
+  const [rejected, setRejected] = useState(false);
+  const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+  const [rejecting, setRejecting] = useState(false);
   const [notes, setNotes] = useState("");
   const [downloadingPdf, setDownloadingPdf] = useState(false);
 
@@ -61,6 +65,20 @@ export default function PublicQuotation() {
     approveMutation.mutate({ token, notes: notes || undefined });
   };
 
+  const rejectMutation = trpc.quotations.publicReject.useMutation({
+    onSuccess: () => { setRejected(true); setShowRejectDialog(false); },
+    onError: (err) => {
+      alert(err.message || "Error al rechazar. Intente de nuevo.");
+      setRejecting(false);
+    },
+  });
+
+  const handleReject = () => {
+    if (!token) return;
+    setRejecting(true);
+    rejectMutation.mutate({ token, reason: rejectReason || undefined });
+  };
+
   if (!token) return <ErrorScreen message="Enlace no válido. Por favor use el enlace enviado por WhatsApp." />;
 
   if (isLoading) {
@@ -77,7 +95,7 @@ export default function PublicQuotation() {
   if (error || !data) return <ErrorScreen message="Este enlace no es válido o ya expiró. Contáctenos para más información." />;
 
   const isAlreadyApproved = data.status === "approved" || approved;
-  const isRejected = data.status === "rejected";
+  const isRejected = data.status === "rejected" || rejected;
   const isClosed = isAlreadyApproved || isRejected; // cotización ya procesada
 
   return (
@@ -218,6 +236,51 @@ export default function PublicQuotation() {
               className="w-full bg-[#1DB5A8] hover:bg-[#17a396] disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl text-lg transition-colors">
               {approving ? "Aprobando..." : "✅ Aprobar Cotización"}
             </button>
+          </div>
+        )}
+
+        {/* ── BOTÓN DE RECHAZO — solo si está pendiente ── */}
+        {!isClosed && data.status === "sent" && !approved && (
+          <div className="text-center">
+            <p className="text-gray-600 text-xs mb-2">¿No deseas continuar con esta cotización?</p>
+            <button
+              onClick={() => setShowRejectDialog(true)}
+              className="text-red-400/70 hover:text-red-400 text-sm underline transition-colors"
+            >
+              ❌ No me interesa por ahora
+            </button>
+          </div>
+        )}
+
+        {/* Diálogo de rechazo */}
+        {showRejectDialog && (
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-4">
+            <div className="bg-[#0f2424] border border-red-500/30 rounded-xl p-6 w-full max-w-md space-y-4">
+              <h3 className="text-white font-semibold text-lg">¿Confirmar rechazo?</h3>
+              <p className="text-gray-400 text-sm">Nos ayuda saber el motivo para mejorar nuestro servicio.</p>
+              <textarea
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                placeholder="Motivo (opcional)..."
+                rows={3}
+                className="w-full bg-[#0a1a1a] border border-red-500/20 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-red-500/50 resize-none"
+              />
+              <div className="flex gap-3">
+                <button
+                  onClick={() => { setShowRejectDialog(false); setRejecting(false); }}
+                  className="flex-1 border border-white/20 text-gray-300 hover:bg-white/5 font-medium py-3 rounded-xl transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleReject}
+                  disabled={rejecting}
+                  className="flex-1 bg-red-700 hover:bg-red-800 disabled:opacity-60 text-white font-bold py-3 rounded-xl transition-colors"
+                >
+                  {rejecting ? "Enviando..." : "Confirmar rechazo"}
+                </button>
+              </div>
+            </div>
           </div>
         )}
 

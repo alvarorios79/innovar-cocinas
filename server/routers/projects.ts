@@ -173,7 +173,12 @@ export const projectsRouter = router({
         }));
       }),
 
-    listPaginated: protectedProcedure
+    getCounts: protectedProcedure
+      .query(async () => {
+        return await db.getProjectTabCounts();
+      }),
+
+        listPaginated: protectedProcedure
       .input(z.object({
         page: z.number().min(1).optional().default(1),
         limit: z.number().min(1).max(100).optional().default(50),

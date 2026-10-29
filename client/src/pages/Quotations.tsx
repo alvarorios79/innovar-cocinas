@@ -468,8 +468,8 @@ export default function Quotations() {
     if (!av) return 'pendientes';
     // Rechazadas — antes que isArchived
     if (av.status === 'rejected') return 'rechazadas';
-    // Completadas — prioridad sobre isArchived (proyectos entregados archivados manualmente)
-    if (av.status === 'approved' && group.projectStatus === 'entregado') return 'completadas';
+    // Completadas — prioridad sobre isArchived: entregado O incluido en cierre contable
+    if (av.status === 'approved' && (group.projectStatus === 'entregado' || !!group.projectAccountingClosureId)) return 'completadas';
     // Activas — aprobadas con proyecto en curso
     if (av.status === 'approved') return 'activas';
     // isArchived=1 — descartadas manualmente (después de verificar approved)

@@ -1760,6 +1760,7 @@ export async function getAllQuotationsGroupedByBase(options?: { page?: number; l
           const proj = projectsForVersions[0];
           group.projectId = proj.id;
           group.projectStatus = proj.status;
+          group.projectAccountingClosureId = (proj as any).accountingClosureId || null;
           // quotationId del proyecto = versión vigente que define el precio
           group.activeProjectQuotationId = proj.quotationId;
         }

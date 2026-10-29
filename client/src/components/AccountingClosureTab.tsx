@@ -16,6 +16,7 @@ import {
   Loader2,
   RotateCcw,
   Download,
+  FileText,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -428,29 +429,52 @@ export function AccountingClosureTab() {
                     )}
 
                     {closure.status === "confirmed" && (
-                      <div className="bg-green-500/10 border border-green-500/25 p-4 rounded-lg flex items-center justify-between gap-4">
-                        <p className="text-sm text-green-300">✅ Este cierre ha sido confirmado y no puede ser modificado.</p>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="border-teal-500 text-teal-400 hover:bg-teal-500/10 shrink-0"
-                          onClick={async () => {
-                            try {
-                              const result = await trpc.accountingClosures.generatePDF.query({ closureId: closure.id });
-                              const win = window.open("", "_blank");
-                              if (win) {
-                                win.document.write(result.html);
-                                win.document.close();
-                                setTimeout(() => win.print(), 800);
+                      <div className="bg-green-500/10 border border-green-500/25 p-4 rounded-lg">
+                        <p className="text-sm text-green-300 mb-3">✅ Este cierre ha sido confirmado y no puede ser modificado.</p>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-teal-500 text-teal-400 hover:bg-teal-500/10"
+                            onClick={async () => {
+                              try {
+                                const result = await trpc.accountingClosures.downloadPDF.query({ closureId: closure.id });
+                                const bytes = Uint8Array.from(atob(result.base64), c => c.charCodeAt(0));
+                                const blob = new Blob([bytes], { type: result.mimeType });
+                                const link = document.createElement("a");
+                                link.href = URL.createObjectURL(blob);
+                                link.download = result.filename;
+                                link.click();
+                              } catch (err) {
+                                toast.error("Error al generar PDF");
                               }
-                            } catch (err) {
-                              toast.error("Error al generar PDF");
-                            }
-                          }}
-                        >
-                          <Download className="h-4 w-4 mr-2" />
-                          Descargar PDF
-                        </Button>
+                            }}
+                          >
+                            <Download className="h-4 w-4 mr-2" />
+                            Descargar PDF
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-blue-500 text-blue-400 hover:bg-blue-500/10"
+                            onClick={async () => {
+                              try {
+                                const result = await trpc.accountingClosures.downloadWord.query({ closureId: closure.id });
+                                const bytes = Uint8Array.from(atob(result.base64), c => c.charCodeAt(0));
+                                const blob = new Blob([bytes], { type: result.mimeType });
+                                const link = document.createElement("a");
+                                link.href = URL.createObjectURL(blob);
+                                link.download = result.filename;
+                                link.click();
+                              } catch (err) {
+                                toast.error("Error al generar Word");
+                              }
+                            }}
+                          >
+                            <FileText className="h-4 w-4 mr-2" />
+                            Descargar Word
+                          </Button>
+                        </div>
                       </div>
                     )}
                   </CardContent>

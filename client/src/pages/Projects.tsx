@@ -206,7 +206,7 @@ export default function Projects() {
   const [archiveTab, setArchiveTab] = useState<'active' | 'archived' | 'closed'>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('projectsArchiveTab');
-      return (saved === 'archived' || saved === 'active') ? saved : 'active';
+      return (saved === 'archived' || saved === 'active' || saved === 'closed') ? saved as 'active' | 'archived' | 'closed' : 'active';
     }
     return 'active';
   });

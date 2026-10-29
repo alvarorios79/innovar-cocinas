@@ -23,7 +23,6 @@ interface QuotationGroupCardProps {
     activeProjectQuotationId?: number | null;
   };
   client: any;
-  archiveTab: 'active' | 'archived';
   onEdit: (quotation: any) => void;
   onViewPDF: (quotation: any) => void;
   onSend: (quotation: any) => void;
@@ -32,13 +31,11 @@ interface QuotationGroupCardProps {
   onEditPDF?: (quotation: any) => void;
   onToggleLock?: (quotation: any) => void;
   onDelete?: (quotation: any) => void;
-  onArchive?: (quotation: any) => void;
 }
 
 export function QuotationGroupCard({
   group,
   client,
-  archiveTab,
   onEdit,
   onViewPDF,
   onSend,
@@ -47,7 +44,6 @@ export function QuotationGroupCard({
   onEditPDF,
   onToggleLock,
   onDelete,
-  onArchive,
 }: QuotationGroupCardProps) {
   const utils = trpc.useUtils();
   const [selectedVersionId, setSelectedVersionId] = useState(group.activeVersion.id);
@@ -494,40 +490,6 @@ export function QuotationGroupCard({
               <Lock className="w-3 h-3" />
               <span className="hidden sm:inline">{isLocked ? "Bloq" : "Bloquear"}</span>
             </Button>
-          )}
-
-          {isActiveVersion && (
-            archiveTab === "archived" ? (
-              <Button
-                size="sm"
-                variant="outline"
-                className="text-xs py-1 px-2 h-7 gap-1"
-                onClick={() => {
-                  unarchiveQuotation.mutate({ quotationId: group.activeVersion.id });
-                  if (onArchive) onArchive(group.activeVersion);
-                }}
-                disabled={unarchiveQuotation.isPending}
-                title="Restaurar cotización"
-              >
-                <Archive className="w-3 h-3" />
-                <span className="hidden sm:inline">Restaurar</span>
-              </Button>
-            ) : (
-              <Button
-                size="sm"
-                variant="destructive"
-                className="text-xs py-1 px-2 h-7 gap-1"
-                onClick={() => {
-                  archiveQuotation.mutate({ quotationId: group.activeVersion.id });
-                  if (onArchive) onArchive(group.activeVersion);
-                }}
-                disabled={archiveQuotation.isPending}
-                title="Archivar cotización"
-              >
-                <Archive className="w-3 h-3" />
-                <span className="hidden sm:inline">Archivar</span>
-              </Button>
-            )
           )}
 
           {isActiveVersion && onDelete && (

@@ -1763,27 +1763,30 @@ export async function getAllQuotationsGroupedByBase(options?: { page?: number; l
           group.projectAccountingClosureId = proj.accountingClosureId || null;
           // quotationId del proyecto = versión vigente que define el precio
           group.activeProjectQuotationId = proj.quotationId;
-        } else if (group.client?.id) {
+        } else {
           // Fallback: buscar proyecto por clientId cuando quotationId es null o no coincide
-          // Necesario para proyectos creados sin vincular cotización explícita
-          const projectsByClient = await db_instance.select()
-            .from(projects)
-            .where(
-              and(
-                eq(projects.clientId, group.client.id),
-                isNull(projects.deletedAt),
-                isNotNull(projects.accountingClosureId)
+          // Usamos clientId de la cotización activa del grupo
+          const groupClientId = group.activeVersion?.clientId;
+          if (groupClientId) {
+            const projectsByClient = await db_instance.select()
+              .from(projects)
+              .where(
+                and(
+                  eq(projects.clientId, groupClientId),
+                  isNull(projects.deletedAt),
+                  isNotNull(projects.accountingClosureId)
+                )
               )
-            )
-            .orderBy(desc(projects.createdAt))
-            .limit(1);
-          if (projectsByClient.length > 0) {
-            const proj = projectsByClient[0];
-            group.hasProject = true;
-            group.projectId = proj.id;
-            group.projectStatus = proj.status;
-            group.projectAccountingClosureId = proj.accountingClosureId || null;
-            group.activeProjectQuotationId = proj.quotationId;
+              .orderBy(desc(projects.createdAt))
+              .limit(1);
+            if (projectsByClient.length > 0) {
+              const proj = projectsByClient[0];
+              group.hasProject = true;
+              group.projectId = proj.id;
+              group.projectStatus = proj.status;
+              group.projectAccountingClosureId = proj.accountingClosureId || null;
+              group.activeProjectQuotationId = proj.quotationId;
+            }
           }
         }
       }

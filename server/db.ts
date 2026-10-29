@@ -1760,9 +1760,31 @@ export async function getAllQuotationsGroupedByBase(options?: { page?: number; l
           const proj = projectsForVersions[0];
           group.projectId = proj.id;
           group.projectStatus = proj.status;
-          group.projectAccountingClosureId = (proj as any).accountingClosureId || null;
+          group.projectAccountingClosureId = proj.accountingClosureId || null;
           // quotationId del proyecto = versión vigente que define el precio
           group.activeProjectQuotationId = proj.quotationId;
+        } else if (group.client?.id) {
+          // Fallback: buscar proyecto por clientId cuando quotationId es null o no coincide
+          // Necesario para proyectos creados sin vincular cotización explícita
+          const projectsByClient = await db_instance.select()
+            .from(projects)
+            .where(
+              and(
+                eq(projects.clientId, group.client.id),
+                isNull(projects.deletedAt),
+                isNotNull(projects.accountingClosureId)
+              )
+            )
+            .orderBy(desc(projects.createdAt))
+            .limit(1);
+          if (projectsByClient.length > 0) {
+            const proj = projectsByClient[0];
+            group.hasProject = true;
+            group.projectId = proj.id;
+            group.projectStatus = proj.status;
+            group.projectAccountingClosureId = proj.accountingClosureId || null;
+            group.activeProjectQuotationId = proj.quotationId;
+          }
         }
       }
     }

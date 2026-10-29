@@ -440,7 +440,7 @@ export function AccountingClosureTab() {
                               const blob = new Blob([Buffer.from(result.pdf, "base64")], { type: "application/pdf" });
                               const link = document.createElement("a");
                               link.href = URL.createObjectURL(blob);
-                              link.download = result.filename || ;
+                              link.download = result.filename || ("cierre-contable-" + closure.id + ".pdf");
                               link.click();
                             } catch (err) {
                               toast.error("Error al generar PDF");

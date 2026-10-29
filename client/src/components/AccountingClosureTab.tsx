@@ -437,11 +437,12 @@ export function AccountingClosureTab() {
                           onClick={async () => {
                             try {
                               const result = await trpc.accountingClosures.generatePDF.query({ closureId: closure.id });
-                              const blob = new Blob([Buffer.from(result.pdf, "base64")], { type: "application/pdf" });
-                              const link = document.createElement("a");
-                              link.href = URL.createObjectURL(blob);
-                              link.download = result.filename || ("cierre-contable-" + closure.id + ".pdf");
-                              link.click();
+                              const win = window.open("", "_blank");
+                              if (win) {
+                                win.document.write(result.html);
+                                win.document.close();
+                                setTimeout(() => win.print(), 800);
+                              }
                             } catch (err) {
                               toast.error("Error al generar PDF");
                             }

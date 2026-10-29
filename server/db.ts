@@ -1759,6 +1759,7 @@ export async function getAllQuotationsGroupedByBase(options?: { page?: number; l
         if (projectsForVersions.length > 0) {
           const proj = projectsForVersions[0];
           group.projectId = proj.id;
+          group.projectStatus = proj.status;
           // quotationId del proyecto = versión vigente que define el precio
           group.activeProjectQuotationId = proj.quotationId;
         }
@@ -1766,14 +1767,8 @@ export async function getAllQuotationsGroupedByBase(options?: { page?: number; l
     }
   }
 
-  // Aplicar filtro archived DESPUÉS de agrupar, basándose en activeVersion.isArchived
-  // Por defecto, devolver solo cotizaciones activas (no archivadas)
-  if (options?.archived === true) {
-    grouped = grouped.filter(g => g.activeVersion?.isArchived === 1);
-  } else {
-    // Si archived es false o undefined, devolver solo activas
-    grouped = grouped.filter(g => g.activeVersion?.isArchived === 0);
-  }
+  // Mostrar todas las cotizaciones — el frontend agrupa por 5 categorías automáticas
+  // (sin filtrar por isArchived: las archivadas aparecen en "Sin respuesta")
 
   const total = grouped.length;
   

@@ -1749,45 +1749,78 @@ export async function getAllQuotationsGroupedByBase(options?: { page?: number; l
   // La relacion esta en projects.quotationId, no en quotations.projectId
   const db_instance = await getDb();
   if (db_instance) {
+    // ── PRE-QUERY BULK: evitar N+1 queries y manejar correctamente cierre contable ──
+    // 1. Obtener TODOS los proyectos no borrados con quotationId definido
+    const allProjects = await db_instance.select({
+      id: projects.id,
+      quotationId: projects.quotationId,
+      status: projects.status,
+      accountingClosureId: projects.accountingClosureId,
+    }).from(projects).where(isNull(projects.deletedAt));
+
+    // 2. Construir mapa: quotationId → proyecto (para lookup O(1))
+    const projectByQuotationId = new Map<number, typeof allProjects[0]>();
+    for (const p of allProjects) {
+      if (p.quotationId !== null && !projectByQuotationId.has(p.quotationId)) {
+        projectByQuotationId.set(p.quotationId, p);
+      }
+    }
+
+    // 3. Para el cierre contable: obtener también cotizaciones BORRADAS que estén
+    //    vinculadas a proyectos en cierre (la cotización puede haberse borrado pero
+    //    el proyecto sigue en el cierre). Esto permite cruzar por número base.
+    const closureProjectsWithNullOrDeletedQuot = allProjects.filter(
+      p => p.accountingClosureId !== null
+    );
+    // Recopilar los quotationIds de proyectos en cierre que NO están ya en el mapa
+    // (si están en el mapa, ya serán encontrados por el path normal)
+    const quotIdsToLookup = closureProjectsWithNullOrDeletedQuot
+      .filter(p => p.quotationId !== null)
+      .map(p => p.quotationId!);
+    
+    // Mapa adicional: número base de cotización → proyecto en cierre
+    // Incluye cotizaciones borradas para no perder el vínculo
+    const closureByBaseNumber = new Map<string, typeof allProjects[0]>();
+    if (quotIdsToLookup.length > 0) {
+      const quotsForClosure = await db_instance.select({
+        id: quotations.id,
+        quotationNumber: quotations.quotationNumber,
+      }).from(quotations).where(inArray(quotations.id, quotIdsToLookup));
+      
+      for (const q of quotsForClosure) {
+        const base = q.quotationNumber?.replace(/-v\d+$/, '') ?? '';
+        const proj = closureProjectsWithNullOrDeletedQuot.find(p => p.quotationId === q.id);
+        if (proj && !closureByBaseNumber.has(base)) {
+          closureByBaseNumber.set(base, proj);
+        }
+      }
+    }
+
+    // 4. Aplicar a cada grupo
     for (const group of grouped) {
-      if (group.versionIds && group.versionIds.length > 0) {
-        const projectsForVersions = await db_instance.select()
-          .from(projects)
-          .where(inArray(projects.quotationId, group.versionIds));
-        
-        group.hasProject = projectsForVersions.length > 0;
-        if (projectsForVersions.length > 0) {
-          const proj = projectsForVersions[0];
-          group.projectId = proj.id;
-          group.projectStatus = proj.status;
-          group.projectAccountingClosureId = proj.accountingClosureId || null;
-          // quotationId del proyecto = versión vigente que define el precio
-          group.activeProjectQuotationId = proj.quotationId;
-        } else {
-          // Fallback: buscar proyecto por clientId cuando quotationId es null o no coincide
-          // Usamos clientId de la cotización activa del grupo
-          const groupClientId = group.activeVersion?.clientId;
-          if (groupClientId) {
-            const projectsByClient = await db_instance.select()
-              .from(projects)
-              .where(
-                and(
-                  eq(projects.clientId, groupClientId),
-                  isNull(projects.deletedAt),
-                  isNotNull(projects.accountingClosureId)
-                )
-              )
-              .orderBy(desc(projects.createdAt))
-              .limit(1);
-            if (projectsByClient.length > 0) {
-              const proj = projectsByClient[0];
-              group.hasProject = true;
-              group.projectId = proj.id;
-              group.projectStatus = proj.status;
-              group.projectAccountingClosureId = proj.accountingClosureId || null;
-              group.activeProjectQuotationId = proj.quotationId;
-            }
-          }
+      // Buscar proyecto por cualquiera de los versionIds del grupo
+      let foundProj: typeof allProjects[0] | undefined;
+      for (const vId of (group.versionIds ?? [])) {
+        const p = projectByQuotationId.get(vId);
+        if (p) { foundProj = p; break; }
+      }
+
+      if (foundProj) {
+        group.hasProject = true;
+        group.projectId = foundProj.id;
+        group.projectStatus = foundProj.status;
+        group.projectAccountingClosureId = foundProj.accountingClosureId || null;
+        group.activeProjectQuotationId = foundProj.quotationId;
+      } else {
+        // Fallback solo para cierre contable: cruzar por número base de cotización
+        // (cubre casos donde la cotización fue borrada pero el proyecto quedó en cierre)
+        const closureProj = closureByBaseNumber.get(group.quotationNumber);
+        if (closureProj) {
+          group.hasProject = true;
+          group.projectId = closureProj.id;
+          group.projectStatus = closureProj.status;
+          group.projectAccountingClosureId = closureProj.accountingClosureId || null;
+          group.activeProjectQuotationId = closureProj.quotationId;
         }
       }
     }

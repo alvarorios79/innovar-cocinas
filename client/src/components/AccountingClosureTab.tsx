@@ -15,6 +15,7 @@ import {
   DollarSign,
   Loader2,
   RotateCcw,
+  Download,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -427,8 +428,28 @@ export function AccountingClosureTab() {
                     )}
 
                     {closure.status === "confirmed" && (
-                      <div className="bg-green-500/10 border border-green-500/25 p-4 rounded-lg">
+                      <div className="bg-green-500/10 border border-green-500/25 p-4 rounded-lg flex items-center justify-between gap-4">
                         <p className="text-sm text-green-300">✅ Este cierre ha sido confirmado y no puede ser modificado.</p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="border-teal-500 text-teal-400 hover:bg-teal-500/10 shrink-0"
+                          onClick={async () => {
+                            try {
+                              const result = await trpc.accountingClosures.generatePDF.query({ closureId: closure.id });
+                              const blob = new Blob([Buffer.from(result.pdf, "base64")], { type: "application/pdf" });
+                              const link = document.createElement("a");
+                              link.href = URL.createObjectURL(blob);
+                              link.download = result.filename || ;
+                              link.click();
+                            } catch (err) {
+                              toast.error("Error al generar PDF");
+                            }
+                          }}
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          Descargar PDF
+                        </Button>
                       </div>
                     )}
                   </CardContent>

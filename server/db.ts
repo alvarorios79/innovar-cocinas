@@ -4536,7 +4536,7 @@ export async function getClosedProjects(filters?: {
  * @param closureId - ID of the closure to revert
  * @param revertedBy - User ID who is reverting the closure
  */
-export async function revertAccountingClosure(closureId: number, revertedBy: number) {
+export async function revertAccountingClosure(closureId: number, revertedBy: number, reason?: string) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   

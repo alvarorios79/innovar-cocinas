@@ -693,6 +693,28 @@ export async function getProjectsByStatus(status: string) {
     .orderBy(desc(projects.createdAt));
 }
 
+export async function getProjectTabCounts() {
+  const db = await getDb();
+  if (!db) return { active: 0, archived: 0, closed: 0 };
+
+  const baseWhere = and(isNull(projects.deletedAt), eq(projects.dataOrigin, 'manual'));
+
+  const [activeRes, archivedRes, closedRes] = await Promise.all([
+    db.select({ count: sql<number>`COUNT(*)` }).from(projects)
+      .where(and(baseWhere, eq(projects.isArchived, 0))),
+    db.select({ count: sql<number>`COUNT(*)` }).from(projects)
+      .where(and(baseWhere, eq(projects.isArchived, 1), isNull(projects.accountingClosureId))),
+    db.select({ count: sql<number>`COUNT(*)` }).from(projects)
+      .where(and(baseWhere, eq(projects.isArchived, 1), isNotNull(projects.accountingClosureId))),
+  ]);
+
+  return {
+    active: Number(activeRes[0]?.count || 0),
+    archived: Number(archivedRes[0]?.count || 0),
+    closed: Number(closedRes[0]?.count || 0),
+  };
+}
+
 export async function getAllProjectsPaginated(options?: { page?: number; limit?: number; status?: string; archived?: boolean; closed?: boolean }) {
   const db = await getDb();
   if (!db) return { data: [], total: 0 };

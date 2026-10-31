@@ -1986,13 +1986,19 @@ export async function getCEOFinancialMetrics() {
         isNull(projects.accountingClosureId)
       ));
 
-    // Gastos operativos (sin proyecto asociado — bodega, etc.)
+    // Gastos operativos NO incluidos en ningún cierre contable
+    // Usamos LEFT JOIN + isNull para simular NOT IN sin necesitar notInArray
     const operationalExpensesResult = await db
       .select({ total: sql<number>`COALESCE(SUM(CAST(expenses.amount AS DECIMAL(12,2))), 0)` })
       .from(expenses)
+      .leftJoin(
+        accountingClosureOperationalExpenses,
+        eq(accountingClosureOperationalExpenses.expenseId, expenses.id)
+      )
       .where(and(
         isNull(expenses.deletedAt),
-        isNull(expenses.projectId)
+        isNull(expenses.projectId),
+        isNull(accountingClosureOperationalExpenses.id) // excluir los absorbidos por un cierre
       ));
 
     const gastos = parseFloat(projectExpensesResult[0]?.total?.toString() || '0')

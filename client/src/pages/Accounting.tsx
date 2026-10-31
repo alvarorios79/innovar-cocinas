@@ -458,7 +458,12 @@ export default function Accounting() {
       filtered = filtered.filter(e => e.projectId === projectIdNum);
     }
 
-    return filtered;
+    // Ordenar por fecha de ingreso (createdAt) más reciente primero
+    return [...filtered].sort((a, b) => {
+      const dateA = new Date(a.createdAt || 0).getTime();
+      const dateB = new Date(b.createdAt || 0).getTime();
+      return dateB - dateA;
+    });
   }, [expenses, filterType, minAmount, maxAmount, filterProjectId]);
 
   // Validar y guardar

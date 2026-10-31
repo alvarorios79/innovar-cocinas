@@ -1972,9 +1972,21 @@ export async function getCEOFinancialMetrics() {
       totalSobrecargas  += balance.totalSurcharges;
     }
 
-    // 3️⃣ GASTOS — Solo de proyectos activos (sin cierre) + gastos operativos (sin proyecto)
-    // Bug fix: excluir gastos de proyectos cerrados (accountingClosureId IS NOT NULL)
-    // Gastos de proyectos activos: JOIN con projects donde accountingClosureId IS NULL
+    // 3️⃣ GASTOS — Opción B: corte por fecha del último cierre confirmado
+    // Todos los gastos (proyectos activos + operativos) se filtran por fecha > periodEnd del último cierre
+    // Cuando Álvaro indique, revertir a Opción A (ver memoria: financiero-gastos-cierre.md)
+
+    // Obtener fecha de corte: periodEnd del último cierre confirmado
+    const lastClosureResult = await db
+      .select({ periodEnd: accountingClosures.periodEnd })
+      .from(accountingClosures)
+      .where(eq(accountingClosures.status, 'confirmed'))
+      .orderBy(desc(accountingClosures.confirmedAt))
+      .limit(1);
+
+    const cutoffDate = lastClosureResult[0]?.periodEnd || null;
+
+    // Gastos de proyectos activos (sin cierre), solo DESPUÉS del corte
     const projectExpensesResult = await db
       .select({ total: sql<number>`COALESCE(SUM(CAST(expenses.amount AS DECIMAL(12,2))), 0)` })
       .from(expenses)
@@ -1983,22 +1995,18 @@ export async function getCEOFinancialMetrics() {
         isNull(expenses.deletedAt),
         isNull(projects.deletedAt),
         eq(projects.dataOrigin, 'manual'),
-        isNull(projects.accountingClosureId)
+        isNull(projects.accountingClosureId),
+        cutoffDate ? gte(expenses.expenseDate, cutoffDate) : undefined
       ));
 
-    // Gastos operativos NO incluidos en ningún cierre contable
-    // Usamos LEFT JOIN + isNull para simular NOT IN sin necesitar notInArray
+    // Gastos operativos (sin proyecto), solo DESPUÉS del corte
     const operationalExpensesResult = await db
       .select({ total: sql<number>`COALESCE(SUM(CAST(expenses.amount AS DECIMAL(12,2))), 0)` })
       .from(expenses)
-      .leftJoin(
-        accountingClosureOperationalExpenses,
-        eq(accountingClosureOperationalExpenses.expenseId, expenses.id)
-      )
       .where(and(
         isNull(expenses.deletedAt),
         isNull(expenses.projectId),
-        isNull(accountingClosureOperationalExpenses.id) // excluir los absorbidos por un cierre
+        cutoffDate ? gte(expenses.expenseDate, cutoffDate) : undefined
       ));
 
     const gastos = parseFloat(projectExpensesResult[0]?.total?.toString() || '0')

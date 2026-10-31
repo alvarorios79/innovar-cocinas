@@ -286,7 +286,7 @@ export default function Quotations() {
   const [filterAmountMin, setFilterAmountMin] = useState<string>("");
   const [filterAmountMax, setFilterAmountMax] = useState<string>("");
   const [filterHasProject, setFilterHasProject] = useState<string>("all"); // all | yes | no
-  const [activeGroup, setActiveGroup] = useState<"activas" | "pendientes" | "completadas" | "rechazadas" | "sin_respuesta">("activas");
+  const [activeGroup, setActiveGroup] = useState<"activas" | "pendientes" | "completadas" | "rechazadas" | "sin_respuesta" | "cerradas">("activas");
   const [showFilters, setShowFilters] = useState(false);
   const [modulosOpenSet, setModulosOpenSet] = useState<Set<number>>(new Set());
   
@@ -463,13 +463,13 @@ export default function Quotations() {
     filterHasProject !== "all";
 
   // Clasificación automática en 5 grupos
-  const getQuotationGroup = (group: any): 'pendientes' | 'sin_respuesta' | 'rechazadas' | 'activas' | 'completadas' => {
+  const getQuotationGroup = (group: any): 'pendientes' | 'sin_respuesta' | 'rechazadas' | 'activas' | 'completadas' | 'cerradas' => {
     const av = group.activeVersion;
     if (!av) return 'pendientes';
     // Rechazadas — antes que isArchived
     if (av.status === 'rejected') return 'rechazadas';
-    // Completadas — proyecto en cierre contable confirmado (sin importar status de cotización)
-    if (!!group.projectAccountingClosureId) return 'completadas';
+    // Cerradas — proyecto en cierre contable confirmado
+    if (!!group.projectAccountingClosureId) return 'cerradas';
     // Completadas — aprobada y proyecto entregado
     if (av.status === 'approved' && group.projectStatus === 'entregado') return 'completadas';
     // Activas — aprobadas con proyecto en curso
@@ -489,6 +489,7 @@ export default function Quotations() {
     rechazadas: filteredQuotations.filter((g: any) => getQuotationGroup(g) === 'rechazadas'),
     activas: filteredQuotations.filter((g: any) => getQuotationGroup(g) === 'activas'),
     completadas: filteredQuotations.filter((g: any) => getQuotationGroup(g) === 'completadas'),
+    cerradas: filteredQuotations.filter((g: any) => getQuotationGroup(g) === 'cerradas'),
   };
 
   const createQuotation = trpc.quotations.create.useMutation({
@@ -2323,6 +2324,7 @@ export default function Quotations() {
               { key: 'pendientes',    label: 'Pendientes',     dot: 'bg-blue-400'  },
               { key: 'completadas',   label: 'Completadas',    dot: 'bg-green-400' },
               { key: 'rechazadas',    label: 'Rechazadas',     dot: 'bg-red-400'   },
+              { key: 'cerradas',      label: 'Cerradas',       dot: 'bg-purple-400'},
               { key: 'sin_respuesta', label: 'Sin respuesta',  dot: 'bg-gray-400'  },
             ] as const).map(({ key, label, dot }) => {
               const count = groupedQuotations[key].length;

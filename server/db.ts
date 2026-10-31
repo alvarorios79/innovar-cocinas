@@ -1972,13 +1972,31 @@ export async function getCEOFinancialMetrics() {
       totalSobrecargas  += balance.totalSurcharges;
     }
 
-    // 3️⃣ GASTOS — Bug 3 fix: filtrar gastos eliminados (isNull(expenses.deletedAt))
-    const expensesResult = await db
-      .select({ total: sql<number>`SUM(CAST(expenses.amount AS DECIMAL(12,2)))` })
+    // 3️⃣ GASTOS — Solo de proyectos activos (sin cierre) + gastos operativos (sin proyecto)
+    // Bug fix: excluir gastos de proyectos cerrados (accountingClosureId IS NOT NULL)
+    // Gastos de proyectos activos: JOIN con projects donde accountingClosureId IS NULL
+    const projectExpensesResult = await db
+      .select({ total: sql<number>`COALESCE(SUM(CAST(expenses.amount AS DECIMAL(12,2))), 0)` })
       .from(expenses)
-      .where(isNull(expenses.deletedAt));
+      .innerJoin(projects, eq(expenses.projectId, projects.id))
+      .where(and(
+        isNull(expenses.deletedAt),
+        isNull(projects.deletedAt),
+        eq(projects.dataOrigin, 'manual'),
+        isNull(projects.accountingClosureId)
+      ));
 
-    const gastos = parseFloat(expensesResult[0]?.total?.toString() || '0');
+    // Gastos operativos (sin proyecto asociado — bodega, etc.)
+    const operationalExpensesResult = await db
+      .select({ total: sql<number>`COALESCE(SUM(CAST(expenses.amount AS DECIMAL(12,2))), 0)` })
+      .from(expenses)
+      .where(and(
+        isNull(expenses.deletedAt),
+        isNull(expenses.projectId)
+      ));
+
+    const gastos = parseFloat(projectExpensesResult[0]?.total?.toString() || '0')
+                 + parseFloat(operationalExpensesResult[0]?.total?.toString() || '0');
 
     // 4️⃣ Métricas derivadas
     const porCobrar    = totalVendido - ingresosRecibidos;

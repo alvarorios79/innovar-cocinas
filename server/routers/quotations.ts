@@ -125,13 +125,13 @@ export const quotationsRouter = router({
             const drizzleDb = await db.getDb();
             if (drizzleDb) {
               const { technicalVisits: tvTable } = await import("../../drizzle/schema");
-              const { eq, and: andOp } = await import("drizzle-orm");
+              const { eq, and: andOp, inArray } = await import("drizzle-orm");
               const nowTs = new Date().toISOString().replace('T', ' ').replace('Z', '');
               await drizzleDb.update(tvTable)
                 .set({ quotationId: quotationId, status: 'cot_hecha' as any, updatedAt: nowTs })
                 .where(andOp(
                   eq(tvTable.id, input.technicalVisitId),
-                  eq(tvTable.status, 'enviada' as any)
+                  inArray(tvTable.status, ['borrador', 'enviada'] as any)
                 ));
             }
           } catch (tvErr) {
@@ -2861,13 +2861,13 @@ export const quotationsRouter = router({
             const drizzleDb2 = await db.getDb();
             if (drizzleDb2) {
               const { technicalVisits: tvTable2 } = await import("../../drizzle/schema");
-              const { eq: eq2, and: and2, isNull: isNull2 } = await import("drizzle-orm");
+              const { eq: eq2, and: and2, isNull: isNull2, inArray: inArray2 } = await import("drizzle-orm");
               const nowTs2 = new Date().toISOString().replace('T', ' ').replace('Z', '');
               await drizzleDb2.update(tvTable2)
                 .set({ status: 'cot_enviada' as any, updatedAt: nowTs2 })
                 .where(and2(
                   eq2(tvTable2.quotationId, input.id),
-                  eq2(tvTable2.status, 'cot_hecha' as any),
+                  inArray2(tvTable2.status, ['borrador', 'enviada', 'cot_hecha'] as any),
                   isNull2(tvTable2.deletedAt)
                 ));
             }

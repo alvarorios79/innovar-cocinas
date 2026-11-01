@@ -80,6 +80,8 @@ body {
   touch-action: manipulation; -webkit-user-select: none; user-select: none;
 }
 .pm-btn:hover, .pm-btn:active { background: var(--accent-soft); }
+.pm-btn:disabled { opacity: .45; cursor: default; background: transparent; }
+.pm-btn.pm-lock { font-weight: 600; }
 .pm-btn.pm-danger { color: var(--danger); }
 #pm-sep { height: 1px; background: var(--line); margin: 3px 0; }
 #pm-confirm { padding: 6px 4px 2px; }
@@ -105,81 +107,176 @@ body {
   font-family: var(--font-ui); font-weight: 600; outline: none; -webkit-user-select: text; user-select: text;
 }
 #txt.m { font-family: var(--font-num); text-align: center; transform: translate(-50%, -50%); width: 120px; }
+#toastPz { position: absolute; z-index: 6; bottom: 12px; left: 50%; transform: translateX(-50%); max-width: calc(100% - 24px); padding: 10px 16px; border-radius: 12px; background: #111827; color: #fff; font: 500 14px var(--font-ui); box-shadow: 0 4px 16px rgba(0,0,0,.3); text-align: center; pointer-events: none; }
+#toastPz[hidden] { display: none; }
+#toastPz.err { background: #b3261e; }
+#pickBar { position: absolute; z-index: 4; top: 8px; left: 50%; transform: translateX(-50%); display: flex; flex-wrap: wrap; align-items: center; gap: 8px; justify-content: center; max-width: calc(100% - 16px); padding: 8px 10px; border-radius: 12px; background: var(--panel); border: 1px solid var(--accent); box-shadow: 0 4px 16px rgba(0,0,0,.2); font-size: 13px; color: var(--fg); }
+#pickBar[hidden] { display: none; }
 #hint { font-size: 13px; color: var(--muted); min-height: 1.35em; }
-@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
 
-@media (max-width: 768px) { #verBadge { display: none !important; } }
+/* ── v9.7: barra compacta estilo GoodNotes ───────────────────────────────── */
+body { gap: 6px; padding-block: 6px; }
+.bar.topbar {
+  flex-wrap: nowrap; gap: 4px; min-height: 52px; padding: 4px 8px; border: 1px solid var(--line);
+  border-radius: 14px; background: var(--panel); overflow-x: auto; overflow-y: hidden;
+  scrollbar-width: none; -webkit-overflow-scrolling: touch; flex: 0 0 auto;
+}
+.bar.topbar::-webkit-scrollbar { display: none; }
+.bar.topbar > * { flex: 0 0 auto; }
+.bar.topbar .grp { flex-wrap: nowrap; gap: 2px; }
+.bar.topbar .spacer { flex: 1 0 8px; }
+.vsep { width: 1px; height: 28px; background: var(--line); margin: 0 6px; align-self: center; }
+.ib {
+  width: 44px; min-height: 44px; height: 44px; padding: 0; display: inline-grid; place-items: center;
+  border: 1px solid transparent; background: transparent; border-radius: 10px; color: var(--fg); cursor: pointer;
+  touch-action: manipulation;
+}
+.ib svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+.ib:hover:not(:disabled) { background: var(--accent-soft); border-color: transparent; }
+.ib[aria-pressed="true"], .ib[aria-expanded="true"] { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+.ib:disabled { opacity: .35; cursor: default; }
+.ib.danger { color: var(--danger); border-color: transparent; }
+.tbtn { height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--fg); font: 500 14px var(--font-ui); cursor: pointer; touch-action: manipulation; white-space: nowrap; }
+.tbtn.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+.tbtn[hidden] { display: none; }
+#styleBtn { width: auto; min-width: 60px; padding: 0 8px; grid-auto-flow: column; gap: 6px; }
+#styleDot { width: 22px; height: 22px; border-radius: 50%; background: var(--c, #111827); box-shadow: 0 0 0 1px var(--line); }
+#styleSz { font: 600 12px var(--font-num); color: var(--muted); min-width: 2ch; }
+.pop {
+  position: fixed; z-index: 190; background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+  box-shadow: 0 8px 28px rgba(0,0,0,.28); padding: 10px; display: none; max-width: calc(100vw - 16px);
+  max-height: calc(100vh - 80px); overflow: auto;
+}
+.pop.open { display: block; }
+.pop .row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 4px 0; }
+.pop .ttl { font: 600 12px var(--font-ui); color: var(--muted); text-transform: uppercase; letter-spacing: .4px; margin: 8px 2px 2px; }
+.pop .ttl:first-child { margin-top: 0; }
+#morePop { width: min(340px, calc(100vw - 16px)); font-size: 13px; color: var(--muted); }
+#morePop label { display: flex; align-items: center; gap: 8px; width: 100%; }
+#morePop label.inline { width: auto; }
+#morePop input[type="text"] { flex: 1; min-width: 0; width: auto; }
+#morePop input#who { width: auto; }
+#morePop select, #morePop input[type="number"] { height: 36px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--fg); font: 500 14px var(--font-num); padding: 0 8px; }
+#morePop #pdfArea { width: 100%; font-family: var(--font-ui); }
+#morePop #gridModeBtn { font-size: 13px; padding: 0 8px; }
+#morePop input[type="text"] { height: 36px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--fg); font: 500 14px var(--font-ui); padding: 0 10px; -webkit-user-select: text; user-select: text; }
+.zoombar {
+  position: absolute; z-index: 5; right: 10px; bottom: 10px; display: flex; align-items: center; gap: 2px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 3px; box-shadow: 0 2px 10px rgba(0,0,0,.15);
+}
+.zoombar .ib { width: 40px; height: 40px; min-height: 40px; font: 600 20px var(--font-ui); }
+.zoombar .num { min-width: 3.6em; font-size: 13px; }
+.zoombar .fitb { width: auto; padding: 0 10px; font: 500 13px var(--font-ui); }
+#hint { font-size: 12px; min-height: 1.2em; padding: 0 4px; }
+#board { min-height: 200px; }
+@media (max-width: 900px) { #verBadge, #logoBar { display: none; } .bar.topbar { gap: 4px; } .vsep { margin: 0 2px; } .tbtn { padding: 0 10px; } }
+@media (max-width: 800px) { .ib { width: 40px; } }
+@media (max-width: 560px) { #logoBar { display: none; } .bar.topbar { padding-left: 6px; padding-right: 6px; } }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
 </style>
 
-<header class="bar" role="toolbar" aria-label="Herramientas de la pizarra">
-  <div class="grp" role="group" aria-label="Herramienta">
-    <button class="btn" data-tool="pen" aria-pressed="true">Lápiz</button>
-    <button class="btn" data-tool="line" aria-pressed="false">Recta</button>
-    <button class="btn" data-tool="measure" aria-pressed="false">Medir</button>
-    <button class="btn" data-tool="text" aria-pressed="false">Texto</button>
-    <button class="btn" data-tool="erase" aria-pressed="false">Borrar</button>
-    <button class="btn" data-tool="move" aria-pressed="false">Mover</button>
-    <button class="btn" data-tool="hand" aria-pressed="false">Mano</button>
+<header class="bar topbar" role="toolbar" aria-label="Herramientas de la pizarra">
+  <img id="logoBar" alt="Innovar Cocinas de Diseño" style="height:34px;width:auto;margin:0 6px 0 0;align-self:center">
+  <div class="grp" role="group" aria-label="Edición">
+    <button class="ib" id="undo" disabled aria-label="Deshacer" title="Deshacer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h9a7 7 0 010 14h-3"/></svg></button>
+    <button class="ib" id="redo" disabled aria-label="Rehacer" title="Rehacer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 14l5-5-5-5"/><path d="M20 9h-9a7 7 0 000 14h3"/></svg></button>
   </div>
-  <div class="grp" role="group" aria-label="Color">
+  <span class="vsep"></span>
+  <div class="grp" role="group" aria-label="Herramienta">
+    <button class="ib" data-tool="pen" aria-pressed="true" aria-label="Lápiz" title="Lápiz"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg></button>
+    <button class="ib" data-tool="line" aria-pressed="false" aria-label="Recta" title="Recta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19L19 5"/><circle cx="5" cy="19" r="1.5"/><circle cx="19" cy="5" r="1.5"/></svg></button>
+    <button class="ib" data-tool="measure" aria-pressed="false" aria-label="Medir" title="Medir"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 15l12-12 6 6L9 21z"/><path d="M7 11l2 2M10 8l2 2M13 5l2 2"/></svg></button>
+    <button class="ib" data-tool="text" aria-pressed="false" aria-label="Texto" title="Texto"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6V4h14v2"/><path d="M12 4v16"/><path d="M9 20h6"/></svg></button>
+    <button class="ib" data-tool="erase" aria-pressed="false" aria-label="Borrar" title="Borrar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 20H9L3.5 14.5a2 2 0 010-2.8L12 3.2a2 2 0 012.8 0l5.5 5.5a2 2 0 010 2.8L13 19"/><path d="M8 8l8 8"/></svg></button>
+    <button class="ib" data-tool="move" aria-pressed="false" aria-label="Mover" title="Mover"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20M2 12h20"/><path d="M9 5l3-3 3 3M9 19l3 3 3-3M5 9l-3 3 3 3M19 9l3 3-3 3"/></svg></button>
+    <button class="ib" data-tool="hand" aria-pressed="false" aria-label="Mano" title="Mano (mover la hoja)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 13V5a1.5 1.5 0 013 0v6"/><path d="M11 11V3.5a1.5 1.5 0 013 0V11"/><path d="M14 11V5.5a1.5 1.5 0 013 0V14"/><path d="M17 9.5a1.5 1.5 0 013 0V15a7 7 0 01-7 7h-1a7 7 0 01-5.6-2.8L3 14.5a1.6 1.6 0 012.4-2L8 15"/></svg></button>
+  </div>
+  <span class="vsep"></span>
+  <button class="ib" id="styleBtn" aria-haspopup="true" aria-expanded="false" aria-controls="stylePop" aria-label="Color y grosor" title="Color y grosor">
+    <span id="styleDot"></span><span id="styleSz">3</span>
+  </button>
+  <span class="vsep"></span>
+  <div class="grp" role="group" aria-label="Fotos">
+    <button class="ib" id="shoot" aria-label="Tomar foto" title="Tomar foto"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8a2 2 0 012-2h2l1.5-2h7L17 6h2a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
+    <button class="ib" id="gallery" aria-label="Galería" title="Galería"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-8 9"/></svg></button>
+    <button class="tbtn" id="delSel" hidden style="color:var(--danger);border-color:var(--danger)">Quitar selección</button>
+  </div>
+  <span class="spacer"></span>
+  <span id="verBadge" title="Versión de la pizarra" style="font:900 15px var(--font-num);color:var(--fg);padding:0 8px;letter-spacing:.3px"></span>
+  <button class="tbtn primary" id="exportPdf">Exportar PDF</button>
+  <button class="ib" id="moreBtn" aria-haspopup="true" aria-expanded="false" aria-controls="morePop" aria-label="Más opciones" title="Más opciones: cliente, escala, cuadrícula, PDF"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></svg></button>
+</header>
+
+<div id="stylePop" class="pop" role="dialog" aria-label="Color y grosor">
+  <div class="ttl">Color</div>
+  <div class="row" role="group" aria-label="Color">
     <button class="sw" data-color="#111827" style="--c:#111827" aria-label="Negro" aria-pressed="true"><i></i></button>
     <button class="sw" data-color="#d92d20" style="--c:#d92d20" aria-label="Rojo" aria-pressed="false"><i></i></button>
     <button class="sw" data-color="#1769d1" style="--c:#1769d1" aria-label="Azul" aria-pressed="false"><i></i></button>
     <button class="sw" data-color="#12805c" style="--c:#12805c" aria-label="Verde" aria-pressed="false"><i></i></button>
     <button class="sw" data-color="#b54708" style="--c:#b54708" aria-label="Naranja" aria-pressed="false"><i></i></button>
   </div>
-  <div class="grp" role="group" aria-label="Grosor">
+  <div class="ttl">Grosor</div>
+  <div class="row" role="group" aria-label="Grosor">
     <button class="btn sz" data-sz="1"  aria-label="1 px"  aria-pressed="false"><i style="width:2px;height:2px"></i></button>
     <button class="btn sz" data-sz="3"  aria-label="3 px"  aria-pressed="true" ><i style="width:5px;height:5px"></i></button>
     <button class="btn sz" data-sz="6"  aria-label="6 px"  aria-pressed="false"><i style="width:9px;height:9px"></i></button>
     <button class="btn sz" data-sz="12" aria-label="12 px" aria-pressed="false"><i style="width:14px;height:14px"></i></button>
     <button class="btn sz" data-sz="20" aria-label="20 px" aria-pressed="false"><i style="width:20px;height:20px"></i></button>
-    <input type="range" id="szSlider" class="sz-slider" min="0.5" max="24" step="0.5" value="3" aria-label="Grosor exacto">
+  </div>
+  <div class="row">
+    <input type="range" id="szSlider" class="sz-slider" min="0.5" max="24" step="0.5" value="3" aria-label="Grosor exacto" style="flex:1;width:auto;min-width:160px">
     <span id="szLbl">3</span>
   </div>
-  <div class="grp" role="group" aria-label="Fotos">
-    <button class="btn" id="shoot">Tomar foto</button>
-    <button class="btn" id="gallery">Galería</button>
-    <button class="btn danger" id="delSel" hidden>Quitar selección</button>
-  </div>
-  <div class="grp end" role="group" aria-label="Edición">
-    <span id="verBadge" title="Versión de la pizarra" style="font:900 20px var(--font-num);color:var(--text,#1c2b36);padding:0 8px;letter-spacing:.3px"></span>
-    <button class="btn primary" id="exportPdf">Exportar PDF</button>
-    <button class="btn" id="undo" disabled>Deshacer</button>
-    <button class="btn" id="redo" disabled>Rehacer</button>
-    <button class="btn danger" id="clear">Limpiar</button>
-  </div>
-</header>
+</div>
 
-<div class="scalebar">
+<div id="morePop" class="pop" role="dialog" aria-label="Más opciones">
+  <div class="ttl">Trabajo</div>
   <label for="job">Cliente / trabajo <input id="job" type="text" maxlength="80" placeholder="Ej. Casa Pérez, cocina" autocomplete="off"></label>
   <label for="who">Medidor <input id="who" type="text" maxlength="60" placeholder="Nombre" autocomplete="off"></label>
-</div>
-<div class="scalebar">
-  <label for="cell">1 cuadro =
-    <input id="cell" type="number" inputmode="decimal" min="0.01" step="0.05" value="0.5">
-    <select id="unit" aria-label="Unidad"><option value="m">m</option><option value="cm">cm</option></select>
-  </label>
+  <div class="ttl">Escala</div>
+  <div class="row">
+    <label for="cell" class="inline">1 cuadro =
+      <input id="cell" type="number" inputmode="decimal" min="0.01" step="0.05" value="0.5" style="width:78px">
+      <select id="unit" aria-label="Unidad"><option value="m">m</option><option value="cm">cm</option></select>
+    </label>
+  </div>
+  <label title="Apoya una regla: ajusta hasta que el cuadro mida exactamente 5 mm">Calibrar <input type="range" id="cellPxSlider" min="10" max="60" step="1" value="26" style="flex:1;accent-color:var(--accent)"></label>
+  <div class="ttl">Dibujo</div>
   <label><input type="checkbox" id="snap" checked> Rectas y medidas a la cuadrícula</label>
   <label><input type="checkbox" id="holdOn" checked> Formas perfectas al mantener</label>
   <label><input type="checkbox" id="finger"> Dibujar con el dedo</label>
-  <span class="grow"></span>
-  <button class="btn sm" id="zout" aria-label="Alejar">−</button>
-  <span class="num" id="zoomLbl">100%</span>
-  <button class="btn sm" id="zin" aria-label="Acercar">+</button>
-  <button class="btn sm" id="fit">Ajustar vista</button>
-  <select id="gridModeBtn" title="Visibilidad de la cuadrícula" style="font-size:12px;padding:3px 6px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--fg)">
-    <option value="normal">□ Cuadrícula</option>
-    <option value="dim">▫ Atenuada</option>
-    <option value="hidden">☐ Ocultar</option>
-  </select>
-  <label title="Apoya una regla: ajusta hasta que el cuadro mida exactamente 5 mm" style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--muted)">
-    Calibrar <input type="range" id="cellPxSlider" min="10" max="60" step="1" value="26" style="width:60px;vertical-align:middle;accent-color:var(--accent)">
+  <label>Cuadrícula
+    <select id="gridModeBtn" title="Visibilidad de la cuadrícula">
+      <option value="normal">□ Normal</option>
+      <option value="dim">▫ Atenuada</option>
+      <option value="hidden">☐ Ocultar</option>
+    </select>
   </label>
+  <div class="ttl">PDF</div>
+  <select id="pdfArea" aria-label="Qué parte de la hoja va al PDF" title="Qué parte de la hoja va al PDF">
+    <option value="auto">PDF: automático (donde trabajé)</option>
+    <option value="view">PDF: lo que veo en pantalla</option>
+    <option value="pick">PDF: elegir un área</option>
+  </select>
+  <div class="ttl">Hoja</div>
+  <button class="tbtn" id="clear" style="color:var(--danger);border-color:var(--danger);width:100%">Limpiar la hoja</button>
 </div>
 
 <main id="board">
   <canvas id="cv" aria-label="Hoja de trabajo cuadriculada"></canvas>
+  <div class="zoombar" role="group" aria-label="Zoom">
+    <button class="ib" id="zout" aria-label="Alejar">−</button>
+    <span class="num" id="zoomLbl">100%</span>
+    <button class="ib" id="zin" aria-label="Acercar">+</button>
+    <button class="ib fitb" id="fit" title="Ajustar vista">Ajustar</button>
+  </div>
+  <div id="toastPz" hidden role="status"></div>
+  <div id="pickBar" hidden>
+    <span>Arrastra para marcar el área del PDF. Dos dedos mueven y acercan la hoja.</span>
+    <button type="button" class="btn sm primary" id="pickOk">Generar PDF</button>
+    <button type="button" class="btn sm" id="pickCancel">Cancelar</button>
+  </div>
   <input id="txt" type="text" hidden autocomplete="off" autocapitalize="sentences" aria-label="Texto de la anotación">
 </main>
 <div id="hint" role="status"></div>
@@ -187,6 +284,8 @@ body {
 <input type="file" id="fileCam" accept="image/*" capture="environment" hidden>
 <input type="file" id="fileGal" accept="image/*" multiple hidden>
 <div id="photoMenu" hidden role="menu" aria-label="Opciones de foto">
+  <button type="button" class="pm-btn pm-lock" id="pm-lock">🔒 Bloquear foto</button>
+  <div class="pm-sep2" style="height:1px;background:var(--line);margin:3px 0"></div>
   <button type="button" class="pm-btn" id="pm-dup">Duplicar (con anotaciones)</button>
   <button type="button" class="pm-btn" id="pm-dupclean">Duplicar sin anotaciones</button>
   <button type="button" class="pm-btn" id="pm-front">Traer al frente</button>
@@ -239,9 +338,6 @@ const _levantamientoId = _urlParams.get('levantamientoId') || 'default';
 const _jobParam  = _urlParams.get('job')  || '';
 const _whoParam  = _urlParams.get('who')  || '';
 const _dateParam = _urlParams.get('date') || '';
-const VERSION = 'v9.7';
-const EMBEDDED = window.parent !== window;
-const notifyParent = m => { if (EMBEDDED) { try { window.parent.postMessage({ ...m, levantamientoId: _levantamientoId }, '*'); } catch (_) {} } };
 // La clave de almacenamiento es única por levantamiento
 const KEY = 'pizarra-medidor-' + _levantamientoId;
 const IDB_NAME = 'pizarra-medidor-' + _levantamientoId;
@@ -254,6 +350,12 @@ let toolSizes = { pen: 3, line: 1.5, measure: 1.5, erase: 12, text: 3 };
 let cur = null, sel = null, drag = null, nav = null, eraseRing = null, txtState = null, scratchPrev = null;
 let penDown = false, lastPen = 0, dpr = 1, raf = 0, saveT = 0, confirmT = 0;
 let holdOn = true, holdT = 0, holdAnchor = null, holdShape = false;
+let pdfArea = 'auto', lastPick = null, pick = null;
+const VERSION = 'v9.7';
+const LOGO = 'data:image/png;base64,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';
+$('#logoBar').src = LOGO;
+const EMBEDDED = window.parent !== window;
+const notifyParent = m => { if (EMBEDDED) { try { window.parent.postMessage({ ...m, levantamientoId: _levantamientoId }, '*'); } catch (_) {} } };
 let job = _jobParam, who = _whoParam, DL = null, exporting = false, exportNum = null;
 let T = { accent: '#0b62c4', paper: '#fff', minor: '#d6e4f2', major: '#a9c4de', num: 'monospace', ui: 'sans-serif' };
 const ptrs = new Map(), imgs = new Map();
@@ -386,6 +488,16 @@ function drawPhoto(p) {
   else { ctx.fillStyle = '#e5e7eb'; ctx.fillRect(p.x, p.y, p.w, p.h); }
   ctx.strokeStyle = 'rgba(0,0,0,.28)'; ctx.lineWidth = 1 / view.k; ctx.strokeRect(p.x, p.y, p.w, p.h);
 }
+// Candado pequeño en la esquina de una foto bloqueada (solo en pantalla, no sale en el PDF).
+function drawLockBadge(p) {
+  const k = view.k, u = 1 / k, s = 26 * u, x = p.x + 8 * u, y = p.y + 8 * u;
+  ctx.save(); ctx.globalAlpha = 0.92; ctx.fillStyle = '#ffffff'; ctx.strokeStyle = 'rgba(0,0,0,.35)'; ctx.lineWidth = u;
+  pill(x, y, s, s, 7 * u); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#111827'; ctx.strokeStyle = '#111827'; ctx.lineWidth = 2 * u;
+  ctx.fillRect(x + 7 * u, y + 12.5 * u, 12 * u, 9 * u);
+  ctx.beginPath(); ctx.arc(x + 13 * u, y + 12.5 * u, 4.2 * u, Math.PI, 0); ctx.stroke();
+  ctx.restore();
+}
 function drawShape(it) {
   ctx.strokeStyle = it.c; ctx.lineWidth = it.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.beginPath();
   if (it.t === 'e') ctx.ellipse(it.x, it.y, it.rx, it.ry, 0, 0, Math.PI * 2);
@@ -408,12 +520,14 @@ function draw() {
   for (const it of items) if (it.t === 'p') drawItem(it);
   for (const it of items) if (it.t !== 'p') drawItem(it);
   if (cur) drawItem(cur);
+  for (const it of items) if (it.t === 'p' && it.locked) drawLockBadge(it);
   if (sel && tool === 'move') {
     const b = bounds(sel), k = view.k;
     ctx.save(); ctx.strokeStyle = T.accent; ctx.lineWidth = 1.5 / k; ctx.setLineDash([6 / k, 4 / k]);
     ctx.strokeRect(b[0], b[1], b[2] - b[0], b[3] - b[1]); ctx.restore();
-    if (sel.t === 'p') { const s = 14 / k; ctx.fillStyle = T.accent; ctx.fillRect(b[2] - s / 2, b[3] - s / 2, s, s); }
+    if (sel.t === 'p' && !sel.locked) { const s = 14 / k; ctx.fillStyle = T.accent; ctx.fillRect(b[2] - s / 2, b[3] - s / 2, s, s); }
   }
+  if (pick) drawPick();
   if (scratchPrev && scratchPrev.length) {
     ctx.save(); ctx.globalAlpha = 0.38; ctx.fillStyle = '#ef4444';
     for (const it of scratchPrev) { const b = bounds(it), pad = 6 / view.k; ctx.fillRect(b[0]-pad, b[1]-pad, b[2]-b[0]+2*pad, b[3]-b[1]+2*pad); }
@@ -457,11 +571,12 @@ function pushHist() { hist.push(items); if (hist.length > 100) hist.shift(); red
 function syncBtns() { $('#undo').disabled = !hist.length; $('#redo').disabled = !redoS.length; delBtn.hidden = !(tool === 'move' && sel); showPhotoMenu(); }
 function undo() { commitText(true); if (!hist.length) return; redoS.push(items); items = hist.pop(); sel = null; syncBtns(); save(); schedule(); }
 function redo() { commitText(true); if (!redoS.length) return; hist.push(items); items = redoS.pop(); sel = null; syncBtns(); save(); schedule(); }
+const sendStatus = () => notifyParent({ type: 'pizarra:status', hasContent: items.length > 0, items: items.length, photos: items.filter(i => i.t === 'p').length, version: VERSION });
 function save() {
-  clearTimeout(saveT);
+  clearTimeout(saveT); sendStatus();
   saveT = setTimeout(() => {
     const slim = items.map(i => (i.t === 'p' && persisted.has(i.id)) ? { ...i, src: null } : i);
-    try { localStorage.setItem(KEY, JSON.stringify({ items: slim, view, cellVal, unit, snap, fingerDraw, holdOn, color, size, toolSizes, job, who, cellPx, gridMode })); }
+    try { localStorage.setItem(KEY, JSON.stringify({ items: slim, view, cellVal, unit, snap, fingerDraw, holdOn, color, size, toolSizes, job, who, cellPx, gridMode, pdfArea, lastPick })); }
     catch (e) { hint.textContent = 'No se pudo guardar en este navegador. Exporta el PDF para no perder el trabajo.'; }
   }, 700);
 }
@@ -474,7 +589,7 @@ function load() {
       // Los params de URL tienen prioridad sobre lo guardado en localStorage
       job = _jobParam || d.job || ''; who = _whoParam || d.who || '';
       color = d.color || color; size = d.size || size;
-      if (d.toolSizes) Object.assign(toolSizes, d.toolSizes); if (d.cellPx >= 10) cellPx = d.cellPx; gridMode = d.gridMode || 'normal'; return true;
+      if (d.toolSizes) Object.assign(toolSizes, d.toolSizes); if (d.cellPx >= 10) cellPx = d.cellPx; gridMode = d.gridMode || 'normal'; pdfArea = (d.pdfArea === 'view' || d.pdfArea === 'pick') ? d.pdfArea : 'auto'; lastPick = d.lastPick || null; return true;
     }
   } catch (e) { /* sin almacenamiento */ }
   return false;
@@ -636,6 +751,45 @@ function scratchErase(pts) {
   pushHist(); items = items.filter(it => !toErase.includes(it)); scratchPrev = null; save();
 }
 
+/* ---------- elegir el área del PDF ---------- */
+const visibleRegion = () => [-view.x / view.k, -view.y / view.k, (board.clientWidth - view.x) / view.k, (board.clientHeight - view.y) / view.k];
+function startPick() {
+  commitText(true); sel = null; syncBtns();
+  const v = visibleRegion(), mx = (v[2] - v[0]) * 0.12, my = (v[3] - v[1]) * 0.12;
+  pick = { r: lastPick ? lastPick.slice() : [v[0] + mx, v[1] + my, v[2] - mx, v[3] - my], drag: null };
+  $('#pickBar').hidden = false; hint.textContent = 'Marca el área: arrastra las esquinas, mueve el recuadro, o dibuja uno nuevo.'; schedule();
+}
+function cancelPick() { pick = null; const pb = $('#pickBar'); if (pb) pb.hidden = true; schedule(); }
+function pickBegin(sx, sy) {
+  const w = toWorld(sx, sy), r = pick.r, h = 30 / view.k;
+  const cs = [[r[0], r[1]], [r[2], r[1]], [r[2], r[3]], [r[0], r[3]]];
+  for (let i = 0; i < 4; i++) if (Math.hypot(w[0] - cs[i][0], w[1] - cs[i][1]) < h) { const o = cs[(i + 2) % 4]; pick.drag = { m: 'corner', ox: o[0], oy: o[1] }; return; }
+  if (w[0] > r[0] && w[0] < r[2] && w[1] > r[1] && w[1] < r[3]) pick.drag = { m: 'move', sx: w[0], sy: w[1], r0: r.slice() };
+  else { pick.drag = { m: 'new', ox: w[0], oy: w[1] }; pick.r = [w[0], w[1], w[0], w[1]]; }
+}
+function pickMove(w) {
+  const d = pick.drag; if (!d) return;
+  if (d.m === 'move') { const dx = w[0] - d.sx, dy = w[1] - d.sy; pick.r = [d.r0[0] + dx, d.r0[1] + dy, d.r0[2] + dx, d.r0[3] + dy]; }
+  else pick.r = [Math.min(d.ox, w[0]), Math.min(d.oy, w[1]), Math.max(d.ox, w[0]), Math.max(d.oy, w[1])];
+  schedule();
+}
+function drawPick() {
+  const r = pick.r, k = view.k;
+  ctx.save(); ctx.fillStyle = 'rgba(15,23,42,.32)'; ctx.beginPath(); ctx.rect(-1e7, -1e7, 2e7, 2e7); ctx.rect(r[0], r[1], r[2] - r[0], r[3] - r[1]); ctx.fill('evenodd');
+  ctx.strokeStyle = T.accent; ctx.lineWidth = 2 / k; ctx.setLineDash([8 / k, 5 / k]); ctx.strokeRect(r[0], r[1], r[2] - r[0], r[3] - r[1]); ctx.setLineDash([]);
+  ctx.fillStyle = T.accent; const s = 16 / k;
+  for (const [x, y] of [[r[0], r[1]], [r[2], r[1]], [r[2], r[3]], [r[0], r[3]]]) ctx.fillRect(x - s / 2, y - s / 2, s, s);
+  ctx.restore();
+}
+$('#pickOk').addEventListener('click', () => {
+  if (!pick) return;
+  let r = pick.r; if (r[2] - r[0] < CELL * 2 || r[3] - r[1] < CELL * 2) { hint.textContent = 'El área es muy pequeña. Marca un recuadro más grande.'; return; }
+  lastPick = r.slice(); cancelPick(); save();
+  if (EMBEDDED) { hint.textContent = 'Área guardada. Usa «Guardar como PDF» del formulario para generar el PDF de esta área.'; return; }
+  exportPdf({ region: lastPick });
+});
+$('#pickCancel').addEventListener('click', () => { cancelPick(); hint.textContent = HINTS[tool]; });
+
 /* ---------- puntero ---------- */
 const widthFor = e => (e.pointerType === 'pen' && e.pressure > 0) ? Math.round(size * (0.45 + 1.1 * e.pressure) * 10) / 10 : size;
 const r2 = n => Math.round(n * 100) / 100;
@@ -652,10 +806,11 @@ cv.addEventListener('pointerdown', e => {
   const touches = [...ptrs.values()].filter(p => p.type === 'touch').length;
   // Un dedo actúa como la herramienta en Mover, Borrar y Texto (seleccionar, arrastrar, tocar la foto).
   // En Lápiz/Recta/Medir un dedo mueve la hoja (salvo "Dibujar con el dedo"). Dos dedos siempre mueven/acercan.
-  const fingerIsTool = fingerDraw || tool === 'move' || tool === 'erase' || tool === 'text';
+  const fingerIsTool = !!pick || fingerDraw || tool === 'move' || tool === 'erase' || tool === 'text';
   const navTouch = e.pointerType === 'touch' && (!fingerIsTool || touches >= 2);
   if (navTouch || tool === 'hand') { cur = null; drag = null; eraseRing = null; rebase(); cv.style.cursor = 'grabbing'; return; }
   if (nav) return;
+  if (pick) { pickBegin(sx, sy); return; }
   beginTool(e, sx, sy);
 });
 function beginTool(e, sx, sy) {
@@ -668,12 +823,12 @@ function beginTool(e, sx, sy) {
   else if (tool === 'move') {
     if (sel && sel.t === 'p') {
       const b = bounds(sel), hs = 22 / view.k;
-      if (Math.abs(w[0] - b[2]) < hs && Math.abs(w[1] - b[3]) < hs) { drag = { resize: true, base: items, orig: sel, sx: w[0], pushed: false }; syncBtns(); return; }
+      if (!sel.locked && Math.abs(w[0] - b[2]) < hs && Math.abs(w[1] - b[3]) < hs) { drag = { resize: true, base: items, orig: sel, sx: w[0], pushed: false }; syncBtns(); return; }
     }
     let found = null;
     for (let i = items.length - 1; i >= 0; i--) if (hit(items[i], w[0], w[1], tol)) { found = items[i]; break; }
     sel = found;
-    if (found) drag = { base: items, orig: found, sx: w[0], sy: w[1], pushed: false };
+    if (found && !found.locked) drag = { base: items, orig: found, sx: w[0], sy: w[1], pushed: false };
     syncBtns();
     schedule();
   }
@@ -691,13 +846,16 @@ cv.addEventListener('pointermove', e => {
   p.x = sx; p.y = sy;
   if (nav) { navMove(); return; }
   const w = toWorld(sx, sy);
+  if (pick) { pickMove(w); return; }
   if (cur && tool === 'pen' && holdShape) {
     if (cur.t === 'l') { cur.p = [cur.p[0], angleSnap(cur.p[0], w).map(r2)]; schedule(); }
   } else if (cur && tool === 'pen') {
     if (Math.hypot(sx - holdAnchor[0], sy - holdAnchor[1]) < 1.5) return;
     const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
     for (const ev of (evs.length ? evs : [e])) {
-      const q = toWorld(...evPos(ev));
+      const q = toWorld(...evPos(ev)), lp = cur.p[cur.p.length - 1];
+      // un punto no finito o un salto imposible (>900 px de golpe) es un fallo del puntero: se descarta
+      if (!isFinite(q[0]) || !isFinite(q[1]) || Math.hypot(q[0] - lp[0], q[1] - lp[1]) * view.k > 900) continue;
       cur.p.push([r2(q[0]), r2(q[1]), widthFor(ev)]);
     }
     if (Math.hypot(sx - holdAnchor[0], sy - holdAnchor[1]) > 4) { holdAnchor = [sx, sy]; armHold(); }
@@ -735,6 +893,7 @@ function endPointer(e, cancelled) {
     } else rebase();
     return;
   }
+  if (pick) { pick.drag = null; schedule(); return; }
   clearTimeout(holdT); holdShape = false;
   if (cur && !cancelled) {
     if (tool === 'line' && Math.hypot(cur.p[1][0] - cur.p[0][0], cur.p[1][1] - cur.p[0][1]) * view.k < 6) cur = null;
@@ -796,11 +955,11 @@ async function addPhotos(files) {
 $('#shoot').addEventListener('click', () => $('#fileCam').click());
 $('#gallery').addEventListener('click', () => $('#fileGal').click());
 for (const id of ['#fileCam', '#fileGal']) $(id).addEventListener('change', e => { addPhotos([...e.target.files]); e.target.value = ''; });
-delBtn.addEventListener('click', () => { if (!sel) return; pushHist(); items = items.filter(i => i !== sel); sel = null; syncBtns(); save(); schedule(); });
+delBtn.addEventListener('click', () => { if (!sel) return; if (sel.locked) { hint.textContent = 'La foto está bloqueada. Desbloquéala para eliminarla.'; return; } pushHist(); items = items.filter(i => i !== sel); sel = null; syncBtns(); save(); schedule(); });
 
 /* ---------- controles ---------- */
 function setTool(t) {
-  commitText(true); tool = t; if (t !== 'move') sel = null;
+  commitText(true); if (pick) cancelPick(); tool = t; if (t !== 'move') sel = null;
   if (toolSizes[t] !== undefined) { size = toolSizes[t]; }
   $$('[data-tool]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tool === t)));
   $$('[data-sz]').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.sz === size)));
@@ -833,8 +992,11 @@ function photoAnnotations(photo) {
 // Coloca el menú siempre dentro de la pantalla: debajo de la foto, o arriba, o al lado, o encima de ella.
 function showPhotoMenu() {
   const menu = $('#photoMenu'); if (!menu) return;
-  if (drag || !sel || sel.t !== 'p' || tool !== 'move') { menu.style.display = 'none'; return; }
+  if (pick || drag || !sel || sel.t !== 'p' || tool !== 'move') { menu.style.display = 'none'; return; }
   menu.style.display = 'flex';
+  $('#pm-lock').textContent = sel.locked ? '🔓 Desbloquear foto' : '🔒 Bloquear foto';
+  const delB = $('#pm-del'); delB.disabled = !!sel.locked; delB.textContent = sel.locked ? 'Eliminar (desbloquea primero)' : 'Eliminar foto…';
+  if (sel.locked && pmConfirm) pmConfirm.hidden = true;
   const br = board.getBoundingClientRect(), G = 8, vw = window.innerWidth, vh = window.innerHeight;
   const mw = menu.offsetWidth, mh = menu.offsetHeight;
   let l = br.left + sel.x * view.k + view.x, t = br.top + sel.y * view.k + view.y;
@@ -863,7 +1025,7 @@ $('#pm-dup').addEventListener('click', () => {
   if (!sel || sel.t !== 'p') return;
   const off = CELL;
   // La copia comparte la misma imagen guardada (mismo id): no duplica almacenamiento ni peso.
-  const newPhoto = { ...sel, x: sel.x + off, y: sel.y + off };
+  const newPhoto = { ...sel, locked: false, x: sel.x + off, y: sel.y + off };
   const annots = photoAnnotations(sel).map(it => moved(it, off, off));
   pushHist(); items = [...items, newPhoto, ...annots];
   sel = newPhoto; hidePhotoMenu(); save(); schedule(); syncBtns();
@@ -871,9 +1033,16 @@ $('#pm-dup').addEventListener('click', () => {
 $('#pm-dupclean').addEventListener('click', () => {
   if (!sel || sel.t !== 'p') return;
   const off = CELL;
-  const newPhoto = { ...sel, x: sel.x + off, y: sel.y + off };
+  const newPhoto = { ...sel, locked: false, x: sel.x + off, y: sel.y + off };
   pushHist(); items = [...items, newPhoto];
   sel = newPhoto; hidePhotoMenu(); save(); schedule(); syncBtns();
+});
+$('#pm-lock').addEventListener('click', () => {
+  if (!sel || sel.t !== 'p') return;
+  const n = { ...sel, locked: !sel.locked };
+  pushHist(); items = items.map(i => i === sel ? n : i); sel = n;
+  hint.textContent = n.locked ? 'Foto bloqueada: no se mueve ni cambia de tamaño. Puedes seguir anotando encima.' : 'Foto desbloqueada.';
+  save(); schedule(); syncBtns();
 });
 $('#pm-front').addEventListener('click', () => {
   if (!sel || sel.t !== 'p') return;
@@ -886,10 +1055,10 @@ $('#pm-back').addEventListener('click', () => {
   const arr = [...items]; arr.splice(arr.indexOf(sel), 1); arr.unshift(sel);
   items = arr; hidePhotoMenu(); save(); schedule();
 });
-$('#pm-del').addEventListener('click', () => { if (pmConfirm) pmConfirm.hidden = false; showPhotoMenu(); });
+$('#pm-del').addEventListener('click', () => { if (!sel || sel.locked) return; if (pmConfirm) pmConfirm.hidden = false; showPhotoMenu(); });
 $('#pm-delno').addEventListener('click', () => { if (pmConfirm) pmConfirm.hidden = true; showPhotoMenu(); });
 $('#pm-delok').addEventListener('click', () => {
-  if (!sel || sel.t !== 'p') return;
+  if (!sel || sel.t !== 'p' || sel.locked) return;
   // La imagen sigue en IndexedDB hasta la próxima apertura (así "Deshacer" la recupera completa);
   // al abrir se limpian las imágenes que ya ninguna foto usa.
   pushHist(); items = items.filter(i => i !== sel);
@@ -908,6 +1077,15 @@ $('#snap').addEventListener('change', e => { snap = e.target.checked; save(); })
 $('#finger').addEventListener('change', e => { fingerDraw = e.target.checked; save(); });
 $('#holdOn').addEventListener('change', e => { holdOn = e.target.checked; save(); });
 $('#gridModeBtn').addEventListener('change', e => { gridMode = e.target.value; save(); schedule(); });
+$('#pdfArea').addEventListener('change', e => { pdfArea = e.target.value; cancelPick(); save(); if (EMBEDDED && pdfArea === 'pick') startPick(); });
+if (EMBEDDED) {
+  // Dentro del portal el botón «Guardar como PDF» del formulario es el único que genera el PDF: aquí se oculta el azul.
+  $('#exportPdf').hidden = true;
+  const vo = $('#pdfArea option[value="view"]'); if (vo) vo.remove();
+  if (pdfArea === 'view') pdfArea = 'auto';
+  $('#pdfArea').value = pdfArea;
+  $('#pdfArea').options[0].textContent = 'PDF: automático (donde trabajé)';
+}
 $('#cellPxSlider').addEventListener('input', e => {
   const newPx = +e.target.value;
   if (cellPx > 0) view.k = view.k * newPx / cellPx;
@@ -940,14 +1118,50 @@ const ensureImg = p => new Promise(res => {
   if (im.complete && im.naturalWidth) return res();
   im.addEventListener('load', () => res(), { once: true }); im.addEventListener('error', () => res(), { once: true });
 });
-function contentBounds() {
+function contentBounds(list) {
   let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
-  for (const it of items) { const b = bounds(it); x0 = Math.min(x0, b[0]); y0 = Math.min(y0, b[1]); x1 = Math.max(x1, b[2]); y1 = Math.max(y1, b[3]); }
+  for (const it of (list || items)) { const b = bounds(it); x0 = Math.min(x0, b[0]); y0 = Math.min(y0, b[1]); x1 = Math.max(x1, b[2]); y1 = Math.max(y1, b[3]); }
   x0 = Math.floor((x0 - CELL) / CELL) * CELL; y0 = Math.floor((y0 - CELL) / CELL) * CELL;
   x1 = Math.ceil((x1 + CELL) / CELL) * CELL; y1 = Math.ceil((y1 + CELL) / CELL) * CELL;
   if (x1 - x0 < CELL * 8) x1 = x0 + CELL * 8;
   if (y1 - y0 < CELL * 6) y1 = y0 + CELL * 6;
   return [x0, y0, x1, y1];
+}
+// Agrupa los elementos por cercanía: cada zona de trabajo (cocina, baño, fachada…) sale en su propia página.
+// Así un elemento perdido lejos no encoge todo el resto hasta volverlo ilegible.
+// Modo automático: quita lo que casi seguro es un accidente (trazos gigantes o con puntos inválidos) y las
+// "motas" sueltas lejos del trabajo, para que el PDF salga solo de la parte donde se trabajó.
+function autoWorkItems() {
+  const bad = it => { const b = bounds(it); if (!b.every(isFinite)) return true; return it.t === 's' && Math.hypot(b[2] - b[0], b[3] - b[1]) > 3000; };
+  const good = items.filter(it => !bad(it));
+  const zones = clusterItems(good), keep = [];
+  for (const z of zones) {
+    // mota = una zona de 1-2 trazos diminutos (un toque accidental del lápiz); un dibujo pequeño pero real se conserva
+    const speck = z.length <= 2 && z.every(it => { const b = bounds(it); return it.t === 's' && Math.hypot(b[2] - b[0], b[3] - b[1]) < 80; });
+    if (!speck) keep.push(...z);
+  }
+  if (!keep.length) return { list: good.length ? good : items, skipped: 0 };   // nunca dejar el PDF sin contenido
+  return { list: keep, skipped: items.length - keep.length };
+}
+function clusterItems(list) {
+  const pad = CELL * 3;
+  let g = list.map(it => { const b = bounds(it); return { b: [b[0] - pad, b[1] - pad, b[2] + pad, b[3] + pad], its: [it] }; });
+  const hits = (A, B) => A[0] <= B[2] && B[0] <= A[2] && A[1] <= B[3] && B[1] <= A[3];
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (let i = 0; i < g.length; i++) {
+      for (let j = g.length - 1; j > i; j--) {
+        if (hits(g[i].b, g[j].b)) {
+          const A = g[i].b, B = g[j].b;
+          g[i] = { b: [Math.min(A[0], B[0]), Math.min(A[1], B[1]), Math.max(A[2], B[2]), Math.max(A[3], B[3])], its: g[i].its.concat(g[j].its) };
+          g.splice(j, 1); changed = true;
+        }
+      }
+    }
+  }
+  g.sort((a, b) => (a.b[1] - b.b[1]) || (a.b[0] - b.b[0]));
+  return g.map(z => z.its);
 }
 function drawGridWorld(b, s) {
   if (gridMode === 'hidden') return;
@@ -962,7 +1176,8 @@ function drawGridLines(b, s) {
     ctx.stroke();
   }
 }
-function renderBoard(b, pxW) {
+function renderBoard(b, pxW, list) {
+  list = list || items;
   const W = b[2] - b[0], H = b[3] - b[1], s = pxW / W, c = document.createElement('canvas');
   c.width = Math.round(pxW); c.height = Math.round(H * s);
   const prevCtx = ctx, prevView = view;
@@ -971,49 +1186,80 @@ function renderBoard(b, pxW) {
     ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, c.width, c.height);
     ctx.setTransform(s, 0, 0, s, -b[0] * s, -b[1] * s);
     drawGridWorld(b, s);
-    for (const it of items) if (it.t === 'p') drawItem(it);
-    for (const it of items) if (it.t !== 'p') drawItem(it);
+    for (const it of list) if (it.t === 'p') drawItem(it);
+    for (const it of list) if (it.t !== 'p') drawItem(it);
   } finally { ctx = prevCtx; view = prevView; }
   return c;
 }
-async function buildPdf() {
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const step = t => { hint.textContent = 'Generando el PDF — ' + t; notifyParent({ type: 'pizarra:progress', step: t }); };
+async function buildPdf(region, auto) {
   const { jsPDF } = window.jspdf;
-  await Promise.all(pendingLoads);
-  await Promise.all(items.filter(i => i.t === 'p' && i.src).map(ensureImg));
-  exportNum = new Map(); let n = 0; for (const it of items) if (it.t === 'm') exportNum.set(it, ++n);
-  const b = contentBounds(), W = b[2] - b[0], H = b[3] - b[1], land = W >= H;
-  const pw = land ? 841.89 : 595.28, ph = land ? 595.28 : 841.89, M = 28, headH = 50;
-  const aw = pw - 2 * M, ah = ph - 2 * M - headH - 14;
-  let iw = aw, ih = iw * H / W; if (ih > ah) { ih = ah; iw = ih * W / H; }
-  const ladder = [[300, 0.9, 2.4], [300, 0.85, 2.4], [250, 0.9, 2.4], [250, 0.85, 2.3], [220, 0.85, 2.2], [200, 0.82, 2.0], [180, 0.8, 2.0], [150, 0.75, 2.0]];
-  let canvas = null, canvasDpi = 0, pick = null;
-  for (const [dpi, q, lim] of ladder) {
-    if ((iw * dpi / 72) * (ih * dpi / 72) > 12e6) continue;
-    if (canvasDpi !== dpi) { canvas = renderBoard(b, Math.round(iw * dpi / 72)); canvasDpi = dpi; await new Promise(r => setTimeout(r, 0)); }
-    const url = canvas.toDataURL('image/jpeg', q), bytes = Math.round((url.length - 23) * 0.75);
-    pick = { url, bytes, dpi, q }; if (bytes <= lim * MB) break;
-  }
+  step('paso 1 de 4: preparando las fotos…');
+  await Promise.race([Promise.all(pendingLoads), sleep(6000)]);                       // si el almacenamiento no responde, no esperar para siempre
+  await Promise.race([Promise.all(items.filter(i => i.t === 'p' && i.src).map(ensureImg)), sleep(8000)]);
+  step('paso 2 de 4: calculando el área…');
+  const aw0 = auto ? autoWorkItems() : null, src = aw0 ? aw0.list : items, skipped = aw0 ? aw0.skipped : 0;
+  if (!src.length) throw new Error('no hay trabajo que exportar');
+  const zones = region
+    ? [(() => { const b = [Math.min(region[0], region[2]), Math.min(region[1], region[3]), Math.max(region[0], region[2]), Math.max(region[1], region[3])], W = b[2] - b[0], H = b[3] - b[1]; return { b, W, H, land: W >= H }; })()]
+    : clusterItems(src).map(list => { const b = contentBounds(list), W = b[2] - b[0], H = b[3] - b[1]; return { b, W, H, land: W >= H }; });
+  // Solo lo que cae dentro de lo exportado entra en las listas del final
+  const incl = src.filter(it => { const q = bounds(it), cx = (q[0] + q[2]) / 2, cy = (q[1] + q[3]) / 2; return zones.some(z => cx >= z.b[0] && cx <= z.b[2] && cy >= z.b[1] && cy <= z.b[3]); });
+  exportNum = new Map(); let n = 0; for (const it of incl) if (it.t === 'm') exportNum.set(it, ++n);
+  const nz = zones.length, M = 28, headH = 50, TOTAL_MB = 2.2, budget = Math.max(0.3, TOTAL_MB / nz) * MB;
+  // Resolución moderada y un solo lienzo a la vez: una tablet tiene poca memoria por página (un lienzo enorme falla sin avisar).
+  const ladder = [[220, 0.88], [220, 0.82], [200, 0.82], [170, 0.8], [150, 0.76], [120, 0.7]];
   // Fecha: preferir param URL, luego fecha actual
   const when = _dateParam
     ? new Date(_dateParam).toLocaleString('es', { dateStyle: 'long' })
     : new Date().toLocaleString('es', { dateStyle: 'long', timeStyle: 'short' });
   const scaleTxt = `1 cuadro = ${fmt(cellVal)} ${unit}`;
-  const doc = new jsPDF({ orientation: land ? 'l' : 'p', unit: 'pt', format: 'a4', compress: true });
+  const dims = z => z.land ? [841.89, 595.28] : [595.28, 841.89];
+  const doc = new jsPDF({ orientation: zones[0].land ? 'l' : 'p', unit: 'pt', format: 'a4', compress: true });
   doc.setProperties({ title: job || 'Levantamiento de medidas', subject: 'Levantamiento de medidas', author: who, creator: 'Pizarra del Medidor' });
-  doc.setTextColor(23, 34, 45); doc.setFont('helvetica', 'bold'); doc.setFontSize(15);
-  doc.text(job || 'Levantamiento de medidas', M, M + 14);
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(86, 102, 122);
-  doc.text(`Medidor: ${who || 'sin nombre'}   |   ${when}   |   Escala: ${scaleTxt}`, M, M + 30);
-  const ix = M + (aw - iw) / 2, iy = M + headH;
-  doc.addImage(pick.url, 'JPEG', ix, iy, iw, ih, undefined, 'FAST');
-  doc.setDrawColor(190, 200, 212); doc.setLineWidth(0.5); doc.rect(ix, iy, iw, ih);
+  let pick = null;
+  for (let zi = 0; zi < nz; zi++) {
+    const Z = zones[zi], [pw, ph] = dims(Z), b = Z.b;
+    if (zi > 0) doc.addPage('a4', Z.land ? 'l' : 'p');
+    const aw = pw - 2 * M, ah = ph - 2 * M - headH - 14;
+    let iw = aw, ih = iw * Z.H / Z.W; if (ih > ah) { ih = ah; iw = ih * Z.W / Z.H; }
+    step(`paso 3 de 4: creando la imagen ${zi + 1} de ${nz}…`);
+    let canvas = null, canvasDpi = 0; pick = null;
+    for (const [d0, q] of ladder) {
+      // limita los píxeles totales (~6 millones) para no agotar la memoria de la tablet
+      const dpi = Math.min(d0, Math.sqrt(6e6 / ((iw / 72) * (ih / 72))));
+      if (canvasDpi !== dpi) {
+        if (canvas) { canvas.width = 0; canvas.height = 0; canvas = null; }   // libera el lienzo anterior antes de crear otro
+        await new Promise(r => setTimeout(r, 20));
+        try { canvas = renderBoard(b, Math.round(iw * dpi / 72), src); } catch (_) { canvas = null; }
+        canvasDpi = dpi; await new Promise(r => setTimeout(r, 0));
+      }
+      if (!canvas) continue;
+      const url = canvas.toDataURL('image/jpeg', q);
+      if (url.length < 3000) { canvas.width = 0; canvas.height = 0; canvas = null; continue; }   // el navegador devolvió un lienzo en blanco: probar más pequeño
+      const bytes = Math.round((url.length - 23) * 0.75);
+      pick = { url, bytes, dpi: Math.round(dpi), q }; if (bytes <= budget) break;
+    }
+    if (canvas) { canvas.width = 0; canvas.height = 0; canvas = null; }
+    if (!pick) throw new Error('el navegador no pudo preparar la imagen (poca memoria)');
+    doc.setTextColor(23, 34, 45); doc.setFont('helvetica', 'bold'); doc.setFontSize(15);
+    doc.text((job || 'Levantamiento de medidas') + (nz > 1 ? `  ·  Zona ${zi + 1} de ${nz}` : ''), M, M + 14);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(86, 102, 122);
+    doc.text(`Medidor: ${who || 'sin nombre'}   |   ${when}   |   Escala: ${scaleTxt}`, M, M + 30);
+    try { const lh = 50, lw = lh * 241 / 303; doc.addImage(LOGO, 'PNG', pw - M - lw, M - 4, lw, lh); } catch (_) {}
+    const ix = M + (aw - iw) / 2, iy = M + headH;
+    doc.addImage(pick.url, 'JPEG', ix, iy, iw, ih, undefined, 'FAST');
+    doc.setDrawColor(190, 200, 212); doc.setLineWidth(0.5); doc.rect(ix, iy, iw, ih);
+  }
   doc.addPage('a4', 'p'); const DW = 595.28, DH = 841.89; let y = M + 14;
+  try { const lh = 50, lw = lh * 241 / 303; doc.addImage(LOGO, 'PNG', DW - M - lw, M - 4, lw, lh); } catch (_) {}
   const line = (text, size, bold, gap, color) => {
     doc.setFont('helvetica', bold ? 'bold' : 'normal'); doc.setFontSize(size); doc.setTextColor(...(color || [23, 34, 45]));
     for (const l of doc.splitTextToSize(String(text), DW - 2 * M)) { if (y > DH - M) { doc.addPage('a4', 'p'); y = M + 14; } doc.text(l, M, y); y += size * 1.35; }
     y += gap || 0;
   };
-  const cnt = t => items.filter(i => i.t === t).length;
+  const cnt = t => incl.filter(i => i.t === t).length;
   line('Datos del levantamiento', 16, true, 8);
   line(`Cliente / trabajo: ${job || 'sin indicar'}`, 10.5, false, 0);
   line(`Medidor: ${who || 'sin indicar'}`, 10.5, false, 0);
@@ -1025,25 +1271,41 @@ async function buildPdf() {
   exportNum.forEach((num, m) => line(`${num}.   ${m.label}`, 10.5, false, 0));
   y += 12;
   line('Notas de texto', 12, true, 4);
-  const notes = items.filter(i => i.t === 't');
+  const notes = incl.filter(i => i.t === 't');
   if (!notes.length) line('No hay notas de texto.', 10.5, false, 0, [86, 102, 122]);
   notes.forEach((t, i) => line(`${i + 1}.   ${t.s}`, 10.5, false, 0));
   const total = doc.getNumberOfPages();
-  for (let p = 1; p <= total; p++) { doc.setPage(p); const w = p === 1 ? pw : DW, h = p === 1 ? ph : DH; doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(120, 130, 142); doc.text(`Página ${p} de ${total}`, w - M, h - 14, { align: 'right' }); }
+  for (let p = 1; p <= total; p++) { doc.setPage(p); const w = doc.internal.pageSize.getWidth(), h = doc.internal.pageSize.getHeight(); doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(120, 130, 142); doc.text(`Página ${p} de ${total}`, w - M, h - 14, { align: 'right' }); doc.text(`Pizarra ${VERSION}`, M, h - 14); }
+  step('paso 4 de 4: armando el archivo…');
   const blob = doc.output('blob');
   const name = `Levantamiento_${slug(job) || 'sin-nombre'}_${new Date().toISOString().slice(0, 10)}.pdf`;
-  return { blob, name, dpi: pick.dpi, q: pick.q };
+  const stretched = !region && !auto && zones.some(z => Math.max(z.W / z.H, z.H / z.W) > 4);
+  return { blob, name, dpi: pick.dpi, q: pick.q, warn: (skipped ? `Se omitieron ${skipped} trazos sueltos que no eran parte del trabajo.` : '') + (stretched ? 'Aviso: hay algo muy alejado del resto y alarga la hoja. Usa «PDF: lo que veo en pantalla» o «elegir un área», o borra el trazo suelto.' : '') };
 }
 
-async function exportPdf() {
-  if (exporting) return;
+let exportStart = 0;
+async function exportPdf(opts) {
+  opts = (opts && opts.region !== undefined) ? opts : (opts || {});
+  if (exporting) { if (Date.now() - exportStart < 40000) { notifyParent({ type: 'pizarra:pdfError', reason: 'ocupado' }); return; } exporting = false; }   // un intento colgado más de 40 s no bloquea los siguientes
+  exportStart = Date.now();
   commitText(false);
   if (!items.length) { hint.textContent = 'La hoja está vacía: dibuja o mide algo antes de exportar.'; notifyParent({ type: 'pizarra:pdfError', reason: 'empty' }); return; }
-  if (!window.jspdf) { hint.textContent = 'No se pudo cargar el generador de PDF. Revisa la conexión.'; notifyParent({ type: 'pizarra:pdfError', reason: 'jspdf-no-cargado' }); return; }
+  // Qué parte de la hoja va al PDF
+  let region = opts.region || null, auto = false;
+  if (!region) {
+    if (opts.fromParent) { region = (pdfArea === 'pick' && lastPick) ? lastPick : null; auto = !region; }   // el formulario nunca dispara la selección interactiva
+    else if (pdfArea === 'auto') auto = true;
+    else if (pdfArea === 'view') region = visibleRegion();
+    else if (pdfArea === 'pick') { startPick(); return; }
+  }
+  if (region && !items.some(it => { const q = bounds(it); return q[0] < Math.max(region[0], region[2]) && q[2] > Math.min(region[0], region[2]) && q[1] < Math.max(region[1], region[3]) && q[3] > Math.min(region[1], region[3]); })) {
+    hint.textContent = 'No hay nada dentro de esa área. Muévete a donde trabajaste o elige otra área.'; notifyParent({ type: 'pizarra:pdfError', reason: 'empty-area' }); return;
+  }
+  if (!window.jspdf) { hint.textContent = 'No se pudo cargar el generador de PDF (jsPDF). Revisa la conexión.'; notifyParent({ type: 'pizarra:pdfError', reason: 'jspdf-no-cargado' }); return; }
   exporting = true; const btn = $('#exportPdf'); btn.disabled = true; hint.textContent = 'Generando el PDF…';
   await new Promise(r => setTimeout(r, 30));
   try {
-    const r = await buildPdf(), mb = r.blob.size / MB;
+    const r = await buildPdf(region, auto), mb = r.blob.size / MB;
     hint.textContent = `PDF listo: ${fmt(mb)} MB a ${r.dpi} ppp.`;
 
     // ── Entrega al padre por postMessage (cuando está en iframe) ──
@@ -1076,17 +1338,18 @@ async function exportPdf() {
         }
       } catch (e) { hint.textContent = 'No se pudo guardar el PDF: ' + (e && e.message || ''); }
     }
+    if (r.warn) hint.textContent += '  ' + r.warn;
   } catch (e) {
-    const emsg = (e && e.message) ? ': ' + e.message : '.';
-    hint.textContent = 'No se pudo generar el PDF' + emsg;
-    notifyParent({ type: 'pizarra:pdfError', reason: e?.message || 'error' });
+    hint.textContent = 'No se pudo generar el PDF' + (e && e.message ? ': ' + e.message : '.');
+    notifyParent({ type: 'pizarra:pdfError', reason: String(e && e.message || 'error') });
   } finally { exportNum = null; exporting = false; btn.disabled = false; schedule(); }
 }
 
 // ── Escuchar mensajes del padre (React) ───────────────────────────────────
 window.addEventListener('message', e => {
   if (!e.data || typeof e.data !== 'object') return;
-  if (e.data.type === 'pizarra:requestPdf') { notifyParent({ type: 'pizarra:ack', request: 'requestPdf', version: VERSION, items: items.length }); hint.textContent = 'Orden recibida del formulario: generando el PDF…'; exportPdf(); }
+  if (e.data.type === 'pizarra:requestStatus') sendStatus();
+  if (e.data.type === 'pizarra:requestPdf') { notifyParent({ type: 'pizarra:ack', request: 'requestPdf', version: VERSION, items: items.length }); hint.textContent = 'Orden recibida del formulario: generando el PDF…'; exportPdf({ fromParent: true }); }
   if (e.data.type === 'pizarra:setParams') {
     // Permite actualizar job/who sin recargar el iframe
     if (e.data.job !== undefined) { job = e.data.job; $('#job').value = job; save(); }
@@ -1096,13 +1359,26 @@ window.addEventListener('message', e => {
 });
 // ─────────────────────────────────────────────────────────────────────────
 
-$('#exportPdf').addEventListener('click', exportPdf);
+$('#exportPdf').addEventListener('click', () => exportPdf());
 $('#job').addEventListener('input', e => { job = e.target.value; save(); });
 $('#who').addEventListener('input', e => { who = e.target.value; save(); });
 async function initDownloads(tries) {
   try { DL = (window.claude && window.claude.use) ? await window.claude.use('downloads') : null; } catch (_) { DL = null; }
   if (!DL && tries > 0) return setTimeout(() => initDownloads(tries - 1), 1200);
 }
+
+/* ---------- avisos visibles sobre la hoja (la línea de ayuda del pie puede quedar fuera de pantalla en el portal) ---------- */
+// Versión visible en la barra
+$('#verBadge').textContent = VERSION;
+(() => {
+  const tz = $('#toastPz'); let t = 0;
+  new MutationObserver(() => {
+    const x = hint.textContent || '';
+    if (!/^(Generando el PDF|Orden recibida|PDF |No se pudo|La hoja está vacía|No hay nada|Área guardada)/.test(x)) return;
+    tz.textContent = x; tz.className = /^(No se pudo|La hoja está vacía|No hay nada)/.test(x) ? 'err' : ''; tz.hidden = false;
+    clearTimeout(t); if (!/^(Generando|Orden)/.test(x)) t = setTimeout(() => { tz.hidden = true; }, 9000);
+  }).observe(hint, { childList: true, characterData: true, subtree: true });
+})();
 
 /* ---------- bloquear gestos del navegador (iPad Safari) ---------- */
 window.addEventListener('gesturestart',  e => e.preventDefault(), { passive: false });
@@ -1114,15 +1390,63 @@ readTheme();
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readTheme);
 new MutationObserver(readTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 new ResizeObserver(resize).observe(board);
-if (!load()) seedExample(); else { restorePhotos(); gcPhotos(); }
-$('#cell').value = cellVal; $('#unit').value = unit; $('#snap').checked = snap; $('#finger').checked = fingerDraw; $('#holdOn').checked = holdOn; $('#job').value = job; $('#who').value = who; $('#gridModeBtn').value = gridMode; $('#cellPxSlider').value = cellPx;
+if (!load()) { if (!EMBEDDED) seedExample(); }   // dentro del portal un levantamiento nuevo empieza en blanco
+else { restorePhotos(); gcPhotos(); }
+$('#cell').value = cellVal; $('#unit').value = unit; $('#snap').checked = snap; $('#finger').checked = fingerDraw; $('#holdOn').checked = holdOn; $('#job').value = job; $('#who').value = who; $('#gridModeBtn').value = gridMode; $('#pdfArea').value = pdfArea; $('#cellPxSlider').value = cellPx;
 initDownloads(3);
 setColor(color); setTool('pen'); setSize(size); syncBtns(); resize();
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(schedule);
 
-// Versión visible en la barra
-$('#verBadge').textContent = VERSION;
 // Avisar al padre que la pizarra está lista
-if (window.parent !== window) window.parent.postMessage({ type: 'pizarra:ready', version: VERSION }, '*');
+if (window.parent !== window) { window.parent.postMessage({ type: 'pizarra:ready', levantamientoId: _levantamientoId, version: VERSION }, '*'); sendStatus(); }
 })();
 </script>
+
+<script>
+/* v9.7 — menús emergentes (color/grosor y más opciones) y punto de color de la barra */
+(function () {
+  const $ = s => document.querySelector(s);
+  const pops = [
+    { btn: $('#styleBtn'), pop: $('#stylePop') },
+    { btn: $('#moreBtn'),  pop: $('#morePop') },
+  ];
+  function closeAll(except) {
+    pops.forEach(p => { if (p.pop !== except) { p.pop.classList.remove('open'); p.btn.setAttribute('aria-expanded', 'false'); } });
+  }
+  function place(p) {
+    const r = p.btn.getBoundingClientRect(), pw = p.pop.offsetWidth, G = 8;
+    let left = Math.min(Math.max(G, r.left + r.width / 2 - pw / 2), window.innerWidth - pw - G);
+    p.pop.style.left = left + 'px'; p.pop.style.top = (r.bottom + 6) + 'px';
+  }
+  pops.forEach(p => {
+    p.btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const open = !p.pop.classList.contains('open');
+      closeAll(open ? p.pop : null);
+      p.pop.classList.toggle('open', open);
+      p.btn.setAttribute('aria-expanded', String(open));
+      if (open) place(p);
+    });
+    p.pop.addEventListener('pointerdown', e => e.stopPropagation());
+  });
+  document.addEventListener('pointerdown', e => {
+    if (pops.some(p => p.pop.contains(e.target) || p.btn.contains(e.target))) return;
+    closeAll(null);
+  }, true);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(null); });
+  window.addEventListener('resize', () => { pops.forEach(p => p.pop.classList.contains('open') && place(p)); });
+
+  // Punto de color + grosor en el botón de la barra (se mantiene al día aunque cambien por código)
+  const dot = $('#styleDot'), szEl = $('#styleSz'), lbl = $('#szLbl');
+  function sync() {
+    const on = document.querySelector('#stylePop .sw[aria-pressed="true"]');
+    dot.style.setProperty('--c', on ? on.dataset.color : '#111827');
+    szEl.textContent = lbl.textContent;
+  }
+  new MutationObserver(sync).observe($('#stylePop'), { subtree: true, attributes: true, childList: true, characterData: true });
+  sync();
+  // Al elegir una herramienta, se cierran los menús
+  document.querySelectorAll('[data-tool]').forEach(b => b.addEventListener('click', () => closeAll(null)));
+})();
+</script>
+

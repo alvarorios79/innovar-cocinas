@@ -387,7 +387,7 @@ export default function Quotations() {
     page: quotationPage,
     limit: QUOTATIONS_PER_PAGE,
     status: filterStatus !== "all" ? filterStatus : undefined,
-  });
+  }, { refetchInterval: 10 * 60 * 1000 }); // refresco silencioso cada 10 min
   const quotations = quotationsData?.data || [];
   const { data: clients = [] } = trpc.clients.list.useQuery();
   const [pendingClientName, setPendingClientName] = useState<string | null>(null);

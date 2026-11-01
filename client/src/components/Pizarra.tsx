@@ -84,11 +84,6 @@ export const Pizarra = forwardRef<PizarraRef, PizarraProps>(function Pizarra(
         onReady?.();
       }
 
-      // Primera carga de datos desde IndexedDB
-      if (type === 'pizarra:loaded') {
-        // solo log, ya registrado arriba
-      }
-
       // Estado en vivo: hasContent, items, photos
       if (type === 'pizarra:status') {
         const s: PizarraStatus = {
@@ -184,13 +179,15 @@ export const Pizarra = forwardRef<PizarraRef, PizarraProps>(function Pizarra(
     },
   }));
 
-  // Congelar src: se calcula una sola vez al montar.
+  // El src se recalcula si cambia levantamientoId (distinto levantamiento → distinto dibujo).
   // Cambios en job/who/date NO recargan el iframe — usar setParams() para actualizarlos en caliente.
+  const prevLevIdRef = useRef<string>(levantamientoId);
   const srcRef = useRef<string | null>(null);
-  if (!srcRef.current) {
+  if (!srcRef.current || levantamientoId !== prevLevIdRef.current) {
+    prevLevIdRef.current = levantamientoId;
     const p = new URLSearchParams({ levantamientoId, job, who });
     if (date) p.set('date', date);
-    srcRef.current = `/pizarra-v96.html?${p.toString()}`;
+    srcRef.current = `/pizarra-v97.html?${p.toString()}`;
   }
   const src = srcRef.current;
 

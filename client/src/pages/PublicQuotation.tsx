@@ -173,7 +173,7 @@ export default function PublicQuotation() {
               <p className="text-[#1DB5A8] text-xs uppercase tracking-widest font-semibold">Cotización</p>
               <h2 className="text-white font-bold text-2xl">{data.quotationNumber}</h2>
             </div>
-            <StatusBadge status={data.status} />
+            <StatusBadge status={approved ? "approved" : rejected ? "rejected" : data.status} />
           </div>
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>

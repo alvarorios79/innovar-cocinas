@@ -16,6 +16,411 @@ import { addBusinessDays, calculateEstimatedDeliveryDate } from "../business-day
 import { sanitizeText, sanitizeHtml, sanitizeForEmail, sanitizePhone, sanitizeEmail } from "../sanitize";
 
 
+// ─── buildPublicItemDesc ─────────────────────────────────────────────────────
+// Builds the full description for each quotation item for the public client link.
+// Replicates the PDF generator logic so clients see the same detail as the PDF.
+function buildPublicItemDesc(item: any): string {
+  const fmtCOP = (n: number) =>
+    new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(n);
+
+  // ── COCINA INTEGRAL ──────────────────────────────────────────────────────
+  if (item.itemType === 'cocina' && item.kitchenConfig) {
+    const config = typeof item.kitchenConfig === 'string' ? JSON.parse(item.kitchenConfig) : item.kitchenConfig;
+    const lines: string[] = [];
+    const shapeLabels: Record<string, string> = {
+      estandar: 'Estándar', premium: 'Premium', deluxe: 'Deluxe',
+      L: 'Estándar (en L)', U: 'Premium (en U)', lineal: 'Deluxe (Lineal)',
+      frente_pll: 'Frente PLL (Solo Inferiores)', solo_superiores: 'Solo Muebles Superiores',
+      solo_inferiores: 'Solo Muebles Inferiores', puertas_tapas: 'Puertas y Tapas',
+    };
+    const layoutLabels: Record<string, string> = {
+      L: 'en L', U: 'en U', lineal: 'Lineal / Recta',
+      cuadrada: 'Cuadrada / Paralela', isla: 'Con isla central', otra: 'Otra',
+    };
+    const shapeLabel = shapeLabels[config.shape] || config.shape;
+    const layoutSuffix = config.layout && layoutLabels[config.layout] ? ` • Forma: ${layoutLabels[config.layout]}` : '';
+    lines.push(`COCINA INTEGRAL - ${shapeLabel}${layoutSuffix}`);
+    if (config.independentMeters && (config.lowerMeters !== undefined || config.upperMeters !== undefined)) {
+      lines.push(`Metraje inferiores: ${(config.lowerMeters || 0).toFixed(2)}ml — superiores: ${(config.upperMeters || 0).toFixed(2)}ml`);
+    } else {
+      lines.push(`Metraje total: ${(config.totalMeters || 0).toFixed(2)}ml`);
+    }
+    lines.push('');
+    const isSpecialShape = ['frente_pll', 'solo_superiores', 'solo_inferiores', 'puertas_tapas'].includes(config.shape);
+    let deductions = 0;
+    if (!isSpecialShape) {
+      if (config.specialModules?.nichoNevecon) deductions += 1.0;
+      if (config.specialModules?.nichoNevera) deductions += 0.75;
+      if (config.specialModules?.alacenaEntrepanos) deductions += 0.5;
+      if (config.specialModules?.alacenaHerraje) deductions += 0.5;
+      if (config.specialModules?.torreHornos) deductions += 0.7;
+    }
+    const resultingMeters = Math.max(0, (config.totalMeters || 0) - deductions);
+    if (config.shape === 'frente_pll') {
+      lines.push(`• Muebles Inferiores (Frente PLL): ${(config.totalMeters || 0).toFixed(2)}ml`);
+      if (config.includeUpperModule && config.upperModuleMeters > 0)
+        lines.push(`• Muebles Superiores: ${config.upperModuleMeters.toFixed(2)}ml`);
+    } else if (config.shape === 'solo_superiores') {
+      lines.push(`• Muebles Superiores: ${(config.totalMeters || 0).toFixed(2)}ml`);
+    } else if (config.shape === 'solo_inferiores') {
+      lines.push(`• Muebles Inferiores: ${(config.totalMeters || 0).toFixed(2)}ml`);
+    } else if (config.shape === 'puertas_tapas') {
+      const dc = config.doorsAndCovers || {};
+      if (dc.upperDoors70 > 0) lines.push(`• Puertas superiores 70cm: ${dc.upperDoors70} und`);
+      if (dc.upperDoors90 > 0) lines.push(`• Puertas superiores 90cm: ${dc.upperDoors90} und`);
+      if (dc.upperDoors100 > 0) lines.push(`• Puertas superiores 100cm: ${dc.upperDoors100} und`);
+      if (dc.lowerDoors > 0) lines.push(`• Puertas inferiores: ${dc.lowerDoors} und`);
+      if (dc.pantryDoors > 0) lines.push(`• Puertas alacena: ${dc.pantryDoors} und`);
+      if (dc.drawerCovers > 0) lines.push(`• Tapas cajón: ${dc.drawerCovers} und`);
+      if (dc.smallCovers > 0) lines.push(`• Tapas pequeñas: ${dc.smallCovers} und`);
+    } else {
+      if (config.includeLower !== false) {
+        const lowerML = (config.independentMeters && config.lowerMeters !== undefined)
+          ? Math.max(0, (config.lowerMeters || 0) - deductions) : resultingMeters;
+        lines.push(`• Muebles Inferiores: ${lowerML.toFixed(2)}ml`);
+      }
+      if (config.includeUpper !== false) {
+        const upperML = (config.independentMeters && config.upperMeters !== undefined)
+          ? (config.upperMeters || 0) : resultingMeters;
+        lines.push(`• Muebles Superiores: ${upperML.toFixed(2)}ml`);
+      }
+    }
+    if (config.specialModules?.nichoNevecon) lines.push('• Nicho para nevecon 100cm');
+    if (config.specialModules?.nichoNevera) lines.push('• Nicho nevera estándar 75cm');
+    if (config.specialModules?.alacenaEntrepanos) lines.push('• Alacena con entrepaños 50cm');
+    if (config.specialModules?.alacenaHerraje) lines.push('• Alacena para herraje 50cm');
+    if (config.specialModules?.torreHornos) lines.push('• Torre de hornos 70cm');
+    if (config.countertop?.type) {
+      const ct = config.countertop;
+      const ctType = ct.esImportado
+        ? (ct.type === 'quarzone' ? 'Quarzone Importado' : ct.type === 'granito' ? 'Granito Importado' : 'Sinterizado Importado')
+        : (ct.type === 'quarzone' ? 'Quarzone' : ct.type === 'granito' ? 'Granito' : 'Sinterizado');
+      let surchargeText = '';
+      if (ct.depthSurcharge === '30percent') surchargeText = ' — fondo 61-90cm (+30%)';
+      else if (ct.depthSurcharge === 'double') surchargeText = ' — fondo 91-120cm (×2)';
+      const mesonML = (config.independentMeters && config.lowerMeters !== undefined)
+        ? Math.max(0, (config.lowerMeters || 0) - deductions) : resultingMeters;
+      lines.push(`• Mesón ${ctType}: ${mesonML.toFixed(2)}ml${surchargeText}`);
+      if (ct.incluyeLaterales) lines.push(`  - ${ct.cantLaterales || 1} lateral${(ct.cantLaterales || 1) > 1 ? 'es' : ''}: ${((ct.cantLaterales || 1) * 0.9).toFixed(2)}ml`);
+      if (ct.incluyeRegrueso) lines.push('  - Regrueso: 0.90ml');
+      if (ct.incluyeLavaplatos) lines.push('  - Lavaplatos y pegado');
+    }
+    if (config.island?.enabled && (config.island?.meters || 0) > 0) {
+      const isl = config.island as any;
+      const islandLines: string[] = [`${(isl.meters || 0).toFixed(2)}ml muebles`];
+      if (isl.countertopType) {
+        const ictBase = isl.countertopType === 'quarzone' ? 'Quarzone' : isl.countertopType === 'granito' ? 'Granito' : 'Sinterizado';
+        islandLines.push(`mesón ${isl.esImportado ? ictBase + ' Importado' : ictBase}`);
+      }
+      if (isl.incluyeLateralesIsla ?? isl.hasLaterals) islandLines.push('con laterales');
+      if (isl.incluyeRegrueso) islandLines.push('regrueso');
+      if (isl.incluyeSalpicaderoAlto) islandLines.push('salpicadero alto');
+      if (isl.incluyeLavaplatos) islandLines.push('lavaplatos');
+      if (isl.incluyeLedIsla && isl.ledMLIsla > 0) islandLines.push(`LED ${isl.ledMLIsla}ml`);
+      lines.push(`• Isla: ${islandLines.join(', ')}`);
+    }
+    if (config.bar?.enabled && (config.bar?.meters || 0) > 0) {
+      const bar = config.bar as any;
+      const barLines: string[] = [`${(bar.meters || 0).toFixed(2)}ml muebles`];
+      if (bar.incluyePedestal) barLines.push('pedestal metálico');
+      if (bar.incluyeHerraje) barLines.push('herraje');
+      if (bar.countertopType) {
+        const bctBase = bar.countertopType === 'quarzone' ? 'Quarzone' : bar.countertopType === 'granito' ? 'Granito' : 'Sinterizado';
+        barLines.push(`mesón ${bar.esImportado ? bctBase + ' Importado' : bctBase}`);
+      }
+      if (bar.hasLateral) barLines.push(`con lateral (${bar.barraAlturaLateral ?? 90}cm)`);
+      lines.push(`• Barra: ${barLines.join(', ')}`);
+    }
+    if (config.kitchenModules) {
+      const km = config.kitchenModules as any;
+      const toQ = (v: any) => typeof v === 'boolean' ? (v ? 1 : 0) : (v || 0);
+      const KM_LABELS: Record<string, string> = {
+        esquineroSuperior: 'Esq. superior', moduloAlmacSup: 'Alm. superior',
+        moduloExtractor: 'Extractor', moduloMicroondas: 'Microondas',
+        especiero: 'Especiero', botellero: 'Botellero', moduloRepisa: 'Repisa',
+        esquinero1x1: 'Esq. 1×1 inf.', cajoneroTriple: 'Caj. triple',
+        cajoneroDoble: 'Caj. doble', basurero: 'Basurero',
+        moduloEstufaHorno: 'Estufa/horno', moduloAlmacInf: 'Alm. inferior',
+      };
+      const kmEntries: string[] = [];
+      for (const [k, lbl] of Object.entries(KM_LABELS)) {
+        const q = toQ(km[k]);
+        if (q > 0) kmEntries.push(q > 1 ? `${q}× ${lbl}` : lbl);
+      }
+      if (toQ(km.lateralNichoNevera) > 0) kmEntries.push(`${toQ(km.lateralNichoNevera)} lat. nicho nevera`);
+      if (toQ(km.lateralMuebleSuperior) > 0) kmEntries.push(`${toQ(km.lateralMuebleSuperior)} lat. sup.`);
+      if (toQ(km.lateralMuebleInferior) > 0) kmEntries.push(`${toQ(km.lateralMuebleInferior)} lat. inf.`);
+      if (km.luzLed) kmEntries.push('Luz LED');
+      if (kmEntries.length > 0) lines.push(`• Módulos: ${kmEntries.join(', ')}`);
+    }
+    if ((config.ledLighting || 0) > 0) lines.push(`• Luz LED: ${(config.ledLighting).toFixed(2)}ml`);
+    if (config.specialFinishes?.enabled) {
+      lines.push(''); lines.push('ACABADOS ESPECIALES:');
+      if (config.specialFinishes.aluminumGlassDoors?.length > 0) {
+        const td = config.specialFinishes.aluminumGlassDoors.length;
+        const tsq = config.specialFinishes.aluminumGlassDoors.reduce((s: number, d: any) => s + d.height * d.width, 0);
+        lines.push(`• Puertas aluminio + vidrio ahumado: ${td} ${td === 1 ? 'puerta' : 'puertas'} (${tsq.toFixed(2)} m²)`);
+        config.specialFinishes.aluminumGlassDoors.forEach((door: any, i: number) => {
+          const sq = door.height * door.width;
+          const eh = door.height > 1.4 ? 2 : (door.height > 0.8 ? 1 : 0);
+          lines.push(`  - Puerta ${i + 1}: ${door.height.toFixed(2)}m x ${door.width.toFixed(2)}m = ${sq.toFixed(2)} m²${eh > 0 ? ` (+${eh} par${eh > 1 ? 'es' : ''} bisagras)` : ''}`);
+        });
+      }
+      if (config.specialFinishes.ledLighting?.enabled && config.specialFinishes.ledLighting.meters > 0) {
+        lines.push(`• LED para alacenas: ${config.specialFinishes.ledLighting.meters.toFixed(2)}ml`);
+      }
+    }
+    if (config.paintedDoors?.enabled) {
+      const pd = config.paintedDoors;
+      const total = (pd.upperQty || 0) + (pd.lowerQty || 0) + (pd.pantryQty || 0) + (pd.drawerQty || 0) + (pd.spiceQty || 0) + (pd.golaQty || 0);
+      if (total > 0) {
+        lines.push(''); lines.push('PINTADO ALTO BRILLO:');
+        if (pd.upperQty > 0) lines.push(`• Puertas superiores: ${pd.upperQty}`);
+        if (pd.lowerQty > 0) lines.push(`• Puertas inferiores: ${pd.lowerQty}`);
+        if (pd.pantryQty > 0) lines.push(`• Puertas alacena: ${pd.pantryQty}`);
+        if (pd.drawerQty > 0) lines.push(`• Tapas cajón: ${pd.drawerQty}`);
+        if (pd.spiceQty > 0) lines.push(`• Especieros: ${pd.spiceQty}`);
+        if (pd.golaQty > 0) lines.push(`• Gola: ${pd.golaQty}`);
+      }
+    }
+    lines.push(''); lines.push('ESPECIFICACIONES:');
+    lines.push('• Material: Tablero 15mm hidrófuga alta presión RH (resistente a la humedad)');
+    if (config.boardFinish) lines.push(`• Color exterior: ${config.boardFinish}`);
+    if (config.interiorFinish) lines.push(`• Color interior: ${config.interiorFinish}`);
+    if (config.hardware?.bisagras) {
+      lines.push(`• Bisagras: ${config.hardware.bisagras === 'inox' ? 'Bisagras acero inoxidable cierre lento' : 'Bisagras estándar cierre lento'}`);
+    }
+    if (config.hardware?.rieles) {
+      lines.push(`• Rieles: ${config.hardware.rieles === 'peso_alto' ? 'Riel telescópico peso alto' : 'Riel telescópico cierre lento'}`);
+    }
+    if (config.incluyePlatero) {
+      lines.push(`• Platero: Acero inoxidable${config.plateroDesc ? ' — ' + config.plateroDesc : ''}`);
+    }
+    if (config.appliances) {
+      const ap = config.appliances as any;
+      const apList: string[] = [];
+      if (ap.estufa) apList.push('Estufa'); if (ap.horno) apList.push('Horno empotrable');
+      if (ap.extractor) apList.push('Extractor'); if (ap.llaveLavaplatos) apList.push('Llave de lavaplatos');
+      if (ap.nevera) apList.push('Nevera'); if (ap.microondas) apList.push('Microondas');
+      if (ap.lavaVajillas) apList.push('Lavavajillas');
+      if (apList.length > 0) lines.push(`• Espacios electrodomésticos (no suministrados): ${apList.join(', ')}`);
+    }
+    if (config.notes?.trim()) { lines.push(''); lines.push('Notas adicionales:'); lines.push(config.notes.trim()); }
+    return lines.join('\n');
+  }
+
+  // ── CLOSET ───────────────────────────────────────────────────────────────
+  if (item.itemType === 'closet' && item.closetConfig) {
+    const cc = typeof item.closetConfig === 'string' ? JSON.parse(item.closetConfig) : item.closetConfig;
+    const typeLabels: Record<string, string> = { estandar: 'Closet Estándar', especial: 'Closet Especial', empotrado: 'Closet Empotrado' };
+    const doorLabels: Record<string, string> = { corredizas: 'Puertas Corredizas', batientes: 'Puertas Batientes' };
+    const lines: string[] = [];
+    lines.push(typeLabels[cc.type] || (cc.type || 'CLOSET').toUpperCase());
+    lines.push(`Dimensiones: ${cc.width}m (ancho) x ${cc.height}m (alto)`);
+    lines.push(`Profundidad: ${cc.type === 'especial' ? '0.45cm o menos' : '0.60cm'}`);
+    lines.push(`Área: ${(cc.squareMeters || 0).toFixed(2)} M²`);
+    lines.push(doorLabels[cc.doorType] || cc.doorType || '');
+    lines.push(''); lines.push('Incluye:');
+    lines.push('• Maletero'); lines.push('• Divisor'); lines.push('• Doble colgadero');
+    lines.push('• Entrepaños'); lines.push('• Doble cajonero'); lines.push('• Zapatero');
+    if (cc.type === 'empotrado') lines.push('• Espaldar y laterales completos');
+    if (cc.notes?.trim()) { lines.push(''); lines.push('Notas adicionales:'); lines.push(cc.notes.trim()); }
+    return lines.join('\n');
+  }
+
+  // ── HERRAJES ─────────────────────────────────────────────────────────────
+  if (item.itemType === 'herrajes' && item.hardwareSelections && Array.isArray(item.hardwareSelections) && item.hardwareSelections.length > 0) {
+    const lines: string[] = ['HERRAJES SELECCIONADOS', ''];
+    item.hardwareSelections.forEach((hw: any) => {
+      const price = parseFloat(hw.price || '0');
+      const subtotal = hw.subtotal || (price * hw.quantity);
+      lines.push(`• ${hw.name}`);
+      lines.push(`  Cantidad: ${hw.quantity} | Precio unitario: ${fmtCOP(price)} | Subtotal: ${fmtCOP(subtotal)}`);
+    });
+    return lines.join('\n');
+  }
+
+  // ── PUERTA ───────────────────────────────────────────────────────────────
+  if (item.itemType === 'puerta' && item.doorConfig) {
+    const dc = typeof item.doorConfig === 'string' ? JSON.parse(item.doorConfig) : item.doorConfig;
+    const typeLabels: Record<string, string> = { batiente: 'Puerta Batiente', corrediza: 'Puerta Corrediza' };
+    const colorLabels: Record<string, string> = { aluminio: 'Color Aluminio', negro: 'Color Negro' };
+    const lines: string[] = [];
+    if (dc.doors && Array.isArray(dc.doors)) {
+      const totalDoors = dc.doors.reduce((s: number, d: any) => s + (d.quantity || 1), 0);
+      lines.push('PUERTAS - MADERA MACIZA TIPO RH');
+      lines.push(`Total: ${totalDoors} ${totalDoors === 1 ? 'puerta' : 'puertas'}`);
+      lines.push('');
+      dc.doors.forEach((door: any, i: number) => {
+        const qty = door.quantity || 1;
+        lines.push(`Puerta ${i + 1}: ${typeLabels[door.type] || door.type}`);
+        lines.push(`  • Medidas: ${door.width}cm × ${door.height}m`);
+        lines.push(`  • Cantidad: ${qty} ${qty === 1 ? 'unidad' : 'unidades'}`);
+        lines.push(`  • Accesorios: ${colorLabels[door.hardwareColor] || door.hardwareColor}`);
+        lines.push(`  • Dintel: ${door.hasLintel ? 'Sí' : 'No'}`);
+        if (door.location) lines.push(`  • Ubicación: ${door.location}`);
+        if (door.notes) lines.push(`  • Notas: ${door.notes}`);
+        if (i < dc.doors.length - 1) lines.push('');
+      });
+    } else {
+      lines.push(('PUERTA - ' + (typeLabels[dc.type] || dc.type || '')).toUpperCase());
+      if (dc.width && dc.height) lines.push(`Medidas: ${dc.width}cm × ${dc.height}m`);
+    }
+    if (dc.notes?.trim()) { lines.push(''); lines.push(`Notas: ${dc.notes.trim()}`); }
+    return lines.join('\n');
+  }
+
+  // ── BAÑO ─────────────────────────────────────────────────────────────────
+  if (item.itemType === 'baño' && item.bathroomConfig) {
+    const bc = typeof item.bathroomConfig === 'string' ? JSON.parse(item.bathroomConfig) : item.bathroomConfig;
+    const typeLabel = bc.furnitureType === 'flotante' ? 'Mueble de Baño Flotante' : 'Mueble de Baño de Piso con Pata';
+    const lines: string[] = [];
+    lines.push(typeLabel.toUpperCase());
+    lines.push(`Medidas: ${bc.width}cm (ancho) × ${bc.depth}cm (prof.) × ${bc.height}cm (alto)`);
+    lines.push(`Tipo de lavabo: ${bc.sinkType === 'excavado' ? 'Excavado (lavamanos integrado en piedra)' : 'Lavamanos de sobreponer'}`);
+    if (bc.widthRange === 'mayor-120') lines.push('Ancho superior a 120cm — precio calculado proporcionalmente');
+    lines.push('');
+    lines.push('Madera aglomerada tipo RH de alta presión, cantos rígidos en puertas y tapas.');
+    if (bc.hasExcavado && bc.excavadoMaterial) lines.push(`Excavado en ${bc.excavadoMaterial} — incluye salpicadero de 10cm. Llave/grifo no incluida.`);
+    if (bc.hasMeson && bc.mesonMaterial) lines.push(`Mesón en ${bc.mesonMaterial} — incluye salpicadero de 10cm. Llave/grifo no incluida. Lavamanos de sobreponer no incluido.`);
+    lines.push(''); lines.push(`Precio madera: ${fmtCOP(bc.pricePerUnit || 0)} / unidad`);
+    if (bc.quantity > 1) lines.push(`Cantidad: ${bc.quantity} unidades`);
+    if (bc.notes?.trim()) { lines.push(''); lines.push(`Notas: ${bc.notes.trim()}`); }
+    return lines.join('\n');
+  }
+
+  // ── CENTRO DE TV ─────────────────────────────────────────────────────────
+  if (item.itemType === 'centro_tv' && item.tvCenterConfig) {
+    const tc = typeof item.tvCenterConfig === 'string' ? JSON.parse(item.tvCenterConfig) : item.tvCenterConfig;
+    const lines: string[] = [];
+    lines.push('CENTRO DE TV - MUEBLE FLOTANTE');
+    lines.push(`Ancho: ${tc.width}m`);
+    lines.push(`Repisas flotantes: ${tc.floatingShelves}`);
+    lines.push(''); lines.push('Incluye:');
+    lines.push('• Mueble flotante'); lines.push('• Panel para TV con alistonado');
+    lines.push(`• ${tc.floatingShelves} repisas flotantes`);
+    if (tc.hasHighGloss) lines.push('• Acabado alto brillo');
+    if (tc.hasLedLights) lines.push('• Iluminación LED');
+    if (tc.equipmentSpaces > 0) lines.push(`• ${tc.equipmentSpaces} espacios para equipos`);
+    if (tc.notes?.trim()) { lines.push(''); lines.push('Notas adicionales:'); lines.push(tc.notes.trim()); }
+    return lines.join('\n');
+  }
+
+  // ── MESONES ──────────────────────────────────────────────────────────────
+  if (item.itemType === 'mesones' && item.countertopConfig) {
+    const config = typeof item.countertopConfig === 'string' ? JSON.parse(item.countertopConfig) : item.countertopConfig;
+    const lines: string[] = [];
+    if (config.mesones && Array.isArray(config.mesones)) {
+      lines.push('MESONES EN PIEDRA'); lines.push('');
+      config.mesones.forEach((m: any, i: number) => {
+        const tipoTexto = m.tipo === 'meson' ? 'Mesón Estándar' : m.tipo === 'isla' ? 'Isla' : 'Barra';
+        const matTexto = m.material === 'quarzo' ? 'Quarzo' : 'Sinterizado';
+        lines.push(`${i + 1}. ${tipoTexto.toUpperCase()} EN ${matTexto.toUpperCase()}`);
+        lines.push(`   ${m.metrosLineales}ML x ${m.fondo}cm de fondo`);
+        if (m.tipo === 'meson') {
+          lines.push('   Incluye: Regrueso en el visto' + (m.incluyeSalpicaderoAlto ? ', Salpicadero alto' : ', Salpicadero bajo 10cm'));
+          lines.push('   Pegado lavaplatos + Lavaplatos 45x37cm');
+        } else if (m.tipo === 'isla') {
+          const ex = ['Regrueso en el visto'];
+          if (m.incluyeLaterales) ex.push('Laterales (1.8ML)');
+          if (m.incluyeRegrueso) ex.push('Regrueso adicional (0.9ML)');
+          lines.push(`   Incluye: ${ex.join(', ')}`);
+        } else if (m.tipo === 'barra') {
+          const ex = ['Regrueso en los vistos', m.incluyeSalpicaderoAlto ? 'Salpicadero alto' : 'Salpicadero bajo 10cm'];
+          if (m.alturaLateral > 0) ex.push(`Lateral ${m.alturaLateral}cm`);
+          lines.push(`   Incluye: ${ex.join(', ')}`);
+        }
+        lines.push(`   Subtotal: ${fmtCOP(m.subtotal || 0)}`);
+        lines.push('');
+      });
+      if (config.notes?.trim()) lines.push('Notas: ' + config.notes.trim());
+    } else {
+      const tipoTexto = config.tipo === 'meson' ? 'MESÓN' : config.tipo === 'isla' ? 'ISLA' : 'BARRA';
+      const matTexto = config.material === 'quarzo' ? 'QUARZO' : 'SINTERIZADO';
+      lines.push(`${tipoTexto} EN ${matTexto}`);
+      lines.push(`Metros lineales: ${config.metrosLineales}ML`); lines.push(`Fondo: ${config.fondo}cm`);
+      lines.push(''); lines.push('Incluye:'); lines.push('• Regrueso en el visto');
+      if (config.tipo === 'meson') {
+        lines.push(config.incluyeSalpicaderoAlto ? '• Salpicadero alto (duplica metraje)' : '• Salpicadero bajo 10cm');
+        lines.push('• Pegado de lavaplatos (incluye lavaplatos 45x37cm)');
+      } else if (config.tipo === 'barra') {
+        lines.push(config.incluyeSalpicaderoAlto ? '• Salpicadero alto (duplica metraje)' : '• Salpicadero bajo 10cm');
+      }
+      if (config.tipo === 'isla' && config.incluyeLaterales) lines.push('• Laterales de isla (1.8ML)');
+      if (config.notes?.trim()) { lines.push(''); lines.push('Notas: ' + config.notes.trim()); }
+    }
+    return lines.join('\n');
+  }
+
+  // ── MUEBLE COCINA (pieza suelta) ─────────────────────────────────────────
+  if (item.itemType === 'mueble_cocina' && item.kitchenConfig) {
+    const cfg: any = typeof item.kitchenConfig === 'string' ? JSON.parse(item.kitchenConfig) : item.kitchenConfig;
+    if (cfg?.tipoPieza) {
+      const lines: string[] = [];
+      const pieceLabels: Record<string, string> = {
+        isla: 'Isla', barra: 'Barra', mueble_alto: 'Mueble Alto', mueble_bajo: 'Mueble Bajo',
+        nicho_nevecon: 'Nicho Nevecon', nicho_nevera: 'Nicho Nevera',
+        alacena_entrepanos: 'Alacena (Entrepaños)', alacena_herraje: 'Alacena (Herraje)', torre_hornos: 'Torre de Hornos',
+      };
+      const pieceLabel = pieceLabels[cfg.tipoPieza] || cfg.tipoPieza;
+      const madStr = cfg.madreraML ? ` — ${cfg.madreraML}ml` : '';
+      lines.push(`${pieceLabel.toUpperCase()} A MEDIDA${madStr}`);
+      const moduloLabels: Record<string, string> = {
+        esquineroSuperior: 'Esquinero superior', moduloExtractor: 'Módulo extractor',
+        moduloMicroondas: 'Módulo microondas', especiero: 'Especiero', botellero: 'Botellero',
+        moduloRepisa: 'Módulo repisa', moduloAlmacSup: 'Módulo almacenamiento sup.',
+        esquinero1x1: 'Esquinero 1×1 inferior', cajoneroTriple: 'Cajonero triple',
+        cajoneroDoble: 'Cajonero doble', basurero: 'Basurero integrado',
+        moduloEstufaHorno: 'Módulo estufa/horno', moduloAlmacInf: 'Módulo almacenamiento inf.',
+      };
+      const mods = cfg.modulosDescriptivos || {};
+      const activeMods = Object.entries(moduloLabels).filter(([k]) => (mods as any)[k] === true).map(([, l]) => `  • ${l}`);
+      if (activeMods.length > 0) { lines.push('Módulos:'); lines.push(...activeMods); }
+      if (cfg.incluyeMeson) {
+        const mMats: Record<string, string> = { granito: 'Granito', cuarzo: 'Cuarzo', sinterizado: 'Sinterizado' };
+        const matBase = mMats[cfg.mesonMaterial] || cfg.mesonMaterial || '';
+        const matLabel = cfg.mesonEsImportado ? `${matBase} Importado` : matBase;
+        const mParts = [`Mesón: ${matLabel}`];
+        if (cfg.mesonML) mParts.push(`${cfg.mesonML}ml`);
+        if (cfg.mesonFondo) { const f = cfg.mesonFondo > 5 ? (cfg.mesonFondo / 100).toFixed(2) : cfg.mesonFondo; mParts.push(`fondo ${f}m`); }
+        lines.push(mParts.join(' — '));
+        const mEx: string[] = [];
+        if (cfg.mesonIncluyeLaterales) mEx.push('laterales');
+        if (cfg.mesonIncluyeRegrueso) mEx.push('regrueso');
+        if (cfg.mesonIncluyeSalpicaderoAlto) mEx.push('salpicadero alto');
+        if (mEx.length > 0) lines.push(`  Extras mesón: ${mEx.join(', ')}`);
+        if (cfg.incluyeLavaplatos) lines.push(`  Lavaplatos y pegado${cfg.lavaprecio ? ' $' + cfg.lavaprecio.toLocaleString('es-CO') : ''}`);
+      }
+      if (cfg.incluyeLed && cfg.ledML) lines.push(`LED: ${cfg.ledML}ml`);
+      if (cfg.incluyePintado) lines.push('Incluye pintado');
+      if (cfg.notas?.trim()) { lines.push(''); lines.push(cfg.notas.trim()); }
+      return lines.join('\n');
+    }
+  }
+
+  // ── ACABADOS ESPECIALES ──────────────────────────────────────────────────
+  if (item.itemType === 'acabados_especiales' && item.kitchenConfig) {
+    const cfg: any = typeof item.kitchenConfig === 'string' ? JSON.parse(item.kitchenConfig) : item.kitchenConfig;
+    const lines: string[] = ['ACABADOS ESPECIALES'];
+    if (cfg?.aluminumGlassDoors?.length > 0) {
+      const td = cfg.aluminumGlassDoors.length;
+      const tsq = cfg.aluminumGlassDoors.reduce((s: number, d: any) => s + d.height * d.width, 0);
+      lines.push(`• Puertas aluminio + vidrio ahumado: ${td} ${td === 1 ? 'puerta' : 'puertas'} (${tsq.toFixed(2)} m²)`);
+      cfg.aluminumGlassDoors.forEach((door: any, i: number) => {
+        const sq = door.height * door.width;
+        const eh = door.height > 1.4 ? 2 : (door.height > 0.8 ? 1 : 0);
+        lines.push(`  - Puerta ${i + 1}: ${door.height.toFixed(2)}m x ${door.width.toFixed(2)}m = ${sq.toFixed(2)} m²${eh > 0 ? ` (+${eh} par${eh > 1 ? 'es' : ''} bisagras)` : ''}`);
+      });
+    }
+    if (cfg?.ledLighting?.enabled && cfg.ledLighting.meters > 0) lines.push(`• LED para alacenas: ${cfg.ledLighting.meters.toFixed(2)}ml`);
+    if (lines.length > 1) return lines.join('\n');
+  }
+
+  // ── Fallback: texto guardado en BD ───────────────────────────────────────
+  return item.description ?? item.itemType ?? '';
+}
+
+
 export const quotationsRouter = router({
     // Crear nueva cotización con items
     create: protectedProcedure
@@ -3651,411 +4056,6 @@ export const quotationsRouter = router({
           };
         }),
 
-
-
-// ─── buildPublicItemDesc ─────────────────────────────────────────────────────
-// Builds the full description for each quotation item for the public client link.
-// Replicates the PDF generator logic so clients see the same detail as the PDF.
-function buildPublicItemDesc(item: any): string {
-  const fmtCOP = (n: number) =>
-    new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(n);
-
-  // ── COCINA INTEGRAL ──────────────────────────────────────────────────────
-  if (item.itemType === 'cocina' && item.kitchenConfig) {
-    const config = typeof item.kitchenConfig === 'string' ? JSON.parse(item.kitchenConfig) : item.kitchenConfig;
-    const lines: string[] = [];
-    const shapeLabels: Record<string, string> = {
-      estandar: 'Estándar', premium: 'Premium', deluxe: 'Deluxe',
-      L: 'Estándar (en L)', U: 'Premium (en U)', lineal: 'Deluxe (Lineal)',
-      frente_pll: 'Frente PLL (Solo Inferiores)', solo_superiores: 'Solo Muebles Superiores',
-      solo_inferiores: 'Solo Muebles Inferiores', puertas_tapas: 'Puertas y Tapas',
-    };
-    const layoutLabels: Record<string, string> = {
-      L: 'en L', U: 'en U', lineal: 'Lineal / Recta',
-      cuadrada: 'Cuadrada / Paralela', isla: 'Con isla central', otra: 'Otra',
-    };
-    const shapeLabel = shapeLabels[config.shape] || config.shape;
-    const layoutSuffix = config.layout && layoutLabels[config.layout] ? ` • Forma: ${layoutLabels[config.layout]}` : '';
-    lines.push(`COCINA INTEGRAL - ${shapeLabel}${layoutSuffix}`);
-    if (config.independentMeters && (config.lowerMeters !== undefined || config.upperMeters !== undefined)) {
-      lines.push(`Metraje inferiores: ${(config.lowerMeters || 0).toFixed(2)}ml — superiores: ${(config.upperMeters || 0).toFixed(2)}ml`);
-    } else {
-      lines.push(`Metraje total: ${(config.totalMeters || 0).toFixed(2)}ml`);
-    }
-    lines.push('');
-    const isSpecialShape = ['frente_pll', 'solo_superiores', 'solo_inferiores', 'puertas_tapas'].includes(config.shape);
-    let deductions = 0;
-    if (!isSpecialShape) {
-      if (config.specialModules?.nichoNevecon) deductions += 1.0;
-      if (config.specialModules?.nichoNevera) deductions += 0.75;
-      if (config.specialModules?.alacenaEntrepanos) deductions += 0.5;
-      if (config.specialModules?.alacenaHerraje) deductions += 0.5;
-      if (config.specialModules?.torreHornos) deductions += 0.7;
-    }
-    const resultingMeters = Math.max(0, (config.totalMeters || 0) - deductions);
-    if (config.shape === 'frente_pll') {
-      lines.push(`• Muebles Inferiores (Frente PLL): ${(config.totalMeters || 0).toFixed(2)}ml`);
-      if (config.includeUpperModule && config.upperModuleMeters > 0)
-        lines.push(`• Muebles Superiores: ${config.upperModuleMeters.toFixed(2)}ml`);
-    } else if (config.shape === 'solo_superiores') {
-      lines.push(`• Muebles Superiores: ${(config.totalMeters || 0).toFixed(2)}ml`);
-    } else if (config.shape === 'solo_inferiores') {
-      lines.push(`• Muebles Inferiores: ${(config.totalMeters || 0).toFixed(2)}ml`);
-    } else if (config.shape === 'puertas_tapas') {
-      const dc = config.doorsAndCovers || {};
-      if (dc.upperDoors70 > 0) lines.push(`• Puertas superiores 70cm: ${dc.upperDoors70} und`);
-      if (dc.upperDoors90 > 0) lines.push(`• Puertas superiores 90cm: ${dc.upperDoors90} und`);
-      if (dc.upperDoors100 > 0) lines.push(`• Puertas superiores 100cm: ${dc.upperDoors100} und`);
-      if (dc.lowerDoors > 0) lines.push(`• Puertas inferiores: ${dc.lowerDoors} und`);
-      if (dc.pantryDoors > 0) lines.push(`• Puertas alacena: ${dc.pantryDoors} und`);
-      if (dc.drawerCovers > 0) lines.push(`• Tapas cajón: ${dc.drawerCovers} und`);
-      if (dc.smallCovers > 0) lines.push(`• Tapas pequeñas: ${dc.smallCovers} und`);
-    } else {
-      if (config.includeLower !== false) {
-        const lowerML = (config.independentMeters && config.lowerMeters !== undefined)
-          ? Math.max(0, (config.lowerMeters || 0) - deductions) : resultingMeters;
-        lines.push(`• Muebles Inferiores: ${lowerML.toFixed(2)}ml`);
-      }
-      if (config.includeUpper !== false) {
-        const upperML = (config.independentMeters && config.upperMeters !== undefined)
-          ? (config.upperMeters || 0) : resultingMeters;
-        lines.push(`• Muebles Superiores: ${upperML.toFixed(2)}ml`);
-      }
-    }
-    if (config.specialModules?.nichoNevecon) lines.push('• Nicho para nevecon 100cm');
-    if (config.specialModules?.nichoNevera) lines.push('• Nicho nevera estándar 75cm');
-    if (config.specialModules?.alacenaEntrepanos) lines.push('• Alacena con entrepaños 50cm');
-    if (config.specialModules?.alacenaHerraje) lines.push('• Alacena para herraje 50cm');
-    if (config.specialModules?.torreHornos) lines.push('• Torre de hornos 70cm');
-    if (config.countertop?.type) {
-      const ct = config.countertop;
-      const ctType = ct.esImportado
-        ? (ct.type === 'quarzone' ? 'Quarzone Importado' : ct.type === 'granito' ? 'Granito Importado' : 'Sinterizado Importado')
-        : (ct.type === 'quarzone' ? 'Quarzone' : ct.type === 'granito' ? 'Granito' : 'Sinterizado');
-      let surchargeText = '';
-      if (ct.depthSurcharge === '30percent') surchargeText = ' — fondo 61-90cm (+30%)';
-      else if (ct.depthSurcharge === 'double') surchargeText = ' — fondo 91-120cm (×2)';
-      const mesonML = (config.independentMeters && config.lowerMeters !== undefined)
-        ? Math.max(0, (config.lowerMeters || 0) - deductions) : resultingMeters;
-      lines.push(`• Mesón ${ctType}: ${mesonML.toFixed(2)}ml${surchargeText}`);
-      if (ct.incluyeLaterales) lines.push(`  - ${ct.cantLaterales || 1} lateral${(ct.cantLaterales || 1) > 1 ? 'es' : ''}: ${((ct.cantLaterales || 1) * 0.9).toFixed(2)}ml`);
-      if (ct.incluyeRegrueso) lines.push('  - Regrueso: 0.90ml');
-      if (ct.incluyeLavaplatos) lines.push('  - Lavaplatos y pegado');
-    }
-    if (config.island?.enabled && (config.island?.meters || 0) > 0) {
-      const isl = config.island as any;
-      const islandLines: string[] = [`${(isl.meters || 0).toFixed(2)}ml muebles`];
-      if (isl.countertopType) {
-        const ictBase = isl.countertopType === 'quarzone' ? 'Quarzone' : isl.countertopType === 'granito' ? 'Granito' : 'Sinterizado';
-        islandLines.push(`mesón ${isl.esImportado ? ictBase + ' Importado' : ictBase}`);
-      }
-      if (isl.incluyeLateralesIsla ?? isl.hasLaterals) islandLines.push('con laterales');
-      if (isl.incluyeRegrueso) islandLines.push('regrueso');
-      if (isl.incluyeSalpicaderoAlto) islandLines.push('salpicadero alto');
-      if (isl.incluyeLavaplatos) islandLines.push('lavaplatos');
-      if (isl.incluyeLedIsla && isl.ledMLIsla > 0) islandLines.push(`LED ${isl.ledMLIsla}ml`);
-      lines.push(`• Isla: ${islandLines.join(', ')}`);
-    }
-    if (config.bar?.enabled && (config.bar?.meters || 0) > 0) {
-      const bar = config.bar as any;
-      const barLines: string[] = [`${(bar.meters || 0).toFixed(2)}ml muebles`];
-      if (bar.incluyePedestal) barLines.push('pedestal metálico');
-      if (bar.incluyeHerraje) barLines.push('herraje');
-      if (bar.countertopType) {
-        const bctBase = bar.countertopType === 'quarzone' ? 'Quarzone' : bar.countertopType === 'granito' ? 'Granito' : 'Sinterizado';
-        barLines.push(`mesón ${bar.esImportado ? bctBase + ' Importado' : bctBase}`);
-      }
-      if (bar.hasLateral) barLines.push(`con lateral (${bar.barraAlturaLateral ?? 90}cm)`);
-      lines.push(`• Barra: ${barLines.join(', ')}`);
-    }
-    if (config.kitchenModules) {
-      const km = config.kitchenModules as any;
-      const toQ = (v: any) => typeof v === 'boolean' ? (v ? 1 : 0) : (v || 0);
-      const KM_LABELS: Record<string, string> = {
-        esquineroSuperior: 'Esq. superior', moduloAlmacSup: 'Alm. superior',
-        moduloExtractor: 'Extractor', moduloMicroondas: 'Microondas',
-        especiero: 'Especiero', botellero: 'Botellero', moduloRepisa: 'Repisa',
-        esquinero1x1: 'Esq. 1×1 inf.', cajoneroTriple: 'Caj. triple',
-        cajoneroDoble: 'Caj. doble', basurero: 'Basurero',
-        moduloEstufaHorno: 'Estufa/horno', moduloAlmacInf: 'Alm. inferior',
-      };
-      const kmEntries: string[] = [];
-      for (const [k, lbl] of Object.entries(KM_LABELS)) {
-        const q = toQ(km[k]);
-        if (q > 0) kmEntries.push(q > 1 ? `${q}× ${lbl}` : lbl);
-      }
-      if (toQ(km.lateralNichoNevera) > 0) kmEntries.push(`${toQ(km.lateralNichoNevera)} lat. nicho nevera`);
-      if (toQ(km.lateralMuebleSuperior) > 0) kmEntries.push(`${toQ(km.lateralMuebleSuperior)} lat. sup.`);
-      if (toQ(km.lateralMuebleInferior) > 0) kmEntries.push(`${toQ(km.lateralMuebleInferior)} lat. inf.`);
-      if (km.luzLed) kmEntries.push('Luz LED');
-      if (kmEntries.length > 0) lines.push(`• Módulos: ${kmEntries.join(', ')}`);
-    }
-    if ((config.ledLighting || 0) > 0) lines.push(`• Luz LED: ${(config.ledLighting).toFixed(2)}ml`);
-    if (config.specialFinishes?.enabled) {
-      lines.push(''); lines.push('ACABADOS ESPECIALES:');
-      if (config.specialFinishes.aluminumGlassDoors?.length > 0) {
-        const td = config.specialFinishes.aluminumGlassDoors.length;
-        const tsq = config.specialFinishes.aluminumGlassDoors.reduce((s: number, d: any) => s + d.height * d.width, 0);
-        lines.push(`• Puertas aluminio + vidrio ahumado: ${td} ${td === 1 ? 'puerta' : 'puertas'} (${tsq.toFixed(2)} m²)`);
-        config.specialFinishes.aluminumGlassDoors.forEach((door: any, i: number) => {
-          const sq = door.height * door.width;
-          const eh = door.height > 1.4 ? 2 : (door.height > 0.8 ? 1 : 0);
-          lines.push(`  - Puerta ${i + 1}: ${door.height.toFixed(2)}m x ${door.width.toFixed(2)}m = ${sq.toFixed(2)} m²${eh > 0 ? ` (+${eh} par${eh > 1 ? 'es' : ''} bisagras)` : ''}`);
-        });
-      }
-      if (config.specialFinishes.ledLighting?.enabled && config.specialFinishes.ledLighting.meters > 0) {
-        lines.push(`• LED para alacenas: ${config.specialFinishes.ledLighting.meters.toFixed(2)}ml`);
-      }
-    }
-    if (config.paintedDoors?.enabled) {
-      const pd = config.paintedDoors;
-      const total = (pd.upperQty || 0) + (pd.lowerQty || 0) + (pd.pantryQty || 0) + (pd.drawerQty || 0) + (pd.spiceQty || 0) + (pd.golaQty || 0);
-      if (total > 0) {
-        lines.push(''); lines.push('PINTADO ALTO BRILLO:');
-        if (pd.upperQty > 0) lines.push(`• Puertas superiores: ${pd.upperQty}`);
-        if (pd.lowerQty > 0) lines.push(`• Puertas inferiores: ${pd.lowerQty}`);
-        if (pd.pantryQty > 0) lines.push(`• Puertas alacena: ${pd.pantryQty}`);
-        if (pd.drawerQty > 0) lines.push(`• Tapas cajón: ${pd.drawerQty}`);
-        if (pd.spiceQty > 0) lines.push(`• Especieros: ${pd.spiceQty}`);
-        if (pd.golaQty > 0) lines.push(`• Gola: ${pd.golaQty}`);
-      }
-    }
-    lines.push(''); lines.push('ESPECIFICACIONES:');
-    lines.push('• Material: Tablero 15mm hidrófuga alta presión RH (resistente a la humedad)');
-    if (config.boardFinish) lines.push(`• Color exterior: ${config.boardFinish}`);
-    if (config.interiorFinish) lines.push(`• Color interior: ${config.interiorFinish}`);
-    if (config.hardware?.bisagras) {
-      lines.push(`• Bisagras: ${config.hardware.bisagras === 'inox' ? 'Bisagras acero inoxidable cierre lento' : 'Bisagras estándar cierre lento'}`);
-    }
-    if (config.hardware?.rieles) {
-      lines.push(`• Rieles: ${config.hardware.rieles === 'peso_alto' ? 'Riel telescópico peso alto' : 'Riel telescópico cierre lento'}`);
-    }
-    if (config.incluyePlatero) {
-      lines.push(`• Platero: Acero inoxidable${config.plateroDesc ? ' — ' + config.plateroDesc : ''}`);
-    }
-    if (config.appliances) {
-      const ap = config.appliances as any;
-      const apList: string[] = [];
-      if (ap.estufa) apList.push('Estufa'); if (ap.horno) apList.push('Horno empotrable');
-      if (ap.extractor) apList.push('Extractor'); if (ap.llaveLavaplatos) apList.push('Llave de lavaplatos');
-      if (ap.nevera) apList.push('Nevera'); if (ap.microondas) apList.push('Microondas');
-      if (ap.lavaVajillas) apList.push('Lavavajillas');
-      if (apList.length > 0) lines.push(`• Espacios electrodomésticos (no suministrados): ${apList.join(', ')}`);
-    }
-    if (config.notes?.trim()) { lines.push(''); lines.push('Notas adicionales:'); lines.push(config.notes.trim()); }
-    return lines.join('\n');
-  }
-
-  // ── CLOSET ───────────────────────────────────────────────────────────────
-  if (item.itemType === 'closet' && item.closetConfig) {
-    const cc = typeof item.closetConfig === 'string' ? JSON.parse(item.closetConfig) : item.closetConfig;
-    const typeLabels: Record<string, string> = { estandar: 'Closet Estándar', especial: 'Closet Especial', empotrado: 'Closet Empotrado' };
-    const doorLabels: Record<string, string> = { corredizas: 'Puertas Corredizas', batientes: 'Puertas Batientes' };
-    const lines: string[] = [];
-    lines.push(typeLabels[cc.type] || (cc.type || 'CLOSET').toUpperCase());
-    lines.push(`Dimensiones: ${cc.width}m (ancho) x ${cc.height}m (alto)`);
-    lines.push(`Profundidad: ${cc.type === 'especial' ? '0.45cm o menos' : '0.60cm'}`);
-    lines.push(`Área: ${(cc.squareMeters || 0).toFixed(2)} M²`);
-    lines.push(doorLabels[cc.doorType] || cc.doorType || '');
-    lines.push(''); lines.push('Incluye:');
-    lines.push('• Maletero'); lines.push('• Divisor'); lines.push('• Doble colgadero');
-    lines.push('• Entrepaños'); lines.push('• Doble cajonero'); lines.push('• Zapatero');
-    if (cc.type === 'empotrado') lines.push('• Espaldar y laterales completos');
-    if (cc.notes?.trim()) { lines.push(''); lines.push('Notas adicionales:'); lines.push(cc.notes.trim()); }
-    return lines.join('\n');
-  }
-
-  // ── HERRAJES ─────────────────────────────────────────────────────────────
-  if (item.itemType === 'herrajes' && item.hardwareSelections && Array.isArray(item.hardwareSelections) && item.hardwareSelections.length > 0) {
-    const lines: string[] = ['HERRAJES SELECCIONADOS', ''];
-    item.hardwareSelections.forEach((hw: any) => {
-      const price = parseFloat(hw.price || '0');
-      const subtotal = hw.subtotal || (price * hw.quantity);
-      lines.push(`• ${hw.name}`);
-      lines.push(`  Cantidad: ${hw.quantity} | Precio unitario: ${fmtCOP(price)} | Subtotal: ${fmtCOP(subtotal)}`);
-    });
-    return lines.join('\n');
-  }
-
-  // ── PUERTA ───────────────────────────────────────────────────────────────
-  if (item.itemType === 'puerta' && item.doorConfig) {
-    const dc = typeof item.doorConfig === 'string' ? JSON.parse(item.doorConfig) : item.doorConfig;
-    const typeLabels: Record<string, string> = { batiente: 'Puerta Batiente', corrediza: 'Puerta Corrediza' };
-    const colorLabels: Record<string, string> = { aluminio: 'Color Aluminio', negro: 'Color Negro' };
-    const lines: string[] = [];
-    if (dc.doors && Array.isArray(dc.doors)) {
-      const totalDoors = dc.doors.reduce((s: number, d: any) => s + (d.quantity || 1), 0);
-      lines.push('PUERTAS - MADERA MACIZA TIPO RH');
-      lines.push(`Total: ${totalDoors} ${totalDoors === 1 ? 'puerta' : 'puertas'}`);
-      lines.push('');
-      dc.doors.forEach((door: any, i: number) => {
-        const qty = door.quantity || 1;
-        lines.push(`Puerta ${i + 1}: ${typeLabels[door.type] || door.type}`);
-        lines.push(`  • Medidas: ${door.width}cm × ${door.height}m`);
-        lines.push(`  • Cantidad: ${qty} ${qty === 1 ? 'unidad' : 'unidades'}`);
-        lines.push(`  • Accesorios: ${colorLabels[door.hardwareColor] || door.hardwareColor}`);
-        lines.push(`  • Dintel: ${door.hasLintel ? 'Sí' : 'No'}`);
-        if (door.location) lines.push(`  • Ubicación: ${door.location}`);
-        if (door.notes) lines.push(`  • Notas: ${door.notes}`);
-        if (i < dc.doors.length - 1) lines.push('');
-      });
-    } else {
-      lines.push(('PUERTA - ' + (typeLabels[dc.type] || dc.type || '')).toUpperCase());
-      if (dc.width && dc.height) lines.push(`Medidas: ${dc.width}cm × ${dc.height}m`);
-    }
-    if (dc.notes?.trim()) { lines.push(''); lines.push(`Notas: ${dc.notes.trim()}`); }
-    return lines.join('\n');
-  }
-
-  // ── BAÑO ─────────────────────────────────────────────────────────────────
-  if (item.itemType === 'baño' && item.bathroomConfig) {
-    const bc = typeof item.bathroomConfig === 'string' ? JSON.parse(item.bathroomConfig) : item.bathroomConfig;
-    const typeLabel = bc.furnitureType === 'flotante' ? 'Mueble de Baño Flotante' : 'Mueble de Baño de Piso con Pata';
-    const lines: string[] = [];
-    lines.push(typeLabel.toUpperCase());
-    lines.push(`Medidas: ${bc.width}cm (ancho) × ${bc.depth}cm (prof.) × ${bc.height}cm (alto)`);
-    lines.push(`Tipo de lavabo: ${bc.sinkType === 'excavado' ? 'Excavado (lavamanos integrado en piedra)' : 'Lavamanos de sobreponer'}`);
-    if (bc.widthRange === 'mayor-120') lines.push('Ancho superior a 120cm — precio calculado proporcionalmente');
-    lines.push('');
-    lines.push('Madera aglomerada tipo RH de alta presión, cantos rígidos en puertas y tapas.');
-    if (bc.hasExcavado && bc.excavadoMaterial) lines.push(`Excavado en ${bc.excavadoMaterial} — incluye salpicadero de 10cm. Llave/grifo no incluida.`);
-    if (bc.hasMeson && bc.mesonMaterial) lines.push(`Mesón en ${bc.mesonMaterial} — incluye salpicadero de 10cm. Llave/grifo no incluida. Lavamanos de sobreponer no incluido.`);
-    lines.push(''); lines.push(`Precio madera: ${fmtCOP(bc.pricePerUnit || 0)} / unidad`);
-    if (bc.quantity > 1) lines.push(`Cantidad: ${bc.quantity} unidades`);
-    if (bc.notes?.trim()) { lines.push(''); lines.push(`Notas: ${bc.notes.trim()}`); }
-    return lines.join('\n');
-  }
-
-  // ── CENTRO DE TV ─────────────────────────────────────────────────────────
-  if (item.itemType === 'centro_tv' && item.tvCenterConfig) {
-    const tc = typeof item.tvCenterConfig === 'string' ? JSON.parse(item.tvCenterConfig) : item.tvCenterConfig;
-    const lines: string[] = [];
-    lines.push('CENTRO DE TV - MUEBLE FLOTANTE');
-    lines.push(`Ancho: ${tc.width}m`);
-    lines.push(`Repisas flotantes: ${tc.floatingShelves}`);
-    lines.push(''); lines.push('Incluye:');
-    lines.push('• Mueble flotante'); lines.push('• Panel para TV con alistonado');
-    lines.push(`• ${tc.floatingShelves} repisas flotantes`);
-    if (tc.hasHighGloss) lines.push('• Acabado alto brillo');
-    if (tc.hasLedLights) lines.push('• Iluminación LED');
-    if (tc.equipmentSpaces > 0) lines.push(`• ${tc.equipmentSpaces} espacios para equipos`);
-    if (tc.notes?.trim()) { lines.push(''); lines.push('Notas adicionales:'); lines.push(tc.notes.trim()); }
-    return lines.join('\n');
-  }
-
-  // ── MESONES ──────────────────────────────────────────────────────────────
-  if (item.itemType === 'mesones' && item.countertopConfig) {
-    const config = typeof item.countertopConfig === 'string' ? JSON.parse(item.countertopConfig) : item.countertopConfig;
-    const lines: string[] = [];
-    if (config.mesones && Array.isArray(config.mesones)) {
-      lines.push('MESONES EN PIEDRA'); lines.push('');
-      config.mesones.forEach((m: any, i: number) => {
-        const tipoTexto = m.tipo === 'meson' ? 'Mesón Estándar' : m.tipo === 'isla' ? 'Isla' : 'Barra';
-        const matTexto = m.material === 'quarzo' ? 'Quarzo' : 'Sinterizado';
-        lines.push(`${i + 1}. ${tipoTexto.toUpperCase()} EN ${matTexto.toUpperCase()}`);
-        lines.push(`   ${m.metrosLineales}ML x ${m.fondo}cm de fondo`);
-        if (m.tipo === 'meson') {
-          lines.push('   Incluye: Regrueso en el visto' + (m.incluyeSalpicaderoAlto ? ', Salpicadero alto' : ', Salpicadero bajo 10cm'));
-          lines.push('   Pegado lavaplatos + Lavaplatos 45x37cm');
-        } else if (m.tipo === 'isla') {
-          const ex = ['Regrueso en el visto'];
-          if (m.incluyeLaterales) ex.push('Laterales (1.8ML)');
-          if (m.incluyeRegrueso) ex.push('Regrueso adicional (0.9ML)');
-          lines.push(`   Incluye: ${ex.join(', ')}`);
-        } else if (m.tipo === 'barra') {
-          const ex = ['Regrueso en los vistos', m.incluyeSalpicaderoAlto ? 'Salpicadero alto' : 'Salpicadero bajo 10cm'];
-          if (m.alturaLateral > 0) ex.push(`Lateral ${m.alturaLateral}cm`);
-          lines.push(`   Incluye: ${ex.join(', ')}`);
-        }
-        lines.push(`   Subtotal: ${fmtCOP(m.subtotal || 0)}`);
-        lines.push('');
-      });
-      if (config.notes?.trim()) lines.push('Notas: ' + config.notes.trim());
-    } else {
-      const tipoTexto = config.tipo === 'meson' ? 'MESÓN' : config.tipo === 'isla' ? 'ISLA' : 'BARRA';
-      const matTexto = config.material === 'quarzo' ? 'QUARZO' : 'SINTERIZADO';
-      lines.push(`${tipoTexto} EN ${matTexto}`);
-      lines.push(`Metros lineales: ${config.metrosLineales}ML`); lines.push(`Fondo: ${config.fondo}cm`);
-      lines.push(''); lines.push('Incluye:'); lines.push('• Regrueso en el visto');
-      if (config.tipo === 'meson') {
-        lines.push(config.incluyeSalpicaderoAlto ? '• Salpicadero alto (duplica metraje)' : '• Salpicadero bajo 10cm');
-        lines.push('• Pegado de lavaplatos (incluye lavaplatos 45x37cm)');
-      } else if (config.tipo === 'barra') {
-        lines.push(config.incluyeSalpicaderoAlto ? '• Salpicadero alto (duplica metraje)' : '• Salpicadero bajo 10cm');
-      }
-      if (config.tipo === 'isla' && config.incluyeLaterales) lines.push('• Laterales de isla (1.8ML)');
-      if (config.notes?.trim()) { lines.push(''); lines.push('Notas: ' + config.notes.trim()); }
-    }
-    return lines.join('\n');
-  }
-
-  // ── MUEBLE COCINA (pieza suelta) ─────────────────────────────────────────
-  if (item.itemType === 'mueble_cocina' && item.kitchenConfig) {
-    const cfg: any = typeof item.kitchenConfig === 'string' ? JSON.parse(item.kitchenConfig) : item.kitchenConfig;
-    if (cfg?.tipoPieza) {
-      const lines: string[] = [];
-      const pieceLabels: Record<string, string> = {
-        isla: 'Isla', barra: 'Barra', mueble_alto: 'Mueble Alto', mueble_bajo: 'Mueble Bajo',
-        nicho_nevecon: 'Nicho Nevecon', nicho_nevera: 'Nicho Nevera',
-        alacena_entrepanos: 'Alacena (Entrepaños)', alacena_herraje: 'Alacena (Herraje)', torre_hornos: 'Torre de Hornos',
-      };
-      const pieceLabel = pieceLabels[cfg.tipoPieza] || cfg.tipoPieza;
-      const madStr = cfg.madreraML ? ` — ${cfg.madreraML}ml` : '';
-      lines.push(`${pieceLabel.toUpperCase()} A MEDIDA${madStr}`);
-      const moduloLabels: Record<string, string> = {
-        esquineroSuperior: 'Esquinero superior', moduloExtractor: 'Módulo extractor',
-        moduloMicroondas: 'Módulo microondas', especiero: 'Especiero', botellero: 'Botellero',
-        moduloRepisa: 'Módulo repisa', moduloAlmacSup: 'Módulo almacenamiento sup.',
-        esquinero1x1: 'Esquinero 1×1 inferior', cajoneroTriple: 'Cajonero triple',
-        cajoneroDoble: 'Cajonero doble', basurero: 'Basurero integrado',
-        moduloEstufaHorno: 'Módulo estufa/horno', moduloAlmacInf: 'Módulo almacenamiento inf.',
-      };
-      const mods = cfg.modulosDescriptivos || {};
-      const activeMods = Object.entries(moduloLabels).filter(([k]) => (mods as any)[k] === true).map(([, l]) => `  • ${l}`);
-      if (activeMods.length > 0) { lines.push('Módulos:'); lines.push(...activeMods); }
-      if (cfg.incluyeMeson) {
-        const mMats: Record<string, string> = { granito: 'Granito', cuarzo: 'Cuarzo', sinterizado: 'Sinterizado' };
-        const matBase = mMats[cfg.mesonMaterial] || cfg.mesonMaterial || '';
-        const matLabel = cfg.mesonEsImportado ? `${matBase} Importado` : matBase;
-        const mParts = [`Mesón: ${matLabel}`];
-        if (cfg.mesonML) mParts.push(`${cfg.mesonML}ml`);
-        if (cfg.mesonFondo) { const f = cfg.mesonFondo > 5 ? (cfg.mesonFondo / 100).toFixed(2) : cfg.mesonFondo; mParts.push(`fondo ${f}m`); }
-        lines.push(mParts.join(' — '));
-        const mEx: string[] = [];
-        if (cfg.mesonIncluyeLaterales) mEx.push('laterales');
-        if (cfg.mesonIncluyeRegrueso) mEx.push('regrueso');
-        if (cfg.mesonIncluyeSalpicaderoAlto) mEx.push('salpicadero alto');
-        if (mEx.length > 0) lines.push(`  Extras mesón: ${mEx.join(', ')}`);
-        if (cfg.incluyeLavaplatos) lines.push(`  Lavaplatos y pegado${cfg.lavaprecio ? ' $' + cfg.lavaprecio.toLocaleString('es-CO') : ''}`);
-      }
-      if (cfg.incluyeLed && cfg.ledML) lines.push(`LED: ${cfg.ledML}ml`);
-      if (cfg.incluyePintado) lines.push('Incluye pintado');
-      if (cfg.notas?.trim()) { lines.push(''); lines.push(cfg.notas.trim()); }
-      return lines.join('\n');
-    }
-  }
-
-  // ── ACABADOS ESPECIALES ──────────────────────────────────────────────────
-  if (item.itemType === 'acabados_especiales' && item.kitchenConfig) {
-    const cfg: any = typeof item.kitchenConfig === 'string' ? JSON.parse(item.kitchenConfig) : item.kitchenConfig;
-    const lines: string[] = ['ACABADOS ESPECIALES'];
-    if (cfg?.aluminumGlassDoors?.length > 0) {
-      const td = cfg.aluminumGlassDoors.length;
-      const tsq = cfg.aluminumGlassDoors.reduce((s: number, d: any) => s + d.height * d.width, 0);
-      lines.push(`• Puertas aluminio + vidrio ahumado: ${td} ${td === 1 ? 'puerta' : 'puertas'} (${tsq.toFixed(2)} m²)`);
-      cfg.aluminumGlassDoors.forEach((door: any, i: number) => {
-        const sq = door.height * door.width;
-        const eh = door.height > 1.4 ? 2 : (door.height > 0.8 ? 1 : 0);
-        lines.push(`  - Puerta ${i + 1}: ${door.height.toFixed(2)}m x ${door.width.toFixed(2)}m = ${sq.toFixed(2)} m²${eh > 0 ? ` (+${eh} par${eh > 1 ? 'es' : ''} bisagras)` : ''}`);
-      });
-    }
-    if (cfg?.ledLighting?.enabled && cfg.ledLighting.meters > 0) lines.push(`• LED para alacenas: ${cfg.ledLighting.meters.toFixed(2)}ml`);
-    if (lines.length > 1) return lines.join('\n');
-  }
-
-  // ── Fallback: texto guardado en BD ───────────────────────────────────────
-  return item.description ?? item.itemType ?? '';
-}
 
     // ── Portal público del cliente ─────────────────────────────────────────────
 

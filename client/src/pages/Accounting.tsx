@@ -228,6 +228,7 @@ export default function Accounting() {
   const [expenseDate, setExpenseDate] = useState(new Date().toISOString().split("T")[0]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [filterType, setFilterType] = useState<"all" | ExpenseType>("all");
+  const [periodFilter, setPeriodFilter] = useState<"vigentes" | "cerrados" | "todos">("vigentes");
   const [minAmount, setMinAmount] = useState("");
   const [maxAmount, setMaxAmount] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -439,6 +440,13 @@ export default function Accounting() {
     if (!expenses) return [];
     let filtered = expenses;
 
+    // Periodo: vigentes = sin cierre confirmado; cerrados = ya incluidos en un cierre
+    if (periodFilter === "vigentes") {
+      filtered = filtered.filter((e: any) => !e.closureId);
+    } else if (periodFilter === "cerrados") {
+      filtered = filtered.filter((e: any) => !!e.closureId);
+    }
+
     if (filterType !== "all") {
       filtered = filtered.filter(e => e.expenseType === filterType);
     }
@@ -464,7 +472,7 @@ export default function Accounting() {
       const dateB = new Date(b.createdAt || 0).getTime();
       return dateB - dateA;
     });
-  }, [expenses, filterType, minAmount, maxAmount, filterProjectId]);
+  }, [expenses, filterType, periodFilter, minAmount, maxAmount, filterProjectId]);
 
   // Validar y guardar
   const handleSubmit = async (e: any) => {
@@ -910,7 +918,20 @@ export default function Accounting() {
           </CardHeader>
           <CardContent>
             {/* Filtros */}
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-6 p-4 bg-white/[0.04] rounded-lg border border-white/[0.06]">
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-3 mb-6 p-4 bg-white/[0.04] rounded-lg border border-white/[0.06]">
+              <div>
+                <Label className="text-xs">Periodo</Label>
+                <Select value={periodFilter} onValueChange={(v: any) => { setPeriodFilter(v); setCurrentPage(1); }}>
+                  <SelectTrigger className="h-10">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="vigentes">Periodo actual</SelectItem>
+                    <SelectItem value="cerrados">Cerrados</SelectItem>
+                    <SelectItem value="todos">Todos</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <div>
                 <Label className="text-xs">Tipo</Label>
                 <Select value={filterType} onValueChange={(v: any) => setFilterType(v as any)}>
@@ -965,6 +986,7 @@ export default function Accounting() {
                   size="sm"
                   onClick={() => {
                     setFilterType("all");
+                    setPeriodFilter("vigentes");
                     setMinAmount("");
                     setMaxAmount("");
                     setFilterProjectId("");
@@ -997,6 +1019,13 @@ export default function Accounting() {
                     <tr key={idx} className="border-b border-white/[0.06] hover:bg-white/[0.04] transition-colors">
                       <td className="py-3 px-4">
                         {new Date(expense.expenseDate).toLocaleDateString('es-CO')}
+                        {expense.closureId && (
+                          <div className="mt-1">
+                            <Badge variant="outline" className="text-[10px] border-amber-500/40 text-amber-300">
+                              Cerrado {expense.closedAt ? new Date(expense.closedAt).toLocaleDateString('es-CO') : `#${expense.closureId}`}
+                            </Badge>
+                          </div>
+                        )}
                       </td>
                       <td className="py-3 px-4">{expense.description}</td>
                       <td className="py-3 px-4">
@@ -1036,6 +1065,9 @@ export default function Accounting() {
                       {canEditDelete && (
                         <td className="py-3 px-4 text-center">
                           <div className="flex justify-center gap-2">
+                            {expense.closureId ? (
+                              <span className="text-xs text-slate-500" title={`Cierre contable #${expense.closureId}`}>🔒 Cerrado</span>
+                            ) : (<>
                             <Button
                               size="sm"
                               variant="ghost"
@@ -1056,6 +1088,7 @@ export default function Accounting() {
                               <Trash2 className="h-4 w-4 md:mr-1" />
                               <span className="hidden md:inline">Eliminar</span>
                             </Button>
+                            </>)}
                           </div>
                         </td>
                       )}

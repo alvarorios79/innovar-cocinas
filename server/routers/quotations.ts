@@ -3562,33 +3562,87 @@ export const quotationsRouter = router({
     // Rechazar cotización desde enlace público (sin auth, solo token)
     publicReject: publicProcedure
       .input(z.object({
-        token: z.string(),
+        token: z.string().min(1),
         reason: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
-        const quotation = await db.getQuotationByPublicToken(input.token);
-        if (!quotation) {
+        const drizzleDb = await db.getDb();
+        if (!drizzleDb) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const { quotations: qTable } = await import("../../drizzle/schema");
+        const { eq, and, isNull } = await import("drizzle-orm");
+
+        const rows = await drizzleDb
+          .select()
+          .from(qTable)
+          .where(and(eq((qTable as any).publicToken, input.token), isNull(qTable.deletedAt)))
+          .limit(1);
+
+        if (!rows.length) {
+          console.warn("[publicReject] Token no encontrado:", input.token.slice(0, 8));
           throw new TRPCError({ code: "NOT_FOUND", message: "Enlace no válido o expirado" });
         }
+
+        const quotation = rows[0];
+        console.log(`[publicReject] Intento de rechazo: ${quotation.quotationNumber} (id ${quotation.id}), estado actual: ${quotation.status}`);
+
         if (quotation.status === "rejected") {
           return { success: true, message: "Cotización ya estaba rechazada" };
         }
         if (quotation.status === "approved") {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Esta cotización ya fue aprobada" });
         }
-        await db.updateQuotation(quotation.id, {
-          status: "rejected",
-          clientResponseStatus: "rejected",
-          rejectionReason: input.reason || "",
-        });
-        // Notificar al equipo
-        const clientData = await db.getClientById(quotation.clientId);
+
+        const reason = (input.reason || "").trim();
+
+        // 1) Rechazo: solo el estado
         try {
+          await db.updateQuotation(quotation.id, { status: "rejected" });
+          console.log(`[publicReject] ✓ Rechazada: ${quotation.quotationNumber}`);
+        } catch (updErr: any) {
+          console.error(`[publicReject] ✗ Error guardando rechazo de ${quotation.quotationNumber}:`, updErr?.message || updErr, updErr?.cause?.message || "", updErr?.code || "");
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "No se pudo registrar la respuesta. Intente de nuevo." });
+        }
+
+        // 2) Motivo y respuesta del cliente (best-effort)
+        try {
+          await db.updateQuotation(quotation.id, {
+            rejectionReason: reason,
+            clientResponseNotes: reason || null,
+            clientResponseAt: new Date().toISOString(),
+            clientResponseStatus: "rejected",
+          });
+        } catch (respErr: any) {
+          console.error(`[publicReject] ⚠ Rechazada pero no se guardó el motivo (${quotation.quotationNumber}):`, respErr?.message || respErr, respErr?.cause?.message || "", respErr?.code || "");
+        }
+
+        // Notificar al equipo (campana del CRM) — el motivo va en el texto
+        try {
+          const clientData = quotation.clientId ? await db.getClientById(quotation.clientId) : null;
+          const allUsers = await db.getAllUsers();
+          const notifyRoles = ["super_admin", "admin", "comercial"];
+          const usersToNotify = allUsers.filter((u: any) => notifyRoles.includes(u.role));
+          for (const user of usersToNotify) {
+            await db.createNotification({
+              userId: user.id,
+              title: "❌ Cotización Rechazada por el Cliente",
+              body: `${clientData?.name || "El cliente"} rechazó la cotización ${quotation.quotationNumber}${reason ? `. Motivo: "${reason}"` : ". No indicó motivo"}.`,
+              type: "cotizacion",
+              referenceId: quotation.id,
+              referenceType: "quotation",
+            });
+          }
+        } catch (notifErr) {
+          console.error("[publicReject] Error enviando notificaciones:", notifErr);
+        }
+        try {
+          const clientData2 = quotation.clientId ? await db.getClientById(quotation.clientId) : null;
           await sendPushToRole("admin", {
             title: "Cotización Rechazada",
-            body: `El cliente ${clientData?.name || ""} rechazó la cotización ${quotation.quotationNumber}${input.reason ? ". Motivo: " + input.reason : ""}`,
+            body: `El cliente ${clientData2?.name || ""} rechazó la cotización ${quotation.quotationNumber}${reason ? ". Motivo: " + reason : ""}`,
           });
-        } catch (e) { /* notificación no crítica */ }
+        } catch (e) { /* push no crítico */ }
+
         return { success: true, message: "Cotización rechazada" };
       }),
 

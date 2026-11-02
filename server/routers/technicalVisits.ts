@@ -10,7 +10,7 @@ import {
   clients,
   projects as projectsTable,
 } from "../../drizzle/schema";
-import { eq, and, desc, isNull, isNotNull, or, inArray } from "drizzle-orm";
+import { eq, and, desc, isNull, isNotNull, or, inArray, gte, lte, ilike, sql } from "drizzle-orm";
 import { exec } from "child_process";
 import { promisify } from "util";
 import { writeFile, readFile, unlink } from "fs/promises";
@@ -259,6 +259,39 @@ export const technicalVisitsRouter = router({
       };
     }),
 
+  // ── Buscar clientes existentes (autocompletar en "Nueva visita") ───────────
+  searchClients: protectedProcedure
+    .input(z.object({ query: z.string().min(2).max(60) }))
+    .query(async ({ ctx, input }) => {
+      if (!["medidor", "admin", "super_admin", "comercial"].includes(ctx.user.role)) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Sin permiso" });
+      }
+      const db = await getDb();
+      if (!db) return [];
+      const q = `%${input.query.trim().replace(/[%_]/g, "")}%`;
+      const digits = input.query.replace(/\D/g, "");
+      const phoneLike = digits.length >= 3 ? `%${digits}%` : null;
+      const rows = await db
+        .select({
+          id: clients.id,
+          name: clients.name,
+          whatsappPhone: clients.whatsappPhone,
+          email: clients.email,
+          address: clients.address,
+          identificationNumber: clients.identificationNumber,
+        })
+        .from(clients)
+        .where(and(
+          isNull(clients.deletedAt),
+          phoneLike
+            ? or(ilike(clients.name, q), ilike(clients.whatsappPhone, phoneLike))
+            : ilike(clients.name, q),
+        ))
+        .orderBy(desc(clients.id))
+        .limit(8);
+      return rows;
+    }),
+
   // ── Crear visita técnica ────────────────────────────────────────────────────
   create: protectedProcedure
     .input(z.object({
@@ -351,6 +384,72 @@ export const technicalVisitsRouter = router({
           }
         } catch (clientErr) {
           console.error('[TechnicalVisits create] Error registrando cliente en CRM:', clientErr);
+        }
+      }
+
+      // ── Cita automática: todo levantamiento debe quedar ligado a una cita ─────
+      // Si el medidor crea la visita sin cita previa, se crea una en el horario más cercano
+      // (para bloquear el calendario y que el cierre automático #108 funcione).
+      if (!input.appointmentId) {
+        try {
+          const [vRow] = await db
+            .select({ clientId: technicalVisits.clientId })
+            .from(technicalVisits)
+            .where(eq(technicalVisits.id, created.id));
+          if (vRow?.clientId) {
+            const { createAppointment, createAppointmentWorkType, getUsersByRole, createNotification } = await import('../db');
+            const slots = ["08:30", "10:00", "14:00", "15:30"];
+            const nowCol = new Date(Date.now() - 5 * 60 * 60 * 1000);
+            const mins = nowCol.getUTCHours() * 60 + nowCol.getUTCMinutes();
+            const toMin = (t: string) => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
+            let slot = slots.find(t => mins >= toMin(t) && mins < toMin(t) + 90);
+            if (!slot) slot = [...slots].sort((x, y) => Math.abs(toMin(x) - mins) - Math.abs(toMin(y) - mins))[0];
+            const dateStr = `${nowCol.getUTCFullYear()}-${String(nowCol.getUTCMonth() + 1).padStart(2, "0")}-${String(nowCol.getUTCDate()).padStart(2, "0")}`;
+            const scheduledIso = new Date(`${dateStr}T${slot}:00-05:00`).toISOString();
+
+            // ¿Ya hay otra cita activa en ese horario?
+            const sameSlot = await db
+              .select({ id: appointments.id })
+              .from(appointments)
+              .where(and(
+                gte(appointments.scheduledDate, scheduledIso as any),
+                lte(appointments.scheduledDate, scheduledIso as any),
+                sql`${appointments.status} != 'cancelada'`,
+                isNull(appointments.deletedAt),
+              ));
+
+            const { randomBytes } = await import('crypto');
+            const aptId = await createAppointment({
+              clientId: vRow.clientId,
+              scheduledDate: scheduledIso as any,
+              status: 'confirmada',
+              assignedMedidorId: role === 'medidor' ? ctx.user.id : undefined,
+              notes: 'Cita creada automáticamente: visita iniciada por el medidor sin agendar',
+              appointmentToken: randomBytes(32).toString('hex'),
+            } as any);
+            const wts = (input.workTypes && input.workTypes.length > 0 ? input.workTypes : [input.workType]);
+            for (const wt of wts) {
+              try { await createAppointmentWorkType({ appointmentId: aptId, workType: wt as any }); } catch (_) {}
+            }
+            await db.update(technicalVisits).set({ appointmentId: aptId }).where(eq(technicalVisits.id, created.id));
+
+            if (sameSlot.length > 0) {
+              const [a1, c1, s1] = await Promise.all([getUsersByRole('admin'), getUsersByRole('comercial'), getUsersByRole('super_admin')]);
+              for (const u of [...a1, ...c1, ...s1]) {
+                try {
+                  await createNotification({
+                    userId: u.id,
+                    type: 'cita' as any,
+                    title: '\u26A0\uFE0F Cruce de citas',
+                    body: `${input.clientName}: visita sin agendar quedó en el mismo horario (${slot}) de otra cita. Revisa el calendario.`,
+                    referenceId: aptId,
+                  });
+                } catch (_) {}
+              }
+            }
+          }
+        } catch (autoAptErr) {
+          console.error('[TechnicalVisits create] Error creando cita automática:', autoAptErr);
         }
       }
 

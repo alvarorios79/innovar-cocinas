@@ -534,6 +534,12 @@ export function QuotationGroupCard({
               rows={2}
               defaultValue={selectedVersion.clientResponseNotes || ""}
             />
+            {(selectedVersion as any).status === "rejected" && (
+              <div className="mt-2 text-xs text-red-300 bg-red-500/10 border border-red-500/25 rounded px-2 py-1">
+                <span className="font-semibold">Cliente rechazó.</span>{" "}
+                Motivo: {(selectedVersion as any).rejectionReason?.trim() || "no indicó motivo"}
+              </div>
+            )}
           </div>
         )}
       </CardContent>

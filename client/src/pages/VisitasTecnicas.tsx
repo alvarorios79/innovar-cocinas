@@ -301,6 +301,15 @@ export default function VisitasTecnicas() {
                 <FileSpreadsheet className="h-4 w-4 mr-2" /> Crear cotización
               </Button>
             )}
+            {isManager && (visit?.status === "cot_hecha" || visit?.status === "cot_enviada") && (
+              <Button
+                variant="outline"
+                onClick={() => navigate(`/medidor?visitId=${visit?.id}`)}
+                className="border-[#1DB5A8]/40 text-[#1DB5A8] hover:bg-[#1DB5A8]/10"
+              >
+                <Plus className="h-4 w-4 mr-2" /> Agregar información
+              </Button>
+            )}
             {(visit?.status === "cot_hecha" || visit?.status === "cot_enviada") && (
               <Badge className="bg-green-600 text-white">✓ Cotización creada</Badge>
             )}

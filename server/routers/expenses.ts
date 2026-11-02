@@ -61,11 +61,24 @@ async function getClosureMaps(): Promise<{ op: Map<number, ClosureInfo>; proj: M
   return { op, proj };
 }
 
-async function getExpenseClosure(expense: { id: number; expenseType: string; projectId: number | null }): Promise<ClosureInfo | null> {
+// Un gasto es "cerrado" solo si ya existía cuando se confirmó el cierre.
+// Gastos de proyecto registrados DESPUÉS de la confirmación (aunque el proyecto esté cerrado) son ajustes del periodo actual.
+function resolveClosure(
+  expense: { id: number; expenseType: string; projectId: number | null; createdAt?: any },
+  maps: { op: Map<number, ClosureInfo>; proj: Map<number, ClosureInfo> },
+): ClosureInfo | null {
+  if (expense.expenseType === "materiales_proyecto") {
+    const c = expense.projectId ? maps.proj.get(expense.projectId) : undefined;
+    if (!c) return null;
+    if (c.closedAt && expense.createdAt && new Date(expense.createdAt).getTime() > new Date(c.closedAt).getTime()) return null;
+    return c;
+  }
+  return maps.op.get(expense.id) ?? null;
+}
+
+async function getExpenseClosure(expense: { id: number; expenseType: string; projectId: number | null; createdAt?: any }): Promise<ClosureInfo | null> {
   const maps = await getClosureMaps();
-  return expense.expenseType === "materiales_proyecto"
-    ? (expense.projectId ? maps.proj.get(expense.projectId) ?? null : null)
-    : maps.op.get(expense.id) ?? null;
+  return resolveClosure(expense, maps);
 }
 
 export const expensesRouter = router({
@@ -169,10 +182,21 @@ export const expensesRouter = router({
 
         const closureMaps = await getClosureMaps();
 
+        // Última fecha de periodo cerrado (para avisar de gastos con fecha dentro de un periodo ya cerrado)
+        let lastClosedThrough: string | null = null;
+        for (const m of [closureMaps.op, closureMaps.proj]) {
+          m.forEach(c => {
+            if (c.periodEnd) {
+              const pe = new Date(c.periodEnd).toISOString().split("T")[0];
+              if (!lastClosedThrough || pe > lastClosedThrough) lastClosedThrough = pe;
+            }
+          });
+        }
+
         return expenses.map(expense => {
-          const closure = expense.expenseType === "materiales_proyecto"
-            ? (expense.projectId ? closureMaps.proj.get(expense.projectId) : undefined)
-            : closureMaps.op.get(expense.id);
+          const closure = resolveClosure(expense as any, closureMaps);
+          const expDay = new Date(expense.expenseDate as any).toISOString().split("T")[0];
+          const lateAdjustment = !closure && !!lastClosedThrough && expDay <= lastClosedThrough;
           return {
             ...expense,
             amount: parseFloat(expense.amount as string),
@@ -180,6 +204,8 @@ export const expensesRouter = router({
             closureId: closure?.closureId ?? null,
             closedAt: closure?.closedAt ?? null,
             closurePeriodEnd: closure?.periodEnd ?? null,
+            lateAdjustment,
+            lastClosedThrough,
           };
         });
       }),

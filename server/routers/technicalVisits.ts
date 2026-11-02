@@ -702,6 +702,20 @@ export const technicalVisitsRouter = router({
         .set({ status: "enviada", submittedAt: now, updatedAt: now })
         .where(eq(technicalVisits.id, input.visitId));
 
+      // ── Visita realizada: marcar la cita ligada como completada ──────────────
+      if (visit.appointmentId) {
+        try {
+          const { getAppointmentById, updateAppointment } = await import('../db');
+          const apt = await getAppointmentById(visit.appointmentId);
+          if (apt && apt.status !== 'cancelada' && apt.status !== 'completada') {
+            await updateAppointment(visit.appointmentId, { status: 'completada' });
+            console.log(`[technicalVisits.submit] Cita ${visit.appointmentId} marcada como completada`);
+          }
+        } catch (aptErr) {
+          console.error('[technicalVisits.submit] No se pudo marcar la cita como completada:', aptErr);
+        }
+      }
+
       // ── Notificar al equipo (admin, comercial, super_admin) ──────────────────
       try {
         const { getUsersByRole, createNotification } = await import('../db');

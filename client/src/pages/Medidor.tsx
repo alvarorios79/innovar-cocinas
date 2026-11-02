@@ -450,6 +450,7 @@ export default function Medidor() {
   // Estados locales
   const [localMeasurements, setLocalMeasurements] = useState<Measurements>({});
   const [localNotes, setLocalNotes] = useState("");
+  const [complementNote, setComplementNote] = useState("");
   const [localEvaluation, setLocalEvaluation] = useState<TechnicalEvaluation | undefined>();
   const [localCriticalObservations, setLocalCriticalObservations] = useState("");
   const [localChecklist, setLocalChecklist] = useState<TechnicalChecklist>({});
@@ -596,7 +597,23 @@ export default function Medidor() {
     setLocalMeasurements((prev: any) => ({ ...prev, [`_${wt}_unidades`]: units.length > 0 ? units : [{}] }));
   };
 
-    const handleSaveMeasurements = async () => {
+    const handleAddComplementNote = async () => {
+    if (!visit || !complementNote.trim()) return;
+    const stamp = new Date().toLocaleDateString("es-CO", { timeZone: "America/Bogota" });
+    const author = (user as any)?.name || "Equipo";
+    const previous = String((visit as any).notes || "").trim();
+    const added = `[Complemento ${stamp} · ${author}] ${complementNote.trim()}`;
+    try {
+      await updateVisit.mutateAsync({ visitId: (visit as any).id, notes: previous ? `${previous}\n\n${added}` : added } as any);
+      setComplementNote("");
+      await refetchDetail();
+      toast.success("Nota agregada");
+    } catch (error) {
+      toast.error("No se pudo guardar la nota");
+    }
+  };
+
+  const handleSaveMeasurements = async () => {
     if (!visitDetail) return;
     try {
       await updateVisit.mutateAsync({
@@ -813,6 +830,13 @@ export default function Medidor() {
 
   const visit = visitDetail ?? selectedVisit;
   const isEditable = visit?.status === "borrador" || visit?.status === "enviada";
+  // Con cotización generada: managers y el medidor dueño pueden agregar fotos, PDFs y notas (sin tocar lo cotizado)
+  const isQuotedVisit = visit?.status === "cot_hecha" || visit?.status === "cot_enviada";
+  const canComplement = !!visit && isQuotedVisit && (
+    user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial" ||
+    (user?.role === "medidor" && (visit as any).createdBy === user?.id)
+  );
+  const canAddMaterial = isEditable || canComplement;
   const completion = calculateCompletion();
 
   // ── Vistas ────────────────────────────────────────────────────────────────
@@ -1646,7 +1670,7 @@ export default function Medidor() {
               <Camera className="h-5 w-5 text-[#1DB5A8]" />
               Fotos del espacio
             </h2>
-            {isEditable && (
+            {canAddMaterial && (
               <div className="space-y-2">
                 <label className="block text-xs font-semibold text-[#1DB5A8]">Categoría de la foto</label>
                 <select
@@ -1675,7 +1699,7 @@ export default function Medidor() {
                 </div>
               ))}
             </div>
-            {isEditable && (
+            {canAddMaterial && (
               <>
                 <button
                   type="button"
@@ -1733,7 +1757,7 @@ export default function Medidor() {
                 </div>
               ))}
             </div>
-            {isEditable && (
+            {canAddMaterial && (
               <>
                 <button
                   type="button"
@@ -1759,6 +1783,31 @@ export default function Medidor() {
           </div>
 
           {/* Pizarra del medidor — fullscreen CSS, no nativo (evita gestos iOS) */}
+          {canComplement && (
+            <div className="bg-[#162828] border border-amber-500/30 rounded-lg p-4 space-y-3">
+              <h2 className="text-lg font-semibold text-white">Información complementaria</h2>
+              <p className="text-xs text-slate-400">
+                Este levantamiento ya tiene cotización. Aquí puedes agregar notas, fotos y PDF para el diseñador; las medidas y datos cotizados no se modifican.
+              </p>
+              {(visit as any).notes && (
+                <p className="text-sm text-slate-300 whitespace-pre-wrap bg-[#0C1A1A] rounded-lg p-3">{(visit as any).notes}</p>
+              )}
+              <Textarea
+                value={complementNote}
+                onChange={(e) => setComplementNote(e.target.value)}
+                placeholder="Nueva nota para el diseñador..."
+                className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white min-h-[80px]"
+              />
+              <Button
+                onClick={handleAddComplementNote}
+                disabled={!complementNote.trim() || updateVisit.isPending}
+                className="w-full bg-[#1DB5A8] hover:bg-[#17a396] text-white"
+              >
+                Guardar nota
+              </Button>
+            </div>
+          )}
+
           {isEditable && (
             <div className={pizarraFullscreen
               ? "fixed inset-0 z-50 flex flex-col bg-white"

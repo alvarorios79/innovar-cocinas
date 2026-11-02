@@ -520,7 +520,16 @@ export function QuotationGroupCard({
             <div className="flex items-center justify-between mb-2">
               <label className="text-sm font-semibold text-white/85">Notas del Cliente</label>
               <div className="flex gap-1">
-                <select className="text-xs px-2 py-1 rounded border border-[rgba(106,207,199,0.3)] bg-[#162828] text-white/70">
+                <select
+                  disabled
+                  value={
+                    (selectedVersion as any).status === "approved" || (selectedVersion as any).clientResponseStatus === "approved" ? "aprobado"
+                    : (selectedVersion as any).status === "rejected" || (selectedVersion as any).clientResponseStatus === "rejected" ? "rechazado"
+                    : ""
+                  }
+                  onChange={() => {}}
+                  className="text-xs px-2 py-1 rounded border border-[rgba(106,207,199,0.3)] bg-[#162828] text-white/70"
+                >
                   <option value="">Sin estado</option>
                   <option value="aprobado">Aprobado</option>
                   <option value="rechazado">Rechazado</option>

@@ -16,6 +16,58 @@ import { addBusinessDays, calculateEstimatedDeliveryDate } from "../business-day
 import { sanitizeText, sanitizeHtml, sanitizeForEmail, sanitizePhone, sanitizeEmail } from "../sanitize";
 
 
+// ── Cierres contables: un gasto está "cerrado" si pertenece a un cierre CONFIRMADO ──
+// Operativos: están en accounting_op_expenses. De proyecto: su proyecto tiene accountingClosureId.
+type ClosureInfo = { closureId: number; closedAt: string | null; periodStart: string | null; periodEnd: string | null };
+async function getClosureMaps(): Promise<{ op: Map<number, ClosureInfo>; proj: Map<number, ClosureInfo> }> {
+  const op = new Map<number, ClosureInfo>();
+  const proj = new Map<number, ClosureInfo>();
+  try {
+    const drizzleDb = await db.getDb();
+    if (!drizzleDb) return { op, proj };
+    const schema = await import("../../drizzle/schema");
+    const { eq, and, isNotNull } = await import("drizzle-orm");
+    const opRows = await drizzleDb
+      .select({
+        expenseId: schema.accountingClosureOperationalExpenses.expenseId,
+        closureId: schema.accountingClosures.id,
+        confirmedAt: schema.accountingClosures.confirmedAt,
+        periodStart: schema.accountingClosures.periodStart,
+        periodEnd: schema.accountingClosures.periodEnd,
+      })
+      .from(schema.accountingClosureOperationalExpenses)
+      .innerJoin(schema.accountingClosures, eq(schema.accountingClosureOperationalExpenses.closureId, schema.accountingClosures.id))
+      .where(eq(schema.accountingClosures.status, "confirmed"));
+    for (const r of opRows) {
+      op.set(r.expenseId, { closureId: r.closureId, closedAt: r.confirmedAt as any, periodStart: r.periodStart as any, periodEnd: r.periodEnd as any });
+    }
+    const projRows = await drizzleDb
+      .select({
+        projectId: schema.projects.id,
+        closureId: schema.accountingClosures.id,
+        confirmedAt: schema.accountingClosures.confirmedAt,
+        periodStart: schema.accountingClosures.periodStart,
+        periodEnd: schema.accountingClosures.periodEnd,
+      })
+      .from(schema.projects)
+      .innerJoin(schema.accountingClosures, eq(schema.projects.accountingClosureId, schema.accountingClosures.id))
+      .where(and(isNotNull(schema.projects.accountingClosureId), eq(schema.accountingClosures.status, "confirmed")));
+    for (const r of projRows) {
+      proj.set(r.projectId, { closureId: r.closureId, closedAt: r.confirmedAt as any, periodStart: r.periodStart as any, periodEnd: r.periodEnd as any });
+    }
+  } catch (e) {
+    console.error("[expenses] getClosureMaps error:", e);
+  }
+  return { op, proj };
+}
+
+async function getExpenseClosure(expense: { id: number; expenseType: string; projectId: number | null }): Promise<ClosureInfo | null> {
+  const maps = await getClosureMaps();
+  return expense.expenseType === "materiales_proyecto"
+    ? (expense.projectId ? maps.proj.get(expense.projectId) ?? null : null)
+    : maps.op.get(expense.id) ?? null;
+}
+
 export const expensesRouter = router({
     // Crear un nuevo gasto
     create: protectedProcedure
@@ -115,11 +167,21 @@ export const expensesRouter = router({
         const allUsers = await db.getAllUsers();
         const userMap = new Map(allUsers.map(u => [u.id, u]));
 
-        return expenses.map(expense => ({
-          ...expense,
-          amount: parseFloat(expense.amount as string),
-          createdByUser: userMap.get(expense.createdBy) || null,
-        }));
+        const closureMaps = await getClosureMaps();
+
+        return expenses.map(expense => {
+          const closure = expense.expenseType === "materiales_proyecto"
+            ? (expense.projectId ? closureMaps.proj.get(expense.projectId) : undefined)
+            : closureMaps.op.get(expense.id);
+          return {
+            ...expense,
+            amount: parseFloat(expense.amount as string),
+            createdByUser: userMap.get(expense.createdBy) || null,
+            closureId: closure?.closureId ?? null,
+            closedAt: closure?.closedAt ?? null,
+            closurePeriodEnd: closure?.periodEnd ?? null,
+          };
+        });
       }),
 
     getAllPaginated: protectedProcedure
@@ -217,6 +279,16 @@ export const expensesRouter = router({
         }
 
         const { id, ...data } = input;
+
+        // Gastos de un periodo cerrado no se editan: se corrigen con un ajuste en el periodo vigente
+        const existing = await db.getExpenseById(id);
+        if (existing && await getExpenseClosure(existing as any)) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Este gasto pertenece a un periodo con cierre contable confirmado y no se puede editar.",
+          });
+        }
+
         const updateData: any = {};
         
         if (data.description) updateData.description = data.description;
@@ -243,6 +315,14 @@ export const expensesRouter = router({
           throw new TRPCError({ 
             code: "FORBIDDEN", 
             message: "Solo el super administrador puede eliminar gastos" 
+          });
+        }
+
+        const existingToDelete = await db.getExpenseById(input);
+        if (existingToDelete && await getExpenseClosure(existingToDelete as any)) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Este gasto pertenece a un periodo con cierre contable confirmado y no se puede eliminar.",
           });
         }
 

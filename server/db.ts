@@ -823,7 +823,7 @@ export async function getDesignerWithLeastActiveProjects() {
         projects,
         and(
           eq(projects.designerId, users.id),
-          sql`${projects.status} NOT IN ('entregado', 'cancelado')`
+          sql`${projects.status} <> 'entregado'`
         )
       )
       .where(and(eq(users.role, 'disenador'), isNull(users.deletedAt)))

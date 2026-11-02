@@ -421,6 +421,20 @@ function buildPublicItemDesc(item: any): string {
 }
 
 
+// Guarda campos de respuesta del cliente uno por uno: si uno falla, los demás igual se guardan.
+async function saveFieldsOneByOne(id: number, fields: Record<string, any>, tag: string): Promise<string[]> {
+  const failed: string[] = [];
+  for (const [key, value] of Object.entries(fields)) {
+    try {
+      await db.updateQuotation(id, { [key]: value } as any);
+    } catch (e: any) {
+      failed.push(key);
+      console.error(`[${tag}] ✗ No se pudo guardar "${key}":`, e?.message || e, e?.cause?.message || "", e?.code || "");
+    }
+  }
+  return failed;
+}
+
 export const quotationsRouter = router({
     // Crear nueva cotización con items
     create: protectedProcedure
@@ -3605,15 +3619,14 @@ export const quotationsRouter = router({
         }
 
         // 2) Motivo y respuesta del cliente (best-effort)
-        try {
-          await db.updateQuotation(quotation.id, {
+        {
+          const failed = await saveFieldsOneByOne(quotation.id, {
             rejectionReason: reason,
             clientResponseNotes: reason || null,
             clientResponseAt: new Date().toISOString(),
             clientResponseStatus: "rejected",
-          });
-        } catch (respErr: any) {
-          console.error(`[publicReject] ⚠ Rechazada pero no se guardó el motivo (${quotation.quotationNumber}):`, respErr?.message || respErr, respErr?.cause?.message || "", respErr?.code || "");
+          }, "publicReject");
+          if (failed.length) console.error(`[publicReject] ⚠ Rechazada (${quotation.quotationNumber}) pero no se guardaron: ${failed.join(", ")}`);
         }
 
         // Notificar al equipo (campana del CRM) — el motivo va en el texto
@@ -4210,14 +4223,13 @@ export const quotationsRouter = router({
         }
 
         // 2) Respuesta del cliente (best-effort): si falla, la aprobación ya quedó guardada
-        try {
-          await db.updateQuotation(quotation.id, {
+        {
+          const failed = await saveFieldsOneByOne(quotation.id, {
             clientResponseNotes: input.notes ?? null,
             clientResponseAt: new Date().toISOString(),
             clientResponseStatus: "approved",
-          });
-        } catch (respErr: any) {
-          console.error(`[publicApprove] ⚠ Aprobada pero no se guardó la respuesta del cliente (${quotation.quotationNumber}):`, respErr?.message || respErr, respErr?.cause?.message || "", respErr?.code || "");
+          }, "publicApprove");
+          if (failed.length) console.error(`[publicApprove] ⚠ Aprobada (${quotation.quotationNumber}) pero no se guardaron: ${failed.join(", ")}`);
         }
 
         // Notificar al equipo interno

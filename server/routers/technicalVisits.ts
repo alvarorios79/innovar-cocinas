@@ -22,6 +22,12 @@ const execAsync = promisify(exec);
 
 // Roles que pueden ver todos los levantamientos
 const MANAGER_ROLES = ["super_admin", "admin", "comercial"];
+
+// Material complementario (fotos, PDFs, notas) permitido aunque ya exista cotización:
+// managers y el medidor que creó el levantamiento. El diseñador solo consulta.
+function canAddComplement(role: string, userId: number, visit: { createdBy: number }): boolean {
+  return MANAGER_ROLES.includes(role) || (role === "medidor" && visit.createdBy === userId);
+}
 // Roles que pueden ver levantamientos vinculados a proyectos (diseñador)
 const PROJECT_ROLES = [...MANAGER_ROLES, "disenador"];
 
@@ -380,7 +386,14 @@ export const technicalVisitsRouter = router({
 
       if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Levantamiento no encontrado" });
       if (visit.status === "cot_hecha" || visit.status === "cot_enviada") {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "No se puede editar un levantamiento con cotización generada" });
+        // Con cotización generada solo se permite agregar notas complementarias (no tocar lo cotizado)
+        const touchesQuoted = Object.entries(input).some(([k, v]) => k !== "visitId" && k !== "notes" && v !== undefined);
+        if (touchesQuoted || input.notes === undefined) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "No se puede editar un levantamiento con cotización generada" });
+        }
+        if (!canAddComplement(ctx.user.role, ctx.user.id, visit)) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Sin permisos para agregar información a este levantamiento" });
+        }
       }
       if (ctx.user.role === "medidor" && visit.createdBy !== ctx.user.id) {
         throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso" });
@@ -437,7 +450,7 @@ export const technicalVisitsRouter = router({
         .where(eq(technicalVisits.id, input.visitId));
 
       if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Levantamiento no encontrado" });
-      if (visit.status === "cot_hecha" || visit.status === "cot_enviada") {
+      if ((visit.status === "cot_hecha" || visit.status === "cot_enviada") && !canAddComplement(ctx.user.role, ctx.user.id, visit)) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "No se pueden agregar fotos a un levantamiento con cotización generada" });
       }
       if (ctx.user.role === "medidor" && visit.createdBy !== ctx.user.id) {
@@ -537,7 +550,7 @@ export const technicalVisitsRouter = router({
         .where(eq(technicalVisits.id, input.visitId));
 
       if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Levantamiento no encontrado" });
-      if (visit.status === "cot_hecha" || visit.status === "cot_enviada") {
+      if ((visit.status === "cot_hecha" || visit.status === "cot_enviada") && !canAddComplement(ctx.user.role, ctx.user.id, visit)) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "No se pueden agregar PDFs a un levantamiento con cotización generada" });
       }
       if (ctx.user.role === "medidor" && visit.createdBy !== ctx.user.id) {

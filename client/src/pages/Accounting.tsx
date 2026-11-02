@@ -503,6 +503,12 @@ export default function Accounting() {
       return;
     }
 
+    // Aviso: fecha dentro de un periodo ya cerrado → el gasto cuenta en el periodo actual
+    const closedThrough = (expenses as any[] | undefined)?.find((x: any) => x.lastClosedThrough)?.lastClosedThrough as string | undefined;
+    if (!editingId && closedThrough && expenseDate <= closedThrough) {
+      toast.info(`La fecha está dentro de un periodo ya cerrado (hasta ${closedThrough}). El gasto se registrará en el periodo actual y el cierre no cambia.`, { duration: 8000 });
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -1019,6 +1025,13 @@ export default function Accounting() {
                     <tr key={idx} className="border-b border-white/[0.06] hover:bg-white/[0.04] transition-colors">
                       <td className="py-3 px-4">
                         {new Date(expense.expenseDate).toLocaleDateString('es-CO')}
+                        {!expense.closureId && expense.lateAdjustment && (
+                          <div className="mt-1">
+                            <Badge variant="outline" className="text-[10px] border-sky-500/40 text-sky-300" title="Fecha dentro de un periodo ya cerrado. Cuenta en el periodo actual; el cierre no cambia.">
+                              Ajuste a periodo cerrado
+                            </Badge>
+                          </div>
+                        )}
                         {expense.closureId && (
                           <div className="mt-1">
                             <Badge variant="outline" className="text-[10px] border-amber-500/40 text-amber-300">

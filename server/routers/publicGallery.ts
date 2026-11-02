@@ -281,6 +281,12 @@ export const publicGalleryRouter = router({
               clientApprovalNotes: input.changes,
               changesRequestedAt: new Date().toISOString(),
             });
+          } else {
+            // Aunque el estado no cambie, dejar visibles los últimos cambios pedidos
+            await db.updateProject(input.projectId, {
+              clientApprovalNotes: input.changes,
+              changesRequestedAt: new Date().toISOString(),
+            });
           }
 
           if (assignTo) {
@@ -365,7 +371,7 @@ export const publicGalleryRouter = router({
         try {
           const { createAndSendNotification } = await import("../push-notifications");
           const tipoTexto = input.type === "modelado_3d" ? "Modelado 3D" : "Renders";
-          const cambiosCortos = input.changes.length > 50 ? input.changes.substring(0, 50) + "..." : input.changes;
+          const cambiosCortos = input.changes.length > 200 ? input.changes.substring(0, 200) + "..." : input.changes;
           
           // Notificar al diseñador asignado
           if (project.designerId) {
@@ -390,7 +396,7 @@ export const publicGalleryRouter = router({
             if (user.id !== project.designerId) {
               await createAndSendNotification(user.id, {
                 title: `📝 Cambios solicitados en ${tipoTexto}`,
-                body: `${input.clientName} solicitó cambios en "${project.name}"`,
+                body: `${input.clientName} solicitó cambios en "${project.name}": "${cambiosCortos}"`,
                 type: "proyecto",
                 referenceId: input.projectId,
                 referenceType: "project",

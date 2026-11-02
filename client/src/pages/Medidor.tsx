@@ -495,6 +495,16 @@ export default function Medidor() {
 
   // Mutations
   const createVisit = trpc.technicalVisits.create.useMutation();
+  const [clientSearch, setClientSearch] = useState("");
+  const [pickedClientId, setPickedClientId] = useState<number | null>(null);
+  const { data: clientResults } = trpc.technicalVisits.searchClients.useQuery(
+    { query: clientSearch.trim() },
+    { enabled: clientSearch.trim().length >= 2 && pickedClientId === null, refetchOnWindowFocus: false }
+  );
+  const fillFormField = (name: string, value: string) => {
+    const el = document.querySelector(`form input[name="${name}"]`) as HTMLInputElement | null;
+    if (el) el.value = value;
+  };
   const updateVisit = trpc.technicalVisits.update.useMutation();
   const addPhoto = trpc.technicalVisits.addPhoto.useMutation();
   const deletePhoto = trpc.technicalVisits.deletePhoto.useMutation();
@@ -554,6 +564,8 @@ export default function Medidor() {
       identificationNumber: (form.get("identificationNumber") as string) || undefined,
       clientEmail: (form.get("clientEmail") as string) || undefined,
       workTypes: selectedWorkTypes.length > 0 ? selectedWorkTypes : undefined,
+      clientId: pickedClientId ?? undefined,
+      appointmentId: effectivePrefill?.appointmentId && !isNaN(Number(effectivePrefill.appointmentId)) ? Number(effectivePrefill.appointmentId) : undefined,
     };
     const initialNotes = (form.get("initialNotes") as string) || "";
 
@@ -564,6 +576,8 @@ export default function Medidor() {
       if (initialNotes.trim()) {
         await updateVisit.mutateAsync({ visitId: id, notes: initialNotes });
       }
+      setPickedClientId(null);
+      setClientSearch("");
       setView("list");
       refetchVisits();
       toast.success("Visita agendada — ábrela cuando estés en el domicilio del cliente");
@@ -1278,6 +1292,43 @@ export default function Medidor() {
 
           <form onSubmit={handleCreateVisit} className="space-y-4">
             <div className="bg-[#162828] border border-[#1DB5A8]/20 rounded-lg p-4 space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-[#1DB5A8] mb-2">Buscar cliente existente</label>
+                <Input
+                  value={clientSearch}
+                  onChange={(e) => { setClientSearch(e.target.value); setPickedClientId(null); }}
+                  placeholder="Escribe nombre o teléfono..."
+                  className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white placeholder:text-slate-500"
+                />
+                {pickedClientId !== null && (
+                  <p className="text-xs text-green-400 mt-1">✓ Cliente existente seleccionado</p>
+                )}
+                {pickedClientId === null && clientSearch.trim().length >= 2 && (clientResults as any[] | undefined)?.length ? (
+                  <div className="mt-2 border border-[#1DB5A8]/30 rounded-lg overflow-hidden">
+                    {(clientResults as any[]).map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => {
+                          setPickedClientId(c.id);
+                          setClientSearch(c.name);
+                          fillFormField("clientName", c.name || "");
+                          fillFormField("clientPhone", c.whatsappPhone || "");
+                          fillFormField("clientAddress", c.address || "");
+                          fillFormField("clientEmail", c.email || "");
+                          fillFormField("identificationNumber", c.identificationNumber || "");
+                        }}
+                        className="w-full text-left px-3 py-2 bg-[#0C1A1A] hover:bg-[#1DB5A8]/10 border-b border-[#1DB5A8]/10 last:border-b-0"
+                      >
+                        <div className="text-sm text-white">{c.name}</div>
+                        <div className="text-xs text-slate-400">{c.whatsappPhone}</div>
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+                <p className="text-xs text-slate-500 mt-1">Si el cliente ya existe, selecciónalo para no duplicarlo.</p>
+              </div>
+
               <div>
                 <label className="block text-sm font-semibold text-[#1DB5A8] mb-2">Nombre del cliente *</label>
                 <Input name="clientName" required defaultValue={effectivePrefill?.name || ""} className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white" />

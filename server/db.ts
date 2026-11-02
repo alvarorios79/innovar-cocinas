@@ -4559,10 +4559,16 @@ export async function getConfirmedClosures(filters?: {
         .from(accountingClosureProjects)
         .where(eq(accountingClosureProjects.closureId, closure.id));
       
+      // Desglose: gastos de proyecto = suma de sus proyectos; operativos = resto del total del cierre
+      const projectExpensesSum = closureProjects.reduce((sum, p: any) => sum + parseFloat(String(p.totalExpenses ?? '0')), 0);
+      const operationalExpensesSum = Math.max(0, parseFloat(String(closure.totalExpenses ?? '0')) - projectExpensesSum);
+
       closuresWithProjects.push({
         ...closure,
         projects: closureProjects,
         projectCount: closureProjects.length,
+        projectExpenses: projectExpensesSum,
+        operationalExpenses: operationalExpensesSum,
       });
     }
     

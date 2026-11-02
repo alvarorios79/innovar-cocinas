@@ -4128,10 +4128,12 @@ export const quotationsRouter = router({
           .limit(1);
 
         if (!rows.length) {
+          console.warn("[publicApprove] Token no encontrado:", input.token.slice(0, 8));
           throw new TRPCError({ code: "NOT_FOUND", message: "Enlace no válido o expirado" });
         }
 
         const quotation = rows[0];
+        console.log(`[publicApprove] Intento de aprobación: ${quotation.quotationNumber} (id ${quotation.id}), estado actual: ${quotation.status}`);
 
         if (quotation.status === "approved") {
           return { success: true, alreadyApproved: true };
@@ -4141,13 +4143,19 @@ export const quotationsRouter = router({
           throw new TRPCError({ code: "BAD_REQUEST", message: "Esta cotización no puede aprobarse en su estado actual" });
         }
 
-        await db.updateQuotation(quotation.id, {
-          status: "approved",
-          approvedAt: new Date().toISOString(),
-          clientResponseNotes: input.notes ?? null,
-          clientResponseAt: new Date().toISOString(),
-          clientResponseStatus: "approved",
-        });
+        try {
+          await db.updateQuotation(quotation.id, {
+            status: "approved",
+            approvedAt: new Date().toISOString(),
+            clientResponseNotes: input.notes ?? null,
+            clientResponseAt: new Date().toISOString(),
+            clientResponseStatus: "approved",
+          });
+          console.log(`[publicApprove] ✓ Aprobada: ${quotation.quotationNumber}`);
+        } catch (updErr: any) {
+          console.error(`[publicApprove] ✗ Error guardando aprobación de ${quotation.quotationNumber}:`, updErr?.message || updErr);
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "No se pudo registrar la aprobación. Intente de nuevo." });
+        }
 
         // Notificar al equipo interno
         try {

@@ -4143,18 +4143,27 @@ export const quotationsRouter = router({
           throw new TRPCError({ code: "BAD_REQUEST", message: "Esta cotización no puede aprobarse en su estado actual" });
         }
 
+        // 1) Aprobación: solo status + approvedAt (mismo update que manualApprove, probado en producción)
         try {
           await db.updateQuotation(quotation.id, {
             status: "approved",
             approvedAt: new Date().toISOString(),
+          });
+          console.log(`[publicApprove] ✓ Aprobada: ${quotation.quotationNumber}`);
+        } catch (updErr: any) {
+          console.error(`[publicApprove] ✗ Error guardando aprobación de ${quotation.quotationNumber}:`, updErr?.message || updErr, updErr?.cause?.message || "", updErr?.code || "");
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "No se pudo registrar la aprobación. Intente de nuevo." });
+        }
+
+        // 2) Respuesta del cliente (best-effort): si falla, la aprobación ya quedó guardada
+        try {
+          await db.updateQuotation(quotation.id, {
             clientResponseNotes: input.notes ?? null,
             clientResponseAt: new Date().toISOString(),
             clientResponseStatus: "approved",
           });
-          console.log(`[publicApprove] ✓ Aprobada: ${quotation.quotationNumber}`);
-        } catch (updErr: any) {
-          console.error(`[publicApprove] ✗ Error guardando aprobación de ${quotation.quotationNumber}:`, updErr?.message || updErr);
-          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "No se pudo registrar la aprobación. Intente de nuevo." });
+        } catch (respErr: any) {
+          console.error(`[publicApprove] ⚠ Aprobada pero no se guardó la respuesta del cliente (${quotation.quotationNumber}):`, respErr?.message || respErr, respErr?.cause?.message || "", respErr?.code || "");
         }
 
         // Notificar al equipo interno

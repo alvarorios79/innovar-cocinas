@@ -99,6 +99,9 @@ export interface KitchenConfig {
     lateralMuebleInferior?: number; // qty, 1 pta inf c/u
     luzLed?: boolean;
   };
+  // Muebles que lleva la cocina — SOLO descriptivo (no cambia precio ni descuenta metraje).
+  // Sirve para que el cliente vea en la cotización qué muebles incluye su cocina.
+  descriptiveModules?: Record<string, boolean>;
   // Para forma "Puertas y Tapas (solo cambio)"
   doorsAndCovers?: {
     upperDoors70: number;   // Puertas superiores hasta 70cm - $120,000
@@ -145,3 +148,26 @@ export interface KitchenConfig {
     lavaVajillas: boolean;
   };
 }
+
+// Listas de muebles descriptivos de la cocina integral (casillas en la cotización).
+export const DESCRIPTIVE_UPPER_MODULES: Array<{ key: string; label: string }> = [
+  { key: "esquineroSuperior", label: "Esquinero superior" },
+  { key: "moduloExtractor", label: "Módulo para extractor" },
+  { key: "moduloMicroondas", label: "Módulo para microondas" },
+  { key: "moduloExtractorMicroondas", label: "Módulo extractor + microondas" },
+  { key: "moduloPlatero", label: "Platero" },
+  { key: "moduloRepisa", label: "Repisas" },
+  { key: "moduloAlmacSup", label: "Módulo de almacenamiento" },
+];
+export const DESCRIPTIVE_LOWER_MODULES: Array<{ key: string; label: string }> = [
+  { key: "esquinero1x1", label: "Esquinero 1×1" },
+  { key: "cajoneroTriple", label: "Cajonero triple" },
+  { key: "cajoneroDoble", label: "Cajonero doble" },
+  { key: "especiero", label: "Especiero" },
+  { key: "botellero", label: "Botellero" },
+  { key: "basurero", label: "Basurero integrado" },
+  { key: "moduloLavaplatos", label: "Módulo para lavaplatos" },
+  { key: "moduloEstufaPuerta", label: "Módulo de estufa con puerta" },
+  { key: "moduloEstufaHorno", label: "Módulo para estufa y horno" },
+  { key: "moduloAlmacInf", label: "Módulo de almacenamiento" },
+];

@@ -75,6 +75,25 @@ export function buildKitchenQuoteDescription(rawConfig: any, manualDescription?:
   }
   const resulting = Math.max(0, totalMeters - deductions);
 
+  // Muebles que lleva la cocina (casillas descriptivas). No incluye los que ya salen en "Módulos y equipamiento".
+  const DM: any = config.descriptiveModules || {};
+  const kmQ: any = config.kitchenModules || {};
+  const DM_SUP: Array<[string, string]> = [
+    ["esquineroSuperior", "esquinero superior"], ["moduloExtractor", "módulo para extractor"], ["moduloMicroondas", "módulo para microondas"],
+    ["moduloExtractorMicroondas", "módulo extractor + microondas"], ["moduloPlatero", "platero"], ["moduloRepisa", "repisas"], ["moduloAlmacSup", "módulo de almacenamiento"],
+  ];
+  const DM_INF: Array<[string, string]> = [
+    ["esquinero1x1", "esquinero 1×1"], ["cajoneroTriple", "cajonero triple"], ["cajoneroDoble", "cajonero doble"], ["especiero", "especiero"],
+    ["botellero", "botellero"], ["basurero", "basurero integrado"], ["moduloLavaplatos", "módulo para lavaplatos"],
+    ["moduloEstufaPuerta", "módulo de estufa con puerta"], ["moduloEstufaHorno", "módulo para estufa y horno"], ["moduloAlmacInf", "módulo de almacenamiento"],
+  ];
+  const includesLine = (kind: "sup" | "inf"): string | null => {
+    const list = (kind === "sup" ? DM_SUP : DM_INF)
+      .filter(([k]) => DM[k] && !(Number(typeof kmQ[k] === "boolean" ? (kmQ[k] ? 1 : 0) : kmQ[k]) > 0))
+      .map(([, l]) => l);
+    return list.length ? `  - Incluyen: ${list.join(", ")}` : null;
+  };
+
   // ── Muebles ─────────────────────────────────────────────────────────────
   if (!isOnlyFinishes) {
     const mueble: string[] = [];
@@ -83,8 +102,10 @@ export function buildKitchenQuoteDescription(rawConfig: any, manualDescription?:
       if (config.includeUpperModule && config.upperModuleMeters > 0) mueble.push(`• Muebles superiores: ${ml(config.upperModuleMeters)}`);
     } else if (shape === "solo_superiores") {
       mueble.push(`• Muebles superiores: ${ml(totalMeters)}`);
+      { const ls = includesLine("sup"); if (ls) mueble.push(ls); }
     } else if (shape === "solo_inferiores") {
       mueble.push(`• Muebles inferiores: ${ml(totalMeters)}`);
+      { const li = includesLine("inf"); if (li) mueble.push(li); }
     } else if (isDoorsOnly) {
       const dc = config.doorsAndCovers || {};
       if (dc.upperDoors70 > 0) mueble.push(`• Puertas superiores hasta 70 cm: ${dc.upperDoors70} und`);
@@ -98,10 +119,12 @@ export function buildKitchenQuoteDescription(rawConfig: any, manualDescription?:
       if (config.includeLower !== false) {
         const lower = config.independentMeters && config.lowerMeters !== undefined ? Math.max(0, (config.lowerMeters || 0) - deductions) : resulting;
         mueble.push(`• Muebles inferiores: ${ml(lower)}`);
+        const li = includesLine("inf"); if (li) mueble.push(li);
       }
       if (config.includeUpper !== false) {
         const upper = config.independentMeters && config.upperMeters !== undefined ? (config.upperMeters || 0) : resulting;
         mueble.push(`• Muebles superiores: ${ml(upper)}`);
+        const ls = includesLine("sup"); if (ls) mueble.push(ls);
       }
     }
     if (mueble.length) { section("MUEBLES:"); lines.push(...mueble); }
@@ -122,6 +145,8 @@ export function buildKitchenQuoteDescription(rawConfig: any, manualDescription?:
       ["especiero", "Especiero"], ["botellero", "Botellero"], ["moduloRepisa", "Repisa"],
       ["esquinero1x1", "Esquinero inferior 1×1"], ["cajoneroTriple", "Cajonero triple"], ["cajoneroDoble", "Cajonero doble"],
       ["basurero", "Basurero integrado"], ["moduloEstufaHorno", "Módulo para estufa y horno"], ["moduloAlmacInf", "Módulo de almacenamiento inferior"],
+      ["moduloExtractorMicroondas", "Módulo extractor + microondas"], ["moduloPlatero", "Platero (2 puertas)"],
+      ["moduloLavaplatos", "Módulo para lavaplatos"], ["moduloEstufaPuerta", "Módulo de estufa con puerta"],
     ];
     for (const [k, label] of KM) {
       const q = toQty(km[k]);

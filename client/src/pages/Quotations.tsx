@@ -7,6 +7,7 @@ import { ClosetConfigurator, ClosetConfig } from "@/components/ClosetConfigurato
 import { DoorConfigurator, DoorConfig } from "@/components/DoorConfigurator";
 import { TVCenterConfigurator, TVCenterConfig } from "@/components/TVCenterConfigurator";
 import type { KitchenConfig } from "@/components/kitchenTypes";
+import { DESCRIPTIVE_UPPER_MODULES, DESCRIPTIVE_LOWER_MODULES } from "@/components/kitchenTypes";
 import { CountertopConfigurator, CountertopConfig, defaultCountertopConfig } from "@/components/CountertopConfigurator";
 import { MuebleCocinaConfigurator, MuebleCocinaConfig, defaultMuebleCocinaConfig, calcularMuebleCocina, applyPiezaPrices } from "@/components/MuebleCocinaConfigurator";
 import { BathroomConfigurator, BathroomConfig } from "@/components/BathroomConfigurator";
@@ -3341,6 +3342,36 @@ export default function Quotations() {
                               </div>
                               </div>
                               )}
+                            </div>
+                            )}
+
+                            {/* 3.6 Muebles que lleva la cocina — solo descriptivo (no cambia precio ni metraje) */}
+                            {!['frente_pll', 'puertas_tapas', 'solo_acabados'].includes(item.kitchenConfig?.shape || '') && (
+                            <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)] space-y-2">
+                              <p className="text-xs sm:text-sm font-semibold text-white/85">
+                                Muebles que lleva la cocina <span className="text-xs font-normal text-white/40">(para la descripción de la cotización, no cambia el precio)</span>
+                              </p>
+                              {([
+                                { title: "Muebles superiores", show: item.kitchenConfig?.shape !== 'solo_inferiores', list: DESCRIPTIVE_UPPER_MODULES },
+                                { title: "Muebles inferiores", show: item.kitchenConfig?.shape !== 'solo_superiores', list: DESCRIPTIVE_LOWER_MODULES },
+                              ]).filter(g => g.show).map(g => (
+                                <div key={g.title}>
+                                  <p className="text-xs font-semibold text-white/40 uppercase tracking-wide mb-1">{g.title}</p>
+                                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-1">
+                                    {g.list.map(({ key, label }) => (
+                                      <label key={key} className="flex items-center gap-2 p-1.5 rounded bg-white/[0.03] text-xs text-white/70 cursor-pointer">
+                                        <input
+                                          type="checkbox"
+                                          className="h-4 w-4 accent-teal-500"
+                                          checked={!!(item.kitchenConfig as any)?.descriptiveModules?.[key]}
+                                          onChange={(e) => updateKitchenConfig(index, "descriptiveModules", { ...((item.kitchenConfig as any)?.descriptiveModules || {}), [key]: e.target.checked })}
+                                        />
+                                        {label}
+                                      </label>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
                             </div>
                             )}
 

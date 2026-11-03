@@ -52,6 +52,18 @@ const PRECIOS = {
   PINTADO_GOLA:             45000,
 };
 
+// Valores por defecto (fallback). Se pueden sobrescribir desde el Motor de Cotización
+// creando precios con código PIEZA_<NOMBRE> (ej. PIEZA_MUEBLE_ALTO_ML).
+const PRECIOS_DEFAULT: Record<string, number> = { ...PRECIOS } as any;
+
+export function applyPiezaPrices(getDbPrice: (code: string) => number | undefined) {
+  (Object.keys(PRECIOS_DEFAULT) as string[]).forEach((k) => {
+    if (k.startsWith("RECARGO_")) return;
+    const v = getDbPrice(`PIEZA_${k}`);
+    (PRECIOS as any)[k] = (typeof v === "number" && v > 0) ? v : PRECIOS_DEFAULT[k];
+  });
+}
+
 // ── Tipos ────────────────────────────────────────────────────────────────────
 export type TipoPieza =
   | "isla"

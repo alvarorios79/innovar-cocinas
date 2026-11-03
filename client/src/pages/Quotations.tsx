@@ -1261,6 +1261,7 @@ export default function Quotations() {
     const fields = field.split('.');
     let current: any = config;
     for (let i = 0; i < fields.length - 1; i++) {
+      if (current[fields[i]] === undefined || current[fields[i]] === null) current[fields[i]] = {};
       current = current[fields[i]];
     }
     current[fields[fields.length - 1]] = value;
@@ -1972,6 +1973,22 @@ export default function Quotations() {
           total += (config.paintedDoors.drawerQty || 0) * getPrice('PINTADO_CAJON');
           total += (config.paintedDoors.spiceQty || 0) * getPrice('PINTADO_ESPECIERO');
           total += (config.paintedDoors.golaQty || 0) * getPrice('PINTADO_GOLA');
+        }
+
+        // Acabados Especiales - Puertas Aluminio + Vidrio y LED Alacenas (misma lógica que calculateKitchenTotal)
+        if (config.specialFinishes?.enabled) {
+          if (config.specialFinishes.aluminumGlassDoors && config.specialFinishes.aluminumGlassDoors.length > 0) {
+            config.specialFinishes.aluminumGlassDoors.forEach(door => {
+              const sqm = door.height * door.width;
+              // Bisagras adicionales: >0.8m = 1 par, >1.4m = 2 pares
+              const extraHinges = door.height > 1.4 ? 2 : (door.height > 0.8 ? 1 : 0);
+              total += sqm * getPrice('ACABADO_ALUMINIO_VIDRIO_M2');
+              total += extraHinges * getPrice('ACABADO_BISAGRA_PAR');
+            });
+          }
+          if (config.specialFinishes.ledLighting?.enabled && config.specialFinishes.ledLighting.meters > 0) {
+            total += config.specialFinishes.ledLighting.meters * getPrice('ACABADO_LED_ML');
+          }
         }
 
         // Transporte e imprevistos - OPCIONAL (se maneja con checkbox)

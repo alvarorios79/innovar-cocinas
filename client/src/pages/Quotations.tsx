@@ -3358,7 +3358,7 @@ export default function Quotations() {
                                 <div key={g.title}>
                                   <p className="text-xs font-semibold text-white/40 uppercase tracking-wide mb-1">{g.title}</p>
                                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-1">
-                                    {g.list.map(({ key, label }) => (
+                                    {g.list.filter(({ key }) => key !== "cajoneroDoble" && key !== "cajoneroTriple").map(({ key, label }) => (
                                       <label key={key} className="flex items-center gap-2 p-1.5 rounded bg-white/[0.03] text-xs text-white/70 cursor-pointer">
                                         <input
                                           type="checkbox"
@@ -3370,6 +3370,30 @@ export default function Quotations() {
                                       </label>
                                     ))}
                                   </div>
+                                  {g.title === "Muebles inferiores" && (
+                                    <div className="flex items-center gap-2 mt-1.5">
+                                      <span className="text-xs text-white/70">Cajonero:</span>
+                                      <select
+                                        className="h-7 rounded bg-[#0C1A1A] border border-white/15 text-xs text-white px-2"
+                                        value={(() => {
+                                          const dm = (item.kitchenConfig as any)?.descriptiveModules || {};
+                                          return dm.cajoneroDoble && dm.cajoneroTriple ? "ambos" : dm.cajoneroTriple ? "triple" : dm.cajoneroDoble ? "doble" : "ninguno";
+                                        })()}
+                                        onChange={(e) => {
+                                          const v = e.target.value;
+                                          const dm = { ...((item.kitchenConfig as any)?.descriptiveModules || {}) };
+                                          dm.cajoneroDoble = v === "doble" || v === "ambos";
+                                          dm.cajoneroTriple = v === "triple" || v === "ambos";
+                                          updateKitchenConfig(index, "descriptiveModules", dm);
+                                        }}
+                                      >
+                                        <option value="ninguno">Ninguno</option>
+                                        <option value="doble">Cajonero doble</option>
+                                        <option value="triple">Cajonero triple</option>
+                                        <option value="ambos">Doble y triple (cocina grande)</option>
+                                      </select>
+                                    </div>
+                                  )}
                                 </div>
                               ))}
                             </div>

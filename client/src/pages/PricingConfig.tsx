@@ -52,6 +52,12 @@ const categoryConfig: Record<string, {
     accentColor: "#3B82F6",
     iconBg: "bg-blue-500/15 text-blue-400"
   },
+  piezas_cocina: {
+    name: "Piezas de Cocina (suelta)",
+    icon: <Box className="h-5 w-5" />,
+    accentColor: "#EC4899",
+    iconBg: "bg-pink-500/15 text-pink-400"
+  },
   muebles_especiales: {
     name: "Muebles Especiales",
     icon: <Box className="h-5 w-5" />,

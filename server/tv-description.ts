@@ -7,6 +7,8 @@ export function buildTVQuoteDescription(rawConfig: any): string | null {
   const push = (s = "") => lines.push(s);
   const section = (t: string) => { push(""); push(t); };
   const n = (v: any) => Number(v) || 0;
+  const cop = (v: any) => "$" + Math.round(n(v)).toLocaleString("es-CO");
+  const extra = (v: any) => (n(v) > 0 ? ` — adicional ${cop(v)}` : " — adicional");
 
   push("CENTRO DE TV - MUEBLE FLOTANTE");
   push(`Ancho: ${n(c.width).toFixed(2)} m`);
@@ -22,8 +24,8 @@ export function buildTVQuoteDescription(rawConfig: any): string | null {
 
   const glass: any[] = Array.isArray(c.aluminumGlassDoors) ? c.aluminumGlassDoors.filter((d: any) => n(d.height) > 0 && n(d.width) > 0) : [];
   if (glass.length > 0) {
-    section("PUERTAS DE ALUMINIO Y VIDRIO:");
-    push(`• ${glass.length} puerta${glass.length === 1 ? "" : "s"} en marco de aluminio con vidrio ahumado`);
+    section("ADICIONAL - PUERTAS DE ALUMINIO Y VIDRIO:");
+    push(`• ${glass.length} puerta${glass.length === 1 ? "" : "s"} en marco de aluminio con vidrio ahumado${extra(c.aluminumGlassPrice)}`);
     glass.forEach((d, i) => {
       const h = n(d.height), w = n(d.width);
       const hinges = h > 1.4 ? 2 : h > 0.8 ? 1 : 0;
@@ -32,8 +34,8 @@ export function buildTVQuoteDescription(rawConfig: any): string | null {
   }
 
   if (c.hasPainting) {
-    section("ACABADO:");
-    push(`• Pintura poliuretano ${c.paintFinish === "mate" ? "mate" : "alto brillo"}`);
+    section("ADICIONAL - PINTURA:");
+    push(`• Pintura poliuretano ${c.paintFinish === "mate" ? "mate" : "alto brillo"}${extra(c.paintPrice)}`);
     const pieces: string[] = [];
     if (n(c.doors) > 0) pieces.push(`${n(c.doors)} puerta${n(c.doors) === 1 ? "" : "s"}`);
     if (n(c.drawerFronts) > 0) pieces.push(`${n(c.drawerFronts)} tapa${n(c.drawerFronts) === 1 ? "" : "s"} de cajón`);
@@ -42,16 +44,17 @@ export function buildTVQuoteDescription(rawConfig: any): string | null {
   }
 
   if (c.hasLedLights) {
-    section("ILUMINACIÓN LED:");
-    push(n(c.ledMeters) > 0 ? `• Luz LED: ${n(c.ledMeters).toFixed(2)} ml` : "• Luz LED");
+    section("ADICIONAL - ILUMINACIÓN LED:");
+    push((n(c.ledMeters) > 0 ? `• Luz LED: ${n(c.ledMeters).toFixed(2)} ml` : "• Luz LED") + extra(c.ledLightsPrice));
   }
 
   if (c.includeTvBracket) {
-    section("INSTALACIÓN DEL TV:");
-    push("• Soporte para TV e instalación del televisor");
+    section("ADICIONAL - SOPORTE E INSTALACIÓN DEL TV:");
+    push("• Soporte para TV e instalación del televisor" + extra(c.tvBracketPrice));
   }
 
   section("NO INCLUYE:");
+  if (!c.includeTvBracket) push("• Instalación del mueble ni del televisor: el mueble se entrega sin instalación.");
   push("• Cables, canaletas ni instalación eléctrica.");
   push("• Televisor ni equipos (Innovar no los suministra).");
 

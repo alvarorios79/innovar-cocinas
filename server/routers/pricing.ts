@@ -247,7 +247,7 @@ export const pricingRouter = router({
           // Centros de TV
           { category: "centros_tv", code: "TV_CENTER_BASE",         name: "Centro TV base (hasta 1.60m)", value: 2800000, unit: "unidad", sortOrder: 1, description: "Cada 20cm adicionales suma $500.000." },
           { category: "centros_tv", code: "TV_CENTER_ALTO_BRILLO",  name: "Incremento Alto Brillo",       value: 350000,  unit: "unidad", sortOrder: 2 },
-          { category: "centros_tv", code: "TV_CENTER_LED",          name: "LED (por ml)",                 value: 220000,  unit: "ml",     sortOrder: 3 },
+          { category: "centros_tv", code: "TV_CENTER_LED",          name: "LED (por ml)",                 value: 180000,  unit: "ml",     sortOrder: 3 },
           { category: "centros_tv", code: "TV_CENTER_REPISA",       name: "Repisa adicional",             value: 100000,  unit: "unidad", sortOrder: 4 },
           { category: "centros_tv", code: "TV_CENTER_ESPACIO_EQUIPO",name:"Espacio para equipo",          value: 150000,  unit: "unidad", sortOrder: 5 },
           { category: "centros_tv", code: "TV_CENTER_TRANSPORTE",   name: "Transporte e imprevistos",     value: 150000,  unit: "unidad", sortOrder: 6 },

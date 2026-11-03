@@ -2501,10 +2501,8 @@ export async function getProjectHardwareSelections(projectId: number) {
     .where(eq(projectHardwareSelections.projectId, projectId));
   // Enriquecer con datos del catálogo de hardware
   const hardwareIds = Array.from(new Set(rows.map(r => r.hardwareId)));
-  const hardwareItems = hardwareIds.length > 0
-    ? await db.select().from(hardwareCatalog).where(inArray(hardwareCatalog.id, hardwareIds))
-    : [];
-  const hardwareMap = new Map(hardwareItems.map(h => [h.id, h]));
+  const hardwareItems: any[] = await getHardwareByIds(hardwareIds);
+  const hardwareMap = new Map<number, any>(hardwareItems.map((h: any) => [h.id, h]));
   return rows.map(r => ({ ...r, hardware: hardwareMap.get(r.hardwareId) ?? null }));
 }
 
@@ -2921,10 +2919,74 @@ export async function getAppointmentsByDate(date: Date) {
 }
 
 // ============ HARDWARE CATALOG ============
+// Fuente de verdad: Motor de Cotización (pricingConfig, category 'herrajes', code HERRAJE_<GRUPO>_<id>).
+// Si el Motor aún no tiene herrajes, se usa la tabla hardwareCatalog (legacy) como respaldo.
+const HW_CODE_RE = /^HERRAJE_(COCINAS|CLOSETS|PUERTAS)_(\d+)$/;
+const HW_PREFIX_RE = /^HERRAJE_(COCINAS|CLOSETS|PUERTAS)_/;
+function hwExposedId(r: any): number {
+  const m = HW_CODE_RE.exec(String(r.code));
+  return m ? Number(m[2]) : 100000 + r.id; // importados conservan su id de catálogo; nuevos usan 100000 + id del Motor
+}
+function hwFromPricing(r: any) {
+  const g = HW_PREFIX_RE.exec(String(r.code));
+  return {
+    id: hwExposedId(r),
+    category: (g ? g[1] : "COCINAS").toLowerCase(),
+    name: r.name,
+    description: r.description ?? null,
+    options: r.options ?? null,
+    photoUrl: r.photoUrl ?? null,
+    sortOrder: r.sortOrder,
+    active: r.active,
+    createdAt: r.createdAt,
+    updatedAt: r.updatedAt,
+    price: String(r.value),
+    unit: r.unit || "unidad",
+  };
+}
+async function getMotorHardwareRows(includeInactive = false) {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db.select().from(pricingConfig).where(eq(pricingConfig.category, "herrajes"));
+  return (rows as any[]).filter(r => HW_PREFIX_RE.test(String(r.code)) && (includeInactive || r.active === 1));
+}
+async function findMotorHardware(id: number) {
+  const rows = await getMotorHardwareRows(true);
+  return rows.find(r => hwExposedId(r) === id);
+}
+async function resyncPricingSequence() {
+  const db = await getDb();
+  if (!db) return;
+  await db.execute(sql`SELECT setval(pg_get_serial_sequence('"pricingConfig"','id'), COALESCE((SELECT MAX(id) FROM "pricingConfig"), 1))`);
+}
+async function insertMotorHardware(values: any): Promise<number> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  try {
+    const r = await db.insert(pricingConfig).values(values).returning({ id: pricingConfig.id });
+    return r[0].id;
+  } catch (e: any) {
+    const msg = String(e?.cause?.message || e?.message || e);
+    if (/duplicate key|pkey/i.test(msg)) {
+      await resyncPricingSequence();
+      const r = await db.insert(pricingConfig).values(values).returning({ id: pricingConfig.id });
+      return r[0].id;
+    }
+    throw e;
+  }
+}
 export async function getHardwareCatalog(category?: string) {
   const db = await getDb();
   if (!db) return [];
-  
+
+  const motor = await getMotorHardwareRows();
+  if (motor.length > 0) {
+    return motor
+      .map(hwFromPricing)
+      .filter(h => !category || h.category === category)
+      .sort((a, b) => a.sortOrder - b.sortOrder);
+  }
+
   let conditions: any = eq(hardwareCatalog.active, 1);
   if (category) {
     conditions = and(eq(hardwareCatalog.active, 1), eq(hardwareCatalog.category, category as any));
@@ -2937,22 +2999,95 @@ export async function getHardwareCatalog(category?: string) {
 export async function getAllHardware() {
   return getHardwareCatalog();
 }
+export async function getHardwareByIds(ids: number[]) {
+  const db = await getDb();
+  if (!db || ids.length === 0) return [];
+  const legacy = await db.select().from(hardwareCatalog).where(inArray(hardwareCatalog.id, ids));
+  const motor = (await getMotorHardwareRows(true)).map(hwFromPricing).filter(h => ids.includes(h.id));
+  const map = new Map<number, any>(legacy.map(h => [h.id, h]));
+  motor.forEach(h => map.set(h.id, h)); // el Motor tiene prioridad
+  return Array.from(map.values());
+}
 
 export async function createHardwareItem(data: typeof hardwareCatalog.$inferInsert) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
+  const motor = await getMotorHardwareRows(true);
+  if (motor.length > 0) {
+    const group = String((data as any).category || "cocinas").toUpperCase();
+    const id = await insertMotorHardware({
+      category: "herrajes",
+      code: `HERRAJE_${group}_N${Date.now()}`,
+      name: (data as any).name,
+      description: (data as any).description ?? null,
+      options: (data as any).options ?? null,
+      photoUrl: (data as any).photoUrl ?? null,
+      value: String((data as any).price ?? "0"),
+      unit: (data as any).unit || "unidad",
+      sortOrder: (data as any).sortOrder ?? 0,
+      active: 1,
+    });
+    return 100000 + id;
+  }
   const result = await db.insert(hardwareCatalog).values(data).returning({ id: hardwareCatalog.id });
   return result[0].id;
 }
 export async function updateHardwareItem(id: number, data: Partial<typeof hardwareCatalog.$inferInsert>) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
+  const m = await findMotorHardware(id);
+  if (m) {
+    const d: any = data;
+    const set: any = {};
+    if (d.name !== undefined) set.name = d.name;
+    if (d.description !== undefined) set.description = d.description;
+    if (d.options !== undefined) set.options = d.options;
+    if (d.photoUrl !== undefined) set.photoUrl = d.photoUrl;
+    if (d.sortOrder !== undefined) set.sortOrder = d.sortOrder;
+    if (d.active !== undefined) set.active = d.active;
+    if (d.price !== undefined) set.value = String(d.price);
+    if (d.unit !== undefined) set.unit = d.unit;
+    if (Object.keys(set).length > 0) await db.update(pricingConfig).set(set).where(eq(pricingConfig.id, m.id));
+    return;
+  }
   await db.update(hardwareCatalog).set(data).where(eq(hardwareCatalog.id, id));
 }
 export async function deleteHardwareItem(id: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
+  const m = await findMotorHardware(id);
+  if (m) {
+    // Baja lógica (no se borra, para no romper proyectos/cotizaciones que lo usan)
+    await db.update(pricingConfig).set({ active: 0 } as any).where(eq(pricingConfig.id, m.id));
+    return;
+  }
   await db.delete(hardwareCatalog).where(eq(hardwareCatalog.id, id));
+}
+// Copia los herrajes del catálogo legacy al Motor de Cotización (solo agrega los que faltan; no borra nada)
+export async function importHardwareCatalogToMotor() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const legacy = await db.select().from(hardwareCatalog).orderBy(asc(hardwareCatalog.sortOrder));
+  const existing = new Set((await getMotorHardwareRows(true)).map(r => String(r.code)));
+  let created = 0, skipped = 0;
+  for (const h of legacy) {
+    const code = `HERRAJE_${String(h.category).toUpperCase()}_${h.id}`;
+    if (existing.has(code)) { skipped++; continue; }
+    await insertMotorHardware({
+      category: "herrajes",
+      code,
+      name: h.name,
+      description: h.description ?? null,
+      options: h.options ?? null,
+      photoUrl: h.photoUrl ?? null,
+      value: String(h.price ?? "0"),
+      unit: h.unit || "unidad",
+      sortOrder: h.sortOrder ?? 0,
+      active: h.active,
+    });
+    created++;
+  }
+  return { created, skipped };
 }
 
 // ============ PUSH SUBSCRIPTIONS ============

@@ -167,7 +167,31 @@ export const pricingRouter = router({
           const [k, name, value, unit] = P[i];
           const code = `PIEZA_${k}`;
           if (existingCodes.has(code)) { skipped++; continue; }
-          await db.createPricingConfig({ category: "piezas_cocina", code, name, value, unit, sortOrder: i });
+          const attempt = async (cat: string) => db.createPricingConfig({ category: cat, code, name, value, unit, sortOrder: i });
+          try {
+            await attempt("piezas_cocina");
+          } catch (e1: any) {
+            const msg1 = String(e1?.cause?.message || e1?.message || e1);
+            console.error(`[seedPiezaPrices] ${code} falló con categoría piezas_cocina:`, msg1, e1?.cause?.code || "");
+            try {
+              // Si el id automático quedó desfasado (llave duplicada), re-sincronizar la secuencia y reintentar
+              if (/duplicate key|pkey|\"id\"/i.test(msg1)) {
+                const { sql } = await import("drizzle-orm");
+                const drizzleDb = await db.getDb();
+                if (drizzleDb) {
+                  await drizzleDb.execute(sql`SELECT setval(pg_get_serial_sequence('"pricingConfig"','id'), COALESCE((SELECT MAX(id) FROM "pricingConfig"), 1))`);
+                }
+                await attempt("piezas_cocina");
+              } else {
+                // Si la categoría no es aceptada por la base, usar una existente
+                await attempt("muebles_especiales");
+              }
+            } catch (e2: any) {
+              const msg2 = String(e2?.cause?.message || e2?.message || e2);
+              console.error(`[seedPiezaPrices] ${code} falló de nuevo:`, msg2);
+              throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: `No se pudo crear ${code}: ${msg1} | ${msg2}` });
+            }
+          }
           created++;
         }
         return { created, skipped };

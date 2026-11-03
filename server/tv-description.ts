@@ -20,6 +20,17 @@ export function buildTVQuoteDescription(rawConfig: any): string | null {
   if (n(c.doors) > 0) push(`• ${n(c.doors)} puerta${n(c.doors) === 1 ? "" : "s"}`);
   if (n(c.drawerFronts) > 0) push(`• ${n(c.drawerFronts)} ${n(c.drawerFronts) === 1 ? "cajón" : "cajones"}`);
 
+  const glass: any[] = Array.isArray(c.aluminumGlassDoors) ? c.aluminumGlassDoors.filter((d: any) => n(d.height) > 0 && n(d.width) > 0) : [];
+  if (glass.length > 0) {
+    section("PUERTAS DE ALUMINIO Y VIDRIO:");
+    push(`• ${glass.length} puerta${glass.length === 1 ? "" : "s"} en marco de aluminio con vidrio ahumado`);
+    glass.forEach((d, i) => {
+      const h = n(d.height), w = n(d.width);
+      const hinges = h > 1.4 ? 2 : h > 0.8 ? 1 : 0;
+      push(`  - Puerta ${i + 1}: ${h.toFixed(2)} m × ${w.toFixed(2)} m = ${(Math.round(h * w * 100) / 100).toFixed(2)} m²${hinges ? ` (+${hinges} par${hinges > 1 ? "es" : ""} de bisagras adicionales)` : ""}`);
+    });
+  }
+
   if (c.hasPainting) {
     section("ACABADO:");
     push(`• Pintura poliuretano ${c.paintFinish === "mate" ? "mate" : "alto brillo"}`);

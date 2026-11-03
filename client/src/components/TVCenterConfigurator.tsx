@@ -42,6 +42,8 @@ export interface TVCenterConfig {
   paintPrice?: number;
   includeTvBracket?: boolean;     // soporte + instalación del TV
   tvBracketPrice?: number;
+  aluminumGlassDoors?: Array<{ id: string; height: number; width: number }>; // puertas de aluminio con vidrio (mismo precio que en cocinas)
+  aluminumGlassPrice?: number;
 }
 
 interface TVCenterConfiguratorProps {
@@ -395,6 +397,10 @@ function TVCenterConfiguratorV2({ config, onChange }: TVCenterConfiguratorProps)
   const [alistonadoSides, setAlistonadoSides] = useState<number>(config?.alistonadoSides ?? 1);
   const [doors, setDoors] = useState<number>(config?.doors ?? 0);
   const [drawerFronts, setDrawerFronts] = useState<number>(config?.drawerFronts ?? 0);
+  const [glassDoors, setGlassDoors] = useState<Array<{ id: string; h: string; w: string }>>(
+    (config?.aluminumGlassDoors || []).map((d) => ({ id: d.id, h: d.height ? String(d.height) : "", w: d.width ? String(d.width) : "" }))
+  );
+  const [hasGlass, setHasGlass] = useState<boolean>((config?.aluminumGlassDoors?.length ?? 0) > 0);
   const [hasPainting, setHasPainting] = useState<boolean>(config?.hasPainting ?? false);
   const [paintFinish, setPaintFinish] = useState<"alto_brillo" | "mate">(config?.paintFinish ?? "alto_brillo");
   const [hasLedLights, setHasLedLights] = useState<boolean>(config?.hasLedLights ?? false);
@@ -415,6 +421,13 @@ function TVCenterConfiguratorV2({ config, onChange }: TVCenterConfiguratorProps)
   const paintShelf = getPrice("TV2_PINTADO_REPISA");
   const ledPrice = getPrice("TV_CENTER_LED");
   const bracketPrice = getPrice("TV2_SOPORTE_INSTALACION");
+  const glassM2Price = getPrice("ACABADO_ALUMINIO_VIDRIO_M2");
+  const hingePairPrice = getPrice("ACABADO_BISAGRA_PAR");
+  const glassList = hasGlass
+    ? glassDoors.map((d) => ({ id: d.id, height: parseFloat(d.h) || 0, width: parseFloat(d.w) || 0 }))
+    : [];
+  const hingesFor = (h: number) => (h > 1.4 ? 2 : h > 0.8 ? 1 : 0);
+  const aluminumGlassPrice = glassList.reduce((a, d) => a + d.height * d.width * glassM2Price + hingesFor(d.height) * hingePairPrice, 0);
 
   const basePrice = priceForWidth(width);
   const alistonadoPrice = alistonadoSides * alistLado;
@@ -423,11 +436,12 @@ function TVCenterConfiguratorV2({ config, onChange }: TVCenterConfiguratorProps)
   const ledLightsPrice = hasLedLights ? ledMeters * ledPrice : 0;
   const tvBracketPrice = includeTvBracket ? bracketPrice : 0;
   const transport = includeTransport ? transportCost : 0;
-  const subtotal = basePrice + alistonadoPrice + extraShelvesPrice + paintPrice + ledLightsPrice + tvBracketPrice + transport;
+  const subtotal = basePrice + alistonadoPrice + extraShelvesPrice + paintPrice + aluminumGlassPrice + ledLightsPrice + tvBracketPrice + transport;
 
   useEffect(() => {
     onChange({
       pricingVersion: 2,
+      aluminumGlassDoors: glassList, aluminumGlassPrice,
       width, basePrice, tvInches: tvInches || undefined,
       alistonadoSides, alistonadoPrice,
       doors, drawerFronts,
@@ -441,7 +455,7 @@ function TVCenterConfiguratorV2({ config, onChange }: TVCenterConfiguratorProps)
       notes, subtotal,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [width, tvInches, alistonadoSides, doors, drawerFronts, hasPainting, paintFinish, hasLedLights, ledMeters, floatingShelves, includeTvBracket, includeTransport, transportCost, notes, base160, per20, alistLado, shelfExtra, paintDoor, paintDrawer, paintShelf, ledPrice, bracketPrice]);
+  }, [width, tvInches, alistonadoSides, glassDoors, hasGlass, glassM2Price, hingePairPrice, doors, drawerFronts, hasPainting, paintFinish, hasLedLights, ledMeters, floatingShelves, includeTvBracket, includeTransport, transportCost, notes, base160, per20, alistLado, shelfExtra, paintDoor, paintDrawer, paintShelf, ledPrice, bracketPrice]);
 
   const tvW = tvInches ? tvWidthM(tvInches) : 0;
   const minSuggested = tvW ? V2_WIDTHS.find((w) => w >= tvW + 0.3) ?? V2_WIDTHS[V2_WIDTHS.length - 1] : 0;
@@ -521,6 +535,43 @@ function TVCenterConfiguratorV2({ config, onChange }: TVCenterConfiguratorProps)
             <label className="flex items-center gap-2 text-sm text-white/80">Puertas {count(doors, setDoors)}</label>
             <label className="flex items-center gap-2 text-sm text-white/80">Tapas de cajón {count(drawerFronts, setDrawerFronts)}</label>
           </div>
+        </div>
+
+        {/* Puertas de aluminio con vidrio (mismas de cocinas / acabados especiales) */}
+        <div className={row + " flex-col items-stretch"}>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <Checkbox id="tv2-glass" checked={hasGlass} onCheckedChange={(c) => {
+                const on = c === true; setHasGlass(on);
+                if (on && glassDoors.length === 0) setGlassDoors([{ id: `door-${Date.now()}`, h: "", w: "" }]);
+              }} />
+              <Label htmlFor="tv2-glass" className="cursor-pointer font-medium">Puertas de aluminio con vidrio ({fmt(glassM2Price)}/m²)</Label>
+            </div>
+            <span className={`font-semibold ${hasGlass ? "text-purple-400" : "text-muted-foreground"}`}>{fmt(aluminumGlassPrice)}</span>
+          </div>
+          {hasGlass && (
+            <div className="pl-8 space-y-2">
+              <p className="text-xs text-white/45">Bisagras adicionales: +1 par si el alto pasa de 80 cm, +2 pares si pasa de 140 cm ({fmt(hingePairPrice)}/par)</p>
+              {glassDoors.map((d, i) => {
+                const h = parseFloat(d.h) || 0, w = parseFloat(d.w) || 0;
+                const m2 = Math.round(h * w * 100) / 100;
+                return (
+                  <div key={d.id} className="flex items-center gap-2">
+                    <span className="text-xs text-purple-400">#{i + 1}</span>
+                    <Input type="text" inputMode="decimal" placeholder="Alto (m)" value={d.h} className="h-8 w-24 text-center"
+                      onChange={(e) => setGlassDoors((prev) => prev.map((x) => x.id === d.id ? { ...x, h: e.target.value } : x))} />
+                    <span className="text-white/40">×</span>
+                    <Input type="text" inputMode="decimal" placeholder="Ancho (m)" value={d.w} className="h-8 w-24 text-center"
+                      onChange={(e) => setGlassDoors((prev) => prev.map((x) => x.id === d.id ? { ...x, w: e.target.value } : x))} />
+                    <span className="text-xs text-white/60 min-w-[70px]">{m2.toFixed(2)} m²{hingesFor(h) > 0 ? ` +${hingesFor(h)} par` : ""}</span>
+                    <button type="button" className="text-red-400 text-xs px-2" onClick={() => setGlassDoors((prev) => prev.filter((x) => x.id !== d.id))}>Quitar</button>
+                  </div>
+                );
+              })}
+              <button type="button" className="text-xs text-purple-300 border border-purple-500/30 rounded px-2 py-1"
+                onClick={() => setGlassDoors((prev) => [...prev, { id: `door-${Date.now()}`, h: "", w: "" }])}>+ Agregar puerta</button>
+            </div>
+          )}
         </div>
 
         {/* Pintura */}
@@ -603,6 +654,7 @@ function TVCenterConfiguratorV2({ config, onChange }: TVCenterConfiguratorProps)
           <div className="flex justify-between"><span>Mueble flotante {width.toFixed(2)} m + panel + 2 repisas:</span><span>{fmt(basePrice)}</span></div>
           {alistonadoSides > 0 && <div className="flex justify-between text-purple-400"><span>+ Alistonado ({alistonadoSides} lado{alistonadoSides > 1 ? "s" : ""}):</span><span>{fmt(alistonadoPrice)}</span></div>}
           {extraShelvesPrice > 0 && <div className="flex justify-between text-purple-400"><span>+ {floatingShelves - 2} repisa(s) extra:</span><span>{fmt(extraShelvesPrice)}</span></div>}
+          {aluminumGlassPrice > 0 && <div className="flex justify-between text-purple-400"><span>+ Puertas aluminio y vidrio ({glassList.length}):</span><span>{fmt(aluminumGlassPrice)}</span></div>}
           {hasPainting && <div className="flex justify-between text-purple-400"><span>+ Pintura poliuretano {paintFinish === "mate" ? "mate" : "alto brillo"}:</span><span>{fmt(paintPrice)}</span></div>}
           {hasLedLights && <div className="flex justify-between text-purple-400"><span>+ LED ({ledMeters} ml):</span><span>{fmt(ledLightsPrice)}</span></div>}
           {includeTvBracket && <div className="flex justify-between text-purple-400"><span>+ Soporte e instalación del TV:</span><span>{fmt(tvBracketPrice)}</span></div>}

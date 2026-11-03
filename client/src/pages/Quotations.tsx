@@ -217,6 +217,7 @@ function buildTVDescription(_config: import("@/components/TVCenterConfigurator")
     parts.push(`${c.floatingShelves} repisas`);
     if (c.doors > 0) parts.push(`${c.doors} puertas`);
     if (c.drawerFronts > 0) parts.push(`${c.drawerFronts} cajones`);
+    if (c.aluminumGlassDoors?.length > 0) parts.push(`${c.aluminumGlassDoors.length} puerta(s) de aluminio con vidrio`);
     if (c.hasPainting) parts.push(`pintura poliuretano ${c.paintFinish === "mate" ? "mate" : "alto brillo"}`);
     if (c.hasLedLights) parts.push("luces LED");
     if (c.includeTvBracket) parts.push("soporte e instalación del TV");

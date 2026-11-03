@@ -411,6 +411,8 @@ export const pricingConfig = pgTable("pricingConfig", {
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	descriptionTemplate: text(),
+	photoUrl: text(),
+	options: text(),
 },
 (table) => [
 	index("code").on(table.code),

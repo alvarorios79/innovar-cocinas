@@ -197,7 +197,8 @@ function buildClosetDescription(config: import("@/components/ClosetConfigurator"
   if (config.accessories?.espejo)         parts.push("espejo en puertas");
   const accesText = parts.length > 0 ? ` Incluye: ${parts.join(", ")}.` : "";
   const doorText = config.doorType === "corredizas" ? " Puertas corredizas." : " Puertas batientes.";
-  return `Closet ${typeNames[config.type] || config.type}${dims}. Material aglomerado tipo RH, color a elegir por el cliente.${accesText}${doorText} (Diseño por definir)`;
+  const dismantleText = config.includeDismantle ? " Incluye desmonte del closet existente." : "";
+  return `Closet ${typeNames[config.type] || config.type}${dims}. Material aglomerado tipo RH, color a elegir por el cliente.${accesText}${doorText}${dismantleText} (Diseño por definir)`;
 }
 
 function buildDoorDescription(config: import("@/components/DoorConfigurator").DoorConfig): string {
@@ -911,6 +912,8 @@ export default function Quotations() {
             notes: item.closetConfig.notes || "",
             includeTransport: item.closetConfig.includeTransport ?? false,
             transportCost: item.closetConfig.transportCost ?? 150000,
+            includeDismantle: item.closetConfig.includeDismantle ?? false,
+            dismantlePrice: item.closetConfig.dismantlePrice ?? 0,
             accessories: {
               maletero: item.closetConfig.accessories?.maletero ?? false,
               divisor: item.closetConfig.accessories?.divisor ?? false,

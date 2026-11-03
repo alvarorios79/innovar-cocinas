@@ -1602,6 +1602,10 @@ export default function Quotations() {
     }
 
     mark("Acabados especiales");
+    // Desmonte de cocina existente - OPCIONAL (checkbox)
+    if ((config as any).dismantle) {
+      total += getPrice('DESMONTE_COCINA');
+    }
     // 10. Transporte e imprevistos - OPCIONAL (se maneja con checkbox)
     // Solo incluir si el checkbox está marcado
     if (item.includesFixedCosts) {
@@ -1990,6 +1994,11 @@ export default function Quotations() {
           if (config.specialFinishes.ledLighting?.enabled && config.specialFinishes.ledLighting.meters > 0) {
             total += config.specialFinishes.ledLighting.meters * getPrice('ACABADO_LED_ML');
           }
+        }
+
+        // Desmonte de cocina existente - OPCIONAL (misma lógica que calculateKitchenTotal)
+        if ((config as any).dismantle) {
+          total += getPrice('DESMONTE_COCINA');
         }
 
         // Transporte e imprevistos - OPCIONAL (se maneja con checkbox)
@@ -4192,6 +4201,20 @@ export default function Quotations() {
                                   </div>
                                 </div>
                               )}
+                            </div>
+
+                            {/* Desmonte de cocina existente - Opcional */}
+                            <div className={`flex items-center gap-3 p-3 rounded ${(item.kitchenConfig as any)?.dismantle ? 'bg-green-500/15 border border-green-300' : 'bg-yellow-500/10'}`}>
+                              <input
+                                type="checkbox"
+                                id={`dismantle-${index}`}
+                                className="size-6 border-2 cursor-pointer accent-teal-500"
+                                checked={!!(item.kitchenConfig as any)?.dismantle}
+                                onChange={(e) => updateKitchenConfig(index, "dismantle", e.target.checked)}
+                              />
+                              <Label htmlFor={`dismantle-${index}`} className="text-xs sm:text-sm font-semibold text-white/85 cursor-pointer">
+                                Desmonte de cocina existente ({formatPrice(getPrice('DESMONTE_COCINA'))})
+                              </Label>
                             </div>
 
                             {/* 10. Transporte e imprevistos - Opcional y editable */}

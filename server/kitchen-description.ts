@@ -141,7 +141,13 @@ export function buildKitchenQuoteDescription(rawConfig: any, manualDescription?:
     section("MESÓN:");
     const depth = depthText(ct.depthSurcharge);
     push(`• Mesón en ${stoneName(ct.type, ct.esImportado)}: ${ml(mesonML)}${depth ? ` (${depth})` : ""}`);
-    push("  - Incluye salpicadero de 10 cm y regrueso en el visto");
+    if (ct.incluyeSalpicaderoAlto) {
+      push(`  - Salpicadero alto en ${stoneName(ct.type, ct.esImportado)} (${ml(mesonML)}) y regrueso en el visto`);
+      const nl = Number(ct.cantLateralesSalpicadero) || 0;
+      if (nl > 0) push(`  - ${nl} lateral${nl > 1 ? "es" : ""} de cierre del salpicadero (0.62 × 0.60 m)`);
+    } else {
+      push("  - Incluye salpicadero de 10 cm y regrueso en el visto");
+    }
     if (ct.incluyeLaterales) push(`  - ${ct.cantLaterales || 1} lateral${(ct.cantLaterales || 1) > 1 ? "es" : ""} en piedra (${((ct.cantLaterales || 1) * 0.9).toFixed(2)} ml)`);
     if (ct.incluyeRegrueso) push("  - Regrueso adicional (0.90 ml)");
     if (ct.incluyeLavaplatos) push("  - Pegado de lavaplatos y lavaplatos");

@@ -167,6 +167,7 @@ function buildKitchenDescription(config: KitchenConfig): string {
     const mesonExtras: string[] = [];
     if (ct.incluyeLaterales) mesonExtras.push(`${ct.cantLaterales || 1} lateral${(ct.cantLaterales || 1) > 1 ? 'es' : ''}`);
     if (ct.incluyeRegrueso) mesonExtras.push("regrueso");
+    if (ct.incluyeSalpicaderoAlto) mesonExtras.push(`salpicadero alto${ct.cantLateralesSalpicadero ? ` con ${ct.cantLateralesSalpicadero} lateral${ct.cantLateralesSalpicadero > 1 ? 'es' : ''}` : ''}`);
     if (ct.incluyeLavaplatos) mesonExtras.push("lavaplatos y pegado");
     if (ct.depthSurcharge === "30percent") mesonExtras.push("fondo 61-90cm (+30%)");
     if (ct.depthSurcharge === "double") mesonExtras.push("fondo 91-120cm (×2)");
@@ -1443,6 +1444,12 @@ export default function Quotations() {
       if (config.countertop.incluyeLavaplatos) {
         total += config.countertop.lavaprecio ?? getPrice('LAVAPLATOS_MESON');
       }
+      // Salpicadero alto: se cobra de nuevo el metraje del mesón (mismo precio y recargo de fondo)
+      if (config.countertop.incluyeSalpicaderoAlto) {
+        total += metersForCountertop * countertopPrice;
+        // Laterales del salpicadero alto: 0.62 x 0.60 m c/u (0.62 ml a precio base, sin recargo de fondo)
+        total += (config.countertop.cantLateralesSalpicadero || 0) * 0.62 * basePrice;
+      }
     }
 
     // 5. Isla (para cocinas completas y puertas_tapas) - precios dinámicos
@@ -1826,6 +1833,12 @@ export default function Quotations() {
           }
           if (config.countertop.incluyeLavaplatos) {
             total += config.countertop.lavaprecio ?? getPrice('LAVAPLATOS_MESON');
+          }
+          // Salpicadero alto: se cobra de nuevo el metraje del mesón (mismo precio y recargo de fondo)
+          if (config.countertop.incluyeSalpicaderoAlto) {
+            total += metersForCountertop * countertopPrice;
+            // Laterales del salpicadero alto: 0.62 x 0.60 m c/u (0.62 ml a precio base, sin recargo de fondo)
+            total += (config.countertop.cantLateralesSalpicadero || 0) * 0.62 * basePrice;
           }
         }
 
@@ -3356,6 +3369,39 @@ export default function Quotations() {
                                   </Select>
                                 </div>
                               </div>
+                              {/* Salpicadero alto + laterales del salpicadero */}
+                              {item.kitchenConfig?.countertop.type && (
+                                <div className="flex flex-wrap items-center gap-3 pt-1">
+                                  <label className="flex items-center gap-2 text-xs sm:text-sm text-white/85 cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      checked={item.kitchenConfig?.countertop.incluyeSalpicaderoAlto || false}
+                                      onChange={(e) => {
+                                        updateKitchenConfig(index, "countertop.incluyeSalpicaderoAlto", e.target.checked);
+                                        if (!e.target.checked) updateKitchenConfig(index, "countertop.cantLateralesSalpicadero", 0);
+                                      }}
+                                      className="h-4 w-4 accent-emerald-500"
+                                    />
+                                    Salpicadero alto (suma el metraje del mesón otra vez)
+                                  </label>
+                                  {item.kitchenConfig?.countertop.incluyeSalpicaderoAlto && (
+                                    <div className="flex items-center gap-2">
+                                      <Label className="text-xs text-white/60">Laterales del salpicadero (0.62 × 0.60 m):</Label>
+                                      <Select
+                                        value={String(item.kitchenConfig?.countertop.cantLateralesSalpicadero || 0)}
+                                        onValueChange={(v) => updateKitchenConfig(index, "countertop.cantLateralesSalpicadero", parseInt(v) || 0)}
+                                      >
+                                        <SelectTrigger className="h-7 w-24 text-xs"><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="0">Ninguno</SelectItem>
+                                          <SelectItem value="1">1 lateral</SelectItem>
+                                          <SelectItem value="2">2 laterales</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
                               {/* Importado mesón — todos los materiales */}
                               {item.kitchenConfig?.countertop.type && (
                                 <div className="flex flex-wrap items-center gap-2 pt-1">

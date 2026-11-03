@@ -27,6 +27,8 @@ export interface KitchenConfig {
     incluyeRegrueso?: boolean;
     incluyeLavaplatos?: boolean;
     lavaprecio?: number;         // precio lavaplatos (default 130000)
+    incluyeSalpicaderoAlto?: boolean;   // suma el metraje del mesón otra vez
+    cantLateralesSalpicadero?: number;  // 0, 1 o 2 piezas de 0.62 x 0.60 m que cierran el salpicadero alto
   };
   island: {
     enabled: boolean;

@@ -111,6 +111,10 @@ const DEFAULT_PRICES: Record<string, { value: number; unit: string | null }> = {
   ACABADO_BISAGRA_PAR:        { value: 15000,   unit: "par" },
   ACABADO_LED_ML:             { value: 180000,  unit: "ml" },
 
+  // Servicios de desmonte (opcionales, el montaje va incluido en el trabajo)
+  DESMONTE_COCINA:            { value: 300000,  unit: "servicio" },
+  DESMONTE_CLOSET:            { value: 250000,  unit: "servicio" },
+
   // Descuentos internos (ml que descuentan módulos especiales)
   DESCUENTO_NICHO_ML:   { value: 1,   unit: "ml" },
   DESCUENTO_ALACENA_ML: { value: 0.5, unit: "ml" },

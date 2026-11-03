@@ -34,7 +34,7 @@ const DEFAULT_PRICES: Record<string, { value: number; unit: string | null }> = {
 
   // Muebles Especiales (descuentan metros lineales al precio base)
   NICHO_NEVECON:        { value: 1200000, unit: "unidad" }, // descuenta 1.0 ml
-  NICHO_NEVERA:         { value: 1100000, unit: "unidad" }, // descuenta 0.75 ml
+  NICHO_NEVERA:         { value: 1200000, unit: "unidad" }, // descuenta 0.75 ml
   ALACENA_ENTREPANOS:   { value: 1250000, unit: "unidad" }, // descuenta 0.5 ml
   ALACENA_HERRAJE:      { value: 900000,  unit: "unidad" }, // descuenta 0.5 ml
   TORRE_HORNOS:         { value: 1350000, unit: "unidad" }, // descuenta 0.7 ml
@@ -46,7 +46,7 @@ const DEFAULT_PRICES: Record<string, { value: number; unit: string | null }> = {
   BARRA_LATERAL:        { value: 350000,  unit: "unidad" },
   BARRA_PEDESTAL:       { value: 250000,  unit: "unidad" },
   BARRA_HERRAJE:        { value: 380000,  unit: "unidad" },
-  LED_ML:               { value: 220000,  unit: "ml" },
+  LED_ML:               { value: 180000,  unit: "ml" },
   TRANSPORTE_IMPREVISTOS: { value: 600000, unit: "fijo" },
 
   // Puertas y Tapas (para cocinas)
@@ -106,7 +106,7 @@ const DEFAULT_PRICES: Record<string, { value: number; unit: string | null }> = {
   // Acabados Especiales
   ACABADO_ALUMINIO_VIDRIO_M2: { value: 1200000, unit: "m2" },
   ACABADO_BISAGRA_PAR:        { value: 15000,   unit: "par" },
-  ACABADO_LED_ML:             { value: 150000,  unit: "ml" },
+  ACABADO_LED_ML:             { value: 180000,  unit: "ml" },
 
   // Descuentos internos (ml que descuentan módulos especiales)
   DESCUENTO_NICHO_ML:   { value: 1,   unit: "ml" },

@@ -528,15 +528,6 @@ function TVCenterConfiguratorV2({ config, onChange }: TVCenterConfiguratorProps)
           </div>
         </div>
 
-        {/* Puertas y cajones */}
-        <div className="bg-white/[0.03] p-4 rounded-lg border border-[rgba(106,207,199,0.12)] space-y-2">
-          <h5 className="font-semibold text-white/85">Puertas y cajones <span className="text-xs font-normal text-white/40">(incluidos en el precio del mueble)</span></h5>
-          <div className="flex flex-wrap gap-6">
-            <label className="flex items-center gap-2 text-sm text-white/80">Puertas {count(doors, setDoors)}</label>
-            <label className="flex items-center gap-2 text-sm text-white/80">Tapas de cajón {count(drawerFronts, setDrawerFronts)}</label>
-          </div>
-        </div>
-
         {/* Puertas de aluminio con vidrio (mismas de cocinas / acabados especiales) */}
         <div className={row + " flex-col items-stretch"}>
           <div className="flex items-center justify-between gap-3">
@@ -578,14 +569,19 @@ function TVCenterConfiguratorV2({ config, onChange }: TVCenterConfiguratorProps)
         <div className={row + " flex-col items-stretch"}>
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <Checkbox id="tv2-paint" className="size-6 border-2 border-white/70 bg-white/10 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-300 data-[state=checked]:text-white [&_svg]:size-5" checked={hasPainting} onCheckedChange={(c) => setHasPainting(c === true)} />
+              <Checkbox id="tv2-paint" className="size-6 border-2 border-white/70 bg-white/10 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-300 data-[state=checked]:text-white [&_svg]:size-5" checked={hasPainting} onCheckedChange={(c) => { const on = c === true; setHasPainting(on); if (!on) { setDoors(0); setDrawerFronts(0); } }} />
               <Sparkles className="h-4 w-4 text-yellow-500" />
               <Label htmlFor="tv2-paint" className="cursor-pointer font-medium">Pintura poliuretano</Label>
             </div>
             <span className={`font-semibold ${hasPainting ? "text-purple-400" : "text-muted-foreground"}`}>{fmt(paintPrice)}</span>
           </div>
           {hasPainting && (
-            <div className="pl-8 space-y-1">
+            <div className="pl-8 space-y-2">
+              <div className="flex flex-wrap gap-6">
+                <label className="flex items-center gap-2 text-sm text-white/80">Puertas a pintar {count(doors, setDoors)}</label>
+                <label className="flex items-center gap-2 text-sm text-white/80">Tapas de cajón a pintar {count(drawerFronts, setDrawerFronts)}</label>
+              </div>
+              <p className="text-xs text-white/45">Las puertas, tapas y repisas ya están incluidas en el precio del mueble; aquí solo se cobra la pintura.</p>
               <div className="flex items-center gap-4 text-sm text-white/80">
                 <label className="flex items-center gap-1"><input type="radio" checked={paintFinish === "alto_brillo"} onChange={() => setPaintFinish("alto_brillo")} /> Alto brillo</label>
                 <label className="flex items-center gap-1"><input type="radio" checked={paintFinish === "mate"} onChange={() => setPaintFinish("mate")} /> Mate</label>

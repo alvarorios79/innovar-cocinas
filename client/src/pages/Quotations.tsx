@@ -909,6 +909,7 @@ export default function Quotations() {
             highGlossPrice: item.tvCenterConfig.highGlossPrice ?? 0,
             hasLedLights: item.tvCenterConfig.hasLedLights ?? false,
             ledLightsPrice: item.tvCenterConfig.ledLightsPrice ?? 0,
+            ledMeters: item.tvCenterConfig.ledMeters,
             floatingShelves: item.tvCenterConfig.floatingShelves ?? 2,
             extraShelvesPrice: item.tvCenterConfig.extraShelvesPrice ?? 0,
             equipmentSpaces: item.tvCenterConfig.equipmentSpaces ?? 0,
@@ -1939,7 +1940,7 @@ export default function Quotations() {
         const config = item.tvCenterConfig;
         const parts: string[] = [`Centro de TV ${config.width}m`];
         if (config.hasHighGloss) parts.push("alto brillo");
-        if (config.hasLedLights) parts.push("luces LED");
+        if (config.hasLedLights) parts.push(config.ledMeters ? `luces LED (${config.ledMeters} ml)` : "luces LED");
         if (config.equipmentSpaces > 0) parts.push(`${config.equipmentSpaces} espacios equipos`);
         parts.push(`${config.floatingShelves} repisas`);
         const description = parts.join(", ");

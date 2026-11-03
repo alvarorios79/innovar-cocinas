@@ -183,7 +183,7 @@ export function QuotationGroupCard({
               </p>
               {isActiveVersion && (
                 <Badge className="bg-[#14B8A6] text-white text-xs py-0 px-2">
-                  Activa
+                  Versión actual
                 </Badge>
               )}
               {group.versionCount > 1 && (
@@ -274,7 +274,7 @@ export function QuotationGroupCard({
                 return (
                   <SelectItem key={version.id} value={version.id.toString()}>
                     V{version.versionNumber}
-                    {isProjectVersion && group.hasProject ? " ✓ Precio vigente" : isActive && !group.hasProject ? " (Activa)" : " (Anterior)"}
+                    {isProjectVersion && group.hasProject ? " ✓ Precio vigente" : isActive && !group.hasProject ? " (Versión actual)" : " (Anterior)"}
                   </SelectItem>
                 );
               })}

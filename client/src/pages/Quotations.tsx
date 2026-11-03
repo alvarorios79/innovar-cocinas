@@ -8,7 +8,7 @@ import { DoorConfigurator, DoorConfig } from "@/components/DoorConfigurator";
 import { TVCenterConfigurator, TVCenterConfig } from "@/components/TVCenterConfigurator";
 import { KitchenConfigurator, KitchenConfig } from "@/components/KitchenConfigurator";
 import { CountertopConfigurator, CountertopConfig, defaultCountertopConfig } from "@/components/CountertopConfigurator";
-import { MuebleCocinaConfigurator, MuebleCocinaConfig, defaultMuebleCocinaConfig, calcularMuebleCocina } from "@/components/MuebleCocinaConfigurator";
+import { MuebleCocinaConfigurator, MuebleCocinaConfig, defaultMuebleCocinaConfig, calcularMuebleCocina, applyPiezaPrices } from "@/components/MuebleCocinaConfigurator";
 import { BathroomConfigurator, BathroomConfig } from "@/components/BathroomConfigurator";
 import { PDFPreviewBeforeSave } from "@/components/PDFPreviewBeforeSave";
 import { PDFContentEditor } from "@/components/PDFContentEditor";
@@ -236,6 +236,11 @@ export default function Quotations() {
   // Hook para precios dinámicos desde la base de datos
   const { prices, isLoading: isPricingLoading, getPrice } = usePricing();
   const { data: allPricing } = trpc.pricing.getAll.useQuery();
+  // Precios de "Piezas de cocina" (PIEZA_*) vienen del Motor de Cotización; si no existen, se usan los valores por defecto
+  if (allPricing) {
+    const piezaMap = new Map<string, number>((allPricing as any[]).filter((p: any) => p.active !== 0).map((p: any) => [p.code, Number(p.value)]));
+    applyPiezaPrices((code) => piezaMap.get(code));
+  }
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [fromVisitId, setFromVisitId] = useState<number | null>(null);
   const [pendingWaUrl, setPendingWaUrl] = useState<string | null>(null);

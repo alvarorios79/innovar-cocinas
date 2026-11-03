@@ -241,6 +241,12 @@ export function buildKitchenQuoteDescription(rawConfig: any, manualDescription?:
     }
   }
 
+  // ── Desmonte de cocina existente (servicio opcional) ───────────────────
+  if (config.dismantle) {
+    section("SERVICIO ADICIONAL:");
+    push("• Desmonte de la cocina existente");
+  }
+
   // ── Pintado alto brillo ─────────────────────────────────────────────────
   const pd = config.paintedDoors;
   if (pd && pd.enabled) {

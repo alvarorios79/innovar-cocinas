@@ -541,7 +541,7 @@ function TVCenterConfiguratorV2({ config, onChange }: TVCenterConfiguratorProps)
         <div className={row + " flex-col items-stretch"}>
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <Checkbox id="tv2-glass" checked={hasGlass} onCheckedChange={(c) => {
+              <Checkbox id="tv2-glass" className="size-6 border-2 border-white/70 bg-white/10 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-300 data-[state=checked]:text-white [&_svg]:size-5" checked={hasGlass} onCheckedChange={(c) => {
                 const on = c === true; setHasGlass(on);
                 if (on && glassDoors.length === 0) setGlassDoors([{ id: `door-${Date.now()}`, h: "", w: "" }]);
               }} />
@@ -578,7 +578,7 @@ function TVCenterConfiguratorV2({ config, onChange }: TVCenterConfiguratorProps)
         <div className={row + " flex-col items-stretch"}>
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <Checkbox id="tv2-paint" checked={hasPainting} onCheckedChange={(c) => setHasPainting(c === true)} />
+              <Checkbox id="tv2-paint" className="size-6 border-2 border-white/70 bg-white/10 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-300 data-[state=checked]:text-white [&_svg]:size-5" checked={hasPainting} onCheckedChange={(c) => setHasPainting(c === true)} />
               <Sparkles className="h-4 w-4 text-yellow-500" />
               <Label htmlFor="tv2-paint" className="cursor-pointer font-medium">Pintura poliuretano</Label>
             </div>
@@ -602,7 +602,7 @@ function TVCenterConfiguratorV2({ config, onChange }: TVCenterConfiguratorProps)
         <div className={row + " flex-col items-stretch"}>
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <Checkbox id="tv2-led" checked={hasLedLights} onCheckedChange={(c) => setHasLedLights(c === true)} />
+              <Checkbox id="tv2-led" className="size-6 border-2 border-white/70 bg-white/10 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-300 data-[state=checked]:text-white [&_svg]:size-5" checked={hasLedLights} onCheckedChange={(c) => setHasLedLights(c === true)} />
               <Lightbulb className="h-4 w-4 text-amber-500" />
               <Label htmlFor="tv2-led" className="cursor-pointer font-medium">Iluminación LED ({fmt(ledPrice)}/ml)</Label>
             </div>
@@ -620,7 +620,7 @@ function TVCenterConfiguratorV2({ config, onChange }: TVCenterConfiguratorProps)
         {/* Soporte e instalación del TV */}
         <div className={row}>
           <div className="flex items-center gap-3">
-            <Checkbox id="tv2-bracket" checked={includeTvBracket} onCheckedChange={(c) => setIncludeTvBracket(c === true)} />
+            <Checkbox id="tv2-bracket" className="size-6 border-2 border-white/70 bg-white/10 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-300 data-[state=checked]:text-white [&_svg]:size-5" checked={includeTvBracket} onCheckedChange={(c) => setIncludeTvBracket(c === true)} />
             <div>
               <Label htmlFor="tv2-bracket" className="cursor-pointer font-medium">Soporte e instalación del TV</Label>
               <p className="text-xs text-white/45">El soporte del TV y su instalación se cobran aparte</p>
@@ -632,7 +632,7 @@ function TVCenterConfiguratorV2({ config, onChange }: TVCenterConfiguratorProps)
         {/* Transporte */}
         <div className={row}>
           <div className="flex items-center gap-3">
-            <Checkbox id="tv2-transport" checked={includeTransport} onCheckedChange={(c) => setIncludeTransport(c === true)} />
+            <Checkbox id="tv2-transport" className="size-6 border-2 border-white/70 bg-white/10 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-300 data-[state=checked]:text-white [&_svg]:size-5" checked={includeTransport} onCheckedChange={(c) => setIncludeTransport(c === true)} />
             <Label htmlFor="tv2-transport" className="cursor-pointer font-medium">Incluir transporte e imprevistos</Label>
           </div>
           {includeTransport && (

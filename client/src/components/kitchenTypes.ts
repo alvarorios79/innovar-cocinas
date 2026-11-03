@@ -154,7 +154,7 @@ export const DESCRIPTIVE_UPPER_MODULES: Array<{ key: string; label: string }> = 
   { key: "esquineroSuperior", label: "Esquinero superior" },
   { key: "moduloExtractor", label: "Módulo para extractor" },
   { key: "moduloMicroondas", label: "Módulo para microondas" },
-  { key: "moduloExtractorMicroondas", label: "Módulo extractor + microondas" },
+  { key: "moduloExtractorMicroondas", label: "Módulo para extractor y microondas" },
   { key: "moduloPlatero", label: "Platero" },
   { key: "moduloRepisa", label: "Repisas" },
   { key: "moduloAlmacSup", label: "Módulo de almacenamiento" },
@@ -167,7 +167,7 @@ export const DESCRIPTIVE_LOWER_MODULES: Array<{ key: string; label: string }> = 
   { key: "botellero", label: "Botellero" },
   { key: "basurero", label: "Basurero integrado" },
   { key: "moduloLavaplatos", label: "Módulo para lavaplatos" },
-  { key: "moduloEstufaPuerta", label: "Módulo de estufa con puerta" },
-  { key: "moduloEstufaHorno", label: "Módulo para estufa y horno" },
+  { key: "moduloEstufaPuerta", label: "Módulo para estufa (con doble puerta inferior)" },
+  { key: "moduloEstufaHorno", label: "Módulo para estufa y horno (si el cliente lleva horno)" },
   { key: "moduloAlmacInf", label: "Módulo de almacenamiento" },
 ];

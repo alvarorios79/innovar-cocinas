@@ -133,11 +133,11 @@ function buildKitchenDescription(config: KitchenConfig): string {
   if (kmQ(km.cajoneroTriple) > 0)    parts.push(`${kmQ(km.cajoneroTriple) > 1 ? kmQ(km.cajoneroTriple)+"× " : ""}cajonero triple`);
   if (kmQ(km.cajoneroDoble) > 0)     parts.push(`${kmQ(km.cajoneroDoble) > 1 ? kmQ(km.cajoneroDoble)+"× " : ""}cajonero doble`);
   if (kmQ(km.basurero) > 0)          parts.push(`${kmQ(km.basurero) > 1 ? kmQ(km.basurero)+"× " : ""}basurero integrado`);
-  if (kmQ(km.moduloEstufaHorno) > 0 || sm.torreHornos) parts.push("módulo estufa y horno");
+  if (kmQ(km.moduloEstufaHorno) > 0 || sm.torreHornos) parts.push("módulo para estufa y horno");
   if (kmQ(km.moduloAlmacInf) > 0)   parts.push(`${kmQ(km.moduloAlmacInf) > 1 ? kmQ(km.moduloAlmacInf)+"× " : ""}alm. inferior`);
   if (kmQ(km.moduloAlmacSup) > 0 || sm.alacenaEntrepanos || sm.alacenaHerraje) parts.push("alm. superior");
-  if (kmQ(km.moduloExtractor) > 0)  parts.push("extractor");
-  if (kmQ(km.moduloMicroondas) > 0) parts.push("microondas");
+  if (kmQ(km.moduloExtractor) > 0)  parts.push("módulo para extractor");
+  if (kmQ(km.moduloMicroondas) > 0) parts.push("módulo para microondas");
   if (kmQ(km.especiero) > 0)        parts.push(`${kmQ(km.especiero) > 1 ? kmQ(km.especiero)+"× " : ""}especiero`);
   if (kmQ(km.botellero) > 0)        parts.push(`${kmQ(km.botellero) > 1 ? kmQ(km.botellero)+"× " : ""}botellero`);
   if (kmQ(km.moduloRepisa) > 0)     parts.push(`${kmQ(km.moduloRepisa) > 1 ? kmQ(km.moduloRepisa)+"× " : ""}repisa`);
@@ -3228,9 +3228,9 @@ export default function Quotations() {
                                 { title: "Superiores", mods: [
                                   { key:"esquineroSuperior",         label:"Esq. sup. (0.60×0.60)", ml:1.20, editable:true },
                                   { key:"moduloAlmacSup",            label:"Alm. superior",         ml:0.65, editable:true },
-                                  { key:"moduloExtractor",           label:"Extractor",             ml:0.70, editable:true },
-                                  { key:"moduloMicroondas",          label:"Microondas",            ml:0.60, editable:true },
-                                  { key:"moduloExtractorMicroondas", label:"Extractor+Microondas",  ml:0.70, editable:true },
+                                  { key:"moduloExtractor",           label:"Mód. para extractor",    ml:0.70, editable:true },
+                                  { key:"moduloMicroondas",          label:"Mód. para microondas",   ml:0.60, editable:true },
+                                  { key:"moduloExtractorMicroondas", label:"Mód. extractor y micro.", ml:0.70, editable:true },
                                   { key:"moduloRepisa",              label:"Repisa (6 pzas)",       ml:0.30, editable:true },
                                   { key:"moduloPlatero",             label:"Platero 2 puertas",     ml:0.70, editable:true },
                                 ]},
@@ -3241,9 +3241,9 @@ export default function Quotations() {
                                   { key:"cajoneroTriple",    label:"Caj. triple",  ml:0.70, editable:true },
                                   { key:"cajoneroDoble",     label:"Caj. doble",   ml:0.60, editable:true },
                                   { key:"basurero",          label:"Basurero",     ml:0.50, editable:true },
-                                  { key:"moduloLavaplatos",   label:"Lavaplatos",      ml:0.70, editable:true },
-                                  { key:"moduloEstufaPuerta", label:"Estufa c/puerta", ml:0.70, editable:true },
-                                  { key:"moduloEstufaHorno",  label:"Estufa c/horno",  ml:0.70, editable:true },
+                                  { key:"moduloLavaplatos",   label:"Mód. para lavaplatos", ml:0.70, editable:true },
+                                  { key:"moduloEstufaPuerta", label:"Mód. estufa (2 puertas)", ml:0.70, editable:true },
+                                  { key:"moduloEstufaHorno",  label:"Mód. estufa y horno", ml:0.70, editable:true },
                                   { key:"moduloAlmacInf",    label:"Almacenamiento", ml:0.60, editable:true },
                                 ]},
                               ] as {title:string, mods:{key:string,label:string,ml:number,editable?:boolean}[]}[]).map(group => (

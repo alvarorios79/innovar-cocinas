@@ -80,12 +80,12 @@ export function buildKitchenQuoteDescription(rawConfig: any, manualDescription?:
   const kmQ: any = config.kitchenModules || {};
   const DM_SUP: Array<[string, string]> = [
     ["esquineroSuperior", "esquinero superior"], ["moduloExtractor", "módulo para extractor"], ["moduloMicroondas", "módulo para microondas"],
-    ["moduloExtractorMicroondas", "módulo extractor + microondas"], ["moduloPlatero", "platero"], ["moduloRepisa", "repisas"], ["moduloAlmacSup", "módulo de almacenamiento"],
+    ["moduloExtractorMicroondas", "módulo para extractor y microondas"], ["moduloPlatero", "platero"], ["moduloRepisa", "repisas"], ["moduloAlmacSup", "módulo de almacenamiento"],
   ];
   const DM_INF: Array<[string, string]> = [
     ["esquinero1x1", "esquinero 1×1"], ["cajoneroTriple", "cajonero triple"], ["cajoneroDoble", "cajonero doble"], ["especiero", "especiero"],
     ["botellero", "botellero"], ["basurero", "basurero integrado"], ["moduloLavaplatos", "módulo para lavaplatos"],
-    ["moduloEstufaPuerta", "módulo de estufa con puerta"], ["moduloEstufaHorno", "módulo para estufa y horno"], ["moduloAlmacInf", "módulo de almacenamiento"],
+    ["moduloEstufaPuerta", "módulo para estufa (con doble puerta inferior)"], ["moduloEstufaHorno", "módulo para estufa y horno"], ["moduloAlmacInf", "módulo de almacenamiento"],
   ];
   const includesLine = (kind: "sup" | "inf"): string | null => {
     const list = (kind === "sup" ? DM_SUP : DM_INF)
@@ -127,6 +127,9 @@ export function buildKitchenQuoteDescription(rawConfig: any, manualDescription?:
         const ls = includesLine("sup"); if (ls) mueble.push(ls);
       }
     }
+    const APPL = ["moduloExtractor","moduloMicroondas","moduloExtractorMicroondas","moduloEstufaPuerta","moduloEstufaHorno","moduloLavaplatos"];
+    const hasApplModule = APPL.some((k) => DM[k] || Number(typeof kmQ[k] === "boolean" ? (kmQ[k] ? 1 : 0) : kmQ[k]) > 0) || !!(config.specialModules && config.specialModules.torreHornos);
+    if (mueble.length && hasApplModule) mueble.push("  - Los módulos para electrodomésticos son el espacio diseñado para ellos; Innovar no suministra electrodomésticos.");
     if (mueble.length) { section("MUEBLES:"); lines.push(...mueble); }
   }
 
@@ -145,8 +148,8 @@ export function buildKitchenQuoteDescription(rawConfig: any, manualDescription?:
       ["especiero", "Especiero"], ["botellero", "Botellero"], ["moduloRepisa", "Repisa"],
       ["esquinero1x1", "Esquinero inferior 1×1"], ["cajoneroTriple", "Cajonero triple"], ["cajoneroDoble", "Cajonero doble"],
       ["basurero", "Basurero integrado"], ["moduloEstufaHorno", "Módulo para estufa y horno"], ["moduloAlmacInf", "Módulo de almacenamiento inferior"],
-      ["moduloExtractorMicroondas", "Módulo extractor + microondas"], ["moduloPlatero", "Platero (2 puertas)"],
-      ["moduloLavaplatos", "Módulo para lavaplatos"], ["moduloEstufaPuerta", "Módulo de estufa con puerta"],
+      ["moduloExtractorMicroondas", "Módulo para extractor y microondas"], ["moduloPlatero", "Platero (2 puertas)"],
+      ["moduloLavaplatos", "Módulo para lavaplatos"], ["moduloEstufaPuerta", "Módulo para estufa (con doble puerta inferior)"],
     ];
     for (const [k, label] of KM) {
       const q = toQty(km[k]);

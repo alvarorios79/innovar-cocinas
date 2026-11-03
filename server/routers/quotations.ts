@@ -14,13 +14,16 @@ import { createRemindersForStatusChange } from "../reminders-service";
 import * as whatsappCloud from "../whatsapp-cloud";
 import { addBusinessDays, calculateEstimatedDeliveryDate } from "../business-days";
 import { sanitizeText, sanitizeHtml, sanitizeForEmail, sanitizePhone, sanitizeEmail } from "../sanitize";
-import { buildKitchenQuoteDescription } from "../kitchen-description";
+import { buildKitchenQuoteDescription, appendHouseStandards } from "../kitchen-description";
 
 
 // ─── buildPublicItemDesc ─────────────────────────────────────────────────────
 // Builds the full description for each quotation item for the public client link.
 // Replicates the PDF generator logic so clients see the same detail as the PDF.
 function buildPublicItemDesc(item: any): string {
+  return appendHouseStandards(item.itemType, buildPublicItemDescBase(item));
+}
+function buildPublicItemDescBase(item: any): string {
   const fmtCOP = (n: number) =>
     new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(n);
 
@@ -1418,6 +1421,7 @@ export const quotationsRouter = router({
             }
             
             // Usar descripción personalizada si existe
+            description = appendHouseStandards(item.itemType, description);
             const customDescriptions = quotation.customDescriptions as Record<number, string> | null;
             const itemIndex = item.itemNumber - 1; // itemNumber es 1-based
             if (customDescriptions && customDescriptions[itemIndex]) {
@@ -1775,6 +1779,7 @@ export const quotationsRouter = router({
           }
           
           // Usar descripción personalizada si existe
+          description = appendHouseStandards(item.itemType, description);
           const customDescriptions = quotation.customDescriptions as Record<number, string> | null;
           const itemIndex = item.itemNumber - 1;
           if (customDescriptions && customDescriptions[itemIndex]) {
@@ -2240,6 +2245,7 @@ export const quotationsRouter = router({
             }
 
 
+          description = appendHouseStandards(item.itemType, description);
           // Para puerta: mostrar cantidad real de puertas desde doorConfig
           let pdfQuantity3 = item.quantity;
           if (item.itemType === 'puerta' && doorConfig) {

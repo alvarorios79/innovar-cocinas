@@ -280,3 +280,34 @@ export function buildKitchenQuoteDescription(rawConfig: any, manualDescription?:
 
   return lines.join("\n");
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Estándares de la casa para productos que NO son cocina integral (closet,
+// puertas, centro de TV, baño, mueble de cocina). Solo AGREGA un bloque al final
+// de la descripción ya existente; no cambia precios ni lo que ya se describía.
+// ─────────────────────────────────────────────────────────────────────────────
+const STD_DESIGN = "• Diseño por definir: al aprobar la cotización se desarrolla el diseño con las medidas reales de su espacio y se presenta con render para su aprobación.";
+
+export function appendHouseStandards(itemType: string | undefined | null, description: string | undefined | null): string {
+  const base = String(description ?? "");
+  if (!itemType) return base;
+  if (/MATERIALES Y HERRAJES|Diseño por definir/i.test(base)) return base; // ya lo trae
+  const mat = "• Aglomerado de alta presión tipo RH de 15 mm (resistente a la humedad)";
+  const color = /color|acabado/i.test(base) ? null : "• Color: a elegir por el cliente"; // no contradecir un color ya descrito
+  const hinges = "• Bisagras de cierre lento";
+  const rails = "• Rieles telescópicos full extensión con cierre lento";
+  let lines: string[] | null = null;
+  switch (itemType) {
+    case "closet":
+    case "mueble_cocina":
+    case "centro_tv":
+    case "baño":
+      lines = [mat, color, hinges, rails].filter((x): x is string => !!x); break;
+    case "puerta":
+      lines = [mat, color].filter((x): x is string => !!x); break;
+    default:
+      return base;
+  }
+  const block = ["MATERIALES Y HERRAJES:", ...lines, "", "DISEÑO:", STD_DESIGN].join("\n");
+  return base.trim() ? `${base.replace(/\s+$/, "")}\n\n${block}` : block;
+}

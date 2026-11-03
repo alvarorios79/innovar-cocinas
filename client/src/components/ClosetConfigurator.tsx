@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { LayoutGrid, DoorOpen, Truck } from "lucide-react";
+import { usePricing } from "@/hooks/usePricing";
 
 export interface ClosetConfig {
   type: "estandar" | "premium" | "deluxe" | "especial";
@@ -24,6 +25,8 @@ export interface ClosetConfig {
   notes?: string;
   includeTransport?: boolean;
   transportCost?: number;
+  includeDismantle?: boolean;
+  dismantlePrice?: number;
   accessories?: {
     maletero?: boolean;
     divisor?: boolean;
@@ -75,6 +78,9 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
   const [notes, setNotes] = useState<string>(config?.notes || "");
   const [includeTransport, setIncludeTransport] = useState<boolean>(config?.includeTransport ?? false);
   const [transportCost, setTransportCost] = useState<number>(config?.transportCost ?? 150000);
+  const { getPrice } = usePricing();
+  const dismantlePriceNow = getPrice("DESMONTE_CLOSET");
+  const [includeDismantle, setIncludeDismantle] = useState<boolean>(config?.includeDismantle ?? false);
 
   // Accesorios del closet
   const [accMaletero, setAccMaletero] = useState<boolean>(config?.accessories?.maletero ?? false);
@@ -95,6 +101,9 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
     if (includeTransport) {
       subtotal += transportCost;
     }
+    if (includeDismantle) {
+      subtotal += dismantlePriceNow;
+    }
 
     const newConfig: ClosetConfig = {
       type,
@@ -107,6 +116,8 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
       notes,
       includeTransport,
       transportCost,
+      includeDismantle,
+      dismantlePrice: includeDismantle ? dismantlePriceNow : 0,
       accessories: {
         maletero: accMaletero,
         divisor: accDivisor,
@@ -119,14 +130,15 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
     };
 
     onChange(newConfig);
-  }, [type, width, height, doorType, notes, includeTransport, transportCost,
+  }, [type, width, height, doorType, notes, includeTransport, transportCost, includeDismantle, dismantlePriceNow,
       accMaletero, accDivisor, accEntrepanos, accDoubleCajonero, accZapatero, accDobleColgadero, accEspejo]);
 
   const squareMeters = (parseFloat(width) || 0) * (parseFloat(height) || 0);
   const closetType = CLOSET_TYPES[type] || CLOSET_TYPES.estandar;
   const baseSubtotal = squareMeters * closetType.price;
   const transport = includeTransport ? transportCost : 0;
-  const subtotal = baseSubtotal + transport;
+  const dismantle = includeDismantle ? dismantlePriceNow : 0;
+  const subtotal = baseSubtotal + transport + dismantle;
 
   return (
     <Card className="mt-4 border-blue-300">
@@ -243,6 +255,21 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
             </div>
           </div>
 
+          {/* Desmonte de closet existente */}
+          <div className="bg-white/[0.03] p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
+            <div className="flex items-center gap-3">
+              <Checkbox
+                id="closet-dismantle"
+                className="size-6 border-2"
+                checked={includeDismantle}
+                onCheckedChange={(v) => setIncludeDismantle(v === true)}
+              />
+              <Label htmlFor="closet-dismantle" className="cursor-pointer font-medium">
+                Desmonte de closet existente (${dismantlePriceNow.toLocaleString()})
+              </Label>
+            </div>
+          </div>
+
           {/* Transporte e Imprevistos */}
           <div className="bg-white/[0.03] p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
             <div className="flex items-center justify-between">
@@ -294,6 +321,12 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
                   <span>{closetType.label} ({squareMeters.toFixed(2)} M² × ${closetType.price.toLocaleString()}/M²):</span>
                   <span className="font-medium">${baseSubtotal.toLocaleString()}</span>
                 </div>
+                {includeDismantle && (
+                  <div className="flex justify-between text-blue-300">
+                    <span>+ Desmonte de closet existente:</span>
+                    <span className="font-medium">${dismantle.toLocaleString()}</span>
+                  </div>
+                )}
                 {includeTransport && (
                   <div className="flex justify-between text-blue-300">
                     <span>+ Transporte e imprevistos:</span>

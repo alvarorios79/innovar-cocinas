@@ -20,6 +20,7 @@ export interface TVCenterConfig {
   highGlossPrice: number;
   hasLedLights: boolean; // Luces LED
   ledLightsPrice: number;
+  ledMeters?: number; // Metros lineales de LED (abierto: pantalla, mueble flotante, repisas...)
   floatingShelves: number; // Cantidad de repisas flotantes (base 2)
   extraShelvesPrice: number;
   equipmentSpaces: number; // Espacios especiales para equipos
@@ -40,7 +41,7 @@ const BASE_WIDTH = 1.60; // metros
 const BASE_PRICE = 2800000;
 const PRICE_PER_20CM = 500000; // +$500,000 por cada 20cm extra
 const HIGH_GLOSS_PRICE = 350000;
-const LED_LIGHTS_PRICE = 180000;
+const LED_LIGHTS_PRICE = 180000; // por metro lineal (precio único del LED)
 const EXTRA_SHELF_PRICE = 100000; // Por cada repisa adicional (base son 2)
 const EQUIPMENT_SPACE_PRICE = 150000; // Por cada espacio especial
 
@@ -58,6 +59,10 @@ export function TVCenterConfigurator({ config, onChange }: TVCenterConfiguratorP
   const [width, setWidth] = useState<number>(config?.width ?? BASE_WIDTH);
   const [hasHighGloss, setHasHighGloss] = useState<boolean>(config?.hasHighGloss ?? false);
   const [hasLedLights, setHasLedLights] = useState<boolean>(config?.hasLedLights ?? false);
+  // Cotizaciones antiguas: LED como cargo fijo (sin metros). Se mantiene su precio hasta que se ingresen metros.
+  const [legacyLed, setLegacyLed] = useState<boolean>(!!config?.hasLedLights && config?.ledMeters === undefined);
+  const [ledMeters, setLedMeters] = useState<number>(config?.ledMeters ?? 0);
+  const [ledMetersText, setLedMetersText] = useState<string>(config?.ledMeters ? String(config.ledMeters) : "");
   const [floatingShelves, setFloatingShelves] = useState<number>(config?.floatingShelves ?? 2);
   const [equipmentSpaces, setEquipmentSpaces] = useState<number>(config?.equipmentSpaces ?? 0);
   const [includeTransport, setIncludeTransport] = useState<boolean>(config?.includeTransport ?? false);
@@ -80,7 +85,7 @@ export function TVCenterConfigurator({ config, onChange }: TVCenterConfiguratorP
   useEffect(() => {
     const basePrice = calculateBasePrice(width);
     const highGlossPrice = hasHighGloss ? HIGH_GLOSS_PRICE : 0;
-    const ledLightsPrice = hasLedLights ? LED_LIGHTS_PRICE : 0;
+    const ledLightsPrice = !hasLedLights ? 0 : (legacyLed ? (config?.ledLightsPrice || LED_LIGHTS_PRICE) : ledMeters * LED_LIGHTS_PRICE);
     const extraShelvesPrice = calculateExtraShelvesPrice(floatingShelves);
     const equipmentSpacesPrice = equipmentSpaces * EQUIPMENT_SPACE_PRICE;
     const transport = includeTransport ? transportCost : 0;
@@ -94,6 +99,7 @@ export function TVCenterConfigurator({ config, onChange }: TVCenterConfiguratorP
       highGlossPrice,
       hasLedLights,
       ledLightsPrice,
+      ledMeters: legacyLed ? undefined : ledMeters,
       floatingShelves,
       extraShelvesPrice,
       equipmentSpaces,
@@ -103,11 +109,11 @@ export function TVCenterConfigurator({ config, onChange }: TVCenterConfiguratorP
       notes,
       subtotal,
     });
-  }, [width, hasHighGloss, hasLedLights, floatingShelves, equipmentSpaces, includeTransport, transportCost, notes]);
+  }, [width, hasHighGloss, hasLedLights, ledMeters, legacyLed, floatingShelves, equipmentSpaces, includeTransport, transportCost, notes]);
 
   const basePrice = calculateBasePrice(width);
   const highGlossPrice = hasHighGloss ? HIGH_GLOSS_PRICE : 0;
-  const ledLightsPrice = hasLedLights ? LED_LIGHTS_PRICE : 0;
+  const ledLightsPrice = !hasLedLights ? 0 : (legacyLed ? (config?.ledLightsPrice || LED_LIGHTS_PRICE) : ledMeters * LED_LIGHTS_PRICE);
   const extraShelvesPrice = calculateExtraShelvesPrice(floatingShelves);
   const equipmentSpacesPrice = equipmentSpaces * EQUIPMENT_SPACE_PRICE;
   const transport = includeTransport ? transportCost : 0;
@@ -210,9 +216,28 @@ export function TVCenterConfigurator({ config, onChange }: TVCenterConfiguratorP
                   </div>
                 </div>
                 <span className={`font-semibold ${hasLedLights ? 'text-purple-400' : 'text-muted-foreground'}`}>
-                  +${LED_LIGHTS_PRICE.toLocaleString()}
+                  {hasLedLights ? `+$${ledLightsPrice.toLocaleString()}` : `$${LED_LIGHTS_PRICE.toLocaleString()}/ml`}
                 </span>
               </div>
+              {hasLedLights && (
+                <div className="flex items-center gap-3 pl-10 -mt-2">
+                  <Label className="text-sm text-white/60">Metros lineales de LED (pantalla, mueble flotante, repisas):</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={ledMetersText}
+                    onChange={(e) => {
+                      setLedMetersText(e.target.value);
+                      setLedMeters(parseFloat(e.target.value) || 0);
+                      setLegacyLed(false);
+                    }}
+                    className="h-8 w-24 text-center"
+                    placeholder="0.00"
+                  />
+                  <span className="text-sm">ml × ${LED_LIGHTS_PRICE.toLocaleString()}</span>
+                </div>
+              )}
 
               {/* Espacios para equipos */}
               <div className="flex items-center justify-between p-3 bg-[#162828] rounded border">
@@ -299,7 +324,7 @@ export function TVCenterConfigurator({ config, onChange }: TVCenterConfiguratorP
               )}
               {hasLedLights && (
                 <div className="flex justify-between text-purple-400">
-                  <span>+ Iluminación LED:</span>
+                  <span>+ Iluminación LED{!legacyLed && ledMeters > 0 ? ` (${ledMeters} ml)` : ""}:</span>
                   <span className="font-medium">${ledLightsPrice.toLocaleString()}</span>
                 </div>
               )}

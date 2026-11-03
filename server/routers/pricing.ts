@@ -121,6 +121,58 @@ export const pricingRouter = router({
         return { success: true };
       }),
 
+    // Cargar (solo agregar, nunca sobrescribir) los precios de "Piezas de cocina" (PIEZA_*) con los valores actuales
+    seedPiezaPrices: protectedProcedure
+      .mutation(async ({ ctx }) => {
+        if (!["super_admin", "admin"].includes(ctx.user.role)) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Solo admin o super_admin puede cargar precios" });
+        }
+        const P: Array<[string, string, number, string]> = [
+          ["ISLA_MADERA_ML", "Isla - madera por ml", 1200000, "ml"],
+          ["MUEBLE_ALTO_ML", "Mueble alto por ml", 1000000, "ml"],
+          ["MUEBLE_ALTO_LED_ML", "Mueble alto con LED por ml", 1000000, "ml"],
+          ["MUEBLE_BAJO_ML", "Mueble bajo por ml", 1100000, "ml"],
+          ["LED_ML", "LED por ml", 220000, "ml"],
+          ["BARRA_PEDESTAL", "Barra - pedestal", 250000, "unidad"],
+          ["BARRA_HERRAJE", "Barra - herraje", 380000, "unidad"],
+          ["MESON_GRANITO", "Mesón granito por ml", 750000, "ml"],
+          ["MESON_CUARZO", "Mesón cuarzo por ml", 850000, "ml"],
+          ["MESON_SINTERIZADO", "Mesón sinterizado por ml", 1200000, "ml"],
+          ["PEGADO_LAVAPLATOS", "Pegado de lavaplatos", 50000, "unidad"],
+          ["NICHO_NEVECON", "Nicho nevecón", 1200000, "unidad"],
+          ["NICHO_NEVERA", "Nicho nevera", 1200000, "unidad"],
+          ["ALACENA_ENTREPANOS", "Alacena entrepaños", 1250000, "unidad"],
+          ["ALACENA_HERRAJE", "Alacena herraje", 900000, "unidad"],
+          ["TORRE_HORNOS", "Torre de hornos", 1350000, "unidad"],
+          ["PUERTA_SUP_70", "Puerta superior hasta 70cm", 120000, "unidad"],
+          ["PUERTA_SUP_90", "Puerta superior hasta 90cm", 150000, "unidad"],
+          ["PUERTA_SUP_100", "Puerta superior +100cm", 180000, "unidad"],
+          ["PUERTA_INF", "Puerta inferior", 150000, "unidad"],
+          ["PUERTA_ALACENA", "Puerta de alacena", 180000, "unidad"],
+          ["TAPA_CAJON_FC", "Tapa de cajón", 90000, "unidad"],
+          ["TAPA_PEQUENA_FC", "Tapa pequeña", 45000, "unidad"],
+          ["FRENTE_POLLO_ML", "Frente pollo por ml", 750000, "ml"],
+          ["PINTADO_SUPERIOR", "Pintado puerta superior", 120000, "unidad"],
+          ["PINTADO_INFERIOR", "Pintado puerta inferior", 150000, "unidad"],
+          ["PINTADO_ALACENA", "Pintado puerta alacena", 250000, "unidad"],
+          ["PINTADO_CAJON", "Pintado tapa cajón", 80000, "unidad"],
+          ["PINTADO_ESPECIERO", "Pintado tapa especiero", 100000, "unidad"],
+          ["PINTADO_GOLA", "Pintado tapa gola/pequeña", 45000, "unidad"],
+        ];
+        const existing = await db.getAllPricingConfig();
+        const existingCodes = new Set((existing as any[]).map((e: any) => e.code));
+        let created = 0;
+        let skipped = 0;
+        for (let i = 0; i < P.length; i++) {
+          const [k, name, value, unit] = P[i];
+          const code = `PIEZA_${k}`;
+          if (existingCodes.has(code)) { skipped++; continue; }
+          await db.createPricingConfig({ category: "piezas_cocina", code, name, value, unit, sortOrder: i });
+          created++;
+        }
+        return { created, skipped };
+      }),
+
     // Inicializar / re-sembrar la biblioteca de precios desde el catálogo base
     seedDefaults: protectedProcedure
       .mutation(async ({ ctx }) => {

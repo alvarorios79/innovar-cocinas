@@ -1301,6 +1301,9 @@ export default function Quotations() {
     updateItem(index, "totalPrice", total);
   };
 
+  // Desglose del último cálculo de cada cocina (solo para mostrar en pantalla, no se guarda)
+  const [kitchenBreakdown, setKitchenBreakdown] = useState<Record<number, Array<{ label: string; amount: number }>>>({});
+
   // Función para calcular el total de acabados especiales
   const calculateAcabadosTotal = (item: QuotationItem): number => {
     let total = 0;
@@ -1337,6 +1340,9 @@ export default function Quotations() {
     const item = itemsArray[index];
     const config = item.kitchenConfig!;
     let total = 0;
+    let _last = 0;
+    const bd: Array<{ label: string; amount: number }> = [];
+    const mark = (label: string) => { const a = total - _last; if (a !== 0) bd.push({ label, amount: a }); _last = total; };
 
     // 1. Calcular metraje resultante después de descontar muebles especiales
     // Solo aplica para cocinas completas (no para frente_pll, solo_superiores, solo_inferiores)
@@ -1400,6 +1406,7 @@ export default function Quotations() {
       }
     }
 
+    mark("Muebles inferiores y superiores");
     // 3. Muebles especiales (para cocinas completas y puertas_tapas) - precios dinámicos
     if (!isSpecialShape || config.shape === 'puertas_tapas') {
       if (config.specialModules?.nichoNevecon) total += getPrice('NICHO_NEVECON');
@@ -1409,6 +1416,7 @@ export default function Quotations() {
       if (config.specialModules?.torreHornos) total += getPrice('TORRE_HORNOS');
     }
 
+    mark("Módulos especiales");
     // 4. Mesón principal (usa metraje resultante automáticamente) - precios dinámicos
     // No aplica para solo_superiores ni puertas_tapas
     if (config.shape !== 'solo_superiores' && config.shape !== 'puertas_tapas' && config.countertop.type) {
@@ -1452,6 +1460,7 @@ export default function Quotations() {
       }
     }
 
+    mark("Mesón principal (incluye salpicadero alto y laterales)");
     // 5. Isla (para cocinas completas y puertas_tapas) - precios dinámicos
     if ((!isSpecialShape || config.shape === 'puertas_tapas') && config.island.enabled && config.island.meters > 0) {
       // Muebles de isla — usa el mismo precio/ml que la cocina principal
@@ -1504,6 +1513,7 @@ export default function Quotations() {
       }
     }
 
+    mark("Isla");
     // 6. Barra (para cocinas completas y puertas_tapas) - precios dinámicos
     if ((!isSpecialShape || config.shape === 'puertas_tapas') && config.bar.enabled && config.bar.meters > 0) {
       // Muebles de barra
@@ -1535,11 +1545,13 @@ export default function Quotations() {
       
     }
 
+    mark("Barra");
     // 7. Luz LED (no aplica para solo_inferiores ni puertas_tapas) - precio dinámico
     if (config.shape !== 'solo_inferiores' && config.shape !== 'puertas_tapas' && config.ledLighting > 0) {
       total += config.ledLighting * getPrice('LED_ML');
     }
 
+    mark("Luz LED");
     // 8. Pintado Puertas Alto Brillo - precios dinámicos
     if (config.paintedDoors?.enabled) {
       total += (config.paintedDoors.upperQty || 0) * getPrice('PINTADO_SUP');
@@ -1550,6 +1562,7 @@ export default function Quotations() {
       total += (config.paintedDoors.golaQty || 0) * getPrice('PINTADO_GOLA');
     }
 
+    mark("Pintado alto brillo");
     // 9. Acabados Especiales - Puertas Aluminio + Vidrio y LED Alacenas
     if (config.specialFinishes?.enabled) {
       // Puertas de aluminio + vidrio ahumado (precio desde configuración)
@@ -1568,12 +1581,15 @@ export default function Quotations() {
       }
     }
 
+    mark("Acabados especiales");
     // 10. Transporte e imprevistos - OPCIONAL (se maneja con checkbox)
     // Solo incluir si el checkbox está marcado
     if (item.includesFixedCosts) {
       total += (item.fixedCostsAmount ?? 600000);
     }
 
+    mark("Transporte e imprevistos");
+    setKitchenBreakdown(prev => ({ ...prev, [index]: bd }));
     // Actualizar total e descripción del item
     const finalItems = [...itemsArray];
     finalItems[index].totalPrice = total;
@@ -4149,6 +4165,21 @@ export default function Quotations() {
                               <p className="text-sm sm:text-lg font-bold text-green-300">
                                 Total Cocina: {formatPrice(item.totalPrice)}
                               </p>
+                              {(() => {
+                                const bd = kitchenBreakdown[index];
+                                if (!bd || bd.length === 0) return null;
+                                const sum = bd.reduce((a, b) => a + b.amount, 0);
+                                if (Math.abs(sum - item.totalPrice) > 1) {
+                                  return <p className="text-xs text-amber-300 mt-1">Desglose desactualizado: cambia cualquier campo para recalcular.</p>;
+                                }
+                                return (
+                                  <div className="mt-2 space-y-0.5 text-xs text-white/70">
+                                    {bd.map((b, i) => (
+                                      <div key={i} className="flex justify-between gap-4"><span>{b.label}</span><span>{formatPrice(b.amount)}</span></div>
+                                    ))}
+                                  </div>
+                                );
+                              })()}
                             </div>
 
                             {/* Notas adicionales — aparecen en la descripción del PDF */}

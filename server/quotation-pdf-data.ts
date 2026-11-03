@@ -483,7 +483,7 @@ export async function buildQuotationPdfData(quotation: any, client: any, items: 
       }
       
       // Usar descripción personalizada si existe
-      description = appendHouseStandards(item.itemType, description);
+      description = appendHouseStandards(item.itemType, description, item);
       const customDescriptions = quotation.customDescriptions as Record<number, string> | null;
       const itemIndex = item.itemNumber - 1; // itemNumber es 1-based
       if (customDescriptions && customDescriptions[itemIndex]) {

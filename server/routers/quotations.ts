@@ -23,7 +23,7 @@ import { buildTVQuoteDescription } from "../tv-description";
 // Builds the full description for each quotation item for the public client link.
 // Replicates the PDF generator logic so clients see the same detail as the PDF.
 function buildPublicItemDesc(item: any): string {
-  return appendHouseStandards(item.itemType, buildPublicItemDescBase(item));
+  return appendHouseStandards(item.itemType, buildPublicItemDescBase(item), item);
 }
 function buildPublicItemDescBase(item: any): string {
   const fmtCOP = (n: number) =>

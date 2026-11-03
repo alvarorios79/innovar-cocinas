@@ -261,13 +261,16 @@ export function buildKitchenQuoteDescription(rawConfig: any, manualDescription?:
     push("• Aglomerado de alta presión tipo RH de 15 mm (resistente a la humedad)");
     push(`• Color exterior: ${config.boardFinish || "a elegir por el cliente"}`);
     push(`• Color interior: ${config.interiorFinish || "a elegir por el cliente"}`);
-    push(`• Bisagras ${config.hardware?.bisagras === "inox" ? "en acero inoxidable " : ""}de cierre lento`);
+    // Herrajes incluidos según el tipo de cocina: Estándar = bisagras normales con cierre lento y rieles full extensión normales;
+    // Premium = rieles con cierre lento; Deluxe = bisagras en acero inoxidable con cierre lento y rieles con cierre lento.
+    const isDeluxeClass = shape === "deluxe" || shape === "lineal";
+    push(`• Bisagras ${(config.hardware?.bisagras === "inox" || isDeluxeClass) ? "en acero inoxidable " : ""}de cierre lento`);
     if (shape !== "solo_superiores" && !isDoorsOnly) {
       const explicit = config.hardware?.rieles;
       const premium = PREMIUM_CLASS.has(shape);
       if (explicit === "peso_alto") push("• Rieles telescópicos full extensión de peso alto");
       else if (explicit === "cierre_lento") push("• Rieles telescópicos full extensión con cierre lento");
-      else push(premium ? "• Rieles telescópicos full extensión con cierre lento" : "• Rieles telescópicos full extensión de peso alto");
+      else push(premium ? "• Rieles telescópicos full extensión con cierre lento" : "• Rieles telescópicos full extensión");
     }
     if (isFull || config.incluyePlatero) {
       push(`• Platero en acero inoxidable incluido${config.plateroDesc ? ` — ${config.plateroDesc}` : ""}`);
@@ -314,7 +317,7 @@ export function buildKitchenQuoteDescription(rawConfig: any, manualDescription?:
 // ─────────────────────────────────────────────────────────────────────────────
 const STD_DESIGN = "• Diseño por definir: al aprobar la cotización se desarrolla el diseño con las medidas reales de su espacio y se presenta con render para su aprobación.";
 
-export function appendHouseStandards(itemType: string | undefined | null, description: string | undefined | null): string {
+export function appendHouseStandards(itemType: string | undefined | null, description: string | undefined | null, item?: any): string {
   const base = String(description ?? "");
   if (!itemType) return base;
   if (/MATERIALES Y HERRAJES|Diseño por definir/i.test(base)) return base; // ya lo trae
@@ -324,13 +327,22 @@ export function appendHouseStandards(itemType: string | undefined | null, descri
   const rails = "• Rieles telescópicos full extensión con cierre lento";
   let lines: string[] | null = null;
   switch (itemType) {
-    case "closet":
+    case "closet": {
+      // Herrajes incluidos según el tipo de closet: Estándar = rieles full extensión normales; Premium en adelante = rieles con cierre lento.
+      let cc: any = item?.closetConfig;
+      if (typeof cc === "string") { try { cc = JSON.parse(cc); } catch { cc = null; } }
+      const t = cc?.type;
+      const closetRails = t === "estandar" ? "• Rieles telescópicos full extensión" : rails;
+      lines = [mat, color, hinges, closetRails].filter((x): x is string => !!x);
+      if (cc?.doorType === "corredizas") lines.push("• Herraje y sistema de puertas corredizas incluido");
+      break;
+    }
     case "mueble_cocina":
     case "centro_tv":
     case "baño":
       lines = [mat, color, hinges, rails].filter((x): x is string => !!x); break;
     case "puerta":
-      lines = [mat, color].filter((x): x is string => !!x); break;
+      lines = [mat, color, ...(/omega/i.test(base) ? [] : ["• Bisagras omega", "• Tope de puerta", "• Chapa gama alta"])].filter((x): x is string => !!x); break;
     default:
       return base;
   }

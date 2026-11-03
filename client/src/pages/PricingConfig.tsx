@@ -165,6 +165,16 @@ export default function PricingConfig() {
     },
   });
 
+  const seedPiezas = trpc.pricing.seedPiezaPrices.useMutation({
+    onSuccess: (result) => {
+      toast.success(`✅ Piezas de cocina — ${result.created} precios creados, ${result.skipped} ya existían`);
+      refetch();
+    },
+    onError: (error) => {
+      toast.error("Error al cargar precios de piezas: " + error.message);
+    },
+  });
+
   const seedDefaults = trpc.pricing.seedDefaults.useMutation({
     onSuccess: (result) => {
       toast.success(`✅ Biblioteca inicializada — ${result.created} precios creados, ${result.skipped} ya existían`);
@@ -331,6 +341,16 @@ export default function PricingConfig() {
                   <DatabaseZap className="h-4 w-4" />
                 )}
                 {allPricing?.length === 0 ? "Inicializar Biblioteca" : "Restaurar Precios Base"}
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => seedPiezas.mutate()}
+                disabled={seedPiezas.isPending}
+                className="flex items-center gap-2 bg-white/[0.06] hover:bg-white/[0.10] text-white/80 border border-white/[0.08]"
+                title="Agrega los precios de Piezas de cocina (suelta) si faltan. No sobrescribe nada."
+              >
+                {seedPiezas.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <DatabaseZap className="h-4 w-4" />}
+                Cargar precios de piezas
               </Button>
               <Button
                 variant="secondary"

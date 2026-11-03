@@ -20,6 +20,18 @@ export default function Herrajes() {
     },
   });
 
+  const importMutation = trpc.hardwareCatalog.importToMotor.useMutation({
+    onSuccess: (data) => {
+      toast.success(data.message);
+      utils.hardwareCatalog.list.invalidate();
+      utils.pricing.getAll.invalidate();
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Error al importar herrajes");
+    },
+  });
+  const canImport = user?.role === "super_admin" || user?.role === "admin";
+
   return (
     <div className="p-4 md:p-6 space-y-6">
       {/* Header */}
@@ -39,6 +51,26 @@ export default function Herrajes() {
           </div>
         </div>
 
+        {canImport && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => importMutation.mutate()}
+            disabled={importMutation.isPending}
+            style={{
+              borderColor: "rgba(106,207,199,0.3)",
+              color: "#6ACFC7",
+              background: "rgba(106,207,199,0.07)",
+            }}
+          >
+            {importMutation.isPending ? (
+              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Package className="h-4 w-4 mr-2" />
+            )}
+            Importar al Motor de Cotización
+          </Button>
+        )}
         {isSuperAdmin && (
           <Button
             variant="outline"

@@ -188,6 +188,11 @@ export const pricingRouter = router({
           ["TV2_SOPORTE_INSTALACION", "Centro TV v2 - soporte e instalación del TV", 160000, "unidad"],
           ["TV2_PINTADO_REPISA", "Centro TV v2 - pintura por repisa", 80000, "unidad"],
         ];
+        // Servicios de desmonte (categoría Herrajes). El montaje va incluido en el trabajo; solo el desmonte se cobra aparte.
+        const DESMONTE: Array<[string, string, number, string]> = [
+          ["HERRAJE_DESMONTE_COCINA", "Desmonte de cocina", 300000, "servicio"],
+          ["HERRAJE_DESMONTE_CLOSET", "Desmonte de closets", 250000, "servicio"],
+        ];
         const existing = await db.getAllPricingConfig();
         const existingCodes = new Set((existing as any[]).map((e: any) => e.code));
         let created = 0;
@@ -228,6 +233,16 @@ export const pricingRouter = router({
           if (existingCodes.has(code)) { skipped++; continue; }
           try {
             await db.createPricingConfig({ category: "centros_tv", code, name, value, unit, sortOrder: 20 + j });
+            created++;
+          } catch (e: any) {
+            console.error(`[seedPiezaPrices] ${code} falló:`, String(e?.cause?.message || e?.message || e));
+          }
+        }
+        for (let k = 0; k < DESMONTE.length; k++) {
+          const [code, name, value, unit] = DESMONTE[k];
+          if (existingCodes.has(code)) { skipped++; continue; }
+          try {
+            await db.createPricingConfig({ category: "herrajes", code, name, value, unit, sortOrder: 900 + k });
             created++;
           } catch (e: any) {
             console.error(`[seedPiezaPrices] ${code} falló:`, String(e?.cause?.message || e?.message || e));

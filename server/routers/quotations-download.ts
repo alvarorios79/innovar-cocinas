@@ -2,6 +2,7 @@ import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { z } from "zod";
 import * as db from "../db";
 import { TRPCError } from "@trpc/server";
+import { buildQuotationPdfData } from "../quotation-pdf-data";
 
 export const quotationsDownloadRouter = router({
   // Descargar PDF de cotización
@@ -34,29 +35,7 @@ export const quotationsDownloadRouter = router({
         // Preparar datos para el PDF
         const formatCurrency = (value: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value);
         
-        const pdfData = {
-          quotationNumber: quotation.quotationNumber,
-          date: new Date().toLocaleDateString('es-CO', { timeZone: 'America/Bogota' }),
-          clientName: clientData?.name || 'Cliente',
-          clientPhone: clientData?.whatsappPhone || undefined,
-          clientAddress: clientData?.address || undefined,
-          clientEmail: clientData?.email || undefined,
-          vendorName: quotation.vendorName,
-          productType: quotation.productType,
-          validUntil: quotation.validUntil ? new Date(quotation.validUntil).toLocaleDateString('es-CO', { timeZone: 'America/Bogota' }) : '',
-          items: items.map(item => ({
-            itemNumber: item.itemNumber,
-            description: item.description,
-            quantity: item.quantity.toString(),
-            totalPrice: formatCurrency(Number(item.totalPrice)),
-          })),
-          subtotal: formatCurrency(Number(quotation.subtotal)),
-          discountAmount: formatCurrency(Number(quotation.discountAmount || 0)),
-          discountPercent: quotation.discountPercent ? `${quotation.discountPercent}%` : '0%',
-          transportCost: formatCurrency(Number(quotation.transportCost || 0)),
-          total: formatCurrency(Number(quotation.total)),
-          generalNotes: (quotation as any).generalNotes || "",
-        };
+        const pdfData = await buildQuotationPdfData(quotation, clientData, items);
 
         // Generar PDF
         const { generateQuotationPDF } = await import('../quotation-pdf-generator');
@@ -118,30 +97,7 @@ export const quotationsDownloadRouter = router({
         const formatCurrency = (value: number) =>
           new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value);
 
-        const pdfData = {
-          quotationNumber: quotation.quotationNumber,
-          date: new Date().toLocaleDateString('es-CO', { timeZone: 'America/Bogota' }),
-          clientName: clientData?.name || 'Cliente',
-          clientPhone: clientData?.whatsappPhone || undefined,
-          clientAddress: clientData?.address || undefined,
-          vendorName: quotation.vendorName,
-          productType: quotation.productType,
-          validUntil: quotation.validUntil
-            ? new Date(quotation.validUntil).toLocaleDateString('es-CO', { timeZone: 'America/Bogota' })
-            : '',
-          items: items.map((item: any) => ({
-            itemNumber: item.itemNumber,
-            description: item.description,
-            quantity: item.quantity.toString(),
-            totalPrice: formatCurrency(Number(item.totalPrice)),
-          })),
-          subtotal: formatCurrency(Number(quotation.subtotal)),
-          discountAmount: formatCurrency(Number(quotation.discountAmount || 0)),
-          discountPercent: quotation.discountPercent ? `${quotation.discountPercent}%` : '0%',
-          transportCost: formatCurrency(Number(quotation.transportCost || 0)),
-          total: formatCurrency(Number(quotation.total)),
-          generalNotes: (quotation as any).generalNotes || "",
-        };
+        const pdfData = await buildQuotationPdfData(quotation, clientData, items);
 
         const { generateQuotationPDF } = await import('../quotation-pdf-generator');
         // @ts-ignore

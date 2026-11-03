@@ -46,6 +46,7 @@ export const quotationsVersioningRouter = router({
             
             const { getClientById, getQuotationItems } = await import("../db");
             const { generateQuotationPDF } = await import("../quotation-pdf-generator");
+            const { buildQuotationPdfData } = await import("../quotation-pdf-data");
             const { storagePut } = await import("../storage");
             const { readFileSync } = await import("fs");
             
@@ -53,28 +54,7 @@ export const quotationsVersioningRouter = router({
             const quotationItems = await getQuotationItems(newQuotationId);
             
             if (client && quotationItems) {
-              const pdfData = {
-                quotationNumber: newQuotation.quotationNumber,
-                date: newQuotation.createdAt ? new Date(newQuotation.createdAt).toLocaleDateString("es-CO") : new Date().toLocaleDateString("es-CO"),
-                clientName: client.name,
-                clientPhone: client.whatsappPhone || "",
-                clientAddress: client.address || "",
-                vendorName: newQuotation.vendorName || "",
-                productType: newQuotation.productType || "",
-                validUntil: newQuotation.validUntil ? new Date(newQuotation.validUntil).toLocaleDateString("es-CO") : new Date().toLocaleDateString("es-CO"),
-                items: quotationItems.map((item: any) => ({
-                  itemNumber: item.itemNumber || 0,
-                  description: item.description || "Item",
-                  quantity: String(item.quantity || "1"),
-                  unitPrice: item.unitPrice ? String(item.unitPrice) : undefined,
-                  totalPrice: String(item.totalPrice || "0"),
-                })),
-                subtotal: String(newQuotation.subtotal || "0"),
-                transportCost: String(newQuotation.transportCost || "0"),
-                discountPercent: newQuotation.discountPercent ? String(newQuotation.discountPercent) : undefined,
-                discountAmount: newQuotation.discountAmount ? String(newQuotation.discountAmount) : undefined,
-                total: String(newQuotation.total || "0"),
-              };
+              const pdfData = await buildQuotationPdfData(newQuotation, client, quotationItems);
               
               const versionNumber = newQuotation.versionNumber || 1;
               const { pdfPath } = await generateQuotationPDF(pdfData, newQuotationId, versionNumber);

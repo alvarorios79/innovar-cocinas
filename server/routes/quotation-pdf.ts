@@ -3,6 +3,7 @@ import * as db from "../db";
 import { storagePut, getPresignedS3Url, checkFileExistsInS3 } from "../storage";
 import { generateQuotationPDF } from "../quotation-pdf-generator";
 import { readFileSync, unlinkSync, existsSync, statSync } from "fs";
+import { buildQuotationPdfData } from "../quotation-pdf-data";
 
 const router = Router();
 
@@ -16,32 +17,7 @@ async function buildPDFBuffer(quotation: any, client: any, quotationId: number):
   const formatCurrency = (value: number | string) =>
     new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", minimumFractionDigits: 0 }).format(Number(value));
 
-  const pdfData = {
-    quotationNumber: quotation.quotationNumber,
-    date: quotation.createdAt
-      ? new Date(quotation.createdAt).toLocaleDateString("es-CO")
-      : new Date().toLocaleDateString("es-CO"),
-    clientName: client.name,
-    clientPhone: client.whatsappPhone || "",
-    clientAddress: client.address || "",
-    vendorName: quotation.vendorName || "",
-    productType: quotation.productType || "",
-    validUntil: quotation.validUntil
-      ? new Date(quotation.validUntil).toLocaleDateString("es-CO")
-      : new Date().toLocaleDateString("es-CO"),
-    items: quotationItems.map((item: any) => ({
-      itemNumber: item.itemNumber || 0,
-      description: item.description || "Item",
-      quantity: String(item.quantity || "1"),
-      unitPrice: item.unitPrice ? String(item.unitPrice) : undefined,
-      totalPrice: String(item.totalPrice || "0"),
-    })),
-    subtotal: String(quotation.subtotal || "0"),
-    transportCost: String(quotation.transportCost || "0"),
-    discountPercent: quotation.discountPercent ? String(quotation.discountPercent) : undefined,
-    discountAmount: quotation.discountAmount ? String(quotation.discountAmount) : undefined,
-    total: String(quotation.total || "0"),
-  };
+  const pdfData = await buildQuotationPdfData(quotation, client, quotationItems);
 
   const versionNumber = quotation.versionNumber || 1;
   const { pdfPath } = await generateQuotationPDF(pdfData, quotationId, versionNumber);
@@ -107,19 +83,8 @@ router.get("/quotations/pdf/:id", async (req: Request, res: Response) => {
     }
 
     // ── MODO VISUALIZACIÓN (intenta S3, fallback a stream) ──────────────────
-    // Si ya hay URL en S3, redirigir
-    if (quotation.pdfUrl) {
-      try {
-        const fileExists = await checkFileExistsInS3(quotation.pdfUrl);
-        if (fileExists) {
-          const presignedUrl = await getPresignedS3Url(quotation.pdfUrl, 3600);
-          console.log(`[PDF] Redirigiendo a S3 para cotización ${quotationId}`);
-          return res.redirect(presignedUrl);
-        }
-      } catch (s3Err: any) {
-        console.warn(`[PDF] Error accediendo S3, generando directo: ${s3Err?.message}`);
-      }
-    }
+    // Siempre se genera el PDF fresco (mismo generador que el CRM): así todos ven el mismo PDF.
+    // Ya no se entrega el PDF viejo guardado en S3.
 
     // Fallback: generar y enviar inline
     console.log(`[PDF] Generando PDF inline para cotización ${quotationId}`);

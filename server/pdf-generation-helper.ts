@@ -7,6 +7,7 @@ import { readFileSync, unlinkSync } from "fs";
 import { generateQuotationPDF } from "./quotation-pdf-generator";
 import { storagePut } from "./storage";
 import * as db from "./db";
+import { buildQuotationPdfData } from "./quotation-pdf-data";
 
 /**
  * Genera un PDF de cotización, lo sube a S3 y guarda la URL en la base de datos
@@ -35,32 +36,7 @@ export async function generateAndStorePDF(
 
     // PASO 2: Preparar datos para el PDF (convertir a strings)
     console.log(`[PDF-HELPER] Preparando datos para PDF...`);
-    const pdfData = {
-      quotationNumber: quotationData.quotationNumber,
-      date: quotationData.createdAt
-        ? new Date(quotationData.createdAt).toLocaleDateString("es-CO")
-        : new Date().toLocaleDateString("es-CO"),
-      clientName: quotationData.clientName || "Cliente",
-      clientPhone: quotationData.clientPhone || "",
-      clientAddress: quotationData.clientAddress || "",
-      vendorName: quotationData.vendorName || "",
-      productType: quotationData.productType || "",
-      validUntil: quotationData.validUntil
-        ? new Date(quotationData.validUntil).toLocaleDateString("es-CO")
-        : new Date().toLocaleDateString("es-CO"),
-      items: quotationItems.map((item: any) => ({
-        itemNumber: item.itemNumber || 0,
-        description: item.description || "Item",
-        quantity: String(item.quantity || "1"),
-        unitPrice: item.unitPrice ? String(item.unitPrice) : undefined,
-        totalPrice: String(item.totalPrice || "0"),
-      })),
-      subtotal: String(quotationData.subtotal || "0"),
-      transportCost: String(quotationData.transportCost || "0"),
-      discountPercent: quotationData.discountPercent ? String(quotationData.discountPercent) : undefined,
-      discountAmount: quotationData.discountAmount ? String(quotationData.discountAmount) : undefined,
-      total: String(quotationData.total || "0"),
-    };
+    const pdfData = await buildQuotationPdfData(quotationData, await db.getClientById(quotationData.clientId), quotationItems);
 
     // PASO 3: Generar PDF
     console.log(`[PDF-HELPER] Generando PDF con PDFKit...`);

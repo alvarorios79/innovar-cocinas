@@ -90,6 +90,25 @@ const INNOVAR_NOTAS_DEFAULT = `• Los precios están sujetos a cambio si los ma
 • El cliente se compromete a garantizar acceso al lugar de instalación en jornada completa (8:00 a.m. – 12:00 m. y 1:00 p.m. – 5:00 p.m.) durante todos los días requeridos para la instalación. Interrupciones, restricciones de horario o condiciones del sitio que impidan el trabajo normal podrán generar costos adicionales por desplazamiento, reprogramación o tiempos improductivos del equipo instalador.`;
 
 // ─── Generadores de descripción automática ────────────────────────────────────
+// Campo numérico que permite escribir libremente (ej. "0.", "0.7") sin que el valor guardado (0) borre lo tecleado.
+function NumberField(props: React.ComponentProps<typeof Input>) {
+  const { value, onChange, ...rest } = props;
+  const toText = (v: any) => (v === undefined || v === null || v === "" || Number(v) === 0 ? "" : String(v));
+  const [txt, setTxt] = useState<string>(toText(value));
+  useEffect(() => {
+    // Solo sincronizar desde fuera si el número guardado difiere de lo que muestra el campo
+    if ((parseFloat(txt) || 0) !== (Number(value) || 0)) setTxt(toText(value));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+  return (
+    <Input
+      {...rest}
+      value={txt}
+      onChange={(e) => { setTxt(e.target.value); onChange?.(e); }}
+    />
+  );
+}
+
 function buildKitchenDescription(config: KitchenConfig): string {
   // Tipos de cocina completa (Estándar / Premium / Deluxe)
   const classNames: Record<string, string> = {
@@ -2915,7 +2934,7 @@ export default function Quotations() {
                                 <Ruler className="h-4 w-4" />
                                 Metraje Total {item.kitchenConfig?.shape === 'frente_pll' ? 'del Frente PLL' : item.kitchenConfig?.shape === 'solo_superiores' ? 'Muebles Superiores' : item.kitchenConfig?.shape === 'solo_inferiores' ? 'Muebles Inferiores' : 'de la Cocina'} (ml)
                               </Label>
-                              <Input
+                              <NumberField
                                 type="number"
                                 step="0.01"
                                 value={item.kitchenConfig?.totalMeters || ""}
@@ -3538,7 +3557,7 @@ export default function Quotations() {
                                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                     <div>
                                       <Label>Metros de isla (ml)</Label>
-                                      <Input
+                                      <NumberField
                                         type="number"
                                         step="0.01"
                                         value={item.kitchenConfig?.island.meters || ""}
@@ -3726,7 +3745,7 @@ export default function Quotations() {
                                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                     <div>
                                       <Label>Metros de barra (ml)</Label>
-                                      <Input
+                                      <NumberField
                                         type="number"
                                         step="0.01"
                                         value={item.kitchenConfig?.bar.meters || ""}
@@ -3847,7 +3866,7 @@ export default function Quotations() {
                                 <Lightbulb className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500" />
                                 Luz LED - $180,000/ml
                               </Label>
-                              <Input
+                              <NumberField
                                 type="number"
                                 step="0.01"
                                 value={item.kitchenConfig?.ledLighting || ""}
@@ -4042,7 +4061,7 @@ export default function Quotations() {
                                         <div className="flex-1 grid grid-cols-2 gap-2">
                                           <div>
                                             <Label className="text-xs">Alto (m)</Label>
-                                            <Input
+                                            <NumberField
                                               type="number"
                                               step="0.01"
                                               min="0"
@@ -4058,7 +4077,6 @@ export default function Quotations() {
                                                   extraHinges: height > 1.4 ? 2 : (height > 0.8 ? 1 : 0)
                                                 };
                                                 updateKitchenConfig(index, "specialFinishes.aluminumGlassDoors", newDoors);
-                                                calculateKitchenTotal(index);
                                               }}
                                               className="h-8"
                                               placeholder="0.70"
@@ -4066,7 +4084,7 @@ export default function Quotations() {
                                           </div>
                                           <div>
                                             <Label className="text-xs">Ancho (m)</Label>
-                                            <Input
+                                            <NumberField
                                               type="number"
                                               step="0.01"
                                               min="0"
@@ -4081,7 +4099,6 @@ export default function Quotations() {
                                                   squareMeters: height * width,
                                                 };
                                                 updateKitchenConfig(index, "specialFinishes.aluminumGlassDoors", newDoors);
-                                                calculateKitchenTotal(index);
                                               }}
                                               className="h-8"
                                               placeholder="0.40"
@@ -4101,7 +4118,6 @@ export default function Quotations() {
                                           onClick={() => {
                                             const newDoors = (item.kitchenConfig?.specialFinishes?.aluminumGlassDoors || []).filter((_, i) => i !== doorIdx);
                                             updateKitchenConfig(index, "specialFinishes.aluminumGlassDoors", newDoors);
-                                            calculateKitchenTotal(index);
                                           }}
                                           className="text-red-500 hover:text-red-300 h-8 w-8 p-0"
                                         >
@@ -4151,7 +4167,7 @@ export default function Quotations() {
                                     {item.kitchenConfig?.specialFinishes?.ledLighting?.enabled && (
                                       <div className="flex items-center gap-2 ml-6">
                                         <Label className="text-xs">Metros lineales:</Label>
-                                        <Input
+                                        <NumberField
                                           type="number"
                                           step="0.01"
                                           min="0"
@@ -4367,7 +4383,7 @@ export default function Quotations() {
                                   <div key={doorIdx} className="flex flex-wrap items-center gap-2 p-3 bg-cyan-500/10 rounded-lg">
                                     <span className="text-sm font-medium text-cyan-300">Puerta #{doorIdx + 1}</span>
                                     <div className="flex items-center gap-1">
-                                      <Input
+                                      <NumberField
                                         type="number"
                                         step="0.01"
                                         placeholder="Alto (m)"
@@ -4384,7 +4400,7 @@ export default function Quotations() {
                                         className="w-20 h-8 text-sm"
                                       />
                                       <span className="text-white/40">×</span>
-                                      <Input
+                                      <NumberField
                                         type="number"
                                         step="0.01"
                                         placeholder="Ancho (m)"
@@ -4472,7 +4488,7 @@ export default function Quotations() {
                               {item.acabadosConfig?.ledLighting?.enabled && (
                                 <div className="flex items-center gap-2 pl-6">
                                   <Label className="text-sm">Metros lineales:</Label>
-                                  <Input
+                                  <NumberField
                                     type="number"
                                     step="0.01"
                                     value={item.acabadosConfig?.ledLighting?.meters || ''}

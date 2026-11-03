@@ -185,35 +185,57 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
       Y += 20;
 
       let alt = false;
+      const BOTTOM = PH - 58;
+      const isHeadingLine = (l: string) => {
+        const t = l.trim();
+        return t.length > 3 && t.length < 60 && t === t.toUpperCase() && /[A-ZÁÉÍÓÚÑ]/.test(t) && !/^[•\-]/.test(t);
+      };
       for (const item of data.items) {
-        const descH = doc.heightOfString(item.description, { width: 336, lineGap: 1.5 });
-        const rowH  = Math.max(descH + 12, 26);
-
-        if (Y + rowH > PH - 58) {
-          doc.addPage();
-          doc.rect(0, 0, PW, 5).fill(TEAL);
-          Y = 18;
-          drawTableHeader(Y);
-          Y += 20;
-          alt = false;
+        // Cada línea de la descripción se mide y se dibuja por separado; la fila
+        // se parte entre páginas si es muy larga (sin páginas en blanco).
+        const lines = String(item.description || "").split("\n");
+        const meas = lines.map((l) => {
+          const head = isHeadingLine(l);
+          doc.fontSize(8.5).font(head ? "Helvetica-Bold" : "Helvetica");
+          const h = l.trim() === "" ? 4 : doc.heightOfString(l, { width: 336, lineGap: 1.5 }) + (head ? 3 : 0);
+          return { l, head, h: h + (head ? 0 : 0.5) };
+        });
+        const total = meas.reduce((a, m) => a + m.h, 0) + 12;
+        // Si queda poco espacio en la página actual, la fila pasa entera; si no, se parte
+        if (total <= BOTTOM - 38 && Y + Math.max(total, 26) > BOTTOM && BOTTOM - Y < 170) {
+          doc.addPage(); doc.rect(0, 0, PW, 5).fill(TEAL); Y = 18; drawTableHeader(Y); Y += 20; alt = false;
         }
-
-        doc.rect(ML, Y, CW, rowH).fill(alt ? LGRAY : WHITE).stroke(BORDER);
-        doc.fontSize(9).fillColor(TEAL).font("Helvetica-Bold")
-           .text(String(item.itemNumber), ML + 6, Y + 7, { width: 20, align: "center" });
-        // FIX Bug 1: rastrear página para detectar auto-paginación de PDFKit en descripciones largas
-        const pageBeforeDesc = doc.page;
-        doc.fontSize(8.5).fillColor(DGRAY).font("Helvetica")
-           .text(item.description, ML + 30, Y + 6, { width: 336, lineGap: 1.5 });
-        doc.fontSize(8.5).fillColor(MGRAY).font("Helvetica")
-           .text(item.quantity, ML + 374, Y + 7, { width: 44, align: "center" });
-        doc.fontSize(9).fillColor(DGRAY).font("Helvetica-Bold")
-           .text(fmt(item.totalPrice), ML + 424, Y + 7, { width: 96, align: "right" });
-        // FIX Bug 1: sincronizar Y si PDFKit paginó automáticamente → evita página en blanco
-        if (doc.page !== pageBeforeDesc) {
-          Y = doc.y + 4;
-        } else {
-          Y += rowH;
+        let i = 0, first = true;
+        while (i < meas.length) {
+          if (Y + meas[i].h + 8 > BOTTOM) {
+            doc.addPage(); doc.rect(0, 0, PW, 5).fill(TEAL); Y = 18; drawTableHeader(Y); Y += 20; alt = false;
+          }
+          // Agrupar líneas que caben en esta página
+          let j = i, segH = 6;
+          while (j < meas.length && Y + segH + meas[j].h + 6 <= BOTTOM) { segH += meas[j].h; j++; }
+          if (j === i) { segH += meas[j].h; j++; }
+          segH += 6;
+          if (first) segH = Math.max(segH, 26);
+          doc.rect(ML, Y, CW, segH).fill(alt ? LGRAY : WHITE).stroke(BORDER);
+          let ly = Y + 6;
+          for (let k = i; k < j; k++) {
+            const m = meas[k];
+            if (m.l.trim() === "") { ly += m.h; continue; }
+            doc.fontSize(8.5).fillColor(m.head ? TEAL : DGRAY).font(m.head ? "Helvetica-Bold" : "Helvetica")
+               .text(m.l, ML + 30, m.head ? ly + 2 : ly, { width: 336, lineGap: 1.5 });
+            ly += m.h;
+          }
+          if (first) {
+            doc.fontSize(9).fillColor(TEAL).font("Helvetica-Bold")
+               .text(String(item.itemNumber), ML + 6, Y + 7, { width: 20, align: "center" });
+            doc.fontSize(8.5).fillColor(MGRAY).font("Helvetica")
+               .text(item.quantity, ML + 374, Y + 7, { width: 44, align: "center" });
+            doc.fontSize(9).fillColor(DGRAY).font("Helvetica-Bold")
+               .text(fmt(item.totalPrice), ML + 424, Y + 7, { width: 96, align: "right" });
+            first = false;
+          }
+          Y += segH;
+          i = j;
         }
         alt = !alt;
       }

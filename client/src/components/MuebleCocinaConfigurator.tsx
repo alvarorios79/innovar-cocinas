@@ -14,7 +14,7 @@ const PRECIOS = {
   MUEBLE_ALTO_LED_ML:     1000000,
   MUEBLE_BAJO_ML:         1100000,
   // LED
-  LED_ML:                  220000,
+  LED_ML:                  180000,
   // Barra
   BARRA_PEDESTAL:          250000,
   BARRA_HERRAJE:           380000,

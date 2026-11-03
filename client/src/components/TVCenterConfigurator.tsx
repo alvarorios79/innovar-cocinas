@@ -40,7 +40,7 @@ const BASE_WIDTH = 1.60; // metros
 const BASE_PRICE = 2800000;
 const PRICE_PER_20CM = 500000; // +$500,000 por cada 20cm extra
 const HIGH_GLOSS_PRICE = 350000;
-const LED_LIGHTS_PRICE = 250000;
+const LED_LIGHTS_PRICE = 180000;
 const EXTRA_SHELF_PRICE = 100000; // Por cada repisa adicional (base son 2)
 const EQUIPMENT_SPACE_PRICE = 150000; // Por cada espacio especial
 

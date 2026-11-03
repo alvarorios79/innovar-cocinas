@@ -52,6 +52,7 @@ interface TVCenterConfiguratorProps {
 }
 
 // Precios base
+const r2 = (n: number) => (Math.round((Number(n) || 0) * 100 + 1e-9) / 100).toFixed(2); // 0.245 -> 0.25
 const BASE_WIDTH = 1.60; // metros
 const BASE_PRICE = 2800000;
 const PRICE_PER_20CM = 500000; // +$500,000 por cada 20cm extra
@@ -554,7 +555,7 @@ function TVCenterConfiguratorV2({ config, onChange }: TVCenterConfiguratorProps)
                     <span className="text-white/40">×</span>
                     <Input type="text" inputMode="decimal" placeholder="Ancho (m)" value={d.w} className="h-8 w-24 text-center"
                       onChange={(e) => setGlassDoors((prev) => prev.map((x) => x.id === d.id ? { ...x, w: e.target.value } : x))} />
-                    <span className="text-xs text-white/60 min-w-[70px]">{m2.toFixed(2)} m²{hingesFor(h) > 0 ? ` +${hingesFor(h)} par` : ""}</span>
+                    <span className="text-xs text-white/60 min-w-[70px]">{r2(m2)} m²{hingesFor(h) > 0 ? ` +${hingesFor(h)} par` : ""}</span>
                     <button type="button" className="text-red-400 text-xs px-2" onClick={() => setGlassDoors((prev) => prev.filter((x) => x.id !== d.id))}>Quitar</button>
                   </div>
                 );

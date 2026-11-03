@@ -1,5 +1,6 @@
 // Descripción del PDF para "Centro de TV" versión 2 (cotización por casillas).
 // Devuelve null para cotizaciones antiguas (sin pricingVersion 2): esas conservan su texto original.
+const r2 = (n: number) => (Math.round((Number(n) || 0) * 100 + 1e-9) / 100).toFixed(2); // 0.245 -> 0.25
 export function buildTVQuoteDescription(rawConfig: any): string | null {
   const c: any = typeof rawConfig === "string" ? JSON.parse(rawConfig) : rawConfig;
   if (!c || c.pricingVersion !== 2) return null;
@@ -30,7 +31,7 @@ export function buildTVQuoteDescription(rawConfig: any): string | null {
     glass.forEach((d, i) => {
       const h = n(d.height), w = n(d.width);
       const hinges = h > 1.4 ? 2 : h > 0.8 ? 1 : 0;
-      push(`  - Puerta ${i + 1}: ${h.toFixed(2)} m × ${w.toFixed(2)} m = ${(Math.round(h * w * 100) / 100).toFixed(2)} m²${hinges ? ` (+${hinges} par${hinges > 1 ? "es" : ""} de bisagras adicionales)` : ""}`);
+      push(`  - Puerta ${i + 1}: ${h.toFixed(2)} m × ${w.toFixed(2)} m = ${r2(h * w)} m²${hinges ? ` (+${hinges} par${hinges > 1 ? "es" : ""} de bisagras adicionales)` : ""}`);
     });
   }
 

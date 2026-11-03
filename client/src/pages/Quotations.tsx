@@ -110,6 +110,7 @@ function NumberField(props: React.ComponentProps<typeof Input>) {
   );
 }
 
+const r2 = (n: number) => (Math.round((Number(n) || 0) * 100 + 1e-9) / 100).toFixed(2); // 0.245 -> 0.25
 function buildKitchenDescription(config: KitchenConfig): string {
   // Tipos de cocina completa (Estándar / Premium / Deluxe)
   const classNames: Record<string, string> = {
@@ -2099,7 +2100,7 @@ export default function Quotations() {
         // Puertas de aluminio
         if (config.aluminumGlassDoors && config.aluminumGlassDoors.length > 0) {
           const totalSqm = config.aluminumGlassDoors.reduce((sum, d) => sum + (d.height * d.width), 0);
-          parts.push(`Puertas aluminio+vidrio: ${config.aluminumGlassDoors.length} puerta(s) (${totalSqm.toFixed(2)} m²)`);
+          parts.push(`Puertas aluminio+vidrio: ${config.aluminumGlassDoors.length} puerta(s) (${r2(totalSqm)} m²)`);
         }
         
         // LED
@@ -4111,7 +4112,7 @@ export default function Quotations() {
                                           </div>
                                         </div>
                                         <div className="text-xs text-right min-w-[80px]">
-                                          <div className="text-purple-400 font-medium">{door.squareMeters?.toFixed(2) || '0.00'} m²</div>
+                                          <div className="text-purple-400 font-medium">{r2(door.squareMeters || 0)} m²</div>
                                           {door.extraHinges > 0 && (
                                             <div className="text-orange-500">+{door.extraHinges} par{door.extraHinges > 1 ? 'es' : ''}</div>
                                           )}

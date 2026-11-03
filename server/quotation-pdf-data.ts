@@ -6,6 +6,7 @@ import * as db from "./db";
 import { buildKitchenQuoteDescription, appendHouseStandards } from "./kitchen-description";
 import { buildTVQuoteDescription } from "./tv-description";
 
+const r2 = (n: number) => (Math.round((Number(n) || 0) * 100 + 1e-9) / 100).toFixed(2); // 0.245 -> 0.25
 export async function buildQuotationPdfData(quotation: any, client: any, items: any[]) {
   // Preparar datos para el PDF
   // Ordenar items por itemNumber
@@ -467,12 +468,12 @@ export async function buildQuotationPdfData(quotation: any, client: any, items: 
         if (cfg?.aluminumGlassDoors && cfg.aluminumGlassDoors.length > 0) {
           const totalDoors = cfg.aluminumGlassDoors.length;
           const totalSqm = cfg.aluminumGlassDoors.reduce((sum: number, d: any) => sum + (d.height * d.width), 0);
-          lines.push(`• Puertas aluminio + vidrio ahumado: ${totalDoors} ${totalDoors === 1 ? 'puerta' : 'puertas'} (${totalSqm.toFixed(2)} m²)`);
+          lines.push(`• Puertas aluminio + vidrio ahumado: ${totalDoors} ${totalDoors === 1 ? 'puerta' : 'puertas'} (${r2(totalSqm)} m²)`);
           cfg.aluminumGlassDoors.forEach((door: any, idx: number) => {
             const sqm = door.height * door.width;
             const extraHinges = door.height > 1.4 ? 2 : (door.height > 0.8 ? 1 : 0);
             const hingeText = extraHinges > 0 ? ` (+${extraHinges} par${extraHinges > 1 ? 'es' : ''} bisagras)` : '';
-            lines.push(`  - Puerta ${idx + 1}: ${door.height.toFixed(2)}m x ${door.width.toFixed(2)}m = ${sqm.toFixed(2)} m²${hingeText}`);
+            lines.push(`  - Puerta ${idx + 1}: ${door.height.toFixed(2)}m x ${door.width.toFixed(2)}m = ${r2(sqm)} m²${hingeText}`);
           });
         }
         if (cfg?.ledLighting?.enabled && cfg.ledLighting.meters > 0) {

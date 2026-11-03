@@ -40,6 +40,7 @@ function depthText(s?: string): string {
   return "";
 }
 
+const r2 = (n: number) => (Math.round((Number(n) || 0) * 100 + 1e-9) / 100).toFixed(2); // 0.245 -> 0.25
 export function buildKitchenQuoteDescription(rawConfig: any, manualDescription?: string | null): string {
   const config: any = typeof rawConfig === "string" ? JSON.parse(rawConfig) : (rawConfig || {});
   const shape: string = config.shape || "";
@@ -229,11 +230,11 @@ export function buildKitchenQuoteDescription(rawConfig: any, manualDescription?:
       section("ACABADOS ESPECIALES:");
       if (doors.length > 0) {
         const sqm = doors.reduce((s, d) => s + (Number(d.height) || 0) * (Number(d.width) || 0), 0);
-        push(`• Puertas en marco de aluminio con vidrio ahumado: ${doors.length} ${doors.length === 1 ? "puerta" : "puertas"} (${sqm.toFixed(2)} m²)`);
+        push(`• Puertas en marco de aluminio con vidrio ahumado: ${doors.length} ${doors.length === 1 ? "puerta" : "puertas"} (${r2(sqm)} m²)`);
         doors.forEach((d, i) => {
           const h = Number(d.height) || 0, w = Number(d.width) || 0;
           const hinges = h > 1.4 ? 2 : (h > 0.8 ? 1 : 0);
-          push(`  - Puerta ${i + 1}: ${h.toFixed(2)} m × ${w.toFixed(2)} m = ${(h * w).toFixed(2)} m²${hinges ? ` (+${hinges} par${hinges > 1 ? "es" : ""} de bisagras adicionales)` : ""}`);
+          push(`  - Puerta ${i + 1}: ${h.toFixed(2)} m × ${w.toFixed(2)} m = ${r2(h * w)} m²${hinges ? ` (+${hinges} par${hinges > 1 ? "es" : ""} de bisagras adicionales)` : ""}`);
         });
       }
       if (hasLed) push(`• Iluminación LED para alacenas: ${ml(sf.ledLighting.meters)}`);

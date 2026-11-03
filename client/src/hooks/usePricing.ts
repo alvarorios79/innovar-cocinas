@@ -96,7 +96,6 @@ const DEFAULT_PRICES: Record<string, { value: number; unit: string | null }> = {
   PUERTA_BATIENTE:           { value: 890000,  unit: "unidad" },
 
   // Centros de TV
-  TV_CENTER_BASE:       { value: 2800000, unit: "unidad" }, // base 1.60m; +$500K c/20cm adicionales
   TV_CENTER_LED:        { value: 180000,  unit: "ml" },
   TV_CENTER_REPISA:     { value: 100000,  unit: "unidad" },
   TV_CENTER_TRANSPORTE: { value: 150000,  unit: "unidad" },
@@ -105,7 +104,7 @@ const DEFAULT_PRICES: Record<string, { value: number; unit: string | null }> = {
   TV2_PER_20CM:          { value: 250000,  unit: "unidad" },
   TV2_ALISTONADO_LADO:   { value: 800000,  unit: "unidad" },
   TV2_SOPORTE_INSTALACION: { value: 160000, unit: "unidad" },
-  TV2_PINTADO_REPISA:    { value: 45000,   unit: "unidad" },
+  TV2_PINTADO_REPISA:    { value: 80000,   unit: "unidad" },
 
   // Acabados Especiales
   ACABADO_ALUMINIO_VIDRIO_M2: { value: 1200000, unit: "m2" },

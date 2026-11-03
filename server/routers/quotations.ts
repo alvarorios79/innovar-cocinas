@@ -232,11 +232,11 @@ function buildPublicItemDescBase(item: any): string {
     if (cfg?.aluminumGlassDoors?.length > 0) {
       const td = cfg.aluminumGlassDoors.length;
       const tsq = cfg.aluminumGlassDoors.reduce((s: number, d: any) => s + d.height * d.width, 0);
-      lines.push(`• Puertas aluminio + vidrio ahumado: ${td} ${td === 1 ? 'puerta' : 'puertas'} (${tsq.toFixed(2)} m²)`);
+      lines.push(`• Puertas aluminio + vidrio ahumado: ${td} ${td === 1 ? 'puerta' : 'puertas'} (${r2(tsq)} m²)`);
       cfg.aluminumGlassDoors.forEach((door: any, i: number) => {
         const sq = door.height * door.width;
         const eh = door.height > 1.4 ? 2 : (door.height > 0.8 ? 1 : 0);
-        lines.push(`  - Puerta ${i + 1}: ${door.height.toFixed(2)}m x ${door.width.toFixed(2)}m = ${sq.toFixed(2)} m²${eh > 0 ? ` (+${eh} par${eh > 1 ? 'es' : ''} bisagras)` : ''}`);
+        lines.push(`  - Puerta ${i + 1}: ${door.height.toFixed(2)}m x ${door.width.toFixed(2)}m = ${r2(sq)} m²${eh > 0 ? ` (+${eh} par${eh > 1 ? 'es' : ''} bisagras)` : ''}`);
       });
     }
     if (cfg?.ledLighting?.enabled && cfg.ledLighting.meters > 0) lines.push(`• LED para alacenas: ${cfg.ledLighting.meters.toFixed(2)}ml`);
@@ -250,6 +250,7 @@ function buildPublicItemDescBase(item: any): string {
 
 // Guarda campos de respuesta del cliente uno por uno: si uno falla, los demás igual se guardan.
 // ── Congelado de precios: cotizaciones existentes no deben cambiar de valor al guardarse ──
+const r2 = (n: number) => (Math.round((Number(n) || 0) * 100 + 1e-9) / 100).toFixed(2); // 0.245 -> 0.25
 function fzNorm(v: any): any {
   let x = v;
   for (let i = 0; i < 2 && typeof x === "string"; i++) {

@@ -175,7 +175,7 @@ export const pricingRouter = router({
           const { sql } = await import("drizzle-orm");
           const drizzleDb = await db.getDb();
           if (drizzleDb) {
-            await drizzleDb.execute(sql`UPDATE "pricingConfig" SET "active" = 0 WHERE "code" IN ('TV_CENTER_ALTO_BRILLO','TV_CENTER_ESPACIO_EQUIPO')`);
+            await drizzleDb.execute(sql`UPDATE "pricingConfig" SET "active" = 0 WHERE "code" IN ('TV_CENTER_ALTO_BRILLO','TV_CENTER_ESPACIO_EQUIPO','TV_CENTER_BASE')`);
           }
         } catch (e: any) {
           console.error("[seedPiezaPrices] no se pudieron ocultar precios obsoletos de TV:", e?.message);
@@ -186,7 +186,7 @@ export const pricingRouter = router({
           ["TV2_PER_20CM", "Centro TV v2 - ± por cada 20cm de ancho", 250000, "unidad"],
           ["TV2_ALISTONADO_LADO", "Centro TV v2 - alistonado por lado", 800000, "unidad"],
           ["TV2_SOPORTE_INSTALACION", "Centro TV v2 - soporte e instalación del TV", 160000, "unidad"],
-          ["TV2_PINTADO_REPISA", "Centro TV v2 - pintura por repisa", 45000, "unidad"],
+          ["TV2_PINTADO_REPISA", "Centro TV v2 - pintura por repisa", 80000, "unidad"],
         ];
         const existing = await db.getAllPricingConfig();
         const existingCodes = new Set((existing as any[]).map((e: any) => e.code));
@@ -308,7 +308,6 @@ export const pricingRouter = router({
           { category: "puertas_producto", code: "PUERTA_CORREDIZA_SENCILLA",name: "Corrediza Sencilla (alias)", value: 1250000, unit: "unidad", sortOrder: 6 },
           { category: "puertas_producto", code: "PUERTA_CORREDIZA_DOBLE",   name: "Corrediza Doble (alias)",    value: 1350000, unit: "unidad", sortOrder: 7 },
           // Centros de TV
-          { category: "centros_tv", code: "TV_CENTER_BASE",         name: "Centro TV base (hasta 1.60m)", value: 2800000, unit: "unidad", sortOrder: 1, description: "Cada 20cm adicionales suma $500.000." },
           { category: "centros_tv", code: "TV_CENTER_LED",          name: "LED (por ml)",                 value: 180000,  unit: "ml",     sortOrder: 3 },
           { category: "centros_tv", code: "TV_CENTER_REPISA",       name: "Repisa adicional",             value: 100000,  unit: "unidad", sortOrder: 4 },
           { category: "centros_tv", code: "TV_CENTER_TRANSPORTE",   name: "Transporte e imprevistos",     value: 150000,  unit: "unidad", sortOrder: 6 },

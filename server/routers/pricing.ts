@@ -132,7 +132,7 @@ export const pricingRouter = router({
           ["MUEBLE_ALTO_ML", "Mueble alto por ml", 1000000, "ml"],
           ["MUEBLE_ALTO_LED_ML", "Mueble alto con LED por ml", 1000000, "ml"],
           ["MUEBLE_BAJO_ML", "Mueble bajo por ml", 1100000, "ml"],
-          ["LED_ML", "LED por ml", 220000, "ml"],
+          ["LED_ML", "LED por ml", 180000, "ml"],
           ["BARRA_PEDESTAL", "Barra - pedestal", 250000, "unidad"],
           ["BARRA_HERRAJE", "Barra - herraje", 380000, "unidad"],
           ["MESON_GRANITO", "Mesón granito por ml", 750000, "ml"],
@@ -208,7 +208,7 @@ export const pricingRouter = router({
           { category: "mesones", code: "LAVAPLATOS_MESON",         name: "Orificio lavaplatos",               value: 130000,  unit: "unidad",  sortOrder: 9 },
           // Muebles Especiales
           { category: "muebles_especiales", code: "NICHO_NEVECON",      name: "Nicho Nevecón",           value: 1200000, unit: "unidad", sortOrder: 1, description: "Descuenta 1.0 ml al precio base." },
-          { category: "muebles_especiales", code: "NICHO_NEVERA",       name: "Nicho Nevera pequeña",    value: 1100000, unit: "unidad", sortOrder: 2, description: "Descuenta 0.75 ml al precio base." },
+          { category: "muebles_especiales", code: "NICHO_NEVERA",       name: "Nicho Nevera pequeña",    value: 1200000, unit: "unidad", sortOrder: 2, description: "Descuenta 0.75 ml al precio base." },
           { category: "muebles_especiales", code: "ALACENA_ENTREPANOS", name: "Alacena con Entrepaños",  value: 1250000, unit: "unidad", sortOrder: 3, description: "Descuenta 0.5 ml al precio base." },
           { category: "muebles_especiales", code: "ALACENA_HERRAJE",    name: "Alacena con Herraje",     value: 900000,  unit: "unidad", sortOrder: 4, description: "Descuenta 0.5 ml al precio base." },
           { category: "muebles_especiales", code: "TORRE_HORNOS",       name: "Torre para Hornos",       value: 1350000, unit: "unidad", sortOrder: 5, description: "Descuenta 0.7 ml al precio base." },
@@ -217,7 +217,7 @@ export const pricingRouter = router({
           { category: "extras", code: "ISLA_LATERAL", name: "Lateral de Isla",        value: 350000,  unit: "unidad", sortOrder: 2 },
           { category: "extras", code: "BARRA_ML",     name: "Barra (por ml)",         value: 900000,  unit: "ml",     sortOrder: 3 },
           { category: "extras", code: "BARRA_LATERAL",name: "Lateral de Barra",       value: 350000,  unit: "unidad", sortOrder: 4 },
-          { category: "extras", code: "LED_ML",       name: "LED (por ml)",           value: 220000,  unit: "ml",     sortOrder: 5 },
+          { category: "extras", code: "LED_ML",       name: "LED (por ml)",           value: 180000,  unit: "ml",     sortOrder: 5 },
           // Puertas y Tapas (cocinas)
           { category: "puertas_tapas", code: "PUERTA_SUP_70",     name: "Puerta Superior 70cm",  value: 120000, unit: "unidad", sortOrder: 1 },
           { category: "puertas_tapas", code: "PUERTA_SUP_90",     name: "Puerta Superior 90cm",  value: 150000, unit: "unidad", sortOrder: 2 },
@@ -254,7 +254,7 @@ export const pricingRouter = router({
           // Acabados Especiales
           { category: "acabados_especiales", code: "ACABADO_ALUMINIO_VIDRIO_M2", name: "Aluminio + Vidrio (m²)", value: 1200000, unit: "m2",  sortOrder: 1 },
           { category: "acabados_especiales", code: "ACABADO_BISAGRA_PAR",        name: "Bisagra (par)",          value: 15000,   unit: "par", sortOrder: 2 },
-          { category: "acabados_especiales", code: "ACABADO_LED_ML",             name: "LED acabados (por ml)",  value: 150000,  unit: "ml",  sortOrder: 3 },
+          { category: "acabados_especiales", code: "ACABADO_LED_ML",             name: "LED acabados (por ml)",  value: 180000,  unit: "ml",  sortOrder: 3 },
         ] as const;
 
         let created = 0;

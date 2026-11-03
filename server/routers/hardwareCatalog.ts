@@ -80,6 +80,16 @@ export const hardwareCatalogRouter = router({
         return { success: true };
       }),
 
+    // Copia el catálogo de herrajes al Motor de Cotización (solo agrega los que faltan)
+    importToMotor: protectedProcedure
+      .mutation(async ({ ctx }) => {
+        if (ctx.user.role !== "super_admin" && ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden importar herrajes" });
+        }
+        const r = await db.importHardwareCatalogToMotor();
+        return { success: true, ...r, message: `Importados ${r.created} herrajes al Motor de Cotización (${r.skipped} ya estaban).` };
+      }),
+
     initializeCatalog: protectedProcedure
       .mutation(async ({ ctx }) => {
         if (ctx.user.role !== "super_admin" && ctx.user.role !== "admin") {

@@ -159,6 +159,17 @@ export const pricingRouter = router({
           ["PINTADO_ESPECIERO", "Pintado tapa especiero", 100000, "unidad"],
           ["PINTADO_GOLA", "Pintado tapa gola/pequeña", 45000, "unidad"],
         ];
+        // Si ya existen precios PIEZA_* (de una carga anterior) en otra categoría o inactivos,
+        // los deja en "Piezas de Cocina" y activos. No toca ningún valor.
+        try {
+          const { sql } = await import("drizzle-orm");
+          const drizzleDb = await db.getDb();
+          if (drizzleDb) {
+            await drizzleDb.execute(sql`UPDATE "pricingConfig" SET "category" = 'piezas_cocina', "active" = 1 WHERE "code" LIKE 'PIEZA\_%'`);
+          }
+        } catch (e: any) {
+          console.error("[seedPiezaPrices] no se pudo normalizar categoría:", e?.message);
+        }
         const existing = await db.getAllPricingConfig();
         const existingCodes = new Set((existing as any[]).map((e: any) => e.code));
         let created = 0;

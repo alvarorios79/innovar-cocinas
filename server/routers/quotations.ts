@@ -422,6 +422,46 @@ function buildPublicItemDesc(item: any): string {
 
 
 // Guarda campos de respuesta del cliente uno por uno: si uno falla, los demás igual se guardan.
+// ── Congelado de precios: cotizaciones existentes no deben cambiar de valor al guardarse ──
+function fzNorm(v: any): any {
+  let x = v;
+  for (let i = 0; i < 2 && typeof x === "string"; i++) {
+    try { x = JSON.parse(x); } catch { break; }
+  }
+  return x;
+}
+function fzStable(v: any): string {
+  const walk = (o: any): any => {
+    if (Array.isArray(o)) return o.map(walk);
+    if (o && typeof o === "object") {
+      const out: any = {};
+      for (const k of Object.keys(o).sort()) {
+        if (o[k] === undefined || o[k] === null) continue;
+        out[k] = walk(o[k]);
+      }
+      return out;
+    }
+    return o;
+  };
+  return JSON.stringify(walk(fzNorm(v)));
+}
+function fzSignature(it: any): string {
+  return fzStable({
+    type: it.itemType,
+    q: String(it.quantity ?? "1"),
+    fc: !!it.includesFixedCosts,
+    fca: it.fixedCostsAmount != null ? Number(it.fixedCostsAmount) : null,
+    k: fzNorm(it.kitchenConfig) ?? null,
+    h: fzNorm(it.hardwareSelections) ?? null,
+    c: fzNorm(it.closetConfig) ?? null,
+    d: fzNorm(it.doorConfig) ?? null,
+    t: fzNorm(it.tvCenterConfig) ?? null,
+    m: fzNorm(it.countertopConfig) ?? null,
+    b: fzNorm(it.bathroomConfig) ?? null,
+    muebleCocina: fzNorm((it as any).muebleCocinaConfig) ?? null,
+  });
+}
+
 async function saveFieldsOneByOne(id: number, fields: Record<string, any>, tag: string): Promise<string[]> {
   const failed: string[] = [];
   for (const [key, value] of Object.entries(fields)) {
@@ -678,12 +718,55 @@ export const quotationsRouter = router({
           throw new TRPCError({ code: "FORBIDDEN" });
         }
 
-        const { id, items, ...quotationData } = input;
+        const { id, items: incomingItems, ...quotationData } = input;
+        let items = incomingItems;
 
         // Obtener la cotización actual
         const currentQuotation = await db.getQuotationById(id);
         if (!currentQuotation) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Quotation not found" });
+        }
+
+        // ── BLOQUEO / CONGELADO DE PRECIOS ─────────────────────────────────────
+        // Aprobada o rechazada: no se puede cambiar ítems, descuento ni IVA (usar "Crear nueva versión").
+        // Enviada: los ítems cuya configuración no cambió conservan su precio guardado.
+        const qStatus = (currentQuotation as any).status as string;
+        const isLockedStatus = qStatus === "approved" || qStatus === "rejected";
+        if (items && (isLockedStatus || qStatus === "sent")) {
+          const stored = await db.getQuotationItems(id);
+          const pool = stored.map((it: any) => ({ it, sig: fzSignature(it), used: false }));
+          let changedItems = 0;
+          const frozen = items.map((incoming: any) => {
+            const sig = fzSignature(incoming);
+            const match = pool.find(p => !p.used && p.sig === sig);
+            if (match) {
+              match.used = true;
+              return { ...incoming, totalPrice: Number(match.it.totalPrice), unitPrice: match.it.unitPrice ?? incoming.unitPrice };
+            }
+            changedItems++;
+            return incoming;
+          });
+          const countChanged = changedItems > 0 || frozen.length !== stored.length;
+          if (isLockedStatus && (countChanged || (input.discountPercent !== undefined && input.discountPercent !== parseFloat((currentQuotation as any).discountPercent || "0")) ||
+              (input.includeIva !== undefined && input.includeIva !== ((currentQuotation as any).includeIva === 1)))) {
+            console.warn(`[QUOTATION-LOCK] Edición bloqueada en cotización ${id} (${qStatus}). Ítems modificados: ${changedItems}`);
+            throw new TRPCError({
+              code: "FORBIDDEN",
+              message: qStatus === "approved"
+                ? "Esta cotización ya fue aprobada y no se puede modificar. Usa «Crear nueva versión» para hacer cambios."
+                : "Esta cotización fue rechazada y no se puede modificar. Usa «Crear nueva versión» para hacer cambios.",
+            });
+          }
+          if (qStatus === "sent" && changedItems > 0) {
+            console.log(`[QUOTATION-FREEZE] Cotización ${id}: ${changedItems} ítem(s) con configuración modificada se recalculan; el resto conserva su precio guardado.`);
+          }
+          items = frozen as typeof items;
+        } else if (!items && isLockedStatus && (input.discountPercent !== undefined || input.includeIva !== undefined)) {
+          const dpSame = input.discountPercent === undefined || input.discountPercent === parseFloat((currentQuotation as any).discountPercent || "0");
+          const ivaSame = input.includeIva === undefined || input.includeIva === ((currentQuotation as any).includeIva === 1);
+          if (!dpSame || !ivaSame) {
+            throw new TRPCError({ code: "FORBIDDEN", message: "Esta cotización ya está cerrada (aprobada o rechazada). Usa «Crear nueva versión» para cambiar descuento o IVA." });
+          }
         }
 
         // La mutación update SIEMPRE actualiza la cotización directamente.

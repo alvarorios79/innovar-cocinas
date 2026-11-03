@@ -170,6 +170,14 @@ export const pricingRouter = router({
         } catch (e: any) {
           console.error("[seedPiezaPrices] no se pudo normalizar categoría:", e?.message);
         }
+        // Precios del Centro de TV (versión 2) — solo se agregan si no existen
+        const TV2: Array<[string, string, number, string]> = [
+          ["TV2_BASE", "Centro TV v2 - base 1.60m (sin alistonado)", 2300000, "unidad"],
+          ["TV2_PER_20CM", "Centro TV v2 - ± por cada 20cm de ancho", 250000, "unidad"],
+          ["TV2_ALISTONADO_LADO", "Centro TV v2 - alistonado por lado", 800000, "unidad"],
+          ["TV2_SOPORTE_INSTALACION", "Centro TV v2 - soporte e instalación del TV", 160000, "unidad"],
+          ["TV2_PINTADO_REPISA", "Centro TV v2 - pintura por repisa", 45000, "unidad"],
+        ];
         const existing = await db.getAllPricingConfig();
         const existingCodes = new Set((existing as any[]).map((e: any) => e.code));
         let created = 0;
@@ -204,6 +212,16 @@ export const pricingRouter = router({
             }
           }
           created++;
+        }
+        for (let j = 0; j < TV2.length; j++) {
+          const [code, name, value, unit] = TV2[j];
+          if (existingCodes.has(code)) { skipped++; continue; }
+          try {
+            await db.createPricingConfig({ category: "centros_tv", code, name, value, unit, sortOrder: 20 + j });
+            created++;
+          } catch (e: any) {
+            console.error(`[seedPiezaPrices] ${code} falló:`, String(e?.cause?.message || e?.message || e));
+          }
         }
         return { created, skipped };
       }),

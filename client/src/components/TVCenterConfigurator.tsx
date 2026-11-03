@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tv, Lightbulb, Sparkles, Box } from "lucide-react";
+import { usePricing } from "@/hooks/usePricing";
 
 export interface TVCenterConfig {
   width: number; // Ancho en metros (base 1.60)
@@ -29,6 +30,18 @@ export interface TVCenterConfig {
   transportCost: number;
   notes: string;
   subtotal: number;
+  // ── Versión 2 (nov 2026): cotización por casillas. Las cotizaciones antiguas no tienen pricingVersion y conservan su cálculo. ──
+  pricingVersion?: number;
+  tvInches?: number;              // pulgadas del TV (solo sugiere ancho y se escribe en el PDF)
+  alistonadoSides?: number;       // 0, 1 o 2 lados
+  alistonadoPrice?: number;
+  doors?: number;                 // puertas (incluidas en el precio; se pintan si hay pintura)
+  drawerFronts?: number;          // tapas de cajón (incluidas; se pintan si hay pintura)
+  hasPainting?: boolean;          // pintura poliuretano
+  paintFinish?: "alto_brillo" | "mate";
+  paintPrice?: number;
+  includeTvBracket?: boolean;     // soporte + instalación del TV
+  tvBracketPrice?: number;
 }
 
 interface TVCenterConfiguratorProps {
@@ -55,7 +68,7 @@ const WIDTH_OPTIONS = [
   { value: 2.40, label: "2.40m (+$2,000,000)" },
 ];
 
-export function TVCenterConfigurator({ config, onChange }: TVCenterConfiguratorProps) {
+function LegacyTVCenterConfigurator({ config, onChange }: TVCenterConfiguratorProps) {
   const [width, setWidth] = useState<number>(config?.width ?? BASE_WIDTH);
   const [hasHighGloss, setHasHighGloss] = useState<boolean>(config?.hasHighGloss ?? false);
   const [hasLedLights, setHasLedLights] = useState<boolean>(config?.hasLedLights ?? false);
@@ -351,6 +364,251 @@ export function TVCenterConfigurator({ config, onChange }: TVCenterConfiguratorP
                 <span className="text-2xl font-bold text-primary">${subtotal.toLocaleString()}</span>
               </div>
             </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+
+// ═════════════════════════════════════════════════════════════════════════════
+// VERSIÓN 2 — cotización por casillas (precios desde el Motor de Cotización)
+// ═════════════════════════════════════════════════════════════════════════════
+const V2_WIDTHS = [1.20, 1.40, 1.60, 1.80, 2.00, 2.20, 2.40];
+const TV_INCHES = [32, 40, 43, 50, 55, 58, 60, 65, 70, 75, 85];
+const tvWidthM = (inches: number) => inches * 0.0254 * 0.8716; // ancho real de un TV 16:9
+
+export function TVCenterConfigurator(props: TVCenterConfiguratorProps) {
+  // Cotizaciones guardadas antes de la versión 2 siguen con su cálculo original.
+  if (props.config && props.config.pricingVersion !== 2) return <LegacyTVCenterConfigurator {...props} />;
+  return <TVCenterConfiguratorV2 {...props} />;
+}
+
+function TVCenterConfiguratorV2({ config, onChange }: TVCenterConfiguratorProps) {
+  const { getPrice } = usePricing();
+  const fmt = (n: number) => "$" + Math.round(n).toLocaleString("es-CO");
+
+  const [tvInches, setTvInches] = useState<number>(config?.tvInches ?? 0);
+  const [width, setWidth] = useState<number>(config?.width ?? 1.6);
+  const [floatingShelves, setFloatingShelves] = useState<number>(config?.floatingShelves ?? 2);
+  const [alistonadoSides, setAlistonadoSides] = useState<number>(config?.alistonadoSides ?? 1);
+  const [doors, setDoors] = useState<number>(config?.doors ?? 0);
+  const [drawerFronts, setDrawerFronts] = useState<number>(config?.drawerFronts ?? 0);
+  const [hasPainting, setHasPainting] = useState<boolean>(config?.hasPainting ?? false);
+  const [paintFinish, setPaintFinish] = useState<"alto_brillo" | "mate">(config?.paintFinish ?? "alto_brillo");
+  const [hasLedLights, setHasLedLights] = useState<boolean>(config?.hasLedLights ?? false);
+  const [ledMeters, setLedMeters] = useState<number>(config?.ledMeters ?? 0);
+  const [ledMetersText, setLedMetersText] = useState<string>(config?.ledMeters ? String(config.ledMeters) : "");
+  const [includeTvBracket, setIncludeTvBracket] = useState<boolean>(config?.includeTvBracket ?? false);
+  const [includeTransport, setIncludeTransport] = useState<boolean>(config?.includeTransport ?? false);
+  const [transportCost, setTransportCost] = useState<number>(config?.transportCost ?? getPrice("TV_CENTER_TRANSPORTE"));
+  const [notes, setNotes] = useState<string>(config?.notes ?? "");
+
+  const base160 = getPrice("TV2_BASE");
+  const per20 = getPrice("TV2_PER_20CM");
+  const priceForWidth = (w: number) => base160 + Math.round(((w - 1.6) * 100) / 20) * per20;
+  const alistLado = getPrice("TV2_ALISTONADO_LADO");
+  const shelfExtra = getPrice("TV_CENTER_REPISA");
+  const paintDoor = getPrice("PINTADO_INF");
+  const paintDrawer = getPrice("PINTADO_CAJON");
+  const paintShelf = getPrice("TV2_PINTADO_REPISA");
+  const ledPrice = getPrice("TV_CENTER_LED");
+  const bracketPrice = getPrice("TV2_SOPORTE_INSTALACION");
+
+  const basePrice = priceForWidth(width);
+  const alistonadoPrice = alistonadoSides * alistLado;
+  const extraShelvesPrice = Math.max(0, floatingShelves - 2) * shelfExtra;
+  const paintPrice = hasPainting ? doors * paintDoor + drawerFronts * paintDrawer + floatingShelves * paintShelf : 0;
+  const ledLightsPrice = hasLedLights ? ledMeters * ledPrice : 0;
+  const tvBracketPrice = includeTvBracket ? bracketPrice : 0;
+  const transport = includeTransport ? transportCost : 0;
+  const subtotal = basePrice + alistonadoPrice + extraShelvesPrice + paintPrice + ledLightsPrice + tvBracketPrice + transport;
+
+  useEffect(() => {
+    onChange({
+      pricingVersion: 2,
+      width, basePrice, tvInches: tvInches || undefined,
+      alistonadoSides, alistonadoPrice,
+      doors, drawerFronts,
+      hasPainting, paintFinish, paintPrice,
+      hasHighGloss: false, highGlossPrice: 0,
+      hasLedLights, ledLightsPrice, ledMeters,
+      floatingShelves, extraShelvesPrice,
+      equipmentSpaces: 0, equipmentSpacesPrice: 0,
+      includeTvBracket, tvBracketPrice,
+      includeTransport, transportCost,
+      notes, subtotal,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [width, tvInches, alistonadoSides, doors, drawerFronts, hasPainting, paintFinish, hasLedLights, ledMeters, floatingShelves, includeTvBracket, includeTransport, transportCost, notes, base160, per20, alistLado, shelfExtra, paintDoor, paintDrawer, paintShelf, ledPrice, bracketPrice]);
+
+  const tvW = tvInches ? tvWidthM(tvInches) : 0;
+  const minSuggested = tvW ? V2_WIDTHS.find((w) => w >= tvW + 0.3) ?? V2_WIDTHS[V2_WIDTHS.length - 1] : 0;
+  const widthLabel = (w: number) => {
+    const diff = priceForWidth(w) - base160;
+    return `${w.toFixed(2)} m ${diff === 0 ? "(base)" : diff > 0 ? `(+${fmt(diff)})` : `(-${fmt(-diff)})`}`;
+  };
+  const sel = "h-9 rounded bg-[#0C1A1A] border border-white/15 text-sm text-white px-2";
+  const row = "flex items-center justify-between p-3 bg-[#162828] rounded border gap-3";
+  const count = (v: number, set: (n: number) => void, max = 8) => (
+    <select className={sel} value={v} onChange={(e) => set(parseInt(e.target.value))}>
+      {Array.from({ length: max + 1 }, (_, i) => <option key={i} value={i}>{i}</option>)}
+    </select>
+  );
+
+  return (
+    <Card className="mt-4 border-white/[0.15]">
+      <CardContent className="p-4 space-y-4">
+        <div className="flex items-center gap-2 pb-2 border-b border-white/[0.12]">
+          <Tv className="h-5 w-5 text-purple-400" />
+          <h4 className="font-bold text-foreground text-lg">Configuración Centro de TV</h4>
+        </div>
+
+        {/* TV y medidas */}
+        <div className="bg-white/[0.04] p-4 rounded-lg border border-white/[0.10] space-y-3">
+          <h5 className="font-semibold text-foreground">TV y medidas del mueble</h5>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+              <Label className="text-sm text-white/85 block mb-1">Pulgadas del TV</Label>
+              <select className={sel + " w-full"} value={tvInches} onChange={(e) => setTvInches(parseInt(e.target.value))}>
+                <option value={0}>Sin definir</option>
+                {TV_INCHES.map((i) => <option key={i} value={i}>{i}"</option>)}
+              </select>
+            </div>
+            <div>
+              <Label className="text-sm text-white/85 block mb-1">Ancho del mueble</Label>
+              <select className={sel + " w-full"} value={width} onChange={(e) => setWidth(parseFloat(e.target.value))}>
+                {V2_WIDTHS.map((w) => <option key={w} value={w}>{widthLabel(w)}</option>)}
+              </select>
+            </div>
+            <div>
+              <Label className="text-sm text-white/85 block mb-1">Repisas flotantes (2 incluidas)</Label>
+              <select className={sel + " w-full"} value={floatingShelves} onChange={(e) => setFloatingShelves(parseInt(e.target.value))}>
+                {[0, 1, 2, 3, 4, 5, 6].map((n) => <option key={n} value={n}>{n}{n > 2 ? ` (+${fmt((n - 2) * shelfExtra)})` : ""}</option>)}
+              </select>
+            </div>
+          </div>
+          {tvW > 0 && (
+            <p className={`text-xs ${width < tvW + 0.2 ? "text-amber-300" : "text-white/50"}`}>
+              Un TV de {tvInches}" mide cerca de {tvW.toFixed(2)} m de ancho. Ancho de mueble sugerido: {minSuggested.toFixed(2)} m o más.
+              {width < tvW + 0.2 ? " El ancho elegido queda muy justo." : ""}
+            </p>
+          )}
+          <p className="text-sm text-purple-300"><strong>Incluye:</strong> mueble flotante, panel para TV, repisas, bisagras y rieles de cierre lento. Precio base: <strong>{fmt(basePrice)}</strong></p>
+        </div>
+
+        {/* Alistonado */}
+        <div className={row}>
+          <div>
+            <Label className="font-medium">Alistonado</Label>
+            <p className="text-xs text-white/45">{fmt(alistLado)} por lado (lados cuando la pared es grande)</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <select className={sel} value={alistonadoSides} onChange={(e) => setAlistonadoSides(parseInt(e.target.value))}>
+              <option value={0}>Sin alistonado</option>
+              <option value={1}>1 lado</option>
+              <option value={2}>2 lados</option>
+            </select>
+            <span className={`font-semibold min-w-[90px] text-right ${alistonadoSides ? "text-purple-400" : "text-muted-foreground"}`}>{fmt(alistonadoPrice)}</span>
+          </div>
+        </div>
+
+        {/* Puertas y cajones */}
+        <div className="bg-white/[0.03] p-4 rounded-lg border border-[rgba(106,207,199,0.12)] space-y-2">
+          <h5 className="font-semibold text-white/85">Puertas y cajones <span className="text-xs font-normal text-white/40">(incluidos en el precio del mueble)</span></h5>
+          <div className="flex flex-wrap gap-6">
+            <label className="flex items-center gap-2 text-sm text-white/80">Puertas {count(doors, setDoors)}</label>
+            <label className="flex items-center gap-2 text-sm text-white/80">Tapas de cajón {count(drawerFronts, setDrawerFronts)}</label>
+          </div>
+        </div>
+
+        {/* Pintura */}
+        <div className={row + " flex-col items-stretch"}>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <Checkbox id="tv2-paint" checked={hasPainting} onCheckedChange={(c) => setHasPainting(c === true)} />
+              <Sparkles className="h-4 w-4 text-yellow-500" />
+              <Label htmlFor="tv2-paint" className="cursor-pointer font-medium">Pintura poliuretano</Label>
+            </div>
+            <span className={`font-semibold ${hasPainting ? "text-purple-400" : "text-muted-foreground"}`}>{fmt(paintPrice)}</span>
+          </div>
+          {hasPainting && (
+            <div className="pl-8 space-y-1">
+              <div className="flex items-center gap-4 text-sm text-white/80">
+                <label className="flex items-center gap-1"><input type="radio" checked={paintFinish === "alto_brillo"} onChange={() => setPaintFinish("alto_brillo")} /> Alto brillo</label>
+                <label className="flex items-center gap-1"><input type="radio" checked={paintFinish === "mate"} onChange={() => setPaintFinish("mate")} /> Mate</label>
+              </div>
+              <p className="text-xs text-white/45">
+                {doors} puerta(s) × {fmt(paintDoor)} + {drawerFronts} tapa(s) de cajón × {fmt(paintDrawer)} + {floatingShelves} repisa(s) × {fmt(paintShelf)}
+              </p>
+              {doors + drawerFronts + floatingShelves === 0 && <p className="text-xs text-amber-300">No hay piezas para pintar: agrega puertas, tapas de cajón o repisas.</p>}
+            </div>
+          )}
+        </div>
+
+        {/* LED */}
+        <div className={row + " flex-col items-stretch"}>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <Checkbox id="tv2-led" checked={hasLedLights} onCheckedChange={(c) => setHasLedLights(c === true)} />
+              <Lightbulb className="h-4 w-4 text-amber-500" />
+              <Label htmlFor="tv2-led" className="cursor-pointer font-medium">Iluminación LED ({fmt(ledPrice)}/ml)</Label>
+            </div>
+            <span className={`font-semibold ${hasLedLights ? "text-purple-400" : "text-muted-foreground"}`}>{fmt(ledLightsPrice)}</span>
+          </div>
+          {hasLedLights && (
+            <div className="flex items-center gap-3 pl-8">
+              <Label className="text-sm text-white/60">Metros lineales (pantalla, mueble, repisas):</Label>
+              <Input type="number" step="0.01" min="0" value={ledMetersText} placeholder="0.00" className="h-8 w-24 text-center"
+                onChange={(e) => { setLedMetersText(e.target.value); setLedMeters(parseFloat(e.target.value) || 0); }} />
+            </div>
+          )}
+        </div>
+
+        {/* Soporte e instalación del TV */}
+        <div className={row}>
+          <div className="flex items-center gap-3">
+            <Checkbox id="tv2-bracket" checked={includeTvBracket} onCheckedChange={(c) => setIncludeTvBracket(c === true)} />
+            <div>
+              <Label htmlFor="tv2-bracket" className="cursor-pointer font-medium">Soporte e instalación del TV</Label>
+              <p className="text-xs text-white/45">El soporte del TV y su instalación se cobran aparte</p>
+            </div>
+          </div>
+          <span className={`font-semibold ${includeTvBracket ? "text-purple-400" : "text-muted-foreground"}`}>{fmt(bracketPrice)}</span>
+        </div>
+
+        {/* Transporte */}
+        <div className={row}>
+          <div className="flex items-center gap-3">
+            <Checkbox id="tv2-transport" checked={includeTransport} onCheckedChange={(c) => setIncludeTransport(c === true)} />
+            <Label htmlFor="tv2-transport" className="cursor-pointer font-medium">Incluir transporte e imprevistos</Label>
+          </div>
+          {includeTransport && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-white/60">$</span>
+              <Input type="number" value={transportCost} onChange={(e) => setTransportCost(parseInt(e.target.value) || 0)} className="h-9 w-32 text-right" />
+            </div>
+          )}
+        </div>
+
+        <div>
+          <Label className="text-sm font-medium text-white/85 block mb-1">Notas adicionales</Label>
+          <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Especificaciones adicionales, colores, etc." className="bg-[#162828]" rows={2} />
+        </div>
+
+        {/* Resumen */}
+        <div className="bg-[#162828] p-4 rounded-lg border border-purple-500/30 text-sm space-y-1">
+          <h5 className="font-semibold text-foreground mb-2">Resumen del precio</h5>
+          <div className="flex justify-between"><span>Mueble flotante {width.toFixed(2)} m + panel + 2 repisas:</span><span>{fmt(basePrice)}</span></div>
+          {alistonadoSides > 0 && <div className="flex justify-between text-purple-400"><span>+ Alistonado ({alistonadoSides} lado{alistonadoSides > 1 ? "s" : ""}):</span><span>{fmt(alistonadoPrice)}</span></div>}
+          {extraShelvesPrice > 0 && <div className="flex justify-between text-purple-400"><span>+ {floatingShelves - 2} repisa(s) extra:</span><span>{fmt(extraShelvesPrice)}</span></div>}
+          {hasPainting && <div className="flex justify-between text-purple-400"><span>+ Pintura poliuretano {paintFinish === "mate" ? "mate" : "alto brillo"}:</span><span>{fmt(paintPrice)}</span></div>}
+          {hasLedLights && <div className="flex justify-between text-purple-400"><span>+ LED ({ledMeters} ml):</span><span>{fmt(ledLightsPrice)}</span></div>}
+          {includeTvBracket && <div className="flex justify-between text-purple-400"><span>+ Soporte e instalación del TV:</span><span>{fmt(tvBracketPrice)}</span></div>}
+          {includeTransport && <div className="flex justify-between text-purple-400"><span>+ Transporte e imprevistos:</span><span>{fmt(transport)}</span></div>}
+          <div className="border-t border-white/[0.15] pt-2 mt-2 flex justify-between">
+            <span className="font-bold">TOTAL:</span><span className="text-2xl font-bold text-primary">{fmt(subtotal)}</span>
           </div>
         </div>
       </CardContent>

@@ -350,7 +350,7 @@ export default function PricingConfig() {
                 title="Agrega los precios de Piezas de cocina (suelta) si faltan. No sobrescribe nada."
               >
                 {seedPiezas.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <DatabaseZap className="h-4 w-4" />}
-                Cargar precios de piezas
+                Cargar precios de piezas y centro de TV
               </Button>
               <Button
                 variant="secondary"

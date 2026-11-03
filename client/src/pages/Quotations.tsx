@@ -210,6 +210,18 @@ function buildDoorDescription(config: import("@/components/DoorConfigurator").Do
 }
 
 function buildTVDescription(_config: import("@/components/TVCenterConfigurator").TVCenterConfig): string {
+  const c: any = _config;
+  if (c && c.pricingVersion === 2) {
+    const parts = ["mueble flotante", "panel para TV"];
+    if (c.alistonadoSides > 0) parts.push(`alistonado (${c.alistonadoSides} lado${c.alistonadoSides > 1 ? "s" : ""})`);
+    parts.push(`${c.floatingShelves} repisas`);
+    if (c.doors > 0) parts.push(`${c.doors} puertas`);
+    if (c.drawerFronts > 0) parts.push(`${c.drawerFronts} cajones`);
+    if (c.hasPainting) parts.push(`pintura poliuretano ${c.paintFinish === "mate" ? "mate" : "alto brillo"}`);
+    if (c.hasLedLights) parts.push("luces LED");
+    if (c.includeTvBracket) parts.push("soporte e instalación del TV");
+    return `Centro de TV ${Number(c.width).toFixed(2)} m${c.tvInches ? ` para TV de ${c.tvInches}"` : ""}: ${parts.join(", ")}.`;
+  }
   return "Material aglomerado tipo RH, color a elegir por el cliente con: mueble flotante, pantalla para soporte TV, alistonado, repisas. (Diseño por definir)";
 }
 
@@ -905,6 +917,7 @@ export default function Quotations() {
             },
           } : undefined,
           tvCenterConfig: item.tvCenterConfig ? {
+            ...item.tvCenterConfig, // conserva pricingVersion y campos de la versión 2
             width: typeof item.tvCenterConfig.width === 'string' ? parseFloat(item.tvCenterConfig.width) : (item.tvCenterConfig.width ?? 1.60),
             basePrice: item.tvCenterConfig.basePrice ?? 2800000,
             hasHighGloss: item.tvCenterConfig.hasHighGloss ?? false,

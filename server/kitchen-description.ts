@@ -318,7 +318,7 @@ export function appendHouseStandards(itemType: string | undefined | null, descri
   if (!itemType) return base;
   if (/MATERIALES Y HERRAJES|Diseño por definir/i.test(base)) return base; // ya lo trae
   const mat = "• Aglomerado de alta presión tipo RH de 15 mm (resistente a la humedad)";
-  const color = /color|acabado/i.test(base) ? null : "• Color: a elegir por el cliente"; // no contradecir un color ya descrito
+  const color = /color/i.test(base) ? null : "• Color: a elegir por el cliente"; // no contradecir un color ya descrito
   const hinges = "• Bisagras de cierre lento";
   const rails = "• Rieles telescópicos full extensión con cierre lento";
   let lines: string[] | null = null;

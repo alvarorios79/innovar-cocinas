@@ -4,6 +4,7 @@
 // para que el PDF sea siempre idéntico.
 import * as db from "./db";
 import { buildKitchenQuoteDescription, appendHouseStandards } from "./kitchen-description";
+import { buildTVQuoteDescription } from "./tv-description";
 
 export async function buildQuotationPdfData(quotation: any, client: any, items: any[]) {
   // Preparar datos para el PDF
@@ -221,6 +222,10 @@ export async function buildQuotationPdfData(quotation: any, client: any, items: 
         description = lines.join('\n');
       }
       // Si es centro_tv y tiene tvCenterConfig, generar descripción detallada
+      else if (item.itemType === 'centro_tv' && tvCenterConfig && buildTVQuoteDescription(tvCenterConfig)) {
+        description = buildTVQuoteDescription(tvCenterConfig) as string;
+      }
+      // (centro de TV de cotizaciones antiguas: texto original)
       else if (item.itemType === 'centro_tv' && tvCenterConfig) {
         const lines: string[] = [];
         const formatCurrency = (value: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value);

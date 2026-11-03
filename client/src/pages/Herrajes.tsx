@@ -51,6 +51,7 @@ export default function Herrajes() {
           </div>
         </div>
 
+        <div className="flex items-center gap-2">
         {canImport && (
           <Button
             variant="outline"
@@ -91,6 +92,7 @@ export default function Herrajes() {
             Inicializar Catálogo
           </Button>
         )}
+        </div>
       </div>
 
       {/* Info */}

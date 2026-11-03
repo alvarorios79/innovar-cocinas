@@ -17,6 +17,7 @@ export function buildTVQuoteDescription(rawConfig: any): string | null {
   section("EL MUEBLE INCLUYE:");
   push("• Mueble flotante");
   push("• Panel para TV");
+  push("• Instalación del mueble");
   if (n(c.alistonadoSides) > 0) push(`• Alistonado en ${n(c.alistonadoSides) === 1 ? "1 lado" : `${n(c.alistonadoSides)} lados`} del panel`);
   push(`• ${n(c.floatingShelves)} repisa${n(c.floatingShelves) === 1 ? "" : "s"} flotante${n(c.floatingShelves) === 1 ? "" : "s"}`);
   if (n(c.doors) > 0) push(`• ${n(c.doors)} puerta${n(c.doors) === 1 ? "" : "s"}`);
@@ -54,7 +55,7 @@ export function buildTVQuoteDescription(rawConfig: any): string | null {
   }
 
   section("NO INCLUYE:");
-  if (!c.includeTvBracket) push("• Instalación del mueble ni del televisor: el mueble se entrega sin instalación.");
+  if (!c.includeTvBracket) push("• Soporte (herraje) del TV ni su instalación.");
   push("• Cables, canaletas ni instalación eléctrica.");
   push("• Televisor ni equipos (Innovar no los suministra).");
 

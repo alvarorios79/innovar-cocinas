@@ -212,7 +212,7 @@ function buildDoorDescription(config: import("@/components/DoorConfigurator").Do
 function buildTVDescription(_config: import("@/components/TVCenterConfigurator").TVCenterConfig): string {
   const c: any = _config;
   if (c && c.pricingVersion === 2) {
-    const parts = ["mueble flotante", "panel para TV"];
+    const parts = ["mueble flotante", "panel para TV", "instalación del mueble"];
     if (c.alistonadoSides > 0) parts.push(`alistonado (${c.alistonadoSides} lado${c.alistonadoSides > 1 ? "s" : ""})`);
     parts.push(`${c.floatingShelves} repisas`);
     if (c.doors > 0) parts.push(`${c.doors} puertas`);
@@ -224,7 +224,7 @@ function buildTVDescription(_config: import("@/components/TVCenterConfigurator")
     if (c.includeTvBracket) extras.push("soporte e instalación del TV");
     return `Centro de TV ${Number(c.width).toFixed(2)} m${c.tvInches ? ` para TV de ${c.tvInches}"` : ""}: ${parts.join(", ")}.` +
       (extras.length ? ` Adicionales: ${extras.join(", ")}.` : "") +
-      (c.includeTvBracket ? "" : " Se entrega sin instalación.");
+      (c.includeTvBracket ? "" : " No incluye soporte del TV ni su instalación.");
   }
   return "Material aglomerado tipo RH, color a elegir por el cliente con: mueble flotante, pantalla para soporte TV, alistonado, repisas. (Diseño por definir)";
 }

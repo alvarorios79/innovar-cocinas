@@ -127,9 +127,6 @@ export function buildKitchenQuoteDescription(rawConfig: any, manualDescription?:
         const ls = includesLine("sup"); if (ls) mueble.push(ls);
       }
     }
-    const APPL = ["moduloExtractor","moduloMicroondas","moduloExtractorMicroondas","moduloEstufaPuerta","moduloEstufaHorno","moduloLavaplatos"];
-    const hasApplModule = APPL.some((k) => DM[k] || Number(typeof kmQ[k] === "boolean" ? (kmQ[k] ? 1 : 0) : kmQ[k]) > 0) || !!(config.specialModules && config.specialModules.torreHornos);
-    if (mueble.length && hasApplModule) mueble.push("  - Los módulos para electrodomésticos son el espacio diseñado para ellos; Innovar no suministra electrodomésticos.");
     if (mueble.length) { section("MUEBLES:"); lines.push(...mueble); }
   }
 

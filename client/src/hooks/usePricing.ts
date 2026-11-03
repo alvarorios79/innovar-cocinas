@@ -97,10 +97,8 @@ const DEFAULT_PRICES: Record<string, { value: number; unit: string | null }> = {
 
   // Centros de TV
   TV_CENTER_BASE:       { value: 2800000, unit: "unidad" }, // base 1.60m; +$500K c/20cm adicionales
-  TV_CENTER_ALTO_BRILLO: { value: 350000, unit: "unidad" },
   TV_CENTER_LED:        { value: 180000,  unit: "ml" },
   TV_CENTER_REPISA:     { value: 100000,  unit: "unidad" },
-  TV_CENTER_ESPACIO_EQUIPO: { value: 150000, unit: "unidad" },
   TV_CENTER_TRANSPORTE: { value: 150000,  unit: "unidad" },
   // Centro de TV — versión 2 (nov 2026)
   TV2_BASE:              { value: 2300000, unit: "unidad" }, // base 1.60m SIN alistonado; ±TV2_PER_20CM cada 20cm

@@ -170,6 +170,16 @@ export const pricingRouter = router({
         } catch (e: any) {
           console.error("[seedPiezaPrices] no se pudo normalizar categoría:", e?.message);
         }
+        // Estos dos precios ya no se cobran (la pintura va por pieza y el espacio para equipos va con el diseño): se ocultan de la lista.
+        try {
+          const { sql } = await import("drizzle-orm");
+          const drizzleDb = await db.getDb();
+          if (drizzleDb) {
+            await drizzleDb.execute(sql`UPDATE "pricingConfig" SET "active" = 0 WHERE "code" IN ('TV_CENTER_ALTO_BRILLO','TV_CENTER_ESPACIO_EQUIPO')`);
+          }
+        } catch (e: any) {
+          console.error("[seedPiezaPrices] no se pudieron ocultar precios obsoletos de TV:", e?.message);
+        }
         // Precios del Centro de TV (versión 2) — solo se agregan si no existen
         const TV2: Array<[string, string, number, string]> = [
           ["TV2_BASE", "Centro TV v2 - base 1.60m (sin alistonado)", 2300000, "unidad"],
@@ -299,10 +309,8 @@ export const pricingRouter = router({
           { category: "puertas_producto", code: "PUERTA_CORREDIZA_DOBLE",   name: "Corrediza Doble (alias)",    value: 1350000, unit: "unidad", sortOrder: 7 },
           // Centros de TV
           { category: "centros_tv", code: "TV_CENTER_BASE",         name: "Centro TV base (hasta 1.60m)", value: 2800000, unit: "unidad", sortOrder: 1, description: "Cada 20cm adicionales suma $500.000." },
-          { category: "centros_tv", code: "TV_CENTER_ALTO_BRILLO",  name: "Incremento Alto Brillo",       value: 350000,  unit: "unidad", sortOrder: 2 },
           { category: "centros_tv", code: "TV_CENTER_LED",          name: "LED (por ml)",                 value: 180000,  unit: "ml",     sortOrder: 3 },
           { category: "centros_tv", code: "TV_CENTER_REPISA",       name: "Repisa adicional",             value: 100000,  unit: "unidad", sortOrder: 4 },
-          { category: "centros_tv", code: "TV_CENTER_ESPACIO_EQUIPO",name:"Espacio para equipo",          value: 150000,  unit: "unidad", sortOrder: 5 },
           { category: "centros_tv", code: "TV_CENTER_TRANSPORTE",   name: "Transporte e imprevistos",     value: 150000,  unit: "unidad", sortOrder: 6 },
           // Acabados Especiales
           { category: "acabados_especiales", code: "ACABADO_ALUMINIO_VIDRIO_M2", name: "Aluminio + Vidrio (m²)", value: 1200000, unit: "m2",  sortOrder: 1 },

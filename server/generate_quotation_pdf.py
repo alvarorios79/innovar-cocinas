@@ -172,7 +172,7 @@ def draw_terms(c, y_position):
     
     terms = [
         "• Forma de pago: 60% inicial, 40% al finalizar obra",
-        "• Tiempo de entrega: 25 días hábiles después de aprobar el diseño",
+        "• Tiempo de entrega: 25 días hábiles a partir de la aprobación del render final",
         "• NO incluye: Obra civil, plomería, instalación de gas",
         "• Validez de la cotización: 1 semana",
         "• Garantía: 6 meses en herrajes",

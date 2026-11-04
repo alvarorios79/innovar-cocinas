@@ -114,11 +114,19 @@ function NumberField(props: React.ComponentProps<typeof Input>) {
 
 // Cantidades de pintura alto brillo para cobrar: con el plano de módulos activo salen del plano; si no, de lo que se escribió
 function planPaintedQtys(config: any): any {
-  if (config?.modulePlan?.enabled && config.paintedDoors?.enabled) {
+  if (config?.modulePlan?.enabled) {
     const pr = computePlan(config.modulePlan, config).priced;
     return { upperQty: pr.up, lowerQty: pr.lo, pantryQty: pr.al, drawerQty: pr.ca, spiceQty: pr.es, golaQty: pr.go, lateralQty: pr.lat };
   }
   return config?.paintedDoors || {};
+}
+
+// Con el plano activo el cobro de pintura alto brillo se enciende solo si hay piezas pintadas en el plano (sin casilla aparte)
+function syncPlanPaint(config: any) {
+  if (!config?.modulePlan?.enabled) return;
+  const q = planPaintedQtys(config);
+  const n = (q.upperQty || 0) + (q.lowerQty || 0) + (q.pantryQty || 0) + (q.drawerQty || 0) + (q.spiceQty || 0) + (q.golaQty || 0) + (q.lateralQty || 0);
+  config.paintedDoors = { upperQty: 0, lowerQty: 0, pantryQty: 0, drawerQty: 0, spiceQty: 0, golaQty: 0, ...(config.paintedDoors || {}), ...q, enabled: n > 0 };
 }
 
 const r2 = (n: number) => (Math.round((Number(n) || 0) * 100 + 1e-9) / 100).toFixed(2); // 0.245 -> 0.25
@@ -1331,9 +1339,7 @@ export default function Quotations() {
     }
     
     // Con el plano de módulos activo y el pintado alto brillo marcado, las cantidades del pintado salen del plano
-    if ((config as any).modulePlan?.enabled && config.paintedDoors?.enabled) {
-      Object.assign(config.paintedDoors, planPaintedQtys(config));
-    }
+    syncPlanPaint(config);
 
     // Recalcular automaticamente con el item actualizado
     calculateKitchenTotal(index, newItems);
@@ -1388,6 +1394,7 @@ export default function Quotations() {
   const calculateKitchenTotal = (index: number, itemsArray: typeof items = items) => {
     const item = itemsArray[index];
     const config = item.kitchenConfig!;
+    syncPlanPaint(config);
     let total = 0;
     let _last = 0;
     const bd: Array<{ label: string; amount: number }> = [];
@@ -1801,6 +1808,7 @@ export default function Quotations() {
         const quantity = item.quantity || "1";
         // Recalcular el total basado en la configuración actual
         const config = item.kitchenConfig;
+        syncPlanPaint(config);
         let total = 0;
 
         // Calcular metraje resultante después de descontar muebles especiales
@@ -3270,6 +3278,37 @@ export default function Quotations() {
                               />
                             )}
 
+                            {/* Pintado Puertas Alto Brillo — resumen del plano (se cobra solo si hay piezas pintadas) */}
+                            {(item.kitchenConfig as any)?.modulePlan?.enabled && item.kitchenConfig?.paintedDoors?.enabled && (() => {
+                              const q: any = planPaintedQtys(item.kitchenConfig);
+                              const rows: Array<[string, number, string]> = [
+                                ["Puertas superiores", q.upperQty, 'PINTADO_SUP'], ["Puertas inferiores", q.lowerQty, 'PINTADO_INF'],
+                                ["Puertas de alacena / piso a techo", q.pantryQty, 'PINTADO_ALACENA'], ["Tapas de cajón", q.drawerQty, 'PINTADO_CAJON'],
+                                ["Tapas de especiero", q.spiceQty, 'PINTADO_ESPECIERO'], ["Tapas pequeña / gola", q.golaQty, 'PINTADO_GOLA'],
+                                ["Laterales grandes", q.lateralQty, 'PINTADO_LATERAL'],
+                              ];
+                              const extra = ((item.kitchenConfig as any)?.modulePlan?.extras?.especiales) || 0;
+                              const present = rows.filter(([, n]) => (n || 0) > 0);
+                              const tot = present.reduce((a, [, n, code]) => a + n * getPrice(code), 0);
+                              return (
+                                <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-pink-500/30 space-y-2 text-xs sm:text-sm">
+                                  <div className="flex items-center gap-2 font-semibold text-white/85">
+                                    <Palette className="h-3 w-3 sm:h-4 sm:w-4 text-pink-500" />
+                                    Pintado Puertas Alto Brillo (según el plano)
+                                  </div>
+                                  <p className="text-[11px] text-teal-400/80">Se cobra automáticamente lo que marcaste como pintado en el plano. Para cambiarlo, modifica el plano.</p>
+                                  {present.map(([label, n, code]) => (
+                                    <div key={code} className="flex justify-between rounded bg-black/20 px-2 py-1">
+                                      <span className="text-pink-200">{label} <span className="text-white/40">(${getPrice(code).toLocaleString("es-CO")} c/u)</span></span>
+                                      <span className="font-mono text-white">{n}</span>
+                                    </div>
+                                  ))}
+                                  <div className="flex justify-between px-2 pt-1 border-t border-white/10 text-pink-200"><span>Total pintura</span><span className="font-mono text-white">${tot.toLocaleString("es-CO")}</span></div>
+                                  {extra > 0 && <p className="text-[11px] text-amber-300/80">{extra} pieza(s) especial(es) de diseño: se cotizan aparte, no están en este cobro.</p>}
+                                </div>
+                              );
+                            })()}
+
                             {/* 3.5 Módulos pintado de puertas y tapas (se oculta cuando el plano de módulos está activo: el plano lo reemplaza) */}
                             {!['frente_pll', 'solo_superiores', 'solo_inferiores', 'puertas_tapas', 'solo_acabados'].includes(item.kitchenConfig?.shape || '') && !(item.kitchenConfig as any)?.modulePlan?.enabled && (
                             <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)] space-y-2 sm:space-y-3">
@@ -3956,6 +3995,7 @@ export default function Quotations() {
                             )}
 
                             {/* 8. Pintado Puertas Alto Brillo */}
+                            {!(item.kitchenConfig as any)?.modulePlan?.enabled && (
                             <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)] space-y-2 sm:space-y-3">
                               <div className="flex items-center space-x-2">
                                 <input
@@ -4127,6 +4167,7 @@ export default function Quotations() {
                                 </div>
                               )}
                             </div>
+                            )}
 
                             {/* 9. Acabados Especiales - Puertas Aluminio + Vidrio y LED Alacenas */}
                             <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)] space-y-3">

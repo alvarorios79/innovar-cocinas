@@ -83,7 +83,8 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle }: Prop
   const specials = activeSpecials(plan, config);
   const [sel, setSel] = useState<Sel>(null);
   const ZOOMS = [70, 95, 120, 170, 220];   // píxeles por metro
-  const [zoom, setZoom] = useState(2);       // acercar / alejar el dibujo
+  const [zoom, setZoom] = useState(2);
+  const [showExtras, setShowExtras] = useState(false);       // acercar / alejar el dibujo
   PX = ZOOMS[zoom];
   // Arrastre con puntero (funciona con dedo y con ratón)
   const dragRef = useRef<{ kind: "mod" | "tall"; t: number; row?: PlanRow; id: string; startX: number; moved: boolean; locked?: boolean; box: HTMLElement | null } | null>(null);
@@ -605,58 +606,60 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle }: Prop
 
           <div className="rounded-lg border border-pink-500/30 bg-pink-900/10 p-3 space-y-3">
             <p className="text-sm font-semibold text-pink-200">Piezas a pintar (alto brillo)</p>
-            <div className="space-y-2 rounded bg-black/20 p-2">
-              <p className="text-xs font-semibold text-white/60">¿Qué va pintado?</p>
-              <div className="flex flex-wrap gap-4 text-xs text-white/80">
-                {(["upper", "lower"] as PlanRow[]).map(r => {
-                  const ps = paintState(allMods.filter(x => x.r === r));
-                  const on = ps.total === 0 ? (plan.paintRows?.[r] ?? (plan.paintAll !== false)) : ps.state === "all";
-                  return (
-                    <label key={r} className="flex items-center gap-2 cursor-pointer">
-                      <input type="checkbox" className="h-4 w-4 accent-pink-500" checked={on}
-                        ref={(el) => { if (el) el.indeterminate = ps.state === "some"; }}
-                        onChange={(e) => edit(p => {
-                          p.paintRows = { ...(p.paintRows || {}), [r]: e.target.checked };
-                          const keys = new Set(CATALOG.filter(cc => cc.row === r).map(cc => cc.key));
-                          p.paintKeys = Object.fromEntries(Object.entries(p.paintKeys || {}).filter(([k]) => !keys.has(k)));
-                          p.tramos.forEach(tt => tt[r].forEach(mm => { mm.paint = undefined; mm.unpainted = undefined; }));
-                        })} />
-                      {r === "upper" ? "Muebles superiores" : "Muebles inferiores"}
-                      {ps.total > 0 && <span className={ps.state === "some" ? "text-amber-300" : "text-white/40"}>({ps.n} de {ps.total} van pintados)</span>}
-                    </label>
-                  );
-                })}
-              </div>
-              {typeKeys.length > 0 && (
-                <div>
-                  <p className="text-[11px] text-white/45 mb-1">Excepciones por tipo (ej. solo los cajoneros pintados):</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {typeKeys.map(k => {
-                      const cat = CATALOG_BY_KEY[k];
-                      const sp = SPECIALS.find(s => s.key === k);
-                      const rowOf: PlanRow = cat?.row || "lower";
-                      const ts = cat ? paintState(allMods.filter(x => x.mm.key === k)) : null;
-                      const on = ts ? ts.state === "all" : (plan.paintKeys?.[k] !== false);
-                      const some = ts?.state === "some";
-                      return (
-                        <label key={k} className={`flex items-center gap-1.5 rounded px-2 py-1 text-xs cursor-pointer border ${on ? "bg-pink-900/30 border-pink-500/40 text-pink-100" : some ? "bg-amber-900/20 border-amber-400/40 text-amber-100" : "bg-white/[0.03] border-white/10 text-white/40"}`}>
-                          <input type="checkbox" className="h-3.5 w-3.5 accent-pink-500" checked={on}
-                            ref={(el) => { if (el) el.indeterminate = !!some; }}
-                            onChange={(e) => edit(p => {
-                              p.paintKeys = { ...(p.paintKeys || {}), [k]: e.target.checked };
-                              p.tramos.forEach(tt => (["upper", "lower"] as PlanRow[]).forEach(r => tt[r].forEach(mm => { if (mm.key === k) { mm.paint = undefined; mm.unpainted = undefined; } })));
-                            })} />
-                          <ModuleIcon k={k} size={16} />
-                          {cat ? cat.short : sp?.label}
-                          {ts && ts.total > 1 && <span className="text-[10px] opacity-60">({ts.n}/{ts.total})</span>}
-                        </label>
-                      );
-                    })}
-                  </div>
-                  <p className="text-[11px] text-white/35 mt-1">Al tocar un icono del dibujo puedes cambiar solo ese módulo.</p>
-                </div>
-              )}
+            {/* Atajos: el control fino es tocar el módulo en el dibujo (Pintar / Quitar pintura) */}
+            <div className="flex flex-wrap gap-2 text-xs">
+              {(["upper", "lower"] as PlanRow[]).map(r => {
+                const ps = paintState(allMods.filter(x => x.r === r));
+                if (ps.total === 0) return null;
+                const all = ps.state === "all";
+                return (
+                  <button key={r} type="button"
+                    className={`h-8 px-3 rounded border ${all ? "bg-red-900/30 border-red-400/50 text-red-100 hover:bg-red-900/50" : "bg-pink-600/70 border-pink-300/60 text-white hover:bg-pink-600"}`}
+                    onClick={() => edit(p => {
+                      p.paintRows = { ...(p.paintRows || {}), [r]: !all };
+                      const keys = new Set(CATALOG.filter(cc => cc.row === r).map(cc => cc.key));
+                      p.paintKeys = Object.fromEntries(Object.entries(p.paintKeys || {}).filter(([k]) => !keys.has(k)));
+                      p.tramos.forEach(tt => tt[r].forEach(mm => { mm.paint = undefined; mm.unpainted = undefined; }));
+                    })}>
+                    🎨 {all ? "Quitar pintura a todos los" : "Pintar todos los"} {r === "upper" ? "superiores" : "inferiores"} <span className="opacity-70">({ps.n}/{ps.total})</span>
+                  </button>
+                );
+              })}
+              {specials.length > 0 && (() => {
+                const allOn = specials.every(s => plan.paintKeys?.[s.key] !== false);
+                return (
+                  <button type="button"
+                    className={`h-8 px-3 rounded border ${allOn ? "bg-red-900/30 border-red-400/50 text-red-100 hover:bg-red-900/50" : "bg-pink-600/70 border-pink-300/60 text-white hover:bg-pink-600"}`}
+                    onClick={() => edit(p => { p.paintKeys = { ...(p.paintKeys || {}), ...Object.fromEntries(specials.map(s => [s.key, !allOn])) }; })}>
+                    🎨 {allOn ? "Quitar pintura a los" : "Pintar los"} de piso a techo
+                  </button>
+                );
+              })()}
             </div>
+
+            {/* Solo lo que va pintado */}
+            {(() => {
+              const groups = new Map<string, { key: string; label: string; w: number; n: number }>();
+              result.detail.filter(d => d.painted && !d.noPieces && d.row !== "extra").forEach(d => {
+                const k = `${d.key}|${d.width}`;
+                const g = groups.get(k);
+                if (g) g.n += 1; else groups.set(k, { key: d.key, label: CATALOG_BY_KEY[d.key]?.short || d.label, w: d.width || 0, n: 1 });
+              });
+              if (!groups.size) return null;
+              return (
+                <div className="space-y-1">
+                  <p className="text-xs font-semibold text-white/60">Módulos que se pintan</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {Array.from(groups.values()).map(g => (
+                      <span key={`${g.key}${g.w}`} className="flex items-center gap-1.5 rounded border border-pink-500/40 bg-pink-900/30 px-2 py-1 text-xs text-pink-100">
+                        <ModuleIcon k={g.key} size={16} />
+                        {g.n > 1 ? `${g.n} × ` : ""}{g.label} <span className="text-pink-100/50">{m2(g.w)} m</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
             {pieceRows.every(([, n]) => !n) && <p className="text-xs text-white/40">Ninguna pieza marcada para pintar.</p>}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {pieceRows.filter(([, n]) => n > 0).map(([label, n]) => (
@@ -666,16 +669,23 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle }: Prop
                 </div>
               ))}
             </div>
-            <div className="space-y-1.5">
-              <p className="text-xs font-semibold text-white/50 uppercase tracking-wide">Extras por diseño</p>
-              {stepper("Lateral de mueble superior", "latSup")}
-              {stepper("Lateral de mueble inferior", "latInf")}
-              {stepper("Puerta de módulo alto", "puertaAlta")}
-              {stepper("Piezas especiales (diseño especial)", "especiales")}
-            </div>
-            <p className="text-[11px] text-white/40">
-              En esta etapa los números son informativos. Para cobrarlos, usa el bloque "Pintado Puertas Alto Brillo" más abajo.
-            </p>
+            {(() => {
+              const EX: Array<[string, keyof ModulePlan["extras"]]> = [
+                ["Lateral de mueble superior", "latSup"], ["Lateral de mueble inferior", "latInf"],
+                ["Puerta de módulo alto", "puertaAlta"], ["Piezas especiales (diseño especial)", "especiales"],
+              ];
+              const used = EX.filter(([, k]) => (plan.extras[k] || 0) > 0);
+              const shown = showExtras ? EX : used;
+              return (
+                <div className="space-y-1.5">
+                  {shown.length > 0 && <p className="text-xs font-semibold text-white/50 uppercase tracking-wide">Extras por diseño</p>}
+                  {shown.map(([label, k]) => stepper(label, k))}
+                  <button type="button" className="text-xs text-pink-200/80 hover:text-pink-100 underline underline-offset-2" onClick={() => setShowExtras(v => !v)}>
+                    {showExtras ? "Ocultar extras" : "+ Agregar pieza extra (laterales, puerta alta, diseño especial)"}
+                  </button>
+                </div>
+              );
+            })()}
           </div>
 
           {result.modules.length > 0 && (

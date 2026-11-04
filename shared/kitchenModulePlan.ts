@@ -11,6 +11,7 @@ export interface Pieces {
   ca?: number; // tapas de cajón
   es?: number; // tapas de especiero
   go?: number; // golas (incluye frente pequeño de cucharero)
+  lat?: number; // laterales grandes (de nicho de nevera / alacena): pieza grande, se cobra aparte
 }
 
 export interface CatalogEntry {
@@ -26,7 +27,7 @@ export interface CatalogEntry {
   lastResort?: boolean;   // último que se toca
   corner?: boolean;       // ocupa ancho en las dos paredes del vértice
   noPieces?: boolean;     // no es mueble (ej. ventana)
-  pieces: (w: number) => Pieces;
+  pieces: (w: number, m?: PlanModule) => Pieces;
 }
 
 // Regla de puertas: lo ideal es 0.30–0.35 m por puerta y nunca más de 0.45 m.
@@ -53,11 +54,11 @@ export const CATALOG: CatalogEntry[] = [
   { key: "esquinero1x1", label: "Esquinero inferior 1×1", short: "Esq. inf.", row: "lower", width: 1.00, min: 0.85, lastResort: true, corner: true, pieces: () => ({ lo: 2 }) },
   // ── Superiores ──
   { key: "moduloExtractor", label: "Extractor", short: "Extractor", row: "upper", width: 0.70, locked: true, pieces: () => ({}) },
-  { key: "moduloPlatero", label: "Platero (2 puertas)", short: "Platero", row: "upper", width: 0.70, locked: true, pieces: () => ({ up: 2 }) },
+  { key: "moduloPlatero", label: "Platero (0.70–0.90)", short: "Platero", row: "upper", width: 0.70, min: 0.70, max: 0.90, pieces: (w) => ({ up: doorsForWidth(w) }) },
   { key: "moduloExtractorMicroondas", label: "Extractor y microondas", short: "Extr.+micro.", row: "upper", width: 0.70, locked: true, pieces: () => ({ up: 4 }) },
   { key: "moduloMicroondas", label: "Microondas", short: "Microondas", row: "upper", width: 0.60, pieces: () => ({}) },
   { key: "moduloAlmacSup", label: "Almacenamiento superior", short: "Alm. sup.", row: "upper", width: 0.65, flexible: true, pieces: (w) => ({ up: doorsForWidth(w), go: 1 }) },
-  { key: "moduloRepisa", label: "Espacio de repisas (6 piezas)", short: "Repisas", row: "upper", width: 0.30, min: 0.20, flexible: true, pieces: () => ({ up: 6 }) },
+  { key: "moduloRepisa", label: "Espacio de repisas", short: "Repisas", row: "upper", width: 0.30, min: 0.20, flexible: true, pieces: (_w, m) => ({ up: Math.max(0, Math.floor(m?.qty || 0)) }) },
   { key: "esquineroSuperior", label: "Esquinero superior (0.60×0.60)", short: "Esq. sup.", row: "upper", width: 0.60, locked: true, corner: true, pieces: () => ({ up: 1 }) },
   { key: "ventana", label: "Ventana (sin mueble)", short: "Ventana", row: "upper", width: 1.00, noPieces: true, pieces: () => ({}) },
 ];
@@ -74,12 +75,12 @@ export const FILL_KEYS: Record<PlanRow, string[]> = {
 //  - nichos: puerta batiente superior + lateral (el lateral se puede quitar)
 //  - alacenas: una puerta de 0.50 m + lateral según ubicación (se marca)
 //  - torre de hornos: tapa de cajón, gola, pantalla y 2 puertas de tamaño de mueble superior
-export interface SpecialEntry { key: string; label: string; detail: string; width: number; editable?: boolean; pieces: Pieces; lateral?: { class: "up" | "al"; defaultOn: boolean } }
+export interface SpecialEntry { key: string; label: string; detail: string; width: number; editable?: boolean; pieces: Pieces; lateral?: { class: "lat"; defaultOn: boolean } }
 export const SPECIALS: SpecialEntry[] = [
-  { key: "nichoNevecon", label: "Nicho nevecón", detail: "puerta batiente superior", width: 1.00, pieces: { up: 1 }, lateral: { class: "up", defaultOn: true } },
-  { key: "nichoNevera", label: "Nicho nevera", detail: "puerta batiente superior", width: 0.75, pieces: { up: 1 }, lateral: { class: "up", defaultOn: true } },
-  { key: "alacenaEntrepanos", label: "Alacena con entrepaños", detail: "1 puerta", width: 0.50, editable: true, pieces: { al: 1 }, lateral: { class: "al", defaultOn: false } },
-  { key: "alacenaHerraje", label: "Alacena con herraje", detail: "1 puerta de 0.50 m", width: 0.50, pieces: { al: 1 }, lateral: { class: "al", defaultOn: false } },
+  { key: "nichoNevecon", label: "Nicho nevecón", detail: "puerta batiente superior", width: 1.00, pieces: { up: 1 }, lateral: { class: "lat", defaultOn: true } },
+  { key: "nichoNevera", label: "Nicho nevera", detail: "puerta batiente superior", width: 0.75, pieces: { up: 1 }, lateral: { class: "lat", defaultOn: true } },
+  { key: "alacenaEntrepanos", label: "Alacena con entrepaños", detail: "1 puerta", width: 0.50, editable: true, pieces: { al: 1 }, lateral: { class: "lat", defaultOn: false } },
+  { key: "alacenaHerraje", label: "Alacena con herraje", detail: "1 puerta de 0.50 m", width: 0.50, pieces: { al: 1 }, lateral: { class: "lat", defaultOn: false } },
   { key: "torreHornos", label: "Torre de hornos", detail: "tapa de cajón, gola, pantalla y 2 puertas", width: 0.70, pieces: { up: 3, ca: 1, go: 1 } },
 ];
 
@@ -91,6 +92,8 @@ export interface PlanModule {
   autoGroup?: "small";   // agrupa basurero/especiero/botellero consecutivos
   autoRole?: "cornerFill"; // almacenamiento que compensa el esquinero (suma los pequeños pegados al esquinero)
   paint?: boolean;       // forzar pintado / sin pintar solo este módulo
+  qty?: number;          // cantidad de piezas que indica el usuario (ej. repisas)
+  autoClamp?: [number, number]; // el ancho automático se limita a este rango (platero 0.70–0.90)
 }
 export interface PlanTramo { name: string; length: number; isIsland?: boolean; upper: PlanModule[]; lower: PlanModule[] }
 export interface PlanExtras { latSup: number; latInf: number; latNevera: number; puertaAlta: number; especiales: number }
@@ -223,10 +226,10 @@ function genAutoUppers(p: ModulePlan, t: number): PlanModule[] {
     flush();
     const add = (key: string, w: number, extra: Partial<PlanModule> = {}) => { if (!sup.has(m.id + ":" + key)) out.push(mk(key, w, [m.id], extra)); };
     switch (m.key) {
-      case "moduloLavaplatos": add("moduloPlatero", 0.70); break;
+      case "moduloLavaplatos":
       case "moduloLavaplatosDoble":
-        add("moduloPlatero", 0.70);
-        if (m.width - 0.70 > 0.01) add("moduloAlmacSup", m.width - 0.70, { autoBase: 0.70 });
+        // El platero toma el ancho del lavaplatos, entre 0.70 y 0.90 (si es distinto se resuelve en el diseño definitivo)
+        add("moduloPlatero", Math.min(0.90, Math.max(0.70, m.width)), { autoBase: 0, autoClamp: [0.70, 0.90] });
         break;
       case "moduloEstufaPuerta":
       case "moduloEstufaHorno": add("moduloExtractor", 0.70); break;
@@ -247,27 +250,35 @@ export function rebuildAutoUpper(p: ModulePlan, t: number) {
   const tr = p.tramos[t];
   if (!tr || tr.isIsland || p.autoUpper === false) return;
   const old = tr.upper;
-  const keep = new Map<string, PlanModule>();
-  old.forEach(m => { if (m.autoOf) keep.set(autoSig(m), m); });
-  const manual: Array<{ m: PlanModule; k: number }> = [];
-  let autosSeen = 0;
-  old.forEach(m => { if (m.autoOf) autosSeen++; else manual.push({ m, k: autosSeen }); });
+  const fresh = genAutoUppers(p, t);
+  const freshBySig = new Map(fresh.map(m => [autoSig(m), m]));
 
-  const fresh = genAutoUppers(p, t).map(m => {
-    const prev = keep.get(autoSig(m));
-    return prev ? { ...m, id: prev.id, unpainted: prev.unpainted, paint: prev.paint } : m;
+  // 1) Se conserva el orden actual de la fila (incluido lo que el usuario movió a mano)
+  const result: PlanModule[] = [];
+  old.forEach(m => {
+    if (!m.autoOf) { result.push(m); return; }                 // a mano: se queda
+    const f = freshBySig.get(autoSig(m));
+    if (f) result.push({ ...m, width: f.width, autoBase: f.autoBase, autoGroup: f.autoGroup, autoRole: f.autoRole, autoClamp: f.autoClamp, alsoTramo: f.alsoTramo });
   });
-
-  const merged: PlanModule[] = [];
-  const trailing = fresh.length && isTrailingCorner(fresh[fresh.length - 1]) ? (fresh.length >= 2 && fresh[fresh.length - 2].autoRole === "cornerFill" ? 2 : 1) : 0;
-  const limit = fresh.length - trailing; // los manuales no pasan del bloque final del esquinero
-  let mi = 0;
-  for (let i = 0; i <= fresh.length; i++) {
-    while (mi < manual.length && Math.min(manual[mi].k, limit) <= i && (i <= limit)) { merged.push(manual[mi].m); mi++; }
-    if (i < fresh.length) merged.push(fresh[i]);
+  // 2) Los superiores nuevos se insertan detrás del que les antecede en el orden de los inferiores
+  fresh.forEach((f, i) => {
+    const sig = autoSig(f);
+    if (result.some(m => m.autoOf && autoSig(m) === sig)) return;
+    const prev = i > 0 ? fresh[i - 1] : undefined;
+    const prevIdx = prev ? result.findIndex(m => m.autoOf && autoSig(m) === autoSig(prev)) : -1;
+    result.splice(prevIdx >= 0 ? prevIdx + 1 : 0, 0, f);
+  });
+  // 3) El esquinero (y su compensación) siempre al final de la pared
+  const tail: PlanModule[] = [];
+  const corner = result.find(m => isTrailingCorner(m) && m.autoOf);
+  if (corner) {
+    const ci = result.indexOf(corner);
+    const fillIdx = result.findIndex(m => m.autoRole === "cornerFill");
+    [fillIdx >= 0 ? result[fillIdx] : undefined, result[ci]].forEach(x => { if (x) tail.push(x); });
+    tr.upper = [...result.filter(m => !tail.includes(m)), ...tail];
+  } else {
+    tr.upper = result;
   }
-  while (mi < manual.length) { merged.push(manual[mi].m); mi++; }
-  tr.upper = merged;
   syncAuto(p);
 }
 
@@ -278,7 +289,9 @@ export function syncAuto(p: ModulePlan) {
     tr.upper = tr.upper.filter(m => {
       if (m.autoBase === undefined || !m.autoOf) return true;
       const sum = m.autoOf.reduce((a, id) => a + (lowerById.get(id)?.width || 0), 0);
-      m.width = round2(sum - m.autoBase);
+      let w = sum - m.autoBase;
+      if (m.autoClamp) w = Math.min(m.autoClamp[1], Math.max(m.autoClamp[0], w));
+      m.width = round2(w);
       return m.width > 0.01;
     });
   });
@@ -325,7 +338,7 @@ export function moveModule(p: ModulePlan, t: number, row: PlanRow, id: string, t
   if (i < 0) return;
   const [m] = arr.splice(i, 1);
   arr.splice(Math.max(0, Math.min(toIndex, arr.length)), 0, m);
-  if (row === "lower") rebuildAutoUpper(p, t);
+  // Mover un inferior NO mueve su superior: el usuario reacomoda ambos a mano.
 }
 
 // ¿Va pintado este módulo? Prioridad: el propio módulo > su tipo (ej. todos los cajoneros) > la fila (superiores/inferiores).
@@ -375,7 +388,7 @@ export interface PlanResult {
 
 export function computePlan(rawPlan: any, config: any): PlanResult {
   const plan = normalizePlan(rawPlan, config);
-  const acc: Required<Pieces> = { up: 0, lo: 0, al: 0, ca: 0, es: 0, go: 0 };
+  const acc: Required<Pieces> = { up: 0, lo: 0, al: 0, ca: 0, es: 0, go: 0, lat: 0 };
   const counted = new Map<string, { label: string; widths: number[] }>();
   const warnings: string[] = [];
 
@@ -388,7 +401,8 @@ export function computePlan(rawPlan: any, config: any): PlanResult {
           const e = counted.get(m.key) || { label: cat.label, widths: [] };
           e.widths.push(m.width); counted.set(m.key, e);
         }
-        if (!cat.noPieces && isPainted(plan, m, row)) addPieces(acc, cat.pieces(m.width));
+        if (!cat.noPieces && isPainted(plan, m, row)) addPieces(acc, cat.pieces(m.width, m));
+        if (m.key === "moduloRepisa" && !(m.qty && m.qty > 0)) warnings.push(`${tr.name}: indica cuántas repisas lleva el espacio de repisas.`);
         if (cat.min && m.width < cat.min - 1e-9) warnings.push(`${tr.name}: ${cat.short} no debería medir menos de ${cat.min.toFixed(2)} m.`);
         if (cat.max && m.width > cat.max + 1e-9) warnings.push(`${tr.name}: ${cat.short} normalmente no pasa de ${cat.max.toFixed(2)} m.`);
       });

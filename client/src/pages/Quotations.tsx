@@ -42,6 +42,7 @@ import { ArchiveFilterTabs } from "@/components/ArchiveFilterTabs";
 import { InitialPaymentModal } from "@/components/InitialPaymentModal";
 import { PageHeader } from "@/components/PageHeader";
 import { ExportQuotationsButton } from "@/components/ExportQuotationsButton";
+import { KitchenModulePlanner } from "@/components/KitchenModulePlanner";
 
 
 interface HardwareSelection {
@@ -3234,6 +3235,14 @@ export default function Quotations() {
                                 })()} ml
                               </p>
                             </div>
+                            )}
+
+                            {/* 3.4 Plano de módulos por tramos (etapa 1: informativo, no cambia el precio) */}
+                            {!['frente_pll', 'solo_superiores', 'solo_inferiores', 'puertas_tapas', 'solo_acabados'].includes(item.kitchenConfig?.shape || '') && (
+                              <KitchenModulePlanner
+                                config={item.kitchenConfig}
+                                onChange={(plan) => updateKitchenConfig(index, "modulePlan", plan)}
+                              />
                             )}
 
                             {/* 3.5 Módulos pintado de puertas y tapas */}

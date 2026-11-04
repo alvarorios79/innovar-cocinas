@@ -754,7 +754,7 @@ export default function Admin() {
 
         {/* Main Content */}
         <Tabs defaultValue="appointments" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-6 h-auto gap-2 bg-transparent p-1">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-9 h-auto gap-2 bg-transparent p-1">
             <TabsTrigger 
               value="appointments" 
               className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-500/10 transition-colors"

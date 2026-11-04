@@ -94,6 +94,7 @@ export interface PlanModule {
   paint?: boolean;       // forzar pintado / sin pintar solo este módulo
   qty?: number;          // cantidad de piezas que indica el usuario (ej. repisas)
   autoClamp?: [number, number]; // el ancho automático se limita a este rango (platero 0.70–0.90)
+  manual?: boolean;      // el usuario lo colocó a mano: no se realinea solo con su inferior
   gap?: number;          // espacio libre (m) entre el elemento anterior y este módulo
 }
 export interface PlanTramo { name: string; length: number; isIsland?: boolean; upper: PlanModule[]; lower: PlanModule[] }
@@ -302,12 +303,25 @@ export function syncAuto(p: ModulePlan) {
   });
 }
 
-export function addModuleToPlan(p: ModulePlan, t: number, row: PlanRow, key: string): PlanModule | undefined {
+export function addModuleToPlan(p: ModulePlan, t: number, row: PlanRow, key: string, config?: any): PlanModule | undefined {
   const cat = CATALOG_BY_KEY[key];
   if (!cat || !p.tramos[t]) return undefined;
   const mod: PlanModule = { id: newId(), key, width: (!cat.locked && p.defaultWidth?.[key]) || cat.width };
   if (cat.corner && t + 1 < p.tramos.length && !p.tramos[t + 1].isIsland && !p.tramos[t].isIsland) mod.alsoTramo = t + 1;
+  // Con `config`, el módulo nuevo se acomoda en el primer espacio libre de la pared donde quepa
+  let freeStart: number | undefined;
+  if (config && !mod.alsoTramo && !isTrailingCorner(mod) && mod.autoRole !== "cornerFill") {
+    const items = rowItems(p, t, row, config).slice().sort((a, b) => a.start - b.start);
+    let cursor = 0;
+    for (const it of items) {
+      if (it.start - cursor >= mod.width - 1e-9) break;
+      cursor = Math.max(cursor, it.start + it.width);
+    }
+    const tl = p.tramos[t].length;
+    if (!(tl > 0 && cursor + mod.width > tl + 1e-9)) freeStart = cursor;
+  }
   insertBeforeTrailingBlock(p.tramos[t][row], mod);
+  if (freeStart !== undefined) dropModule(p, t, row, mod.id, freeStart, config);
   if (row === "lower") rebuildAutoUpper(p, t);
   return mod;
 }
@@ -414,6 +428,11 @@ export function rowItems(plan: ModulePlan, t: number, row: PlanRow, config: any)
 }
 
 export function rowUsed(plan: ModulePlan, t: number, row: PlanRow, config: any): number {
+  return round2(rowItems(plan, t, row, config).reduce((a, s) => a + s.width, 0));
+}
+
+// Hasta dónde llega el último elemento de la fila (incluye los espacios libres).
+export function rowEnd(plan: ModulePlan, t: number, row: PlanRow, config: any): number {
   return round2(rowItems(plan, t, row, config).reduce((a, s) => Math.max(a, s.start + s.width), 0));
 }
 
@@ -573,10 +592,57 @@ function dropInRow(p: ModulePlan, t: number, row: PlanRow, target: DropTarget, s
 }
 
 // Mueve un módulo a la posición `start` (m) de su fila sin afectar a los demás.
-export function dropModule(p: ModulePlan, t: number, row: PlanRow, id: string, start: number, config: any) {
+export function dropModule(p: ModulePlan, t: number, row: PlanRow, id: string, start: number, config: any, byUser = false) {
+  if (byUser && row === "upper") { const m = p.tramos[t].upper.find(x => x.id === id); if (m) m.manual = true; }
   const other: PlanRow = row === "upper" ? "lower" : "upper";
   const cuts = rowItems(p, t, other, config).map(i => round2(i.start + i.width));
   dropInRow(p, t, row, { kind: "mod", id }, start, config, cuts);
+}
+
+// Los superiores automáticos (y los módulos altos en la fila de arriba) se alinean con lo que hay abajo:
+// cada superior queda sobre su inferior; lo que el usuario colocó a mano arriba se respeta.
+export function alignUppers(p: ModulePlan, config: any) {
+  if (p.autoUpper === false) return;
+  p.tramos.forEach((tr, t) => {
+    if (tr.isIsland) return;
+    const prefix = rowItems(p, t, "upper", config).filter(i => i.fromPrev).reduce((a, i) => a + i.width, 0);
+    const lowerStart = new Map<string, number>();
+    rowItems(p, t, "lower", config).forEach(i => { lowerStart.set(i.kind === "mod" ? "m:" + i.mod!.id : "t:" + i.key, i.start); });
+    const cur = new Map<string, number>();
+    rowItems(p, t, "upper", config).forEach(i => { cur.set(i.kind === "mod" ? "m:" + i.mod!.id : "t:" + i.key, i.start); });
+    const list = ownList(p, t, "upper", config);
+    const tb = trailingBlockSize(tr.upper);
+    const head = list.slice(0, list.length - tb), tail = list.slice(list.length - tb);
+    const keyOf = (e: OwnEl) => e.kind === "mod" ? "m:" + e.mod.id : "t:" + e.key;
+    const target = (e: OwnEl): number => {
+      const k = keyOf(e);
+      if (e.kind === "tall") return lowerStart.get(k) ?? cur.get(k) ?? 0;
+      if (e.mod.autoOf && !e.mod.manual) {
+        const src = lowerStart.get("m:" + e.mod.autoOf[0]);
+        if (src !== undefined) return src;
+      }
+      return cur.get(k) ?? 0;
+    };
+    const widthOf = (e: OwnEl) => e.kind === "mod" ? e.mod.width : (activeSpecials(p, config).find(s => s.key === e.key)?.w || 0);
+    const sorted = head.map((e, i) => ({ e, i, tg: target(e) })).sort((a, b) => a.tg - b.tg || a.i - b.i).map(x => x.e);
+    const all = [...sorted, ...tail];
+    let cursor = prefix;
+    all.forEach(e => {
+      const isTail = tail.includes(e);
+      const tg = isTail ? Math.max(cursor, target(e)) : target(e);
+      const g = Math.max(0, round2(tg - cursor));
+      if (e.kind === "mod") { if (g > 0) e.mod.gap = g; else delete e.mod.gap; }
+      else {
+        const sp = activeSpecials(p, config).find(s => s.key === e.key);
+        const sc = p.specialPos?.[e.key] || { u: tallPos(p, sp?.tramo ?? 0, "upper", e.key), l: tallPos(p, sp?.tramo ?? 0, "lower", e.key) };
+        p.specialPos = { ...(p.specialPos || {}), [e.key]: { ...sc, gu: g } };
+      }
+      cursor += g + widthOf(e);
+    });
+    // nuevo orden de los módulos propios y de los de piso a techo
+    tr.upper = all.filter((e): e is Extract<OwnEl, { kind: "mod" }> => e.kind === "mod").map(e => e.mod);
+    saveList(p, "upper", all, config);
+  });
 }
 
 // Mueve un módulo de piso a techo a la posición `start` (m) en las dos filas a la vez.
@@ -645,8 +711,10 @@ export function computePlan(rawPlan: any, config: any): PlanResult {
       });
       if (tr.isIsland && row === "upper") return;
       const used = rowUsed(plan, t, row, config);
+      const endAt = rowEnd(plan, t, row, config);
       const label = `${tr.name} · ${row === "upper" ? "superiores" : "inferiores"}`;
       if (tr.length > 0 && used > tr.length + 0.005) warnings.push(`${label}: te pasas ${(used - tr.length).toFixed(2)} m del largo de la pared.`);
+      else if (tr.length > 0 && endAt > tr.length + 0.005) warnings.push(`${label}: hay un módulo que se sale de la pared (llega a ${endAt.toFixed(2)} m y la pared mide ${tr.length.toFixed(2)} m). Arrástralo hacia la izquierda.`);
     });
 
     // Avisos: platero sobre lavaplatos y extractor sobre estufa deben coincidir

@@ -2,7 +2,7 @@ import { useMemo, useRef, useState, type ReactElement, type PointerEvent as RPoi
 import {
   CATALOG, CATALOG_BY_KEY, FILL_KEYS, SPECIALS,
   normalizePlan, computePlan, rowItems, rowUsed, activeSpecials, lateralOn, isPainted,
-  addModuleToPlan, removeModuleFromPlan, setModuleWidth, moveModule, moveTall, dropModule, dropTall, setTypeWidth, alignEnd, rebuildAutoUpper,
+  addModuleToPlan, removeModuleFromPlan, setModuleWidth, moveModule, moveTall, dropModule, dropTall, alignUppers, setTypeWidth, alignEnd, rebuildAutoUpper,
   round2,
   type ModulePlan, type PlanRow, type RowItem,
 } from "@shared/kitchenModulePlan";
@@ -92,13 +92,14 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
     } else if (d.row) {
       const row = d.row, t = d.t, id = d.id;
       const cur = rowItems(plan, t, row, config).find(i => i.kind === "mod" && !i.fromPrev && i.mod!.id === id);
-      if (cur) edit(p => dropModule(p, t, row, id, cur.start + dM, config));
+      if (cur) edit(p => dropModule(p, t, row, id, cur.start + dM, config, true));
     }
   };
 
   const edit = (fn: (p: ModulePlan) => void) => {
     const p: ModulePlan = JSON.parse(JSON.stringify(plan));
     fn(p);
+    try { alignUppers(p, config); } catch { /* si algo falla, se deja el plan como quedó */ }
     onChange(p);
   };
 
@@ -332,7 +333,7 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
             return (
               <div key={o.key} className={`rounded border p-2 flex flex-col gap-1.5 ${count > 0 ? (row === "upper" ? "bg-purple-900/30 border-purple-400/50" : "bg-teal-900/40 border-teal-400/50") : "bg-white/[0.03] border-white/10"}`}>
                 <button type="button" className="flex items-center gap-2 text-left" title="Tocar para agregar uno"
-                  onClick={() => edit(p => { addModuleToPlan(p, t, row, o.key); })}>
+                  onClick={() => edit(p => { addModuleToPlan(p, t, row, o.key, config); })}>
                   <ModuleIcon k={o.key} size={34} className="shrink-0 text-white/80" />
                   <span className="text-xs font-semibold text-white/85 leading-tight">{o.label}</span>
                 </button>
@@ -352,7 +353,7 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
                       onClick={() => edit(p => { const last = [...own].reverse().find(m => m.key === o.key); if (last) removeModuleFromPlan(p, t, row, last.id); })}>−</button>
                     <span className={`w-5 text-center font-mono text-sm ${count > 0 ? "text-white font-bold" : "text-white/40"}`}>{count}</span>
                     <button type="button" className="w-7 h-7 rounded bg-white/10 hover:bg-white/25"
-                      onClick={() => edit(p => { addModuleToPlan(p, t, row, o.key); })}>+</button>
+                      onClick={() => edit(p => { addModuleToPlan(p, t, row, o.key, config); })}>+</button>
                   </span>
                 </div>
               </div>

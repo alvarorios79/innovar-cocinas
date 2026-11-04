@@ -273,13 +273,18 @@ function fzStable(v: any): string {
   };
   return JSON.stringify(walk(fzNorm(v)));
 }
+// El plano de módulos (kitchenConfig.modulePlan) es informativo: no debe cambiar la firma que congela precios.
+function fzStripPlan(k: any): any {
+  if (k && typeof k === "object" && !Array.isArray(k) && "modulePlan" in k) { const { modulePlan, ...rest } = k; return rest; }
+  return k;
+}
 function fzSignature(it: any): string {
   return fzStable({
     type: it.itemType,
     q: String(it.quantity ?? "1"),
     fc: !!it.includesFixedCosts,
     fca: it.fixedCostsAmount != null ? Number(it.fixedCostsAmount) : null,
-    k: fzNorm(it.kitchenConfig) ?? null,
+    k: fzNorm(fzStripPlan(it.kitchenConfig)) ?? null,
     h: fzNorm(it.hardwareSelections) ?? null,
     c: fzNorm(it.closetConfig) ?? null,
     d: fzNorm(it.doorConfig) ?? null,

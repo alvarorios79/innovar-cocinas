@@ -2,7 +2,7 @@ import { useMemo, useRef, useState, type ReactElement, type PointerEvent as RPoi
 import {
   CATALOG, CATALOG_BY_KEY, FILL_KEYS, SPECIALS,
   normalizePlan, computePlan, rowItems, rowUsed, activeSpecials, lateralOn, isPainted,
-  addModuleToPlan, removeModuleFromPlan, setModuleWidth, moveModule, moveTall, dropModule, dropTall, alignUppers, setTypeWidth, alignEnd, rebuildAutoUpper,
+  addModuleToPlan, removeModuleFromPlan, setModuleWidth, moveModule, moveTall, dropModule, dropTall, tidyPlan, packRow, setTypeWidth, alignEnd, rebuildAutoUpper,
   round2,
   type ModulePlan, type PlanRow, type RowItem,
 } from "@shared/kitchenModulePlan";
@@ -16,7 +16,7 @@ interface Props {
   onChange: (plan: ModulePlan) => void;
 }
 
-const PX = 120;        // píxeles por metro en el dibujo
+let PX = 120;        // píxeles por metro en el dibujo
 const LANE_H = 76;     // alto de cada línea (superiores / inferiores)
 const DIV_H = 14;      // alto de la franja que divide
 const m2 = (n: number) => (Number(n) || 0).toFixed(2);
@@ -64,6 +64,8 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
   const result = useMemo(() => computePlan(plan, config), [plan, config]);
   const specials = activeSpecials(plan, config);
   const [sel, setSel] = useState<Sel>(null);
+  const [big, setBig] = useState(false);   // pantalla completa para trabajar con más espacio
+  PX = big ? 170 : 120;
   // Arrastre con puntero (funciona con dedo y con ratón)
   const dragRef = useRef<{ kind: "mod" | "tall"; t: number; row?: PlanRow; id: string; startX: number; moved: boolean; box: HTMLElement | null } | null>(null);
   const [dragDx, setDragDx] = useState<{ id: string; dx: number } | null>(null);
@@ -99,7 +101,7 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
   const edit = (fn: (p: ModulePlan) => void) => {
     const p: ModulePlan = JSON.parse(JSON.stringify(plan));
     fn(p);
-    try { alignUppers(p, config); } catch { /* si algo falla, se deja el plan como quedó */ }
+    try { tidyPlan(p, config); } catch { /* si algo falla, se deja el plan como quedó */ }
     onChange(p);
   };
 
@@ -261,7 +263,7 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
         <label className="flex items-center gap-1">
           {adjustable ? (
             <input type="number" step="0.05" min="0" value={mod.width}
-              onChange={(e) => edit(p => setModuleWidth(p, sel.t, sel.row, mod.id, parseFloat(e.target.value) || 0))}
+              onChange={(e) => edit(p => setModuleWidth(p, sel.t, sel.row, mod.id, parseFloat(e.target.value) || 0, config))}
               className="w-16 bg-black/20 border-b border-white/40 text-right font-mono text-sm focus:outline-none" />
           ) : <span className="font-mono text-sm">{m2(mod.width)}</span>}
           m
@@ -295,7 +297,12 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
             🎨 {painted ? "va pintado" : "sin pintar"}
           </button>
         )}
-        <button type="button" className="h-9 px-2 rounded bg-red-900/40 hover:bg-red-900/70"
+        {sel.row === "upper" && mod.autoOf && (
+            <button type="button" className="px-3 h-9 rounded bg-white/10 hover:bg-white/25 text-xs"
+              onClick={() => edit(p => { const m = p.tramos[sel.t].upper.find(x => x.id === mod.id); if (m) delete m.manual; })}
+              title="Lo regresa a quedar justo encima de su inferior">⤓ Ponerlo sobre su inferior</button>
+          )}
+          <button type="button" className="h-9 px-2 rounded bg-red-900/40 hover:bg-red-900/70"
           onClick={() => { edit(p => removeModuleFromPlan(p, sel.t, sel.row, mod.id)); setSel(null); }}>✕ Quitar</button>
       </div>
     );
@@ -386,7 +393,7 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
   );
 
   return (
-    <div className={box}>
+    <div className={big ? "fixed inset-0 z-[200] overflow-auto bg-[#0f1b1b] p-4 sm:p-8 space-y-3" : box}>
       <div className="flex items-center gap-2">
         <input
           type="checkbox"
@@ -398,6 +405,12 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
         <label htmlFor="modulePlanEnabled" className="text-xs sm:text-sm font-semibold text-white/85 cursor-pointer">
           Plano de módulos de la cocina <span className="font-normal text-white/40">(cuenta módulos y piezas de pintura; no cambia el precio)</span>
         </label>
+        {enabled && (
+          <button type="button" onClick={() => setBig(b => !b)}
+            className="ml-auto shrink-0 rounded bg-white/10 hover:bg-white/20 px-3 py-1.5 text-xs font-semibold text-white/85">
+            {big ? "✕ Cerrar pantalla completa" : "⤢ Ampliar"}
+          </button>
+        )}
       </div>
 
       {enabled && (
@@ -427,12 +440,16 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
                   />
                   m
                 </label>
+                <button type="button" onClick={() => edit(p => { packRow(p, t, "lower", config); })}
+                  className="rounded bg-white/10 hover:bg-white/20 px-2 py-1 text-[11px] text-white/75" title="Junta los módulos de abajo sin dejar espacios">
+                  Cerrar espacios
+                </button>
               </div>
 
               {renderElevation(t)}
               {renderSelected()}
-              {!tr.isIsland && renderPalette(t, "upper")}
               {renderPalette(t, "lower")}
+              {!tr.isIsland && renderPalette(t, "upper")}
             </div>
           ))}
 

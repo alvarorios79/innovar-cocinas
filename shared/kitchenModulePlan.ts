@@ -345,8 +345,44 @@ export function removeModuleFromPlan(p: ModulePlan, t: number, row: PlanRow, id:
   rebuildAutoUpper(p, t);
 }
 
-export function setModuleWidth(p: ModulePlan, t: number, row: PlanRow, id: string, w: number) {
+function elGap(p: ModulePlan, row: PlanRow, el: OwnEl): number {
+  return el.kind === "mod" ? Math.max(0, el.mod.gap || 0) : tallGap(p, row, el.key);
+}
+function setElGap(p: ModulePlan, row: PlanRow, el: OwnEl, g: number, config: any) {
+  g = round2(Math.max(0, g));
+  if (el.kind === "mod") { if (g > 0) el.mod.gap = g; else delete el.mod.gap; return; }
+  const sp = activeSpecials(p, config).find(s => s.key === el.key);
+  const cur = p.specialPos?.[el.key] || { u: tallPos(p, sp?.tramo ?? 0, "upper", el.key), l: tallPos(p, sp?.tramo ?? 0, "lower", el.key) };
+  p.specialPos = { ...(p.specialPos || {}), [el.key]: row === "upper" ? { ...cur, gu: g } : { ...cur, gl: g } };
+}
+
+// Quita todos los espacios libres de una fila (los módulos quedan pegados en su orden).
+export function packRow(p: ModulePlan, t: number, row: PlanRow, config: any) {
+  ownList(p, t, row, config).forEach(el => setElGap(p, row, el, 0, config));
+}
+
+// Si la fila inferior ya completa el largo de la pared, un espacio libre solo puede ser un error: se cierra.
+// Luego los superiores se alinean con los inferiores.
+export function tidyPlan(p: ModulePlan, config: any) {
+  p.tramos.forEach((tr, t) => {
+    if (tr.isIsland || !(tr.length > 0)) return;
+    const sum = rowItems(p, t, "lower", config).reduce((a, i) => a + i.width, 0);
+    const end = rowItems(p, t, "lower", config).reduce((a, i) => Math.max(a, i.start + i.width), 0);
+    if (sum >= tr.length - 0.005 && end > sum + 0.005) packRow(p, t, "lower", config);
+  });
+  alignUppers(p, config);
+}
+
+export function setModuleWidth(p: ModulePlan, t: number, row: PlanRow, id: string, w: number, config?: any) {
   const m = p.tramos[t][row].find(x => x.id === id);
+  if (m && config) {
+    // Si crece, se come primero el espacio libre de su vecino (los demás no se mueven); si se achica, los demás se corren y no queda hueco.
+    const list = ownList(p, t, row, config);
+    const i = list.findIndex(e => e.kind === "mod" && e.mod.id === id);
+    const next = list[i + 1];
+    const delta = round2(w) - m.width;
+    if (next && delta > 0) setElGap(p, row, next, elGap(p, row, next) - delta, config);
+  }
   if (m) m.width = round2(w);
   if (row === "lower") rebuildAutoUpper(p, t);
 }
@@ -617,7 +653,8 @@ export function alignUppers(p: ModulePlan, config: any) {
     const target = (e: OwnEl): number => {
       const k = keyOf(e);
       if (e.kind === "tall") return lowerStart.get(k) ?? cur.get(k) ?? 0;
-      if (e.mod.autoOf && !e.mod.manual) {
+      const outside = tr.length > 0 && (cur.get(k) ?? 0) + e.mod.width > tr.length + 0.005;
+      if (e.mod.autoOf && (!e.mod.manual || outside)) {
         const src = lowerStart.get("m:" + e.mod.autoOf[0]);
         if (src !== undefined) return src;
       }

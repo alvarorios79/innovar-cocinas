@@ -57,7 +57,7 @@ export const CATALOG: CatalogEntry[] = [
   { key: "moduloExtractorMicroondas", label: "Extractor y microondas", short: "Extr.+micro.", row: "upper", width: 0.70, locked: true, pieces: () => ({ up: 4 }) },
   { key: "moduloMicroondas", label: "Microondas", short: "Microondas", row: "upper", width: 0.60, pieces: () => ({}) },
   { key: "moduloAlmacSup", label: "Almacenamiento superior", short: "Alm. sup.", row: "upper", width: 0.65, flexible: true, pieces: (w) => ({ up: doorsForWidth(w), go: 1 }) },
-  { key: "moduloRepisa", label: "Repisa (6 piezas)", short: "Repisa", row: "upper", width: 0.30, pieces: () => ({ up: 6 }) },
+  { key: "moduloRepisa", label: "Espacio de repisas (6 piezas)", short: "Repisas", row: "upper", width: 0.30, min: 0.20, flexible: true, pieces: () => ({ up: 6 }) },
   { key: "esquineroSuperior", label: "Esquinero superior (0.60×0.60)", short: "Esq. sup.", row: "upper", width: 0.60, locked: true, corner: true, pieces: () => ({ up: 1 }) },
   { key: "ventana", label: "Ventana (sin mueble)", short: "Ventana", row: "upper", width: 1.00, noPieces: true, pieces: () => ({}) },
 ];
@@ -89,6 +89,8 @@ export interface PlanModule {
   autoOf?: string[];     // ids de los inferiores de los que depende
   autoBase?: number;     // ancho = suma de los inferiores − autoBase (solo almacenamiento automático)
   autoGroup?: "small";   // agrupa basurero/especiero/botellero consecutivos
+  autoRole?: "cornerFill"; // almacenamiento que compensa el esquinero (suma los pequeños pegados al esquinero)
+  paint?: boolean;       // forzar pintado / sin pintar solo este módulo
 }
 export interface PlanTramo { name: string; length: number; isIsland?: boolean; upper: PlanModule[]; lower: PlanModule[] }
 export interface PlanExtras { latSup: number; latInf: number; latNevera: number; puertaAlta: number; especiales: number }
@@ -100,6 +102,9 @@ export interface ModulePlan {
   alacenaEntrepanosWidth?: number;
   paintAll?: boolean;
   autoUpper?: boolean;   // al agregar un inferior, agregar su superior (por defecto sí)
+  suppress?: string[];   // superiores automáticos que el usuario quitó a propósito ("idInferior:clave")
+  paintRows?: { upper?: boolean; lower?: boolean };   // ¿van pintados los superiores / inferiores?
+  paintKeys?: Record<string, boolean>;                // por tipo de módulo (ej. todos los cajoneros)
   extras: PlanExtras;
 }
 
@@ -148,6 +153,9 @@ export function normalizePlan(raw: any, config: any): ModulePlan {
     specialLateral: base.specialLateral || {},
     alacenaEntrepanosWidth: base.alacenaEntrepanosWidth,
     paintAll: base.paintAll !== false,
+    paintRows: base.paintRows || {},
+    paintKeys: base.paintKeys || {},
+    suppress: base.suppress || [],
     autoUpper: base.autoUpper !== false,
     extras: { ...emptyExtras(), ...(base.extras || {}) },
   };
@@ -177,47 +185,90 @@ export function activeSpecials(plan: ModulePlan, config: any): Array<SpecialEntr
 // ── Edición del plan (funciones puras sobre una copia) ─────────────────────
 
 const isTrailingCorner = (m?: PlanModule) => !!m && !!CATALOG_BY_KEY[m.key]?.corner && m.alsoTramo !== undefined;
-
-// El esquinero que sigue a la pared siguiente queda siempre al final de su tramo.
-function insertBeforeTrailingCorner(arr: PlanModule[], mod: PlanModule) {
-  if (!isTrailingCorner(mod) && isTrailingCorner(arr[arr.length - 1])) arr.splice(arr.length - 1, 0, mod);
-  else arr.push(mod);
-}
-
 const SMALL_KEYS = ["basurero", "especiero", "botellero"];
 
-// Crea los superiores que corresponden a un inferior: lavaplatos→platero, estufa→extractor,
-// cajonero→almacenamiento, basurero/especiero/botellero→almacenamiento (se suman), esquinero→esquinero + almacenamiento.
-function mirrorLower(p: ModulePlan, t: number, mod: PlanModule) {
-  const up = p.tramos[t].upper;
-  const add = (key: string, width: number, extra: Partial<PlanModule> = {}) =>
-    insertBeforeTrailingCorner(up, { id: newId(), key, width, autoOf: [mod.id], ...extra });
-  switch (mod.key) {
-    case "esquinero1x1":
-      add("moduloAlmacSup", 0, { autoBase: 0.60 });
-      add("esquineroSuperior", 0.60, { alsoTramo: mod.alsoTramo });
-      break;
-    case "moduloLavaplatos": add("moduloPlatero", 0.70); break;
-    case "moduloLavaplatosDoble":
-      add("moduloPlatero", 0.70);
-      add("moduloAlmacSup", 0, { autoBase: 0.70 });
-      break;
-    case "moduloEstufaPuerta":
-    case "moduloEstufaHorno": add("moduloExtractor", 0.70); break;
-    case "cajoneroTriple":
-    case "cajoneroDoble":
-    case "moduloAlmacInf": add("moduloAlmacSup", 0, { autoBase: 0 }); break;
-    case "basurero":
-    case "especiero":
-    case "botellero": {
-      // Se suman con los pequeños anteriores en un solo almacenamiento
-      const idx = (() => { for (let i = up.length - 1; i >= 0; i--) { if (!isTrailingCorner(up[i])) return i; } return -1; })();
-      const last = idx >= 0 ? up[idx] : undefined;
-      if (last && last.autoGroup === "small" && last.autoOf) last.autoOf.push(mod.id);
-      else add("moduloAlmacSup", 0, { autoBase: 0, autoGroup: "small" });
-      break;
+// El esquinero que sigue a la pared siguiente (y su almacenamiento de compensación) quedan siempre al final de su tramo.
+function insertBeforeTrailingBlock(arr: PlanModule[], mod: PlanModule) {
+  let idx = arr.length;
+  if (isTrailingCorner(arr[idx - 1])) { idx -= 1; if (arr[idx - 1]?.autoRole === "cornerFill") idx -= 1; }
+  if (isTrailingCorner(mod) || mod.autoRole === "cornerFill") arr.push(mod);
+  else arr.splice(idx, 0, mod);
+}
+
+// Genera los superiores que corresponden a la fila inferior, en el mismo orden:
+// lavaplatos→platero, estufa→extractor, cajonero/almacenamiento→almacenamiento,
+// basurero/especiero/botellero seguidos→un almacenamiento (si están pegados al esquinero, se suman a la compensación del esquinero).
+function genAutoUppers(p: ModulePlan, t: number): PlanModule[] {
+  const tr = p.tramos[t];
+  const sup = new Set(p.suppress || []);
+  const out: PlanModule[] = [];
+  const mk = (key: string, width: number, autoOf: string[], extra: Partial<PlanModule> = {}): PlanModule => ({ id: newId(), key, width: round2(width), autoOf, ...extra });
+  let pending: PlanModule[] = [];
+  const flush = () => {
+    if (!pending.length) return;
+    const ids = pending.map(m => m.id);
+    if (!ids.every(id => sup.has(id + ":moduloAlmacSup"))) out.push(mk("moduloAlmacSup", pending.reduce((a, m) => a + m.width, 0), ids, { autoBase: 0, autoGroup: "small" }));
+    pending = [];
+  };
+  for (const m of tr.lower) {
+    if (SMALL_KEYS.includes(m.key)) { pending.push(m); continue; }
+    if (m.key === "esquinero1x1") {
+      const ids = [...pending.map(x => x.id), m.id];
+      const sum = pending.reduce((a, x) => a + x.width, 0) + m.width;
+      pending = [];
+      if (!sup.has(m.id + ":cornerFill") && sum - 0.60 > 0.01) out.push(mk("moduloAlmacSup", sum - 0.60, ids, { autoBase: 0.60, autoRole: "cornerFill" }));
+      if (!sup.has(m.id + ":esquineroSuperior")) out.push(mk("esquineroSuperior", 0.60, [m.id], { alsoTramo: m.alsoTramo }));
+      continue;
+    }
+    flush();
+    const add = (key: string, w: number, extra: Partial<PlanModule> = {}) => { if (!sup.has(m.id + ":" + key)) out.push(mk(key, w, [m.id], extra)); };
+    switch (m.key) {
+      case "moduloLavaplatos": add("moduloPlatero", 0.70); break;
+      case "moduloLavaplatosDoble":
+        add("moduloPlatero", 0.70);
+        if (m.width - 0.70 > 0.01) add("moduloAlmacSup", m.width - 0.70, { autoBase: 0.70 });
+        break;
+      case "moduloEstufaPuerta":
+      case "moduloEstufaHorno": add("moduloExtractor", 0.70); break;
+      case "cajoneroTriple":
+      case "cajoneroDoble":
+      case "moduloAlmacInf": add("moduloAlmacSup", m.width, { autoBase: 0 }); break;
     }
   }
+  flush();
+  return out;
+}
+
+const autoSig = (m: PlanModule) => (m.autoOf || []).join(",") + ":" + m.key + ":" + (m.autoRole || "");
+
+// Rehace los superiores automáticos de un tramo; conserva los que puso el usuario a mano (ventana, repisas, etc.)
+// en la misma posición relativa y recuerda cuáles estaban sin pintar.
+export function rebuildAutoUpper(p: ModulePlan, t: number) {
+  const tr = p.tramos[t];
+  if (!tr || tr.isIsland || p.autoUpper === false) return;
+  const old = tr.upper;
+  const keep = new Map<string, PlanModule>();
+  old.forEach(m => { if (m.autoOf) keep.set(autoSig(m), m); });
+  const manual: Array<{ m: PlanModule; k: number }> = [];
+  let autosSeen = 0;
+  old.forEach(m => { if (m.autoOf) autosSeen++; else manual.push({ m, k: autosSeen }); });
+
+  const fresh = genAutoUppers(p, t).map(m => {
+    const prev = keep.get(autoSig(m));
+    return prev ? { ...m, id: prev.id, unpainted: prev.unpainted, paint: prev.paint } : m;
+  });
+
+  const merged: PlanModule[] = [];
+  const trailing = fresh.length && isTrailingCorner(fresh[fresh.length - 1]) ? (fresh.length >= 2 && fresh[fresh.length - 2].autoRole === "cornerFill" ? 2 : 1) : 0;
+  const limit = fresh.length - trailing; // los manuales no pasan del bloque final del esquinero
+  let mi = 0;
+  for (let i = 0; i <= fresh.length; i++) {
+    while (mi < manual.length && Math.min(manual[mi].k, limit) <= i && (i <= limit)) { merged.push(manual[mi].m); mi++; }
+    if (i < fresh.length) merged.push(fresh[i]);
+  }
+  while (mi < manual.length) { merged.push(manual[mi].m); mi++; }
+  tr.upper = merged;
+  syncAuto(p);
 }
 
 // Recalcula el ancho de los almacenamientos automáticos (suma de sus inferiores − base).
@@ -238,24 +289,34 @@ export function addModuleToPlan(p: ModulePlan, t: number, row: PlanRow, key: str
   if (!cat || !p.tramos[t]) return undefined;
   const mod: PlanModule = { id: newId(), key, width: cat.width };
   if (cat.corner && t + 1 < p.tramos.length && !p.tramos[t + 1].isIsland && !p.tramos[t].isIsland) mod.alsoTramo = t + 1;
-  insertBeforeTrailingCorner(p.tramos[t][row], mod);
-  if (row === "lower" && p.autoUpper !== false && !p.tramos[t].isIsland) { mirrorLower(p, t, mod); syncAuto(p); }
+  insertBeforeTrailingBlock(p.tramos[t][row], mod);
+  if (row === "lower") rebuildAutoUpper(p, t);
   return mod;
 }
 
 export function removeModuleFromPlan(p: ModulePlan, t: number, row: PlanRow, id: string) {
-  p.tramos[t][row] = p.tramos[t][row].filter(m => m.id !== id);
-  if (row === "lower") {
-    p.tramos[t].upper.forEach(m => { if (m.autoOf) m.autoOf = m.autoOf.filter(x => x !== id); });
-    p.tramos[t].upper = p.tramos[t].upper.filter(m => !(m.autoOf && m.autoOf.length === 0));
-    syncAuto(p);
+  const tr = p.tramos[t];
+  if (row === "upper") {
+    const m = tr.upper.find(x => x.id === id);
+    if (m?.autoOf) {
+      // el usuario quitó un superior automático a propósito: que no vuelva a aparecer solo
+      const sup = new Set(p.suppress || []);
+      if (m.autoRole === "cornerFill") sup.add(m.autoOf[m.autoOf.length - 1] + ":cornerFill");
+      else m.autoOf.forEach(oid => sup.add(oid + ":" + m.key));
+      p.suppress = Array.from(sup);
+    }
+    tr.upper = tr.upper.filter(x => x.id !== id);
+    return;
   }
+  tr.lower = tr.lower.filter(m => m.id !== id);
+  p.suppress = (p.suppress || []).filter(s => !s.startsWith(id + ":"));
+  rebuildAutoUpper(p, t);
 }
 
 export function setModuleWidth(p: ModulePlan, t: number, row: PlanRow, id: string, w: number) {
   const m = p.tramos[t][row].find(x => x.id === id);
   if (m) m.width = round2(w);
-  if (row === "lower") syncAuto(p);
+  if (row === "lower") rebuildAutoUpper(p, t);
 }
 
 export function moveModule(p: ModulePlan, t: number, row: PlanRow, id: string, toIndex: number) {
@@ -264,6 +325,18 @@ export function moveModule(p: ModulePlan, t: number, row: PlanRow, id: string, t
   if (i < 0) return;
   const [m] = arr.splice(i, 1);
   arr.splice(Math.max(0, Math.min(toIndex, arr.length)), 0, m);
+  if (row === "lower") rebuildAutoUpper(p, t);
+}
+
+// ¿Va pintado este módulo? Prioridad: el propio módulo > su tipo (ej. todos los cajoneros) > la fila (superiores/inferiores).
+export function isPainted(plan: ModulePlan, m: PlanModule, row: PlanRow): boolean {
+  if (m.paint !== undefined) return m.paint;
+  if (m.unpainted) return false;
+  const byKey = plan.paintKeys?.[m.key];
+  if (byKey !== undefined) return byKey;
+  const byRow = plan.paintRows?.[row];
+  if (byRow !== undefined) return byRow;
+  return plan.paintAll !== false;
 }
 
 // ── Cálculo ────────────────────────────────────────────────────────────────
@@ -315,8 +388,7 @@ export function computePlan(rawPlan: any, config: any): PlanResult {
           const e = counted.get(m.key) || { label: cat.label, widths: [] };
           e.widths.push(m.width); counted.set(m.key, e);
         }
-        const painted = plan.paintAll !== false && !m.unpainted;
-        if (painted && !cat.noPieces) addPieces(acc, cat.pieces(m.width));
+        if (!cat.noPieces && isPainted(plan, m, row)) addPieces(acc, cat.pieces(m.width));
         if (cat.min && m.width < cat.min - 1e-9) warnings.push(`${tr.name}: ${cat.short} no debería medir menos de ${cat.min.toFixed(2)} m.`);
         if (cat.max && m.width > cat.max + 1e-9) warnings.push(`${tr.name}: ${cat.short} normalmente no pasa de ${cat.max.toFixed(2)} m.`);
       });
@@ -343,8 +415,10 @@ export function computePlan(rawPlan: any, config: any): PlanResult {
 
   // Especiales de piso a techo
   activeSpecials(plan, config).forEach(s => {
-    addPieces(acc, s.pieces);
-    if (s.lateral && lateralOn(plan, s.key)) addPieces(acc, { [s.lateral.class]: 1 });
+    if (plan.paintKeys?.[s.key] !== false) {
+      addPieces(acc, s.pieces);
+      if (s.lateral && lateralOn(plan, s.key)) addPieces(acc, { [s.lateral.class]: 1 });
+    }
     counted.set(s.key, { label: s.label, widths: [s.w] });
   });
 

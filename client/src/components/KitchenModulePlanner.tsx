@@ -440,7 +440,7 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
 
   const P = result.pieces;
   const pieceRows: Array<[string, number]> = [
-    ["Puertas superiores", P.up], ["Puertas inferiores", P.lo], ["Puertas de alacena / altas", P.al],
+    ["Puertas superiores", P.up], ["Puertas inferiores", P.lo], ["Puertas de módulos altos (piso a techo)", P.al],
     ["Tapas de cajón", P.ca], ["Tapas de especiero", P.es], ["Golas / frentes pequeños", P.go], ["Laterales grandes (nicho / alacena)", P.lat], ["Piezas especiales", P.special],
   ];
 
@@ -450,49 +450,6 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
   const paintState = (list: Array<{ mm: PlanModule; r: PlanRow }>): { state: "all" | "some" | "none"; n: number; total: number } => {
     const n = list.filter(x => isPainted(plan, x.mm, x.r)).length;
     return { state: list.length === 0 ? "none" : n === list.length ? "all" : n === 0 ? "none" : "some", n, total: list.length };
-  };
-
-  // ── Detalle: de qué módulo sale cada pieza (lo que va pintado suma; lo tachado no) ──
-  const PIECE_NAMES: Record<string, [string, string]> = {
-    up: ["puerta superior", "puertas superiores"], lo: ["puerta inferior", "puertas inferiores"], al: ["puerta de alacena", "puertas de alacena"],
-    ca: ["tapa de cajón", "tapas de cajón"], es: ["tapa de especiero", "tapas de especiero"], go: ["gola", "golas"],
-    lat: ["lateral grande", "laterales grandes"], special: ["pieza especial", "piezas especiales"],
-  };
-  const pieceText = (pc: Record<string, number | undefined>) =>
-    Object.entries(pc).filter(([, n]) => (n || 0) > 0).map(([k, n]) => `${n} ${PIECE_NAMES[k]?.[(n as number) > 1 ? 1 : 0] || k}`).join(" + ");
-  const renderDetail = () => {
-    const rows = result.detail.filter(d => !d.noPieces);
-    if (!rows.length) return null;
-    return (
-      <div className="rounded bg-black/20 p-2 space-y-1">
-        <p className="text-xs font-semibold text-white/60">De dónde sale cada pieza <span className="font-normal text-white/35">(toca una fila para ir al módulo)</span></p>
-        <div className="max-h-64 overflow-auto space-y-0.5">
-          {[...rows.filter(d => d.painted), ...rows.filter(d => !d.painted)].map((d, i, arr) => {
-            const txt = pieceText(d.pieces as any);
-            const go = () => { if (d.row === "tall") setSel({ t: d.t, tall: d.key }); else if (d.row !== "extra" && d.id) setSel({ t: d.t, row: d.row as PlanRow, id: d.id }); };
-            const first = !d.painted && (i === 0 || arr[i - 1].painted);
-            return (
-              <div key={i}>
-                {first && <p className="pt-1.5 pb-0.5 text-[10px] uppercase tracking-wide text-white/40">No se pintan (no suman piezas)</p>}
-                <button type="button" onClick={go} disabled={d.row === "extra"}
-                  className={`w-full flex items-center gap-2 rounded px-2 py-1 text-left text-[11px] ${d.painted ? "bg-pink-900/20 text-pink-100" : "bg-white/[0.03] text-white/35"} ${d.row === "extra" ? "cursor-default" : "hover:bg-white/10"}`}>
-                  {d.row !== "extra" && <ModuleIcon k={d.key} size={16} />}
-                  <span className={`flex-1 ${d.painted ? "" : "line-through"}`}>
-                    {d.label}{d.width ? <span className="text-white/40"> · {m2(d.width)} m</span> : null}
-                    <span className="text-white/30"> · {d.row === "upper" ? "superior" : d.row === "lower" ? "inferior" : d.row === "tall" ? "piso a techo" : "extra"}{plan.tramos.length > 1 && d.t >= 0 ? ` · ${d.tramo}` : ""}</span>
-                  </span>
-                  <span className="font-mono shrink-0">{d.painted ? (txt || "sin piezas") : "sin pintar"}</span>
-                </button>
-              </div>
-            );
-          })}
-        </div>
-        <div className="flex items-center justify-between border-t border-white/10 pt-1 text-[11px] text-pink-200 font-semibold">
-          <span>Total a pintar</span>
-          <span className="font-mono">{pieceText(P as any) || "ninguna pieza"}</span>
-        </div>
-      </div>
-    );
   };
 
   const stepper = (label: string, field: keyof ModulePlan["extras"]) => (
@@ -685,7 +642,6 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
                 </div>
               ))}
             </div>
-            {renderDetail()}
             <div className="space-y-1.5">
               <p className="text-xs font-semibold text-white/50 uppercase tracking-wide">Extras por diseño</p>
               {stepper("Lateral de mueble superior", "latSup")}

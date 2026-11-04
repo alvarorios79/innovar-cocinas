@@ -7,7 +7,7 @@ export type PlanRow = "upper" | "lower";
 export interface Pieces {
   up?: number; // puertas superiores (incluye laterales y pantallas de tamaño superior)
   lo?: number; // puertas inferiores
-  al?: number; // puertas de alacena / altas
+  al?: number; // puertas de módulos altos (piso a techo: nichos, alacenas, torre de hornos)
   ca?: number; // tapas de cajón
   es?: number; // tapas de especiero
   go?: number; // golas (incluye frente pequeño de cucharero)
@@ -72,16 +72,17 @@ export const FILL_KEYS: Record<PlanRow, string[]> = {
 };
 
 // Módulos especiales de piso a techo (ya vienen marcados en kitchenConfig.specialModules).
-//  - nichos: puerta batiente superior + lateral (el lateral se puede quitar)
+//  - Los módulos de piso a techo NO son ni superiores ni inferiores: sus puertas se cuentan como "puertas de módulos altos".
+//  - nichos: puerta batiente + lateral (el lateral se puede quitar)
 //  - alacenas: una puerta de 0.50 m + lateral según ubicación (se marca)
 //  - torre de hornos: tapa de cajón, gola, pantalla y 2 puertas de tamaño de mueble superior
 export interface SpecialEntry { key: string; label: string; detail: string; width: number; editable?: boolean; pieces: Pieces; lateral?: { class: "lat"; defaultOn: boolean } }
 export const SPECIALS: SpecialEntry[] = [
-  { key: "nichoNevecon", label: "Nicho nevecón", detail: "puerta batiente superior", width: 1.00, pieces: { up: 1 }, lateral: { class: "lat", defaultOn: true } },
-  { key: "nichoNevera", label: "Nicho nevera", detail: "puerta batiente superior", width: 0.75, pieces: { up: 1 }, lateral: { class: "lat", defaultOn: true } },
+  { key: "nichoNevecon", label: "Nicho nevecón", detail: "puerta batiente", width: 1.00, pieces: { al: 1 }, lateral: { class: "lat", defaultOn: true } },
+  { key: "nichoNevera", label: "Nicho nevera", detail: "puerta batiente", width: 0.75, pieces: { al: 1 }, lateral: { class: "lat", defaultOn: true } },
   { key: "alacenaEntrepanos", label: "Alacena con entrepaños", detail: "1 puerta", width: 0.50, editable: true, pieces: { al: 1 }, lateral: { class: "lat", defaultOn: false } },
   { key: "alacenaHerraje", label: "Alacena con herraje", detail: "1 puerta de 0.50 m", width: 0.50, pieces: { al: 1 }, lateral: { class: "lat", defaultOn: false } },
-  { key: "torreHornos", label: "Torre de hornos", detail: "tapa de cajón, gola, pantalla y 2 puertas", width: 0.70, pieces: { up: 3, ca: 1, go: 1 } },
+  { key: "torreHornos", label: "Torre de hornos", detail: "tapa de cajón, gola, pantalla y 2 puertas", width: 0.70, pieces: { al: 3, ca: 1, go: 1 } },
 ];
 
 export interface PlanModule {

@@ -43,6 +43,7 @@ import { InitialPaymentModal } from "@/components/InitialPaymentModal";
 import { PageHeader } from "@/components/PageHeader";
 import { ExportQuotationsButton } from "@/components/ExportQuotationsButton";
 import { KitchenModulePlanner } from "@/components/KitchenModulePlanner";
+import { descriptiveFromPlan } from "@shared/kitchenModulePlan";
 
 
 interface HardwareSelection {
@@ -1270,6 +1271,11 @@ export default function Quotations() {
       current = current[fields[i]];
     }
     current[fields[fields.length - 1]] = value;
+
+    // Con el plano de módulos activo, "Muebles que lleva la cocina" (descripción) se arma solo desde el plano
+    if (field === 'modulePlan' && value?.enabled) {
+      (config as any).descriptiveModules = descriptiveFromPlan(value);
+    }
 
     // Al desmarcar el salpicadero alto del mesón, limpiar sus laterales en la misma operación
     if (field === 'countertop.incluyeSalpicaderoAlto' && value === false && config.countertop) {
@@ -3428,6 +3434,9 @@ export default function Quotations() {
                               <p className="text-xs sm:text-sm font-semibold text-white/85">
                                 Muebles que lleva la cocina <span className="text-xs font-normal text-white/40">(para la descripción de la cotización, no cambia el precio)</span>
                               </p>
+                              {(item.kitchenConfig as any)?.modulePlan?.enabled && (
+                                <p className="text-[11px] text-teal-400/80">Se arma solo desde el plano de módulos: para cambiarlo, modifica el plano.</p>
+                              )}
                               {([
                                 { title: "Muebles superiores", show: item.kitchenConfig?.shape !== 'solo_inferiores', list: DESCRIPTIVE_UPPER_MODULES },
                                 { title: "Muebles inferiores", show: item.kitchenConfig?.shape !== 'solo_superiores', list: DESCRIPTIVE_LOWER_MODULES },
@@ -3440,7 +3449,8 @@ export default function Quotations() {
                                         <input
                                           type="checkbox"
                                           className="h-4 w-4 accent-teal-500"
-                                          checked={!!(item.kitchenConfig as any)?.descriptiveModules?.[key]}
+                                          disabled={!!(item.kitchenConfig as any)?.modulePlan?.enabled}
+                                          checked={!!((item.kitchenConfig as any)?.modulePlan?.enabled ? descriptiveFromPlan((item.kitchenConfig as any).modulePlan) : (item.kitchenConfig as any)?.descriptiveModules)?.[key]}
                                           onChange={(e) => updateKitchenConfig(index, "descriptiveModules", { ...((item.kitchenConfig as any)?.descriptiveModules || {}), [key]: e.target.checked })}
                                         />
                                         {label}
@@ -3452,8 +3462,9 @@ export default function Quotations() {
                                       <span className="text-xs text-white/70">Cajonero:</span>
                                       <select
                                         className="h-7 rounded bg-[#0C1A1A] border border-white/15 text-xs text-white px-2"
+                                        disabled={!!(item.kitchenConfig as any)?.modulePlan?.enabled}
                                         value={(() => {
-                                          const dm = (item.kitchenConfig as any)?.descriptiveModules || {};
+                                          const dm = ((item.kitchenConfig as any)?.modulePlan?.enabled ? descriptiveFromPlan((item.kitchenConfig as any).modulePlan) : (item.kitchenConfig as any)?.descriptiveModules) || {};
                                           return dm.cajoneroDoble && dm.cajoneroTriple ? "ambos" : dm.cajoneroTriple ? "triple" : dm.cajoneroDoble ? "doble" : "ninguno";
                                         })()}
                                         onChange={(e) => {

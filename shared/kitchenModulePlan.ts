@@ -867,3 +867,16 @@ export function computePlan(rawPlan: any, config: any): PlanResult {
   const modules = Array.from(counted.entries()).map(([key, v]) => ({ key, label: v.label, qty: v.widths.length, widths: v.widths }));
   return { detail, pieces: { ...acc, special: ex.especiales || 0 }, modules, warnings };
 }
+
+// Casillas de "Muebles que lleva la cocina" (descripción de la cotización) a partir del plano:
+// así lo que dice la cotización siempre coincide con lo que está dibujado.
+export function descriptiveFromPlan(plan: any): Record<string, boolean> {
+  const out: Record<string, boolean> = {};
+  (plan?.tramos || []).forEach((tr: any) => {
+    [...(tr?.upper || []), ...(tr?.lower || [])].forEach((m: any) => {
+      if (!m?.key || !CATALOG_BY_KEY[m.key] || CATALOG_BY_KEY[m.key].noPieces) return;
+      out[m.key === "moduloLavaplatosDoble" ? "moduloLavaplatos" : m.key] = true;
+    });
+  });
+  return out;
+}

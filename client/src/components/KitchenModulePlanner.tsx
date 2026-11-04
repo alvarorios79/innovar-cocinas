@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import {
   CATALOG, CATALOG_BY_KEY, FILL_KEYS, SPECIALS,
   normalizePlan, computePlan, rowSequence, rowUsed, activeSpecials, lateralOn,
-  addModuleToPlan, removeModuleFromPlan, setModuleWidth, moveModule, syncAuto,
+  addModuleToPlan, removeModuleFromPlan, setModuleWidth, moveModule, rebuildAutoUpper, isPainted,
   round2,
   type ModulePlan, type PlanRow,
 } from "@shared/kitchenModulePlan";
@@ -40,7 +40,7 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
         if (mod) mod.width = w;
         rem = round2(rem - w);
       }
-      if (row === "lower") syncAuto(p); // los almacenamientos automáticos de arriba toman los anchos finales
+      if (row === "lower") rebuildAutoUpper(p, t); // los superiores toman los anchos finales
     });
   };
 
@@ -60,9 +60,9 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
 
     return (
       <div key={row} className="space-y-2">
-        <div className="flex flex-wrap items-center gap-2 text-xs">
-          <span className="font-semibold text-white/70 uppercase tracking-wide">{row === "upper" ? "Superiores" : "Inferiores"}</span>
-          <span className={over ? "text-red-400 font-semibold" : "text-white/50"}>
+        <div className={`flex flex-wrap items-center gap-2 text-xs rounded px-3 py-1.5 ${row === "upper" ? "bg-purple-900/50 border border-purple-400/40" : "bg-teal-900/50 border border-teal-400/40"}`}>
+          <span className={`font-bold uppercase tracking-widest ${row === "upper" ? "text-purple-200" : "text-teal-200"}`}>{row === "upper" ? "▲ Muebles superiores" : "▼ Muebles inferiores"}</span>
+          <span className={over ? "text-red-400 font-semibold" : "text-white/60"}>
             llevas {m2(used)} de {m2(tr.length)} m
             {tr.length > 0 && (over ? ` · te pasas ${m2(-rem)}` : ` · faltan ${m2(rem)}`)}
           </span>
@@ -79,7 +79,7 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
             const cat = CATALOG_BY_KEY[mod.key];
             if (!cat) return null;
             const mine = !fromPrev;
-            const painted = plan.paintAll !== false && !mod.unpainted;
+            const painted = isPainted(plan, mod, row);
             const adjustable = !cat.locked && !(mod.autoBase !== undefined);
             const outOfRange = (!!cat.min && mod.width < cat.min - 1e-9) || (!!cat.max && mod.width > cat.max + 1e-9);
             return (
@@ -133,7 +133,7 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
                     </span>
                     {!cat.noPieces && (
                       <button type="button" className={`w-7 h-7 rounded bg-white/10 ${painted ? "" : "opacity-30"}`}
-                        onClick={() => edit(p => { const m = p.tramos[t][row].find(x => x.id === mod.id); if (m) m.unpainted = !m.unpainted; })}
+                        onClick={() => edit(p => { const m = p.tramos[t][row].find(x => x.id === mod.id); if (m) { m.paint = !painted; m.unpainted = undefined; } })}
                         title={painted ? "Va pintado" : "No va pintado"}>🎨</button>
                     )}
                   </div>
@@ -176,7 +176,7 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
           })}
         </div>
 
-        {rem > 0.01 && (
+        {row === "lower" && rem > 0.01 && (
           <select
             className="h-8 rounded bg-[#0C1A1A] border border-teal-500/40 text-xs text-teal-200 px-2"
             value=""
@@ -189,6 +189,12 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
       </div>
     );
   };
+
+  // Tipos de módulo presentes en el plano (para las excepciones de pintura)
+  const typeKeys = Array.from(new Set([
+    ...plan.tramos.flatMap(tt => [...tt.upper, ...tt.lower]).map(mm => mm.key).filter(k => !CATALOG_BY_KEY[k]?.noPieces),
+    ...specials.map(s => s.key),
+  ]));
 
   const P = result.pieces;
   const pieceRows: Array<[string, number]> = [
@@ -229,8 +235,8 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
           <label className="flex items-center gap-2 text-xs text-white/70 cursor-pointer">
             <input type="checkbox" className="h-4 w-4 accent-sky-500" checked={plan.autoUpper !== false}
               onChange={(e) => edit(p => { p.autoUpper = e.target.checked; })} />
-            Al marcar un inferior, agregar solo el superior que le corresponde
-            <span className="text-white/35">(lavaplatos→platero, estufa→extractor, cajoneros y pequeños→almacenamiento)</span>
+            El diseño lo marcan los inferiores: los superiores se arman solos
+            <span className="text-white/35">(lavaplatos→platero, estufa→extractor, cajoneros→almacenamiento; botellero/basurero/especiero pegados al esquinero agrandan el de arriba)</span>
           </label>
 
           {plan.tramos.map((tr, t) => (
@@ -248,8 +254,9 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
                   m
                 </label>
               </div>
-              {renderRow(t, "lower")}
               {!tr.isIsland && renderRow(t, "upper")}
+              {!tr.isIsland && <div className="h-1.5 rounded-full bg-gradient-to-r from-purple-500/60 via-white/30 to-teal-500/60" aria-hidden />}
+              {renderRow(t, "lower")}
             </div>
           ))}
 
@@ -304,16 +311,53 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
           )}
 
           <div className="rounded-lg border border-pink-500/30 bg-pink-900/10 p-3 space-y-3">
-            <div className="flex flex-wrap items-center gap-3">
-              <p className="text-sm font-semibold text-pink-200">Piezas a pintar (alto brillo)</p>
-              <label className="flex items-center gap-2 text-xs text-white/70 cursor-pointer">
-                <input
-                  type="checkbox" className="h-4 w-4 accent-pink-500"
-                  checked={plan.paintAll !== false}
-                  onChange={(e) => edit(p => { p.paintAll = e.target.checked; })}
-                />
-                Todos los módulos van pintados
-              </label>
+            <p className="text-sm font-semibold text-pink-200">Piezas a pintar (alto brillo)</p>
+            <div className="space-y-2 rounded bg-black/20 p-2">
+              <p className="text-xs font-semibold text-white/60">¿Qué va pintado?</p>
+              <div className="flex flex-wrap gap-4 text-xs text-white/80">
+                {(["upper", "lower"] as PlanRow[]).map(r => {
+                  const on = plan.paintRows?.[r] ?? (plan.paintAll !== false);
+                  return (
+                    <label key={r} className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" className="h-4 w-4 accent-pink-500" checked={on}
+                        onChange={(e) => edit(p => {
+                          p.paintRows = { ...(p.paintRows || {}), [r]: e.target.checked };
+                          // al cambiar toda una fila se borran las excepciones de esa fila
+                          const keys = new Set(CATALOG.filter(cc => cc.row === r).map(cc => cc.key));
+                          p.paintKeys = Object.fromEntries(Object.entries(p.paintKeys || {}).filter(([k]) => !keys.has(k)));
+                          p.tramos.forEach(tt => tt[r].forEach(mm => { mm.paint = undefined; mm.unpainted = undefined; }));
+                        })} />
+                      {r === "upper" ? "Muebles superiores" : "Muebles inferiores"}
+                    </label>
+                  );
+                })}
+              </div>
+              {typeKeys.length > 0 && (
+                <div>
+                  <p className="text-[11px] text-white/45 mb-1">Excepciones por tipo (ej. solo los cajoneros pintados):</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {typeKeys.map(k => {
+                      const cat = CATALOG_BY_KEY[k];
+                      const sp = SPECIALS.find(s => s.key === k);
+                      const rowOf: PlanRow = cat?.row || "lower";
+                      const on = cat
+                        ? (plan.paintKeys?.[k] ?? (plan.paintRows?.[rowOf] ?? (plan.paintAll !== false)))
+                        : (plan.paintKeys?.[k] !== false);
+                      return (
+                        <label key={k} className={`flex items-center gap-1.5 rounded px-2 py-1 text-xs cursor-pointer border ${on ? "bg-pink-900/30 border-pink-500/40 text-pink-100" : "bg-white/[0.03] border-white/10 text-white/40"}`}>
+                          <input type="checkbox" className="h-3.5 w-3.5 accent-pink-500" checked={on}
+                            onChange={(e) => edit(p => {
+                              p.paintKeys = { ...(p.paintKeys || {}), [k]: e.target.checked };
+                              p.tramos.forEach(tt => (["upper", "lower"] as PlanRow[]).forEach(r => tt[r].forEach(mm => { if (mm.key === k) { mm.paint = undefined; mm.unpainted = undefined; } })));
+                            })} />
+                          {cat ? cat.short : sp?.label}
+                        </label>
+                      );
+                    })}
+                  </div>
+                  <p className="text-[11px] text-white/35 mt-1">El 🎨 de cada bloque cambia solo ese módulo.</p>
+                </div>
+              )}
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {pieceRows.map(([label, n]) => (

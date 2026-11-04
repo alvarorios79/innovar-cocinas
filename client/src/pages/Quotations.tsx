@@ -197,7 +197,7 @@ function buildClosetDescription(config: import("@/components/ClosetConfigurator"
   if (config.accessories?.espejo)         parts.push("espejo en puertas");
   const accesText = parts.length > 0 ? ` Incluye: ${parts.join(", ")}.` : "";
   const doorText = config.doorType === "corredizas" ? " Puertas corredizas." : " Puertas batientes.";
-  const dismantleText = config.includeDismantle ? " Incluye desmonte del closet existente." : "";
+  const dismantleText = config.includeDismantle ? " Incluye desmonte y desarmado del closet existente (no incluye el retiro de escombros del domicilio)." : "";
   return `Closet ${typeNames[config.type] || config.type}${dims}. Material aglomerado tipo RH, color a elegir por el cliente.${accesText}${doorText}${dismantleText} (Diseño por definir)`;
 }
 

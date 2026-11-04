@@ -196,7 +196,7 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
         <div className="flex items-center gap-4 text-[11px] text-white/60 pb-1">
           <span>🎨 = va pintado</span>
           <span className="flex items-center gap-1"><span className="inline-block w-4 h-3 rounded-sm border border-dashed border-white/50" style={NO_PAINT_BG} /> rayado = sin pintar</span>
-          <span className="text-white/35">Toca un módulo y usa «va pintado» para cambiarlo</span>
+          <span className="text-white/35">Toca un módulo y usa «Pintar» / «Quitar pintura»</span>
         </div>
         <div className="relative" data-elev style={{ width: widthPx, height: heightPx + 20 }}>
           {/* líneas */}
@@ -267,6 +267,16 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
           <span className="font-semibold">{s.label}</span>
           <span className="font-mono">{m2(s.w)} m</span>
           <span className="text-amber-100/50">piso a techo: ocupa superior e inferior</span>
+          {(() => {
+            const sp = plan.paintKeys?.[s.key] !== false;
+            return (
+              <button type="button"
+                className={`h-9 px-3 rounded border font-semibold ${sp ? "bg-red-900/30 border-red-400/50 text-red-100 hover:bg-red-900/50" : "bg-pink-600/80 border-pink-300/60 text-white hover:bg-pink-600"}`}
+                onClick={() => edit(p => { p.paintKeys = { ...(p.paintKeys || {}), [s.key]: !sp }; })}>
+                🎨 {sp ? "Quitar pintura" : "Pintar"}
+              </button>
+            );
+          })()}
           <span className="flex gap-1">
             <button type="button" className="w-9 h-9 rounded bg-white/10 hover:bg-white/25" onClick={() => edit(p => moveTall(p, s.key, -1, config))} title="Mover a la izquierda">◀</button>
             <button type="button" className="w-9 h-9 rounded bg-white/10 hover:bg-white/25" onClick={() => edit(p => moveTall(p, s.key, 1, config))} title="Mover a la derecha">▶</button>
@@ -286,6 +296,7 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
       <div className={`flex flex-wrap items-center gap-3 rounded border p-2 text-xs ${sel.row === "upper" ? "border-purple-400/40 bg-purple-900/20 text-purple-100" : "border-teal-400/40 bg-teal-900/20 text-teal-100"}`}>
         <ModuleIcon k={mod.key} size={26} />
         <span className="font-semibold">{cat.label}</span>
+        {!cat.noPieces && <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${painted ? "bg-pink-600/70 text-white" : "bg-white/10 text-white/60"}`}>{painted ? "VA PINTADO" : "SIN PINTAR"}</span>}
         <label className="flex items-center gap-1">
           {adjustable ? (
             <input type="number" step="0.05" min="0" value={mod.width}
@@ -340,9 +351,11 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
             onClick={() => edit(p => alignEnd(p, sel.t, sel.row, mod.id, config))}>Alinear con la otra línea</button>
         )}
         {!cat.noPieces && (
-          <button type="button" className={`h-9 px-2 rounded bg-white/10 hover:bg-white/25 ${painted ? "" : "opacity-50"}`}
+          <button type="button"
+            className={`h-9 px-3 rounded border font-semibold ${painted ? "bg-red-900/30 border-red-400/50 text-red-100 hover:bg-red-900/50" : "bg-pink-600/80 border-pink-300/60 text-white hover:bg-pink-600"}`}
+            title={painted ? "Este módulo va pintado. Toca para quitarle la pintura." : "Este módulo NO va pintado. Toca para pintarlo."}
             onClick={() => edit(p => { const m = p.tramos[sel.t][sel.row].find(x => x.id === mod.id); if (m) { m.paint = !painted; m.unpainted = undefined; } })}>
-            🎨 {painted ? "va pintado" : "sin pintar"}
+            🎨 {painted ? "Quitar pintura" : "Pintar"}
           </button>
         )}
         {sel.row === "upper" && mod.autoOf && (
@@ -430,6 +443,45 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
     ["Puertas superiores", P.up], ["Puertas inferiores", P.lo], ["Puertas de alacena / altas", P.al],
     ["Tapas de cajón", P.ca], ["Tapas de especiero", P.es], ["Golas / frentes pequeños", P.go], ["Laterales grandes (nicho / alacena)", P.lat], ["Piezas especiales", P.special],
   ];
+
+  // ── Detalle: de qué módulo sale cada pieza (lo que va pintado suma; lo tachado no) ──
+  const PIECE_NAMES: Record<string, [string, string]> = {
+    up: ["puerta superior", "puertas superiores"], lo: ["puerta inferior", "puertas inferiores"], al: ["puerta de alacena", "puertas de alacena"],
+    ca: ["tapa de cajón", "tapas de cajón"], es: ["tapa de especiero", "tapas de especiero"], go: ["gola", "golas"],
+    lat: ["lateral grande", "laterales grandes"], special: ["pieza especial", "piezas especiales"],
+  };
+  const pieceText = (pc: Record<string, number | undefined>) =>
+    Object.entries(pc).filter(([, n]) => (n || 0) > 0).map(([k, n]) => `${n} ${PIECE_NAMES[k]?.[(n as number) > 1 ? 1 : 0] || k}`).join(" + ");
+  const renderDetail = () => {
+    const rows = result.detail.filter(d => !d.noPieces);
+    if (!rows.length) return null;
+    return (
+      <div className="rounded bg-black/20 p-2 space-y-1">
+        <p className="text-xs font-semibold text-white/60">De dónde sale cada pieza <span className="font-normal text-white/35">(toca una fila para ir al módulo)</span></p>
+        <div className="max-h-64 overflow-auto space-y-0.5">
+          {rows.map((d, i) => {
+            const txt = pieceText(d.pieces as any);
+            const go = () => { if (d.row === "tall") setSel({ t: d.t, tall: d.key }); else if (d.row !== "extra" && d.id) setSel({ t: d.t, row: d.row as PlanRow, id: d.id }); };
+            return (
+              <button type="button" key={i} onClick={go} disabled={d.row === "extra"}
+                className={`w-full flex items-center gap-2 rounded px-2 py-1 text-left text-[11px] ${d.painted ? "bg-pink-900/20 text-pink-100" : "bg-white/[0.03] text-white/35"} ${d.row === "extra" ? "cursor-default" : "hover:bg-white/10"}`}>
+                {d.row !== "extra" && <ModuleIcon k={d.key} size={16} />}
+                <span className={`flex-1 ${d.painted ? "" : "line-through"}`}>
+                  {d.label}{d.width ? <span className="text-white/40"> · {m2(d.width)} m</span> : null}
+                  <span className="text-white/30"> · {d.row === "upper" ? "superior" : d.row === "lower" ? "inferior" : d.row === "tall" ? "piso a techo" : "extra"}{plan.tramos.length > 1 && d.t >= 0 ? ` · ${d.tramo}` : ""}</span>
+                </span>
+                <span className="font-mono shrink-0">{d.painted ? (txt || "sin piezas") : `sin pintar${txt ? ` (${txt})` : ""}`}</span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex items-center justify-between border-t border-white/10 pt-1 text-[11px] text-pink-200 font-semibold">
+          <span>Total a pintar</span>
+          <span className="font-mono">{pieceText(P as any) || "ninguna pieza"}</span>
+        </div>
+      </div>
+    );
+  };
 
   const stepper = (label: string, field: keyof ModulePlan["extras"]) => (
     <div key={field} className="flex items-center gap-2 text-xs text-white/70">
@@ -604,7 +656,7 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
                       );
                     })}
                   </div>
-                  <p className="text-[11px] text-white/35 mt-1">Al tocar un icono del dibujo puedes cambiar solo ese módulo (∅ = sin pintar).</p>
+                  <p className="text-[11px] text-white/35 mt-1">Al tocar un icono del dibujo puedes cambiar solo ese módulo.</p>
                 </div>
               )}
             </div>
@@ -616,6 +668,7 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
                 </div>
               ))}
             </div>
+            {renderDetail()}
             <div className="space-y-1.5">
               <p className="text-xs font-semibold text-white/50 uppercase tracking-wide">Extras por diseño</p>
               {stepper("Lateral de mueble superior", "latSup")}

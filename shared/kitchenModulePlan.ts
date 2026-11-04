@@ -754,7 +754,16 @@ export function addPieces(acc: Required<Pieces>, p: Pieces, times = 1) {
   (Object.keys(acc) as Array<keyof Pieces>).forEach(k => { acc[k] += (p[k] || 0) * times; });
 }
 
+// Una fila del detalle: de qué módulo sale cada pieza (y si se cuenta o no porque va sin pintar)
+export interface DetailRow {
+  t: number; tramo: string; row: PlanRow | "tall" | "extra";
+  id?: string; key: string; label: string; width?: number;
+  painted: boolean; noPieces?: boolean;
+  pieces: Pieces & { special?: number };
+}
+
 export interface PlanResult {
+  detail: DetailRow[];
   pieces: Required<Pieces> & { special: number };
   modules: Array<{ key: string; label: string; qty: number; widths: number[] }>;
   warnings: string[];
@@ -765,6 +774,7 @@ export function computePlan(rawPlan: any, config: any): PlanResult {
   const acc: Required<Pieces> = { up: 0, lo: 0, al: 0, ca: 0, es: 0, go: 0, lat: 0 };
   const counted = new Map<string, { label: string; widths: number[] }>();
   const warnings: string[] = [];
+  const detail: DetailRow[] = [];
 
   plan.tramos.forEach((tr, t) => {
     (["upper", "lower"] as PlanRow[]).forEach(row => {
@@ -776,6 +786,7 @@ export function computePlan(rawPlan: any, config: any): PlanResult {
           e.widths.push(m.width); counted.set(m.key, e);
         }
         if (!cat.noPieces && isPainted(plan, m, row)) addPieces(acc, cat.pieces(m.width, m));
+        detail.push({ t, tramo: tr.name, row, id: m.id, key: m.key, label: cat.label, width: m.width, painted: !cat.noPieces && isPainted(plan, m, row), noPieces: cat.noPieces, pieces: cat.noPieces ? {} : cat.pieces(m.width, m) });
         if (m.key === "moduloRepisa" && !(m.qty && m.qty > 0)) warnings.push(`${tr.name}: indica cuántas repisas lleva el espacio de repisas.`);
         if (cat.min && m.width < cat.min - 1e-9) warnings.push(`${tr.name}: ${cat.short} no debería medir menos de ${cat.min.toFixed(2)} m.`);
         if (cat.max && m.width > cat.max + 1e-9) warnings.push(`${tr.name}: ${cat.short} normalmente no pasa de ${cat.max.toFixed(2)} m.`);
@@ -830,10 +841,13 @@ export function computePlan(rawPlan: any, config: any): PlanResult {
 
   // Especiales de piso a techo
   activeSpecials(plan, config).forEach(s => {
-    if (plan.paintKeys?.[s.key] !== false) {
+    const sPainted = plan.paintKeys?.[s.key] !== false;
+    if (sPainted) {
       addPieces(acc, s.pieces);
       if (s.lateral && lateralOn(plan, s.key)) addPieces(acc, { [s.lateral.class]: 1 });
     }
+    detail.push({ t: s.tramo, tramo: plan.tramos[s.tramo]?.name || "", row: "tall", key: s.key, label: s.label, width: s.w, painted: sPainted,
+      pieces: { ...s.pieces, ...(s.lateral && lateralOn(plan, s.key) ? { [s.lateral.class]: 1 } : {}) } });
     counted.set(s.key, { label: s.label, widths: [s.w] });
   });
 
@@ -843,6 +857,12 @@ export function computePlan(rawPlan: any, config: any): PlanResult {
   acc.lo += ex.latInf || 0;
   acc.al += ex.puertaAlta || 0;
 
+  const exRows: Array<[string, Pieces & { special?: number }, number]> = [
+    ["Lateral de mueble superior", { up: 1 }, ex.latSup || 0], ["Lateral de nevera (superior)", { up: 1 }, ex.latNevera || 0],
+    ["Lateral de mueble inferior", { lo: 1 }, ex.latInf || 0], ["Puerta de módulo alto", { al: 1 }, ex.puertaAlta || 0], ["Piezas especiales", { special: 1 }, ex.especiales || 0],
+  ];
+  exRows.forEach(([label, pc, n]) => { if (n > 0) detail.push({ t: -1, tramo: "Extras", row: "extra", key: "extra", label: `${n} × ${label}`, painted: true, pieces: Object.fromEntries(Object.entries(pc).map(([k, v]) => [k, (v as number) * n])) as any }); });
+
   const modules = Array.from(counted.entries()).map(([key, v]) => ({ key, label: v.label, qty: v.widths.length, widths: v.widths }));
-  return { pieces: { ...acc, special: ex.especiales || 0 }, modules, warnings };
+  return { detail, pieces: { ...acc, special: ex.especiales || 0 }, modules, warnings };
 }

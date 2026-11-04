@@ -119,10 +119,9 @@ export default function PublicQuotation() {
           <div className="rounded-xl p-4 flex gap-3" style={{ background: "rgba(255,180,0,0.08)", border: "1px solid rgba(255,180,0,0.35)" }}>
             <span className="text-2xl shrink-0">⚠️</span>
             <div>
-              <p className="text-amber-300 font-semibold text-sm">Descarga tu cotización antes de aprobar</p>
+              <p className="text-amber-300 font-semibold text-sm">Guarda una copia de tu cotización</p>
               <p className="text-amber-200/70 text-xs mt-0.5">
-                Una vez que apruebes o rechaces, este enlace dejará de mostrar el detalle completo.
-                Te recomendamos guardar una copia del PDF ahora.
+                Descarga el PDF cuando quieras. Si apruebas, podrás seguir descargando la cotización aprobada desde este mismo enlace.
               </p>
             </div>
           </div>
@@ -146,9 +145,15 @@ export default function PublicQuotation() {
                 📷 Ver avance de tu proyecto →
               </a>
             )}
+            <button
+              onClick={handleDownloadPdf}
+              disabled={downloadingPdf}
+              className="flex items-center justify-center gap-2 w-full bg-[#162828] border border-[#1DB5A8]/40 hover:border-[#1DB5A8] rounded-xl p-4 text-[#1DB5A8] font-semibold transition-colors disabled:opacity-60">
+              <span>📄</span> {downloadingPdf ? "Generando PDF..." : "Descargar cotización aprobada (PDF)"}
+            </button>
             <p className="text-xs text-gray-600 pt-2">
-              ¿Necesitas el detalle de la cotización?{" "}
-              <a href="https://wa.me/573136802025" className="text-[#1DB5A8] hover:underline">Escríbenos por WhatsApp</a>
+              Este enlace siempre te permitirá descargar tu cotización.{" "}
+              <a href="https://wa.me/573136802025" className="text-[#1DB5A8] hover:underline">¿Dudas? Escríbenos por WhatsApp</a>
             </p>
           </div>
         )}

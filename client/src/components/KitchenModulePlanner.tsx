@@ -4,6 +4,7 @@ import {
   normalizePlan, computePlan, rowItems, rowUsed, activeSpecials, lateralOn, isPainted,
   addModuleToPlan, removeModuleFromPlan, setModuleWidth, moveModule, moveTall, dropModule, dropTall, tidyPlan, packRow, setModuleLock, setTypeWidth, alignEnd, rebuildAutoUpper,
   round2,
+  specialWidth,
   type ModulePlan, type PlanModule, type PlanRow, type RowItem,
 } from "@shared/kitchenModulePlan";
 
@@ -14,6 +15,8 @@ import {
 interface Props {
   config: any;                       // kitchenConfig del ítem
   onChange: (plan: ModulePlan) => void;
+  // Marca / desmarca un módulo de piso a techo en la cotización (specialModules). Si no se pasa, las tarjetas son de solo lectura.
+  onSpecialToggle?: (key: string, on: boolean) => void;
 }
 
 let PX = 120;        // píxeles por metro en el dibujo
@@ -74,7 +77,7 @@ function Cota({ w }: { w: number }) {
 
 type Sel = { t: number; row: PlanRow; id: string } | { t: number; tall: string } | null;
 
-export function KitchenModulePlanner({ config, onChange }: Props) {
+export function KitchenModulePlanner({ config, onChange, onSpecialToggle }: Props) {
   const plan = useMemo(() => normalizePlan(config?.modulePlan, config), [config]);
   const result = useMemo(() => computePlan(plan, config), [plan, config]);
   const specials = activeSpecials(plan, config);
@@ -525,54 +528,74 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
             </div>
           ))}
 
-          {specials.length > 0 && (
-            <div className="rounded-lg border border-amber-500/30 bg-amber-900/10 p-3 space-y-2 text-xs">
-              <p className="font-semibold text-amber-200">Módulos de piso a techo (ya marcados en la cotización)</p>
-              {specials.map(s => (
-                <div key={s.key} className="flex flex-wrap items-center gap-3 text-amber-100/80">
-                  <ModuleIcon k={s.key} size={26} />
-                  <span className="w-44">{s.label} <span className="text-amber-100/40">({s.detail})</span></span>
-                  {SPECIALS.find(x => x.key === s.key)?.editable ? (
-                    <label className="flex items-center gap-1">
-                      ancho
-                      <input
-                        type="number" step="0.05" min="0"
-                        value={s.w}
-                        onChange={(e) => edit(p => { p.alacenaEntrepanosWidth = round2(parseFloat(e.target.value) || 0); })}
-                        className="w-14 bg-transparent border-b border-amber-300/40 text-right font-mono focus:outline-none"
-                      /> m
-                    </label>
-                  ) : (
-                    <span className="font-mono">{m2(s.w)} m</span>
-                  )}
-                  {s.lateral && (
-                    <label className="flex items-center gap-1 cursor-pointer">
-                      <input type="checkbox" className="h-4 w-4 accent-amber-500" checked={lateralOn(plan, s.key)}
-                        onChange={(e) => edit(p => { p.specialLateral = { ...(p.specialLateral || {}), [s.key]: e.target.checked }; })} />
-                      con lateral (pieza grande)
-                    </label>
-                  )}
-                  <span className="flex gap-1">
-                    <button type="button" className="w-8 h-8 rounded bg-white/10 hover:bg-white/25" onClick={() => edit(p => moveTall(p, s.key, -1, config))} title="Mover a la izquierda">◀</button>
-                    <button type="button" className="w-8 h-8 rounded bg-white/10 hover:bg-white/25" onClick={() => edit(p => moveTall(p, s.key, 1, config))} title="Mover a la derecha">▶</button>
-                  </span>
-                  {plan.tramos.length > 1 && (
-                    <label className="flex items-center gap-1">
-                      en
-                      <select
-                        className="h-7 rounded bg-[#0C1A1A] border border-white/15 px-1"
-                        value={s.tramo}
-                        onChange={(e) => edit(p => { p.specialTramo = { ...(p.specialTramo || {}), [s.key]: parseInt(e.target.value) || 0 }; })}
-                      >
-                        {plan.tramos.map((tt, i) => <option key={i} value={i}>{tt.name}</option>)}
-                      </select>
-                    </label>
-                  )}
-                </div>
-              ))}
-              <p className="text-amber-200/50">Ocupan las dos líneas del tramo. El descuento de metros del precio sigue calculándose como hoy.</p>
+          {/* Módulos de piso a techo: misma presentación que superiores e inferiores */}
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2 text-xs rounded px-3 py-1.5 bg-amber-900/40 border border-amber-400/40">
+              <span className="font-bold uppercase tracking-widest text-amber-200">▮ Módulos de piso a techo</span>
+              <span className="text-white/60">
+                {specials.length === 0 ? "ninguno" : `llevas ${specials.length} · ocupan ${m2(specials.reduce((a, s) => a + s.w, 0))} m de la pared`}
+              </span>
             </div>
-          )}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5">
+              {SPECIALS.map(o => {
+                const act = specials.find(s => s.key === o.key);
+                const count = act ? 1 : 0;
+                const w = act ? act.w : specialWidth(plan, o.key);
+                const canToggle = !!onSpecialToggle;
+                return (
+                  <div key={o.key} className={`rounded border p-2 flex flex-col gap-1.5 ${count > 0 ? "bg-amber-900/30 border-amber-400/50" : "bg-white/[0.03] border-white/10"}`}>
+                    <button type="button" className="flex items-center gap-2 text-left disabled:cursor-default" disabled={!canToggle || count > 0}
+                      title={count > 0 ? "Ya está en la cotización" : "Tocar para agregarlo"}
+                      onClick={() => onSpecialToggle?.(o.key, true)}>
+                      <ModuleIcon k={o.key} size={34} className="shrink-0 text-white/80" />
+                      <span className="text-xs font-semibold text-white/85 leading-tight">{o.label}</span>
+                    </button>
+                    <div className="flex items-center justify-between gap-1">
+                      {o.editable ? (
+                        <label className="flex items-center gap-1 text-xs text-white/70">
+                          <input type="number" step="0.05" min="0" value={w}
+                            onChange={(e) => edit(p => { p.alacenaEntrepanosWidth = round2(parseFloat(e.target.value) || 0); })}
+                            className="w-14 bg-black/30 border-b border-white/40 text-right font-mono text-white focus:outline-none" />
+                          m
+                        </label>
+                      ) : (
+                        <span className="text-xs font-mono text-white/60" title="Medida fija">🔒 {m2(o.width)} m</span>
+                      )}
+                      <span className="flex items-center gap-1">
+                        <button type="button" className="w-7 h-7 rounded bg-white/10 hover:bg-white/25 disabled:opacity-30" disabled={!canToggle || count === 0}
+                          onClick={() => onSpecialToggle?.(o.key, false)}>−</button>
+                        <span className={`w-5 text-center font-mono text-sm ${count > 0 ? "text-white font-bold" : "text-white/40"}`}>{count}</span>
+                        <button type="button" className="w-7 h-7 rounded bg-white/10 hover:bg-white/25 disabled:opacity-30" disabled={!canToggle || count > 0}
+                          onClick={() => onSpecialToggle?.(o.key, true)}>+</button>
+                      </span>
+                    </div>
+                    {act && (act.lateral || plan.tramos.length > 1) && (
+                      <div className="flex flex-wrap items-center gap-2 text-[11px] text-amber-100/80">
+                        {act.lateral && (
+                          <label className="flex items-center gap-1 cursor-pointer">
+                            <input type="checkbox" className="h-3.5 w-3.5 accent-amber-500" checked={lateralOn(plan, o.key)}
+                              onChange={(e) => edit(p => { p.specialLateral = { ...(p.specialLateral || {}), [o.key]: e.target.checked }; })} />
+                            con lateral (pieza grande)
+                          </label>
+                        )}
+                        {plan.tramos.length > 1 && (
+                          <label className="flex items-center gap-1">
+                            en
+                            <select className="h-6 rounded bg-[#0C1A1A] border border-white/15 px-1"
+                              value={act.tramo}
+                              onChange={(e) => edit(p => { p.specialTramo = { ...(p.specialTramo || {}), [o.key]: parseInt(e.target.value) || 0 }; })}>
+                              {plan.tramos.map((tt, i) => <option key={i} value={i}>{tt.name}</option>)}
+                            </select>
+                          </label>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            <p className="text-[11px] text-amber-200/50">Ocupan las dos líneas del tramo. Para moverlos, arrástralos en el dibujo o usa ◀ ▶ al tocarlos. Marcarlos o quitarlos cambia la cotización igual que su casilla de siempre.</p>
+          </div>
 
           {result.warnings.length > 0 && (
             <div className="rounded-lg border border-yellow-500/40 bg-yellow-900/10 p-3 text-xs text-yellow-200 space-y-1">

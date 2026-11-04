@@ -3248,6 +3248,7 @@ export default function Quotations() {
                               <KitchenModulePlanner
                                 config={item.kitchenConfig}
                                 onChange={(plan) => updateKitchenConfig(index, "modulePlan", plan)}
+                                onSpecialToggle={(key, on) => updateKitchenConfig(index, `specialModules.${key}`, on)}
                               />
                             )}
 

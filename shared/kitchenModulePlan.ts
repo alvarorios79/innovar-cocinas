@@ -54,7 +54,7 @@ export const CATALOG: CatalogEntry[] = [
   { key: "esquinero1x1", label: "Esquinero inferior 1×1", short: "Esq. inf.", row: "lower", width: 1.00, min: 0.85, lastResort: true, corner: true, pieces: () => ({ lo: 2 }) },
   // ── Superiores ──
   { key: "moduloExtractor", label: "Extractor", short: "Extractor", row: "upper", width: 0.70, locked: true, pieces: () => ({}) },
-  { key: "moduloPlatero", label: "Platero (0.70–0.90)", short: "Platero", row: "upper", width: 0.70, min: 0.70, max: 0.90, pieces: (w) => ({ up: doorsForWidth(w) }) },
+  { key: "moduloPlatero", label: "Platero (0.70–0.90)", short: "Platero", row: "upper", width: 0.70, min: 0.70, max: 0.90, pieces: () => ({ up: 2 }) }, // siempre 2 puertas, para conservar las líneas con el lavaplatos
   { key: "moduloExtractorMicroondas", label: "Extractor y microondas", short: "Extr.+micro.", row: "upper", width: 0.70, locked: true, pieces: () => ({ up: 4 }) },
   { key: "moduloMicroondas", label: "Microondas", short: "Microondas", row: "upper", width: 0.60, pieces: () => ({}) },
   { key: "moduloAlmacSup", label: "Almacenamiento superior", short: "Alm. sup.", row: "upper", width: 0.65, flexible: true, pieces: (w) => ({ up: doorsForWidth(w), go: 1 }) },

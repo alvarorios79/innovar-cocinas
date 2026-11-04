@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Wrench } from "lucide-react";
+import { Loader2, Wrench, Pencil, Check, X } from "lucide-react";
 
 interface HardwareSelection {
   hardwareId: number;
@@ -22,6 +22,18 @@ interface HardwareSelectorForQuotationProps {
 
 export function HardwareSelectorForQuotation({ selectedHardware, onHardwareChange }: HardwareSelectorForQuotationProps) {
   const [selectedCategory, setSelectedCategory] = useState<"cocinas" | "closets" | "puertas">("cocinas");
+  // Con herrajes ya elegidos se muestra solo lo elegido; la lista completa se abre al querer agregar o quitar
+  const [editing, setEditing] = useState<boolean>(selectedHardware.length === 0);
+  const rootRef = useRef<HTMLDivElement>(null);
+  // Al tocar fuera de este bloque (pasar a otro ítem), queda solo lo seleccionado
+  useEffect(() => {
+    if (!editing || selectedHardware.length === 0) return;
+    const onDown = (e: PointerEvent) => {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setEditing(false);
+    };
+    document.addEventListener("pointerdown", onDown);
+    return () => document.removeEventListener("pointerdown", onDown);
+  }, [editing, selectedHardware.length]);
   
   const { data: catalog = [], isLoading } = trpc.hardwareCatalog.list.useQuery({ category: selectedCategory });
 
@@ -66,13 +78,77 @@ export function HardwareSelectorForQuotation({ selectedHardware, onHardwareChang
 
   const totalPrice = selectedHardware.reduce((sum, s) => sum + s.subtotal, 0);
 
+  // Vista resumida: solo los herrajes seleccionados
+  if (!editing && selectedHardware.length > 0) {
+    return (
+      <Card className="mt-4 border-[rgba(106,207,199,0.18)]">
+        <CardContent className="p-4 space-y-3">
+          <div className="flex items-center gap-2 pb-2 border-b border-[rgba(106,207,199,0.12)]">
+            <Wrench className="h-5 w-5 text-white/60" />
+            <h4 className="font-bold text-white/90 text-lg">Herrajes seleccionados</h4>
+            <button
+              type="button"
+              className="ml-auto flex items-center gap-1 rounded-lg bg-[#0F2222] hover:bg-white/[0.10] px-3 py-1.5 text-sm text-white/85"
+              onClick={() => setEditing(true)}
+            >
+              <Pencil className="h-4 w-4" /> Agregar o quitar herrajes
+            </button>
+          </div>
+          <div className="space-y-2">
+            {selectedHardware.map(s => (
+              <div key={s.hardwareId} className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-400/60 bg-[#0F2222] p-3">
+                <div className="flex-1 min-w-[160px]">
+                  <p className="font-medium text-white/90">{s.name}</p>
+                  <p className="text-xs text-white/45">${parseFloat(s.price || "0").toLocaleString("es-CO")} c/u</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm text-white/60">Cantidad:</Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    value={s.quantity}
+                    onChange={(e) => handleQuantityChange(s.hardwareId, parseInt(e.target.value) || 1)}
+                    className="w-20 h-8 bg-[#162828]"
+                  />
+                </div>
+                <div className="text-sm font-semibold text-white/85 w-28 text-right">${s.subtotal.toLocaleString("es-CO")}</div>
+                <button
+                  type="button"
+                  className="rounded p-1.5 text-red-300 hover:bg-red-900/40"
+                  title="Quitar este herraje"
+                  onClick={() => onHardwareChange(selectedHardware.filter(x => x.hardwareId !== s.hardwareId))}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+          <div className="bg-white/[0.10] p-3 rounded-lg border border-slate-400 flex justify-between items-center">
+            <span className="text-sm">{selectedHardware.length} herraje{selectedHardware.length !== 1 ? "s" : ""} seleccionado{selectedHardware.length !== 1 ? "s" : ""}</span>
+            <span className="text-xl font-bold text-foreground">${totalPrice.toLocaleString("es-CO")}</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
+    <div ref={rootRef}>
     <Card className="mt-4 border-[rgba(106,207,199,0.18)]">
       <CardContent className="p-4">
         {/* Header */}
         <div className="flex items-center gap-2 mb-4 pb-2 border-b border-[rgba(106,207,199,0.12)]">
           <Wrench className="h-5 w-5 text-white/60" />
           <h4 className="font-bold text-white/90 text-lg">Selección de Herrajes</h4>
+          {selectedHardware.length > 0 && (
+            <button
+              type="button"
+              className="ml-auto flex items-center gap-1 rounded-lg bg-slate-700 hover:bg-slate-600 px-3 py-1.5 text-sm text-white"
+              onClick={() => setEditing(false)}
+            >
+              <Check className="h-4 w-4" /> Listo
+            </button>
+          )}
         </div>
 
         <div className="space-y-4">
@@ -223,5 +299,6 @@ export function HardwareSelectorForQuotation({ selectedHardware, onHardwareChang
         </div>
       </CardContent>
     </Card>
+    </div>
   );
 }

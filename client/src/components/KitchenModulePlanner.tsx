@@ -57,6 +57,19 @@ function ModuleIcon({ k, size = 28, className = "" }: { k: string; size?: number
   );
 }
 
+// Cota: línea con topes y la medida en metros, centrada bajo el icono
+function Cota({ w }: { w: number }) {
+  return (
+    <div className="absolute left-1 right-1 bottom-0.5 flex flex-col items-center pointer-events-none">
+      <span className="text-[10px] leading-none font-mono text-white/85">{(Number(w) || 0).toFixed(2)}</span>
+      <div className="relative w-full h-[5px] border-t border-white/50 mt-[1px]">
+        <span className="absolute left-0 -top-[3px] h-[5px] border-l border-white/60" />
+        <span className="absolute right-0 -top-[3px] h-[5px] border-l border-white/60" />
+      </div>
+    </div>
+  );
+}
+
 type Sel = { t: number; row: PlanRow; id: string } | { t: number; tall: string } | null;
 
 export function KitchenModulePlanner({ config, onChange }: Props) {
@@ -165,7 +178,8 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
             style={{ touchAction: "none", transform: dragDx?.id === mod.id ? `translateX(${dragDx.dx}px)` : undefined, zIndex: dragDx?.id === mod.id ? 30 : undefined }}
             className={`relative h-full w-full rounded border flex items-center justify-center select-none ${color} ${isSel ? "ring-2 ring-white" : ""} ${mine ? "cursor-grab" : "cursor-default"} ${dragDx?.id === mod.id ? "opacity-80 shadow-lg" : ""}`}
           >
-            <ModuleIcon k={it.key} size={Math.max(14, Math.min(36, w - 14))} />
+            <ModuleIcon k={it.key} size={Math.max(12, Math.min(30, w - 14))} className="-mt-3" />
+            <Cota w={mod.width} />
             {!painted && !cat.noPieces && <span className="absolute top-0.5 right-0.5 text-[9px] opacity-70">∅</span>}
           </div>
         </div>
@@ -214,6 +228,7 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
                 className={`absolute rounded border flex flex-col items-center justify-center gap-1 select-none cursor-grab bg-amber-900/60 border-amber-400/70 text-amber-100 ${isSel ? "ring-2 ring-white" : ""} ${dragDx?.id === s.key ? "opacity-80 shadow-lg" : ""}`}
                 style={{ left: it.start * PX + 2, top: 2, width: Math.max(it.width * PX - 4, 10), height: heightPx - 4, touchAction: "none", zIndex: dragDx?.id === s.key ? 30 : 5, transform: dragDx?.id === s.key ? `translateX(${dragDx.dx}px)` : undefined }}>
                 <ModuleIcon k={s.key} size={Math.max(16, Math.min(40, it.width * PX - 14))} />
+                <Cota w={s.w} />
               </div>
             );
           })}

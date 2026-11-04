@@ -1,4 +1,3 @@
-import { createPortal } from "react-dom";
 import { useMemo, useRef, useState, type ReactElement, type PointerEvent as RPointerEvent } from "react";
 import {
   CATALOG, CATALOG_BY_KEY, FILL_KEYS, SPECIALS,
@@ -78,8 +77,9 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
   const result = useMemo(() => computePlan(plan, config), [plan, config]);
   const specials = activeSpecials(plan, config);
   const [sel, setSel] = useState<Sel>(null);
-  const [big, setBig] = useState(false);   // pantalla completa para trabajar con más espacio
-  PX = big ? 170 : 120;
+  const ZOOMS = [70, 95, 120, 170, 220];   // píxeles por metro
+  const [zoom, setZoom] = useState(2);       // acercar / alejar el dibujo
+  PX = ZOOMS[zoom];
   // Arrastre con puntero (funciona con dedo y con ratón)
   const dragRef = useRef<{ kind: "mod" | "tall"; t: number; row?: PlanRow; id: string; startX: number; moved: boolean; box: HTMLElement | null } | null>(null);
   const [dragDx, setDragDx] = useState<{ id: string; dx: number } | null>(null);
@@ -409,7 +409,7 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
   );
 
   const content = (
-    <div className={big ? "fixed inset-0 z-[2000] overflow-auto bg-[#0f1b1b] p-4 sm:p-8 space-y-3 text-white" : box}>
+    <div className={box}>
       <div className="flex items-center gap-2">
         <input
           type="checkbox"
@@ -422,10 +422,13 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
           Plano de módulos de la cocina <span className="font-normal text-white/40">(cuenta módulos y piezas de pintura; no cambia el precio)</span>
         </label>
         {enabled && (
-          <button type="button" onClick={() => setBig(b => !b)}
-            className="ml-auto shrink-0 rounded bg-white/10 hover:bg-white/20 px-3 py-1.5 text-xs font-semibold text-white/85">
-            {big ? "✕ Cerrar pantalla completa" : "⤢ Ampliar"}
-          </button>
+          <span className="ml-auto shrink-0 flex items-center gap-1 text-xs text-white/70">
+            Zoom
+            <button type="button" disabled={zoom <= 0} onClick={() => setZoom(z => Math.max(0, z - 1))}
+              className="w-8 h-8 rounded bg-white/10 hover:bg-white/20 disabled:opacity-30 text-base font-bold" title="Alejar (ver la pared completa)">−</button>
+            <button type="button" disabled={zoom >= ZOOMS.length - 1} onClick={() => setZoom(z => Math.min(ZOOMS.length - 1, z + 1))}
+              className="w-8 h-8 rounded bg-white/10 hover:bg-white/20 disabled:opacity-30 text-base font-bold" title="Acercar (trabajar con más detalle)">+</button>
+          </span>
         )}
       </div>
 
@@ -605,6 +608,5 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
       )}
     </div>
   );
-  // En pantalla completa se dibuja sobre toda la página (así ningún cuadro que lo contenga lo recorta)
-  return big && typeof document !== "undefined" ? createPortal(content, document.body) : content;
+  return content;
 }

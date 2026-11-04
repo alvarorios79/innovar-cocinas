@@ -106,7 +106,7 @@ export interface ModulePlan {
   paintAll?: boolean;
   autoUpper?: boolean;   // al agregar un inferior, agregar su superior (por defecto sí)
   suppress?: string[];   // superiores automáticos que el usuario quitó a propósito ("idInferior:clave")
-  specialPos?: Record<string, { u: number; l: number }>; // posición (índice) de cada módulo de piso a techo en cada fila
+  specialPos?: Record<string, { u: number; l: number; ou?: number; ol?: number }>; // posición (índice) de cada módulo de piso a techo en cada fila
   defaultWidth?: Record<string, number>;               // ancho que el usuario eligió por tipo de módulo
   paintRows?: { upper?: boolean; lower?: boolean };   // ¿van pintados los superiores / inferiores?
   paintKeys?: Record<string, boolean>;                // por tipo de módulo (ej. todos los cajoneros)
@@ -396,9 +396,9 @@ export function rowItems(plan: ModulePlan, t: number, row: PlanRow, config: any)
     });
   });
   const own = plan.tramos[t]?.[row] || [];
-  const talls = activeSpecials(plan, config).filter(s => s.tramo === t).map(s => ({ s, idx: tallPos(plan, t, row, s.key) }));
+  const talls = activeSpecials(plan, config).filter(s => s.tramo === t).map(s => ({ s, idx: tallPos(plan, t, row, s.key), ord: tallOrd(plan, t, row, s.key) }));
   for (let i = 0; i <= own.length; i++) {
-    talls.filter(x => x.idx === i).forEach(x => {
+    talls.filter(x => x.idx === i).sort((a, b) => a.ord - b.ord).forEach(x => {
       out.push({ kind: "tall", key: x.s.key, width: x.s.w, start: pos, fromPrev: false, ownIndex: -1, special: x.s }); pos += x.s.w;
     });
     if (i < own.length) {
@@ -413,16 +413,70 @@ export function rowUsed(plan: ModulePlan, t: number, row: PlanRow, config: any):
   return round2(rowItems(plan, t, row, config).reduce((a, s) => a + s.width, 0));
 }
 
+// Orden entre módulos de piso a techo que caen en el mismo lugar de la fila.
+export function tallOrd(plan: ModulePlan, _t: number, row: PlanRow, key: string): number {
+  const st = plan.specialPos?.[key];
+  const v = row === "upper" ? st?.ou : st?.ol;
+  return v ?? 1000 + SPECIALS.findIndex(s => s.key === key);
+}
+
+type OwnEl = { kind: "mod"; mod: PlanModule } | { kind: "tall"; key: string };
+
+// Lista ordenada de los elementos propios de una fila (módulos y módulos de piso a techo).
+function ownList(plan: ModulePlan, t: number, row: PlanRow, config: any): OwnEl[] {
+  const own = plan.tramos[t]?.[row] || [];
+  const talls = activeSpecials(plan, config).filter(s => s.tramo === t).map(s => ({ key: s.key, idx: tallPos(plan, t, row, s.key), ord: tallOrd(plan, t, row, s.key) }));
+  const out: OwnEl[] = [];
+  for (let i = 0; i <= own.length; i++) {
+    talls.filter(x => x.idx === i).sort((a, b) => a.ord - b.ord).forEach(x => out.push({ kind: "tall", key: x.key }));
+    if (i < own.length) out.push({ kind: "mod", mod: own[i] });
+  }
+  return out;
+}
+
+// Guarda en el plan la posición de todos los módulos de piso a techo según una lista ordenada.
+function saveList(p: ModulePlan, row: PlanRow, list: OwnEl[], config: any) {
+  let mods = 0, ord = 0;
+  const all = p.specialPos || {};
+  list.forEach(el => {
+    if (el.kind === "mod") { mods++; return; }
+    const sp = activeSpecials(p, config).find(s => s.key === el.key);
+    const cur = all[el.key] || { u: tallPos(p, sp?.tramo ?? 0, "upper", el.key), l: tallPos(p, sp?.tramo ?? 0, "lower", el.key) };
+    all[el.key] = row === "upper" ? { ...cur, u: mods, ou: ord++ } : { ...cur, l: mods, ol: ord++ };
+  });
+  p.specialPos = { ...all };
+}
+
 // Mueve un módulo de piso a techo un lugar a la izquierda (-1) o a la derecha (+1) en las dos filas a la vez.
+// Un "lugar" es el siguiente elemento de la fila, sea un módulo u otro módulo de piso a techo.
 export function moveTall(p: ModulePlan, key: string, dir: -1 | 1, config: any) {
   const sp = activeSpecials(p, config).find(s => s.key === key);
   if (!sp) return;
-  const cur = { u: tallPos(p, sp.tramo, "upper", key), l: tallPos(p, sp.tramo, "lower", key) };
-  const clampRow = (row: PlanRow, v: number) => {
-    const own = p.tramos[sp.tramo][row];
-    return Math.max(0, Math.min(v, own.length - trailingBlockSize(own)));
-  };
-  p.specialPos = { ...(p.specialPos || {}), [key]: { u: clampRow("upper", cur.u + dir), l: clampRow("lower", cur.l + dir) } };
+  (["upper", "lower"] as PlanRow[]).forEach(row => {
+    const list = ownList(p, sp.tramo, row, config);
+    const pos = list.findIndex(el => el.kind === "tall" && el.key === key);
+    const max = list.length - 1 - trailingBlockSize(p.tramos[sp.tramo][row]);
+    const target = pos + dir;
+    if (pos < 0 || target < 0 || target > max) return;
+    [list[pos], list[target]] = [list[target], list[pos]];
+    saveList(p, row, list, config);
+  });
+}
+
+// Coloca un módulo de piso a techo donde se soltó (x en metros desde el inicio de la pared), en las dos filas.
+export function placeTall(p: ModulePlan, key: string, x: number, config: any) {
+  const sp = activeSpecials(p, config).find(s => s.key === key);
+  if (!sp) return;
+  const widthOf = (el: OwnEl) => el.kind === "mod" ? el.mod.width : (activeSpecials(p, config).find(s => s.key === el.key)?.w || 0);
+  (["upper", "lower"] as PlanRow[]).forEach(row => {
+    const prefix = rowItems(p, sp.tramo, row, config).filter(i => i.fromPrev).reduce((a, i) => a + i.width, 0);
+    const list = ownList(p, sp.tramo, row, config).filter(el => !(el.kind === "tall" && el.key === key));
+    let pos = prefix, at = 0;
+    for (const el of list) { const w = widthOf(el); if (pos + w / 2 < x) at++; pos += w; }
+    const max = list.length - trailingBlockSize(p.tramos[sp.tramo][row]);
+    list.splice(Math.max(0, Math.min(at, max)), 0, { kind: "tall", key });
+    saveList(p, row, list, config);
+  });
 }
 
 // Ancho de todos los módulos de un tipo en una fila de un tramo (y ancho para los próximos que se agreguen).

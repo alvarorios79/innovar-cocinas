@@ -1,8 +1,8 @@
-import { useMemo, useState, type ReactElement } from "react";
+import { useMemo, useRef, useState, type ReactElement, type PointerEvent as RPointerEvent } from "react";
 import {
   CATALOG, CATALOG_BY_KEY, FILL_KEYS, SPECIALS,
   normalizePlan, computePlan, rowItems, rowUsed, activeSpecials, lateralOn, isPainted,
-  addModuleToPlan, removeModuleFromPlan, setModuleWidth, moveModule, moveTall, setTypeWidth, alignEnd, rebuildAutoUpper,
+  addModuleToPlan, removeModuleFromPlan, setModuleWidth, moveModule, moveTall, placeTall, setTypeWidth, alignEnd, rebuildAutoUpper,
   round2,
   type ModulePlan, type PlanRow, type RowItem,
 } from "@shared/kitchenModulePlan";
@@ -64,7 +64,37 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
   const result = useMemo(() => computePlan(plan, config), [plan, config]);
   const specials = activeSpecials(plan, config);
   const [sel, setSel] = useState<Sel>(null);
-  const [drag, setDrag] = useState<{ t: number; row: PlanRow; id: string } | null>(null);
+  // Arrastre con puntero (funciona con dedo y con ratón)
+  const dragRef = useRef<{ kind: "mod" | "tall"; t: number; row?: PlanRow; id: string; startX: number; moved: boolean; box: HTMLElement | null } | null>(null);
+  const [dragDx, setDragDx] = useState<{ id: string; dx: number } | null>(null);
+
+  const startDrag = (e: RPointerEvent<HTMLElement>, info: { kind: "mod" | "tall"; t: number; row?: PlanRow; id: string }) => {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    dragRef.current = { ...info, startX: e.clientX, moved: false, box: e.currentTarget.closest("[data-elev]") as HTMLElement | null };
+  };
+  const moveDrag = (e: RPointerEvent<HTMLElement>) => {
+    const d = dragRef.current;
+    if (!d) return;
+    const dx = e.clientX - d.startX;
+    if (Math.abs(dx) > 5) d.moved = true;
+    if (d.moved) setDragDx({ id: d.id, dx });
+  };
+  const endDrag = (e: RPointerEvent<HTMLElement>, onClick: () => void) => {
+    const d = dragRef.current;
+    dragRef.current = null;
+    setDragDx(null);
+    if (!d) return;
+    if (!d.moved || !d.box) { onClick(); return; }
+    const x = (e.clientX - d.box.getBoundingClientRect().left) / PX;   // metros desde el inicio de la pared
+    if (d.kind === "tall") {
+      edit(p => placeTall(p, d.id, x, config));
+    } else if (d.row) {
+      const items = rowItems(plan, d.t, d.row, config).filter(i => i.kind === "mod" && !i.fromPrev && i.mod!.id !== d.id);
+      const at = items.filter(i => i.start + i.width / 2 < x).length;
+      const row = d.row, t = d.t, id = d.id;
+      edit(p => moveModule(p, t, row, id, at));
+    }
+  };
 
   const edit = (fn: (p: ModulePlan) => void) => {
     const p: ModulePlan = JSON.parse(JSON.stringify(plan));
@@ -122,27 +152,26 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
         : "bg-teal-900/50 border-teal-400/50 text-teal-100";
       return (
         <div key={`${row}-${mod.id}${it.fromPrev ? "p" : ""}`} className="shrink-0 p-[2px]" style={{ width: w, height: LANE_H }}>
-          <button
-            type="button"
-            draggable={mine}
-            onClick={() => mine && setSel(isSel ? null : { t, row, id: mod.id })}
-            onDragStart={() => mine && setDrag({ t, row, id: mod.id })}
-            onDragOver={(e) => { if (mine && drag && drag.t === t && drag.row === row) e.preventDefault(); }}
-            onDrop={(e) => { e.preventDefault(); if (mine && drag && drag.id !== mod.id && drag.t === t && drag.row === row) edit(p => moveModule(p, t, row, drag.id, it.ownIndex)); setDrag(null); }}
-            onDragEnd={() => setDrag(null)}
+          <div
+            role="button"
+            onPointerDown={(e) => mine && startDrag(e, { kind: "mod", t, row, id: mod.id })}
+            onPointerMove={moveDrag}
+            onPointerUp={(e) => mine && endDrag(e, () => setSel(isSel ? null : { t, row, id: mod.id }))}
+            onPointerCancel={() => { dragRef.current = null; setDragDx(null); }}
             title={`${cat.label} · ${m2(mod.width)} m${cat.locked ? " · fijo" : ""}${painted ? "" : " · sin pintar"}`}
-            className={`relative h-full w-full rounded border flex items-center justify-center ${color} ${isSel ? "ring-2 ring-white" : ""} ${mine ? "cursor-pointer" : "cursor-default"}`}
+            style={{ touchAction: "none", transform: dragDx?.id === mod.id ? `translateX(${dragDx.dx}px)` : undefined, zIndex: dragDx?.id === mod.id ? 30 : undefined }}
+            className={`relative h-full w-full rounded border flex items-center justify-center select-none ${color} ${isSel ? "ring-2 ring-white" : ""} ${mine ? "cursor-grab" : "cursor-default"} ${dragDx?.id === mod.id ? "opacity-80 shadow-lg" : ""}`}
           >
             <ModuleIcon k={it.key} size={Math.max(14, Math.min(36, w - 14))} />
             {!painted && !cat.noPieces && <span className="absolute top-0.5 right-0.5 text-[9px] opacity-70">∅</span>}
-          </button>
+          </div>
         </div>
       );
     };
 
     return (
       <div className="overflow-x-auto pb-1">
-        <div className="relative" style={{ width: widthPx, height: heightPx + 20 }}>
+        <div className="relative" data-elev style={{ width: widthPx, height: heightPx + 20 }}>
           {/* líneas */}
           {!tr.isIsland && (
             <div className="absolute left-0 top-0 flex rounded bg-purple-950/40" style={{ height: LANE_H, width: widthPx }}>
@@ -173,13 +202,16 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
             const s = it.special!;
             const isSel = !!sel && "tall" in sel && sel.t === t && sel.tall === s.key;
             return (
-              <button key={`tall-${s.key}`} type="button"
-                onClick={() => setSel(isSel ? null : { t, tall: s.key })}
+              <div key={`tall-${s.key}`} role="button"
+                onPointerDown={(e) => startDrag(e, { kind: "tall", t, id: s.key })}
+                onPointerMove={moveDrag}
+                onPointerUp={(e) => endDrag(e, () => setSel(isSel ? null : { t, tall: s.key }))}
+                onPointerCancel={() => { dragRef.current = null; setDragDx(null); }}
                 title={`${s.label} · ${m2(s.w)} m · piso a techo`}
-                className={`absolute rounded border flex flex-col items-center justify-center gap-1 bg-amber-900/60 border-amber-400/70 text-amber-100 ${isSel ? "ring-2 ring-white" : ""}`}
-                style={{ left: it.start * PX + 2, top: 2, width: Math.max(it.width * PX - 4, 10), height: heightPx - 4 }}>
+                className={`absolute rounded border flex flex-col items-center justify-center gap-1 select-none cursor-grab bg-amber-900/60 border-amber-400/70 text-amber-100 ${isSel ? "ring-2 ring-white" : ""} ${dragDx?.id === s.key ? "opacity-80 shadow-lg" : ""}`}
+                style={{ left: it.start * PX + 2, top: 2, width: Math.max(it.width * PX - 4, 10), height: heightPx - 4, touchAction: "none", zIndex: dragDx?.id === s.key ? 30 : 5, transform: dragDx?.id === s.key ? `translateX(${dragDx.dx}px)` : undefined }}>
                 <ModuleIcon k={s.key} size={Math.max(16, Math.min(40, it.width * PX - 14))} />
-              </button>
+              </div>
             );
           })}
 

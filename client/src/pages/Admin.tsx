@@ -785,12 +785,7 @@ export default function Admin() {
             >
               Usuarios
             </TabsTrigger>
-            <TabsTrigger 
-              value="hardware" 
-              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-500/10 transition-colors"
-            >
-              Herrajes
-            </TabsTrigger>
+            {/* Pestaña Herrajes oculta: los herrajes ahora se administran en Motor de Cotización → Herrajes */}
             <TabsTrigger
               value="projects"
               className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-500/10 transition-colors"

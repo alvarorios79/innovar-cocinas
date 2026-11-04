@@ -106,6 +106,8 @@ export interface ModulePlan {
   paintAll?: boolean;
   autoUpper?: boolean;   // al agregar un inferior, agregar su superior (por defecto sí)
   suppress?: string[];   // superiores automáticos que el usuario quitó a propósito ("idInferior:clave")
+  specialPos?: Record<string, { u: number; l: number }>; // posición (índice) de cada módulo de piso a techo en cada fila
+  defaultWidth?: Record<string, number>;               // ancho que el usuario eligió por tipo de módulo
   paintRows?: { upper?: boolean; lower?: boolean };   // ¿van pintados los superiores / inferiores?
   paintKeys?: Record<string, boolean>;                // por tipo de módulo (ej. todos los cajoneros)
   extras: PlanExtras;
@@ -156,6 +158,8 @@ export function normalizePlan(raw: any, config: any): ModulePlan {
     specialLateral: base.specialLateral || {},
     alacenaEntrepanosWidth: base.alacenaEntrepanosWidth,
     paintAll: base.paintAll !== false,
+    specialPos: base.specialPos || {},
+    defaultWidth: base.defaultWidth || {},
     paintRows: base.paintRows || {},
     paintKeys: base.paintKeys || {},
     suppress: base.suppress || [],
@@ -300,7 +304,7 @@ export function syncAuto(p: ModulePlan) {
 export function addModuleToPlan(p: ModulePlan, t: number, row: PlanRow, key: string): PlanModule | undefined {
   const cat = CATALOG_BY_KEY[key];
   if (!cat || !p.tramos[t]) return undefined;
-  const mod: PlanModule = { id: newId(), key, width: cat.width };
+  const mod: PlanModule = { id: newId(), key, width: (!cat.locked && p.defaultWidth?.[key]) || cat.width };
   if (cat.corner && t + 1 < p.tramos.length && !p.tramos[t + 1].isIsland && !p.tramos[t].isIsland) mod.alsoTramo = t + 1;
   insertBeforeTrailingBlock(p.tramos[t][row], mod);
   if (row === "lower") rebuildAutoUpper(p, t);
@@ -354,26 +358,98 @@ export function isPainted(plan: ModulePlan, m: PlanModule, row: PlanRow): boolea
 
 // ── Cálculo ────────────────────────────────────────────────────────────────
 
-// Secuencia de una fila en un tramo, en orden: primero los vértices que vienen del tramo anterior, luego los propios.
-export interface SeqItem { mod: PlanModule; width: number; fromPrev: boolean; start: number; ownIndex: number }
-export function rowSequence(plan: ModulePlan, t: number, row: PlanRow): SeqItem[] {
-  const out: SeqItem[] = [];
+// Elementos de una fila en un tramo, en orden y con su posición (m desde el inicio de la pared):
+// primero los vértices que vienen del tramo anterior, luego los propios y los módulos de piso a techo (que cruzan las dos filas).
+export interface RowItem {
+  kind: "mod" | "tall";
+  key: string;
+  width: number;
+  start: number;
+  fromPrev: boolean;
+  ownIndex: number;       // posición entre los módulos propios de la fila (-1 si no aplica)
+  mod?: PlanModule;
+  special?: SpecialEntry & { tramo: number; w: number };
+}
+
+function trailingBlockSize(arr: PlanModule[]): number {
+  let n = 0;
+  if (isTrailingCorner(arr[arr.length - 1])) { n = 1; if (arr[arr.length - 2]?.autoRole === "cornerFill") n = 2; }
+  return n;
+}
+
+// Índice (entre los módulos propios de la fila) donde está un módulo de piso a techo.
+export function tallPos(plan: ModulePlan, t: number, row: PlanRow, key: string): number {
+  const own = plan.tramos[t]?.[row] || [];
+  const maxIdx = own.length - trailingBlockSize(own);
+  const st = plan.specialPos?.[key];
+  const v = st ? (row === "upper" ? st.u : st.l) : maxIdx;
+  return Math.max(0, Math.min(v, maxIdx));
+}
+
+export function rowItems(plan: ModulePlan, t: number, row: PlanRow, config: any): RowItem[] {
+  const out: RowItem[] = [];
   let pos = 0;
   plan.tramos.forEach((tr, i) => {
     if (i === t) return;
     (tr[row] || []).forEach(m => {
-      if (m.alsoTramo === t) { out.push({ mod: m, width: m.width, fromPrev: true, start: pos, ownIndex: -1 }); pos += m.width; }
+      if (m.alsoTramo === t) { out.push({ kind: "mod", key: m.key, width: m.width, start: pos, fromPrev: true, ownIndex: -1, mod: m }); pos += m.width; }
     });
   });
-  (plan.tramos[t]?.[row] || []).forEach((m, idx) => { out.push({ mod: m, width: m.width, fromPrev: false, start: pos, ownIndex: idx }); pos += m.width; });
+  const own = plan.tramos[t]?.[row] || [];
+  const talls = activeSpecials(plan, config).filter(s => s.tramo === t).map(s => ({ s, idx: tallPos(plan, t, row, s.key) }));
+  for (let i = 0; i <= own.length; i++) {
+    talls.filter(x => x.idx === i).forEach(x => {
+      out.push({ kind: "tall", key: x.s.key, width: x.s.w, start: pos, fromPrev: false, ownIndex: -1, special: x.s }); pos += x.s.w;
+    });
+    if (i < own.length) {
+      const m = own[i];
+      out.push({ kind: "mod", key: m.key, width: m.width, start: pos, fromPrev: false, ownIndex: i, mod: m }); pos += m.width;
+    }
+  }
   return out;
 }
 
 export function rowUsed(plan: ModulePlan, t: number, row: PlanRow, config: any): number {
-  let used = rowSequence(plan, t, row).reduce((a, s) => a + s.width, 0);
-  // Los módulos de piso a techo ocupan las dos filas del tramo donde se coloquen
-  activeSpecials(plan, config).forEach(s => { if (s.tramo === t) used += s.w; });
-  return round2(used);
+  return round2(rowItems(plan, t, row, config).reduce((a, s) => a + s.width, 0));
+}
+
+// Mueve un módulo de piso a techo un lugar a la izquierda (-1) o a la derecha (+1) en las dos filas a la vez.
+export function moveTall(p: ModulePlan, key: string, dir: -1 | 1, config: any) {
+  const sp = activeSpecials(p, config).find(s => s.key === key);
+  if (!sp) return;
+  const cur = { u: tallPos(p, sp.tramo, "upper", key), l: tallPos(p, sp.tramo, "lower", key) };
+  const clampRow = (row: PlanRow, v: number) => {
+    const own = p.tramos[sp.tramo][row];
+    return Math.max(0, Math.min(v, own.length - trailingBlockSize(own)));
+  };
+  p.specialPos = { ...(p.specialPos || {}), [key]: { u: clampRow("upper", cur.u + dir), l: clampRow("lower", cur.l + dir) } };
+}
+
+// Ancho de todos los módulos de un tipo en una fila de un tramo (y ancho para los próximos que se agreguen).
+export function setTypeWidth(p: ModulePlan, t: number, row: PlanRow, key: string, w: number) {
+  const cat = CATALOG_BY_KEY[key];
+  if (!cat || cat.locked) return;
+  p.defaultWidth = { ...(p.defaultWidth || {}), [key]: round2(w) };
+  p.tramos[t][row].forEach(m => { if (m.key === key && m.autoBase === undefined) m.width = round2(w); });
+  if (row === "lower") rebuildAutoUpper(p, t);
+}
+
+// Ajusta el ancho de un módulo para que su final coincida con el corte más cercano de la otra fila.
+export function alignEnd(p: ModulePlan, t: number, row: PlanRow, id: string, config: any) {
+  const m = p.tramos[t][row].find(x => x.id === id);
+  const cat = m && CATALOG_BY_KEY[m.key];
+  if (!m || !cat || cat.locked || m.autoBase !== undefined) return;
+  const mine = rowItems(p, t, row, config).find(i => i.mod?.id === id);
+  if (!mine) return;
+  const otherRow: PlanRow = row === "upper" ? "lower" : "upper";
+  const cuts = rowItems(p, t, otherRow, config).map(i => round2(i.start + i.width));
+  const end = mine.start + m.width;
+  const near = cuts.filter(x => x > mine.start + 0.1).sort((a, b) => Math.abs(a - end) - Math.abs(b - end))[0];
+  if (near === undefined || Math.abs(near - end) > 0.35) return;
+  let w = round2(near - mine.start);
+  if (cat.min) w = Math.max(cat.min, w);
+  if (cat.max) w = Math.min(cat.max, w);
+  setModuleWidth(p, t, row, id, w);
 }
 
 export function addPieces(acc: Required<Pieces>, p: Pieces, times = 1) {
@@ -414,8 +490,8 @@ export function computePlan(rawPlan: any, config: any): PlanResult {
 
     // Avisos: platero sobre lavaplatos y extractor sobre estufa deben coincidir
     if (!tr.isIsland) {
-      const up = rowSequence(plan, t, "upper"), lo = rowSequence(plan, t, "lower");
-      const pos = (seq: SeqItem[], keys: string[]) => seq.find(s => keys.includes(s.mod.key))?.start;
+      const up = rowItems(plan, t, "upper", config), lo = rowItems(plan, t, "lower", config);
+      const pos = (seq: RowItem[], keys: string[]) => seq.find(s => keys.includes(s.key))?.start;
       const pairs: Array<[string[], string[], string]> = [
         [["moduloPlatero"], ["moduloLavaplatos", "moduloLavaplatosDoble"], "El platero y el lavaplatos"],
         [["moduloExtractor", "moduloExtractorMicroondas"], ["moduloEstufaPuerta", "moduloEstufaHorno"], "El extractor y la estufa"],
@@ -425,6 +501,14 @@ export function computePlan(rawPlan: any, config: any): PlanResult {
         if (pa !== undefined && pb !== undefined && Math.abs(pa - pb) > 0.02) warnings.push(`${tr.name}: ${msg} no quedan alineados (diferencia ${Math.abs(pa - pb).toFixed(2)} m).`);
       });
     }
+  });
+
+  // Los módulos de piso a techo deben quedar en el mismo lugar en las dos filas
+  activeSpecials(plan, config).forEach(s => {
+    if (plan.tramos[s.tramo]?.isIsland) return;
+    const a = rowItems(plan, s.tramo, "upper", config).find(i => i.kind === "tall" && i.key === s.key)?.start;
+    const b = rowItems(plan, s.tramo, "lower", config).find(i => i.kind === "tall" && i.key === s.key)?.start;
+    if (a !== undefined && b !== undefined && Math.abs(a - b) > 0.02) warnings.push(`${plan.tramos[s.tramo].name}: ${s.label} no queda alineado entre superiores e inferiores (diferencia ${Math.abs(a - b).toFixed(2)} m).`);
   });
 
   // Especiales de piso a techo

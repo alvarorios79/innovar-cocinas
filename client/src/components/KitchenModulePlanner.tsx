@@ -2,7 +2,7 @@ import { useMemo, useRef, useState, type ReactElement, type PointerEvent as RPoi
 import {
   CATALOG, CATALOG_BY_KEY, FILL_KEYS, SPECIALS,
   normalizePlan, computePlan, rowItems, rowUsed, activeSpecials, lateralOn, isPainted,
-  addModuleToPlan, removeModuleFromPlan, setModuleWidth, moveModule, moveTall, placeTall, setTypeWidth, alignEnd, rebuildAutoUpper,
+  addModuleToPlan, removeModuleFromPlan, setModuleWidth, moveModule, moveTall, dropModule, dropTall, setTypeWidth, alignEnd, rebuildAutoUpper,
   round2,
   type ModulePlan, type PlanRow, type RowItem,
 } from "@shared/kitchenModulePlan";
@@ -85,14 +85,14 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
     setDragDx(null);
     if (!d) return;
     if (!d.moved || !d.box) { onClick(); return; }
-    const x = (e.clientX - d.box.getBoundingClientRect().left) / PX;   // metros desde el inicio de la pared
+    const dM = (e.clientX - d.startX) / PX;   // metros que se arrastró
     if (d.kind === "tall") {
-      edit(p => placeTall(p, d.id, x, config));
+      const cur = rowItems(plan, d.t, "lower", config).find(i => i.kind === "tall" && i.key === d.id);
+      if (cur) edit(p => dropTall(p, d.id, cur.start + dM, config));
     } else if (d.row) {
-      const items = rowItems(plan, d.t, d.row, config).filter(i => i.kind === "mod" && !i.fromPrev && i.mod!.id !== d.id);
-      const at = items.filter(i => i.start + i.width / 2 < x).length;
       const row = d.row, t = d.t, id = d.id;
-      edit(p => moveModule(p, t, row, id, at));
+      const cur = rowItems(plan, t, row, config).find(i => i.kind === "mod" && !i.fromPrev && i.mod!.id === id);
+      if (cur) edit(p => dropModule(p, t, row, id, cur.start + dM, config));
     }
   };
 
@@ -138,7 +138,7 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
 
     const tile = (it: RowItem, row: PlanRow, idx: number) => {
       const w = Math.max(it.width * PX, 8);
-      if (it.kind === "tall") return <div key={`t${it.key}${idx}`} className="shrink-0" style={{ width: w, height: LANE_H }} />;
+      if (it.kind === "tall") return null;
       const mod = it.mod!;
       const cat = CATALOG_BY_KEY[it.key];
       const mine = !it.fromPrev;
@@ -151,7 +151,7 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
         : row === "upper" ? (mod.autoOf ? "bg-purple-900/30 border-purple-400/30 text-purple-100" : "bg-purple-900/50 border-purple-400/50 text-purple-100")
         : "bg-teal-900/50 border-teal-400/50 text-teal-100";
       return (
-        <div key={`${row}-${mod.id}${it.fromPrev ? "p" : ""}`} className="shrink-0 p-[2px]" style={{ width: w, height: LANE_H }}>
+        <div key={`${row}-${mod.id}${it.fromPrev ? "p" : ""}`} className="absolute p-[2px]" style={{ left: it.start * PX, top: 0, width: w, height: LANE_H }}>
           <div
             role="button"
             onPointerDown={(e) => mine && startDrag(e, { kind: "mod", t, row, id: mod.id })}
@@ -174,7 +174,7 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
         <div className="relative" data-elev style={{ width: widthPx, height: heightPx + 20 }}>
           {/* líneas */}
           {!tr.isIsland && (
-            <div className="absolute left-0 top-0 flex rounded bg-purple-950/40" style={{ height: LANE_H, width: widthPx }}>
+            <div className="absolute left-0 top-0 rounded bg-purple-950/40" style={{ height: LANE_H, width: widthPx }}>
               {up.map((it, i) => tile(it, "upper", i))}
             </div>
           )}
@@ -184,7 +184,7 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
               ▲ SUPERIORES · INFERIORES ▼
             </div>
           )}
-          <div className="absolute left-0 flex rounded bg-teal-950/40" style={{ top: tr.isIsland ? 0 : LANE_H + DIV_H, height: LANE_H, width: widthPx }}>
+          <div className="absolute left-0 rounded bg-teal-950/40" style={{ top: tr.isIsland ? 0 : LANE_H + DIV_H, height: LANE_H, width: widthPx }}>
             {lo.map((it, i) => tile(it, "lower", i))}
           </div>
 

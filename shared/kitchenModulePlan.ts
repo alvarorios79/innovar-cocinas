@@ -306,6 +306,19 @@ export function syncAuto(p: ModulePlan) {
 export function addModuleToPlan(p: ModulePlan, t: number, row: PlanRow, key: string, config?: any): PlanModule | undefined {
   const cat = CATALOG_BY_KEY[key];
   if (!cat || !p.tramos[t]) return undefined;
+  // Platero / extractor: si hay un lavaplatos / estufa sin el suyo (porque se quitó antes), se devuelve el automático,
+  // que sí sigue la medida y el lugar de su inferior, en vez de crear uno suelto.
+  if (row === "upper" && p.autoUpper !== false && (key === "moduloPlatero" || key === "moduloExtractor")) {
+    const srcKeys = key === "moduloPlatero" ? ["moduloLavaplatos", "moduloLavaplatosDoble"] : ["moduloEstufaPuerta", "moduloEstufaHorno"];
+    const tr0 = p.tramos[t];
+    const src = tr0.lower.find(m => srcKeys.includes(m.key) && !tr0.upper.some(u => u.key === key && u.autoOf?.includes(m.id)));
+    if (src && !tr0.isIsland) {
+      p.suppress = (p.suppress || []).filter(s => s !== src.id + ":" + key);
+      rebuildAutoUpper(p, t);
+      const back = p.tramos[t].upper.find(u => u.key === key && u.autoOf?.includes(src.id));
+      if (back) return back;
+    }
+  }
   const mod: PlanModule = { id: newId(), key, width: (!cat.locked && p.defaultWidth?.[key]) || cat.width };
   if (cat.corner && t + 1 < p.tramos.length && !p.tramos[t + 1].isIsland && !p.tramos[t].isIsland) mod.alsoTramo = t + 1;
   // Con `config`, el módulo nuevo se acomoda en el primer espacio libre de la pared donde quepa
@@ -754,7 +767,16 @@ export function computePlan(rawPlan: any, config: any): PlanResult {
       else if (tr.length > 0 && endAt > tr.length + 0.005) warnings.push(`${label}: hay un módulo que se sale de la pared (llega a ${endAt.toFixed(2)} m y la pared mide ${tr.length.toFixed(2)} m). Arrástralo hacia la izquierda.`);
     });
 
-    // Avisos: platero sobre lavaplatos y extractor sobre estufa deben coincidir
+    // Avisos: el lavaplatos debe llevar platero encima y la estufa extractor
+    if (!tr.isIsland) {
+      const upI = rowItems(plan, t, "upper", config), loI = rowItems(plan, t, "lower", config);
+      loI.filter(i => i.kind === "mod" && !i.fromPrev && ["moduloLavaplatos", "moduloLavaplatosDoble"].includes(i.key)).forEach(i => {
+        if (!upI.some(u => u.key === "moduloPlatero" && Math.abs(u.start - i.start) < 0.05)) warnings.push(`${tr.name}: el lavaplatos no tiene platero encima. Toca "+" en la tarjeta Platero para ponerlo.`);
+      });
+      loI.filter(i => i.kind === "mod" && !i.fromPrev && ["moduloEstufaPuerta", "moduloEstufaHorno"].includes(i.key)).forEach(i => {
+        if (!upI.some(u => (u.key === "moduloExtractor" || u.key === "moduloExtractorMicroondas") && Math.abs(u.start - i.start) < 0.05)) warnings.push(`${tr.name}: la estufa no tiene extractor encima. Toca "+" en la tarjeta Extractor para ponerlo.`);
+      });
+    }
     if (!tr.isIsland) {
       const up = rowItems(plan, t, "upper", config), lo = rowItems(plan, t, "lower", config);
       const pos = (seq: RowItem[], keys: string[]) => seq.find(s => keys.includes(s.key))?.start;

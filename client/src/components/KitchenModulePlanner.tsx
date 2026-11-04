@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom";
 import { useMemo, useRef, useState, type ReactElement, type PointerEvent as RPointerEvent } from "react";
 import {
   CATALOG, CATALOG_BY_KEY, FILL_KEYS, SPECIALS,
@@ -407,8 +408,8 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
     </div>
   );
 
-  return (
-    <div className={big ? "fixed inset-0 z-[200] overflow-auto bg-[#0f1b1b] p-4 sm:p-8 space-y-3" : box}>
+  const content = (
+    <div className={big ? "fixed inset-0 z-[2000] overflow-auto bg-[#0f1b1b] p-4 sm:p-8 space-y-3 text-white" : box}>
       <div className="flex items-center gap-2">
         <input
           type="checkbox"
@@ -604,4 +605,6 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
       )}
     </div>
   );
+  // En pantalla completa se dibuja sobre toda la página (así ningún cuadro que lo contenga lo recorta)
+  return big && typeof document !== "undefined" ? createPortal(content, document.body) : content;
 }

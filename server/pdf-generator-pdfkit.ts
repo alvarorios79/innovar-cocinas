@@ -329,7 +329,7 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
 
       // ── TÉRMINOS Y CONDICIONES ─────────────────────────────────────────────
       const terms = [
-        "Tiempo de entrega: 3 a 4 semanas hábiles desde la aprobación del diseño y el primer abono.",
+        "Tiempo de entrega: 25 días hábiles a partir de la aprobación del render final.",
         "NO incluye obra civil, plomería, instalación de gas ni trabajos de albañilería.",
         "Validez de la cotización: 1 semana desde la fecha de emisión.",
         "Garantía: 6 meses en herrajes. Los materiales cuentan con garantía del fabricante.",

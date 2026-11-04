@@ -468,15 +468,17 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle }: Prop
   const content = (
     <div className={box}>
       <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          id="modulePlanEnabled"
-          className="h-4 w-4 accent-teal-500"
-          checked={enabled}
-          onChange={(e) => edit(p => { p.enabled = e.target.checked; })}
-        />
-        <label htmlFor="modulePlanEnabled" className="text-xs sm:text-sm font-semibold text-white/85 cursor-pointer">
-          Plano de módulos de la cocina <span className="font-normal text-white/40">(cuenta módulos y piezas de pintura; no cambia el precio)</span>
+        {!enabled && (
+          <input
+            type="checkbox"
+            id="modulePlanEnabled"
+            className="h-4 w-4 accent-teal-500"
+            checked={enabled}
+            onChange={(e) => edit(p => { p.enabled = e.target.checked; })}
+          />
+        )}
+        <label htmlFor="modulePlanEnabled" className={`text-xs sm:text-sm font-semibold text-white/85 ${enabled ? "" : "cursor-pointer"}`}>
+          Plano de módulos de la cocina <span className="font-normal text-white/40">(cuenta módulos y piezas; alimenta la descripción, el PDF y la pintura)</span>
         </label>
         {enabled && (
           <span className="ml-auto shrink-0 flex items-center gap-1 text-xs text-white/70">

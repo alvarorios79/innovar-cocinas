@@ -124,6 +124,8 @@ function planPaintedQtys(config: any): any {
 // Con el plano activo el cobro de pintura alto brillo se enciende solo si hay piezas pintadas en el plano (sin casilla aparte)
 function syncPlanPaint(config: any) {
   if (!config?.modulePlan?.enabled) return;
+  // Planos antiguos sin ajuste de pintura: si el cobro estaba apagado, nada va pintado; si estaba encendido, todo (como antes)
+  if (config.modulePlan.paintAll === undefined) config.modulePlan.paintAll = config.paintedDoors?.enabled === true;
   const q = planPaintedQtys(config);
   const n = (q.upperQty || 0) + (q.lowerQty || 0) + (q.pantryQty || 0) + (q.drawerQty || 0) + (q.spiceQty || 0) + (q.golaQty || 0) + (q.lateralQty || 0);
   config.paintedDoors = { upperQty: 0, lowerQty: 0, pantryQty: 0, drawerQty: 0, spiceQty: 0, golaQty: 0, ...(config.paintedDoors || {}), ...q, enabled: n > 0 };
@@ -425,6 +427,7 @@ export default function Quotations() {
           precioImportadoML: undefined,
         },
         ledLighting: 0,
+        modulePlan: { enabled: true, paintAll: false } as any,
         paintedDoors: {
           enabled: false,
           upperQty: 0,
@@ -816,6 +819,7 @@ export default function Quotations() {
           precioImportadoML: undefined,
         },
         ledLighting: 0,
+        modulePlan: { enabled: true, paintAll: false } as any,
         paintedDoors: {
           enabled: false,
           upperQty: 0,
@@ -1133,6 +1137,7 @@ export default function Quotations() {
               precioImportadoML: undefined,
             },
             ledLighting: 0,
+            modulePlan: { enabled: true, paintAll: false } as any,
             paintedDoors: {
               enabled: false,
               upperQty: 0,
@@ -1213,6 +1218,7 @@ export default function Quotations() {
             precioImportadoML: undefined,
           },
           ledLighting: 0,
+          modulePlan: { enabled: true, paintAll: false } as any,
           paintedDoors: {
             enabled: false,
             upperQty: 0,
@@ -1339,6 +1345,10 @@ export default function Quotations() {
     }
     
     // Con el plano de módulos activo y el pintado alto brillo marcado, las cantidades del pintado salen del plano
+    // El plano va siempre activo en cocinas completas; en formas parciales (solo superiores, puertas y tapas…) se apaga y no estorba
+    if (field === 'shape' && (config as any).modulePlan) {
+      (config as any).modulePlan.enabled = !['frente_pll', 'solo_superiores', 'solo_inferiores', 'puertas_tapas', 'solo_acabados'].includes(value);
+    }
     syncPlanPaint(config);
 
     // Recalcular automaticamente con el item actualizado

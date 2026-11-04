@@ -138,8 +138,7 @@ const menuSections: MenuSection[] = [
         roles: ["super_admin"], iconColor: "#94a3b8" },
       { icon: Calculator, label: "Motor de Cotización", path: "/pricing-config",
         roles: ["super_admin"], iconColor: "#06b6d4" },
-      { icon: Package,    label: "Herrajes",            path: "/herrajes",
-        roles: ["super_admin", "admin"], iconColor: "#a78bfa" },
+      // "Herrajes" oculto del menú: se administran en Motor de Cotización → Herrajes
       { icon: ImageIcon,  label: "Galerías",            path: "/galerias",
         roles: ["super_admin", "admin", "comercial"], iconColor: "#a855f7" },
     ],

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type ReactElement, type PointerEvent as RPointerEvent } from "react";
+import { useMemo, useRef, useState, type ReactElement, type CSSProperties, type PointerEvent as RPointerEvent } from "react";
 import {
   CATALOG, CATALOG_BY_KEY, FILL_KEYS, SPECIALS,
   normalizePlan, computePlan, rowItems, rowUsed, activeSpecials, lateralOn, isPainted,
@@ -19,6 +19,8 @@ interface Props {
 let PX = 120;        // píxeles por metro en el dibujo
 const LANE_H = 76;     // alto de cada línea (superiores / inferiores)
 const DIV_H = 14;      // alto de la franja que divide
+// Fondo rayado para lo que NO va pintado
+const NO_PAINT_BG: CSSProperties = { backgroundImage: "repeating-linear-gradient(135deg, rgba(255,255,255,0.10) 0 4px, transparent 4px 9px)" };
 const m2 = (n: number) => (Number(n) || 0).toFixed(2);
 
 // Iconos simples por tipo de módulo (trazo, sin dependencias)
@@ -176,12 +178,12 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
             onPointerUp={(e) => mine && endDrag(e, () => setSel(isSel ? null : { t, row, id: mod.id }))}
             onPointerCancel={() => { dragRef.current = null; setDragDx(null); }}
             title={`${cat.label} · ${m2(mod.width)} m${cat.locked ? " · fijo" : ""}${painted ? "" : " · sin pintar"}`}
-            style={{ touchAction: "none", transform: dragDx?.id === mod.id ? `translateX(${dragDx.dx}px)` : undefined, zIndex: dragDx?.id === mod.id ? 30 : undefined }}
-            className={`relative h-full w-full rounded border flex items-center justify-center select-none ${color} ${isSel ? "ring-2 ring-white" : ""} ${mine ? "cursor-grab" : "cursor-default"} ${dragDx?.id === mod.id ? "opacity-80 shadow-lg" : ""}`}
+            style={{ touchAction: "none", transform: dragDx?.id === mod.id ? `translateX(${dragDx.dx}px)` : undefined, zIndex: dragDx?.id === mod.id ? 30 : undefined, ...(!painted && !cat.noPieces ? NO_PAINT_BG : {}) }}
+            className={`relative h-full w-full rounded border flex items-center justify-center select-none ${color} ${!painted && !cat.noPieces ? "border-dashed opacity-60" : ""} ${isSel ? "ring-2 ring-white" : ""} ${mine ? "cursor-grab" : "cursor-default"} ${dragDx?.id === mod.id ? "opacity-80 shadow-lg" : ""}`}
           >
             <ModuleIcon k={it.key} size={Math.max(12, Math.min(30, w - 14))} className="-mt-3" />
             <Cota w={mod.width} />
-            {!painted && !cat.noPieces && <span className="absolute top-0.5 right-0.5 text-[9px] opacity-70">∅</span>}
+            {painted && !cat.noPieces && <span className="absolute top-0.5 right-0.5 text-[11px] leading-none drop-shadow" title="Va pintado">🎨</span>}
           </div>
         </div>
       );
@@ -189,6 +191,11 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
 
     return (
       <div className="overflow-x-auto pb-1">
+        <div className="flex items-center gap-4 text-[11px] text-white/60 pb-1">
+          <span>🎨 = va pintado</span>
+          <span className="flex items-center gap-1"><span className="inline-block w-4 h-3 rounded-sm border border-dashed border-white/50" style={NO_PAINT_BG} /> rayado = sin pintar</span>
+          <span className="text-white/35">Toca un módulo y usa «va pintado» para cambiarlo</span>
+        </div>
         <div className="relative" data-elev style={{ width: widthPx, height: heightPx + 20 }}>
           {/* líneas */}
           {!tr.isIsland && (
@@ -229,6 +236,7 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
                 className={`absolute rounded border flex flex-col items-center justify-center gap-1 select-none cursor-grab bg-amber-900/60 border-amber-400/70 text-amber-100 ${isSel ? "ring-2 ring-white" : ""} ${dragDx?.id === s.key ? "opacity-80 shadow-lg" : ""}`}
                 style={{ left: it.start * PX + 2, top: 2, width: Math.max(it.width * PX - 4, 10), height: heightPx - 4, touchAction: "none", zIndex: dragDx?.id === s.key ? 30 : 5, transform: dragDx?.id === s.key ? `translateX(${dragDx.dx}px)` : undefined }}>
                 <ModuleIcon k={s.key} size={Math.max(16, Math.min(40, it.width * PX - 14))} />
+                {plan.paintKeys?.[s.key] !== false && <span className="absolute top-0.5 right-0.5 text-[11px] leading-none drop-shadow" title="Va pintado">🎨</span>}
                 <Cota w={s.w} />
               </div>
             );

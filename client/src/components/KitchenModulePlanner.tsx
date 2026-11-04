@@ -680,8 +680,10 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle }: Prop
                 <div className="space-y-1.5">
                   {shown.length > 0 && <p className="text-xs font-semibold text-white/50 uppercase tracking-wide">Extras por diseño</p>}
                   {shown.map(([label, k]) => stepper(label, k))}
-                  <button type="button" className="text-xs text-pink-200/80 hover:text-pink-100 underline underline-offset-2" onClick={() => setShowExtras(v => !v)}>
-                    {showExtras ? "Ocultar extras" : "+ Agregar pieza extra (laterales, puerta alta, diseño especial)"}
+                  <button type="button" onClick={() => setShowExtras(v => !v)}
+                    className="w-full text-left rounded-lg border border-dashed border-pink-400/60 bg-pink-900/20 hover:bg-pink-900/35 px-3 py-2 transition-colors">
+                    <span className="block text-sm font-bold tracking-wide text-pink-100">{showExtras ? "− Ocultar piezas extra" : "+ Agregar pieza extra"}</span>
+                    <span className="block text-[11px] text-pink-200/60">Laterales de mueble, puerta de módulo alto o piezas de diseño especial</span>
                   </button>
                 </div>
               );

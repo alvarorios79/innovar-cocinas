@@ -8,6 +8,8 @@
 //   - "• " = viñeta;  "  - " = sub-viñeta.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { computePlan, descriptiveFromPlan, kitchenModulesFromPlan } from "@shared/kitchenModulePlan";
+
 const toQty = (v: any): number => (typeof v === "boolean" ? (v ? 1 : 0) : Number(v) || 0);
 const ml = (n: any) => `${(Number(n) || 0).toFixed(2)} ml`;
 
@@ -77,8 +79,10 @@ export function buildKitchenQuoteDescription(rawConfig: any, manualDescription?:
   const resulting = Math.max(0, totalMeters - deductions);
 
   // Muebles que lleva la cocina (casillas descriptivas). No incluye los que ya salen en "Módulos y equipamiento".
-  const DM: any = config.descriptiveModules || {};
-  const kmQ: any = config.kitchenModules || {};
+  // Con el plano de módulos activo, los muebles y módulos salen del plano (siempre coinciden con lo dibujado)
+  const planOn = !!config.modulePlan?.enabled;
+  const DM: any = planOn ? descriptiveFromPlan(config.modulePlan) : (config.descriptiveModules || {});
+  const kmQ: any = planOn ? kitchenModulesFromPlan(config.modulePlan, config) : (config.kitchenModules || {});
   const DM_SUP: Array<[string, string]> = [
     ["esquineroSuperior", "esquinero superior"], ["moduloExtractor", "módulo para extractor"], ["moduloMicroondas", "módulo para microondas"],
     ["moduloExtractorMicroondas", "módulo para extractor y microondas"], ["moduloPlatero", "platero"], ["moduloRepisa", "repisas"], ["moduloAlmacSup", "módulo de almacenamiento"],
@@ -139,7 +143,7 @@ export function buildKitchenQuoteDescription(rawConfig: any, manualDescription?:
     if (sm.alacenaEntrepanos) mods.push("• Alacena con entrepaños (50 cm)");
     if (sm.alacenaHerraje) mods.push("• Alacena para herraje (50 cm)");
     if (sm.torreHornos) mods.push("• Torre de hornos (70 cm)");
-    const km: any = config.kitchenModules || {};
+    const km: any = kmQ;
     const KM: Array<[string, string]> = [
       ["esquineroSuperior", "Esquinero superior"], ["moduloAlmacSup", "Módulo de almacenamiento superior"],
       ["moduloExtractor", "Módulo para extractor"], ["moduloMicroondas", "Módulo para microondas"],
@@ -248,11 +252,16 @@ export function buildKitchenQuoteDescription(rawConfig: any, manualDescription?:
   }
 
   // ── Pintado alto brillo ─────────────────────────────────────────────────
-  const pd = config.paintedDoors;
+  let pd = config.paintedDoors;
+  if (pd && pd.enabled && planOn) {
+    const pr = computePlan(config.modulePlan, config).priced;
+    pd = { enabled: true, upperQty: pr.up, lowerQty: pr.lo, pantryQty: pr.al, drawerQty: pr.ca, spiceQty: pr.es, golaQty: pr.go, lateralQty: pr.lat };
+  }
   if (pd && pd.enabled) {
     const items: Array<[number, string]> = [
       [pd.upperQty, "Puertas superiores"], [pd.lowerQty, "Puertas inferiores"], [pd.pantryQty, "Puertas de alacena"],
       [pd.drawerQty, "Tapas de cajón"], [pd.spiceQty, "Tapas de especiero"], [pd.golaQty, "Tapas gola / pequeñas"],
+      [pd.lateralQty, "Laterales grandes"],
     ];
     const present = items.filter(([q]) => q > 0);
     if (present.length) {

@@ -765,6 +765,9 @@ export interface DetailRow {
 
 export interface PlanResult {
   detail: DetailRow[];
+  // Cantidades para COBRAR el pintado: igual que `pieces`, pero las puertas de nichos y de la torre de hornos
+  // (de tamaño de mueble superior) se cobran como puertas superiores; las alacenas, como puertas de alacena.
+  priced: Required<Pieces>;
   pieces: Required<Pieces> & { special: number };
   modules: Array<{ key: string; label: string; qty: number; widths: number[] }>;
   warnings: string[];
@@ -864,8 +867,14 @@ export function computePlan(rawPlan: any, config: any): PlanResult {
   ];
   exRows.forEach(([label, pc, n]) => { if (n > 0) detail.push({ t: -1, tramo: "Extras", row: "extra", key: "extra", label: `${n} × ${label}`, painted: true, pieces: Object.fromEntries(Object.entries(pc).map(([k, v]) => [k, (v as number) * n])) as any }); });
 
+  const priced: Required<Pieces> = { ...acc };
+  activeSpecials(plan, config).forEach(s => {
+    if (plan.paintKeys?.[s.key] === false) return;
+    if (["nichoNevecon", "nichoNevera", "torreHornos"].includes(s.key)) { const n = s.pieces.al || 0; priced.al -= n; priced.up += n; }
+  });
+
   const modules = Array.from(counted.entries()).map(([key, v]) => ({ key, label: v.label, qty: v.widths.length, widths: v.widths }));
-  return { detail, pieces: { ...acc, special: ex.especiales || 0 }, modules, warnings };
+  return { detail, priced, pieces: { ...acc, special: ex.especiales || 0 }, modules, warnings };
 }
 
 // Casillas de "Muebles que lleva la cocina" (descripción de la cotización) a partir del plano:
@@ -878,5 +887,27 @@ export function descriptiveFromPlan(plan: any): Record<string, boolean> {
       out[m.key === "moduloLavaplatosDoble" ? "moduloLavaplatos" : m.key] = true;
     });
   });
+  return out;
+}
+
+// Cantidades de módulos en el formato de `kitchenConfig.kitchenModules`, a partir del plano.
+// Así la descripción y el PDF listan los módulos reales del plano.
+export function kitchenModulesFromPlan(plan: any, config: any): Record<string, number> {
+  const out: Record<string, number> = {};
+  (plan?.tramos || []).forEach((tr: any) => {
+    [...(tr?.upper || []), ...(tr?.lower || [])].forEach((m: any) => {
+      const cat = m?.key ? CATALOG_BY_KEY[m.key] : undefined;
+      if (!cat || cat.noPieces) return;
+      const k = m.key === "moduloLavaplatosDoble" ? "moduloLavaplatos" : m.key;
+      out[k] = (out[k] || 0) + 1;
+    });
+  });
+  const np = normalizePlan(plan, config);
+  let latTall = 0;
+  activeSpecials(np, config).forEach(s => { if ((s.key === "nichoNevecon" || s.key === "nichoNevera") && lateralOn(np, s.key)) latTall += 1; });
+  const ex = plan?.extras || {};
+  if ((ex.latNevera || 0) + latTall > 0) out.lateralNichoNevera = (ex.latNevera || 0) + latTall;
+  if ((ex.latSup || 0) > 0) out.lateralMuebleSuperior = ex.latSup;
+  if ((ex.latInf || 0) > 0) out.lateralMuebleInferior = ex.latInf;
   return out;
 }

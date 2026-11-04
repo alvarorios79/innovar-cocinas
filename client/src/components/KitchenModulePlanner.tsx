@@ -2,7 +2,7 @@ import { useMemo, useRef, useState, type ReactElement, type CSSProperties, type 
 import {
   CATALOG, CATALOG_BY_KEY, FILL_KEYS, SPECIALS,
   normalizePlan, computePlan, rowItems, rowUsed, activeSpecials, lateralOn, isPainted,
-  addModuleToPlan, removeModuleFromPlan, setModuleWidth, moveModule, moveTall, dropModule, dropTall, tidyPlan, packRow, setTypeWidth, alignEnd, rebuildAutoUpper,
+  addModuleToPlan, removeModuleFromPlan, setModuleWidth, moveModule, moveTall, dropModule, dropTall, tidyPlan, packRow, setModuleLock, setTypeWidth, alignEnd, rebuildAutoUpper,
   round2,
   type ModulePlan, type PlanRow, type RowItem,
 } from "@shared/kitchenModulePlan";
@@ -83,10 +83,10 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
   const [zoom, setZoom] = useState(2);       // acercar / alejar el dibujo
   PX = ZOOMS[zoom];
   // Arrastre con puntero (funciona con dedo y con ratón)
-  const dragRef = useRef<{ kind: "mod" | "tall"; t: number; row?: PlanRow; id: string; startX: number; moved: boolean; box: HTMLElement | null } | null>(null);
+  const dragRef = useRef<{ kind: "mod" | "tall"; t: number; row?: PlanRow; id: string; startX: number; moved: boolean; locked?: boolean; box: HTMLElement | null } | null>(null);
   const [dragDx, setDragDx] = useState<{ id: string; dx: number } | null>(null);
 
-  const startDrag = (e: RPointerEvent<HTMLElement>, info: { kind: "mod" | "tall"; t: number; row?: PlanRow; id: string }) => {
+  const startDrag = (e: RPointerEvent<HTMLElement>, info: { kind: "mod" | "tall"; t: number; row?: PlanRow; id: string; locked?: boolean }) => {
     e.currentTarget.setPointerCapture(e.pointerId);
     dragRef.current = { ...info, startX: e.clientX, moved: false, box: e.currentTarget.closest("[data-elev]") as HTMLElement | null };
   };
@@ -95,13 +95,14 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
     if (!d) return;
     const dx = e.clientX - d.startX;
     if (Math.abs(dx) > 5) d.moved = true;
-    if (d.moved) setDragDx({ id: d.id, dx });
+    if (d.moved && !d.locked) setDragDx({ id: d.id, dx });
   };
   const endDrag = (e: RPointerEvent<HTMLElement>, onClick: () => void) => {
     const d = dragRef.current;
     dragRef.current = null;
     setDragDx(null);
     if (!d) return;
+    if (d.locked && d.moved) return;   // ubicación bloqueada: no se arrastra
     if (!d.moved || !d.box) { onClick(); return; }
     const dM = (e.clientX - d.startX) / PX;   // metros que se arrastró
     if (d.kind === "tall") {
@@ -164,7 +165,7 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
       const isSel = !!sel && "id" in sel && sel.t === t && sel.row === row && sel.id === mod.id;
       const painted = isPainted(plan, mod, row);
       const out = (!!cat.min && mod.width < cat.min - 1e-9) || (!!cat.max && mod.width > cat.max + 1e-9);
-      const color = cat.key === "ventana" ? "bg-slate-700/50 border-slate-400/40 text-slate-200"
+      const color = cat.key === "ventana" ? "bg-sky-500/25 border-sky-300/80 text-sky-100"
         : out ? "bg-red-900/40 border-red-500/60 text-red-100"
         : it.fromPrev ? "bg-teal-900/20 border-teal-500/20 text-teal-200/60"
         : row === "upper" ? (mod.autoOf ? "bg-purple-900/30 border-purple-400/30 text-purple-100" : "bg-purple-900/50 border-purple-400/50 text-purple-100")
@@ -173,7 +174,7 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
         <div key={`${row}-${mod.id}${it.fromPrev ? "p" : ""}`} className="absolute p-[2px]" style={{ left: it.start * PX, top: 0, width: w, height: LANE_H }}>
           <div
             role="button"
-            onPointerDown={(e) => mine && startDrag(e, { kind: "mod", t, row, id: mod.id })}
+            onPointerDown={(e) => mine && startDrag(e, { kind: "mod", t, row, id: mod.id, locked: mod.lockAt !== undefined })}
             onPointerMove={moveDrag}
             onPointerUp={(e) => mine && endDrag(e, () => setSel(isSel ? null : { t, row, id: mod.id }))}
             onPointerCancel={() => { dragRef.current = null; setDragDx(null); }}
@@ -183,6 +184,7 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
           >
             <ModuleIcon k={it.key} size={Math.max(12, Math.min(30, w - 14))} className="-mt-3" />
             <Cota w={mod.width} />
+            {mod.lockAt !== undefined && <span className="absolute top-0.5 left-0.5 text-[10px] leading-none" title="Ubicación bloqueada">🔒</span>}
             {painted && !cat.noPieces && <span className="absolute top-0.5 right-0.5 text-[11px] leading-none drop-shadow" title="Va pintado">🎨</span>}
           </div>
         </div>
@@ -305,10 +307,32 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
               className="w-12 bg-black/20 border-b border-amber-300/60 text-right font-mono focus:outline-none" />
           </label>
         )}
+        {mod.key === "ventana" && (() => {
+          const tr0 = plan.tramos[sel.t];
+          const st = rowItems(plan, sel.t, sel.row, config).find(i => i.mod?.id === mod.id)?.start ?? 0;
+          const locked = mod.lockAt !== undefined;
+          return (
+            <>
+              <label className="flex items-center gap-1">
+                desde el borde izquierdo
+                <input type="number" step="0.05" min="0" value={round2(st)}
+                  onChange={(e) => edit(p => setModuleLock(p, sel.t, sel.row, mod.id, parseFloat(e.target.value) || 0, config))}
+                  className="w-16 bg-black/20 border-b border-sky-300/60 text-right font-mono text-sm focus:outline-none" />
+                m
+              </label>
+              <span className="text-white/50">termina en {m2(st + mod.width)} m{tr0.length > 0 ? ` · a la derecha quedan ${m2(tr0.length - st - mod.width)} m` : ""}</span>
+              <label className="flex items-center gap-1 cursor-pointer">
+                <input type="checkbox" className="accent-sky-400" checked={locked}
+                  onChange={(e) => edit(p => setModuleLock(p, sel.t, sel.row, mod.id, e.target.checked ? st : null, config))} />
+                🔒 ubicación bloqueada
+              </label>
+            </>
+          );
+        })()}
         <span className="flex gap-1">
-          <button type="button" className="w-9 h-9 rounded bg-white/10 hover:bg-white/25 disabled:opacity-30" disabled={idx <= 0}
+          <button type="button" className="w-9 h-9 rounded bg-white/10 hover:bg-white/25 disabled:opacity-30" disabled={idx <= 0 || mod.lockAt !== undefined}
             onClick={() => edit(p => moveModule(p, sel.t, sel.row, mod.id, idx - 1))} title="Mover a la izquierda">◀</button>
-          <button type="button" className="w-9 h-9 rounded bg-white/10 hover:bg-white/25 disabled:opacity-30" disabled={idx >= arr.length - 1}
+          <button type="button" className="w-9 h-9 rounded bg-white/10 hover:bg-white/25 disabled:opacity-30" disabled={idx >= arr.length - 1 || mod.lockAt !== undefined}
             onClick={() => edit(p => moveModule(p, sel.t, sel.row, mod.id, idx + 1))} title="Mover a la derecha">▶</button>
         </span>
         {adjustable && (

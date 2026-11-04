@@ -94,6 +94,7 @@ export interface PlanModule {
   paint?: boolean;       // forzar pintado / sin pintar solo este módulo
   qty?: number;          // cantidad de piezas que indica el usuario (ej. repisas)
   autoClamp?: [number, number]; // el ancho automático se limita a este rango (platero 0.70–0.90)
+  lockAt?: number;       // ubicación bloqueada (m desde el inicio de la pared), ej. una ventana
   manual?: boolean;      // el usuario lo colocó a mano: no se realinea solo con su inferior
   gap?: number;          // espacio libre (m) entre el elemento anterior y este módulo
 }
@@ -335,6 +336,11 @@ export function addModuleToPlan(p: ModulePlan, t: number, row: PlanRow, key: str
   }
   insertBeforeTrailingBlock(p.tramos[t][row], mod);
   if (freeStart !== undefined) dropModule(p, t, row, mod.id, freeStart, config);
+  if (key === "ventana" && config) {
+    // La ventana nace bloqueada en el lugar donde quedó: se le puede dar la ubicación exacta y no se corre sola.
+    const me = rowItems(p, t, row, config).find(i => i.mod?.id === mod.id);
+    if (me) mod.lockAt = round2(me.start);
+  }
   if (row === "lower") rebuildAutoUpper(p, t);
   return mod;
 }
@@ -469,7 +475,7 @@ export function rowItems(plan: ModulePlan, t: number, row: PlanRow, config: any)
     });
     if (i < own.length) {
       const m = own[i];
-      pos += Math.max(0, m.gap || 0);
+      if (m.lockAt !== undefined) pos = m.lockAt; else pos += Math.max(0, m.gap || 0);
       out.push({ kind: "mod", key: m.key, width: m.width, start: pos, fromPrev: false, ownIndex: i, mod: m }); pos += m.width;
     }
   }
@@ -589,7 +595,7 @@ function dropInRow(p: ModulePlan, t: number, row: PlanRow, target: DropTarget, s
   const prefix = rowItems(p, t, row, config).filter(i => i.fromPrev).reduce((a, i) => a + i.width, 0);
   const starts: number[] = [], ends: number[] = [];
   let pos = prefix;
-  list.forEach(e => { pos += gapOf(e); starts.push(pos); pos += widthOf(e); ends.push(pos); });
+  list.forEach(e => { if (e.kind === "mod" && e.mod.lockAt !== undefined) pos = e.mod.lockAt; else pos += gapOf(e); starts.push(pos); pos += widthOf(e); ends.push(pos); });
   // 3) imán a cortes cercanos (borde izquierdo o derecho) y al inicio de la pared
   let s = Math.max(prefix, start);
   const snaps = [prefix, ...ends, ...cuts];
@@ -640,6 +646,19 @@ function dropInRow(p: ModulePlan, t: number, row: PlanRow, target: DropTarget, s
   }
 }
 
+// Da la ubicación exacta (m desde el inicio de la pared) a un módulo y lo bloquea ahí; `null` lo desbloquea.
+export function setModuleLock(p: ModulePlan, t: number, row: PlanRow, id: string, at: number | null, config: any) {
+  const m = p.tramos[t]?.[row].find(x => x.id === id);
+  if (!m) return;
+  if (at === null) {
+    const cur = rowItems(p, t, row, config).find(i => i.mod?.id === id);
+    delete m.lockAt;
+    if (cur) m.manual = true;
+    return;
+  }
+  m.lockAt = Math.max(0, round2(at));
+}
+
 // Mueve un módulo a la posición `start` (m) de su fila sin afectar a los demás.
 export function dropModule(p: ModulePlan, t: number, row: PlanRow, id: string, start: number, config: any, byUser = false) {
   if (byUser && row === "upper") { const m = p.tramos[t].upper.find(x => x.id === id); if (m) m.manual = true; }
@@ -666,6 +685,7 @@ export function alignUppers(p: ModulePlan, config: any) {
     const target = (e: OwnEl): number => {
       const k = keyOf(e);
       if (e.kind === "tall") return lowerStart.get(k) ?? cur.get(k) ?? 0;
+      if (e.mod.lockAt !== undefined) return e.mod.lockAt;
       const outside = tr.length > 0 && (cur.get(k) ?? 0) + e.mod.width > tr.length + 0.005;
       if (e.mod.autoOf && (!e.mod.manual || outside)) {
         const src = lowerStart.get("m:" + e.mod.autoOf[0]);
@@ -679,6 +699,7 @@ export function alignUppers(p: ModulePlan, config: any) {
     let cursor = prefix;
     all.forEach(e => {
       const isTail = tail.includes(e);
+      if (e.kind === "mod" && e.mod.lockAt !== undefined) { delete e.mod.gap; cursor = e.mod.lockAt + e.mod.width; return; }
       const tg = isTail ? Math.max(cursor, target(e)) : target(e);
       const g = Math.max(0, round2(tg - cursor));
       if (e.kind === "mod") { if (g > 0) e.mod.gap = g; else delete e.mod.gap; }
@@ -780,6 +801,14 @@ export function computePlan(rawPlan: any, config: any): PlanResult {
     if (!tr.isIsland) {
       const up = rowItems(plan, t, "upper", config), lo = rowItems(plan, t, "lower", config);
       const pos = (seq: RowItem[], keys: string[]) => seq.find(s => keys.includes(s.key))?.start;
+      // Una ventana bloqueada no puede quedar cruzada con otro módulo de su línea
+      (["upper", "lower"] as PlanRow[]).forEach(r => {
+        const its = rowItems(plan, t, r, config);
+        its.filter(i => i.kind === "mod" && i.mod!.lockAt !== undefined).forEach(w => {
+          const hit = its.find(o => o !== w && o.start < w.start + w.width - 0.01 && o.start + o.width > w.start + 0.01);
+          if (hit) warnings.push(`${tr.name}: ${(hit.kind === "mod" ? CATALOG_BY_KEY[hit.key]?.short : hit.special?.label) || hit.key} se cruza con la ventana (${w.start.toFixed(2)}–${(w.start + w.width).toFixed(2)} m).`);
+        });
+      });
       const pairs: Array<[string[], string[], string]> = [
         [["moduloPlatero"], ["moduloLavaplatos", "moduloLavaplatosDoble"], "El platero y el lavaplatos"],
         [["moduloExtractor", "moduloExtractorMicroondas"], ["moduloEstufaPuerta", "moduloEstufaHorno"], "El extractor y la estufa"],

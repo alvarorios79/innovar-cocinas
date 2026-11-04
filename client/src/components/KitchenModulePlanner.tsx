@@ -1,13 +1,14 @@
 import { useMemo, useState, type ReactElement } from "react";
 import {
   CATALOG, CATALOG_BY_KEY, FILL_KEYS, SPECIALS,
-  normalizePlan, computePlan, rowSequence, rowUsed, activeSpecials, lateralOn,
-  addModuleToPlan, removeModuleFromPlan, setModuleWidth, moveModule, rebuildAutoUpper, isPainted,
+  normalizePlan, computePlan, rowItems, rowUsed, activeSpecials, lateralOn, isPainted,
+  addModuleToPlan, removeModuleFromPlan, setModuleWidth, moveModule, moveTall, setTypeWidth, alignEnd, rebuildAutoUpper,
   round2,
-  type ModulePlan, type PlanRow,
+  type ModulePlan, type PlanRow, type RowItem,
 } from "@shared/kitchenModulePlan";
 
-// Etapa 1 — Plano de módulos por tramos. Solo cuenta módulos y piezas de pintura.
+// Plano de módulos por tramos, visto de frente: superiores arriba, inferiores abajo,
+// y los módulos de piso a techo como un solo bloque largo. Solo cuenta módulos y piezas de pintura.
 // No cambia precios ni el PDF: guarda su estado en kitchenConfig.modulePlan.
 
 interface Props {
@@ -15,6 +16,9 @@ interface Props {
   onChange: (plan: ModulePlan) => void;
 }
 
+const PX = 120;        // píxeles por metro en el dibujo
+const LANE_H = 76;     // alto de cada línea (superiores / inferiores)
+const DIV_H = 14;      // alto de la franja que divide
 const m2 = (n: number) => (Number(n) || 0).toFixed(2);
 
 // Iconos simples por tipo de módulo (trazo, sin dependencias)
@@ -44,20 +48,23 @@ const ICONS: Record<string, ReactElement> = {
   alacenaHerraje: <g><rect x="6" y="2" width="12" height="20" rx="1.5"/><path d="M9 7h6M9 12h6M9 17h6"/></g>,
   torreHornos: <g><rect x="6" y="2" width="12" height="20" rx="1.5"/><rect x="8" y="4" width="8" height="5"/><rect x="8" y="11" width="8" height="5"/><line x1="8" y1="19" x2="16" y2="19"/></g>,
 };
-function ModuleIcon({ k, className = "" }: { k: string; className?: string }) {
+function ModuleIcon({ k, size = 28, className = "" }: { k: string; size?: number; className?: string }) {
   const g = ICONS[k];
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
       {g || <rect x="4" y="4" width="16" height="16" rx="2" />}
     </svg>
   );
 }
 
+type Sel = { t: number; row: PlanRow; id: string } | { t: number; tall: string } | null;
+
 export function KitchenModulePlanner({ config, onChange }: Props) {
   const plan = useMemo(() => normalizePlan(config?.modulePlan, config), [config]);
   const result = useMemo(() => computePlan(plan, config), [plan, config]);
   const specials = activeSpecials(plan, config);
-  const [dragId, setDragId] = useState<string | null>(null);
+  const [sel, setSel] = useState<Sel>(null);
+  const [drag, setDrag] = useState<{ t: number; row: PlanRow; id: string } | null>(null);
 
   const edit = (fn: (p: ModulePlan) => void) => {
     const p: ModulePlan = JSON.parse(JSON.stringify(plan));
@@ -65,178 +72,261 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
     onChange(p);
   };
 
-  const fillRemaining = (t: number, row: PlanRow, key: string) => {
-    const rem0 = round2(plan.tramos[t].length - rowUsed(plan, t, row, config));
+  const fillRemaining = (t: number, key: string) => {
+    const rem0 = round2(plan.tramos[t].length - rowUsed(plan, t, "lower", config));
     if (rem0 <= 0.01) return;
     edit(p => {
       let rem = rem0;
       while (rem > 0.01) {
         const w = round2(Math.min(0.90, rem));
-        const mod = addModuleToPlan(p, t, row, key);
+        const mod = addModuleToPlan(p, t, "lower", key);
         if (mod) mod.width = w;
         rem = round2(rem - w);
       }
-      if (row === "lower") rebuildAutoUpper(p, t); // los superiores toman los anchos finales
+      rebuildAutoUpper(p, t);
     });
   };
 
   const enabled = !!config?.modulePlan?.enabled;
   const box = "bg-[#162828] rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)] space-y-3";
 
-  const renderRow = (t: number, row: PlanRow) => {
+  // ── Dibujo de la cocina de frente (solo iconos) ──────────────────────────
+  const renderElevation = (t: number) => {
     const tr = plan.tramos[t];
-    const seq = rowSequence(plan, t, row);
-    const used = rowUsed(plan, t, row, config);
-    const rem = round2(tr.length - used);
-    const spHere = specials.filter(s => s.tramo === t);
-    const options = CATALOG.filter(c => c.row === row);
-    const fillOpts = FILL_KEYS[row].map(k => CATALOG_BY_KEY[k]);
-    const over = tr.length > 0 && rem < -0.005;
-    const own = tr[row];
+    const up: RowItem[] = tr.isIsland ? [] : rowItems(plan, t, "upper", config);
+    const lo: RowItem[] = rowItems(plan, t, "lower", config);
+    const total = Math.max(tr.length, ...up.map(i => i.start + i.width), ...lo.map(i => i.start + i.width), 1);
+    const widthPx = Math.ceil(total * PX);
+    const upCuts = up.map(i => round2(i.start + i.width));
+    const loCuts = lo.map(i => round2(i.start + i.width));
+    const near = (arr: number[], x: number) => arr.some(y => Math.abs(y - x) < 0.025);
+    const allCuts = Array.from(new Set([...upCuts, ...loCuts])).filter(x => x > 0.02 && x < total - 0.02);
+    const ticks: number[] = [];
+    for (let x = 0; x <= total + 0.001; x += 0.5) ticks.push(round2(x));
+    const talls = lo.filter(i => i.kind === "tall");
+    const heightPx = tr.isIsland ? LANE_H : LANE_H * 2 + DIV_H;
+
+    const tile = (it: RowItem, row: PlanRow, idx: number) => {
+      const w = Math.max(it.width * PX, 8);
+      if (it.kind === "tall") return <div key={`t${it.key}${idx}`} className="shrink-0" style={{ width: w, height: LANE_H }} />;
+      const mod = it.mod!;
+      const cat = CATALOG_BY_KEY[it.key];
+      const mine = !it.fromPrev;
+      const isSel = !!sel && "id" in sel && sel.t === t && sel.row === row && sel.id === mod.id;
+      const painted = isPainted(plan, mod, row);
+      const out = (!!cat.min && mod.width < cat.min - 1e-9) || (!!cat.max && mod.width > cat.max + 1e-9);
+      const color = cat.key === "ventana" ? "bg-slate-700/50 border-slate-400/40 text-slate-200"
+        : out ? "bg-red-900/40 border-red-500/60 text-red-100"
+        : it.fromPrev ? "bg-teal-900/20 border-teal-500/20 text-teal-200/60"
+        : row === "upper" ? (mod.autoOf ? "bg-purple-900/30 border-purple-400/30 text-purple-100" : "bg-purple-900/50 border-purple-400/50 text-purple-100")
+        : "bg-teal-900/50 border-teal-400/50 text-teal-100";
+      return (
+        <div key={`${row}-${mod.id}${it.fromPrev ? "p" : ""}`} className="shrink-0 p-[2px]" style={{ width: w, height: LANE_H }}>
+          <button
+            type="button"
+            draggable={mine}
+            onClick={() => mine && setSel(isSel ? null : { t, row, id: mod.id })}
+            onDragStart={() => mine && setDrag({ t, row, id: mod.id })}
+            onDragOver={(e) => { if (mine && drag && drag.t === t && drag.row === row) e.preventDefault(); }}
+            onDrop={(e) => { e.preventDefault(); if (mine && drag && drag.id !== mod.id && drag.t === t && drag.row === row) edit(p => moveModule(p, t, row, drag.id, it.ownIndex)); setDrag(null); }}
+            onDragEnd={() => setDrag(null)}
+            title={`${cat.label} · ${m2(mod.width)} m${cat.locked ? " · fijo" : ""}${painted ? "" : " · sin pintar"}`}
+            className={`relative h-full w-full rounded border flex items-center justify-center ${color} ${isSel ? "ring-2 ring-white" : ""} ${mine ? "cursor-pointer" : "cursor-default"}`}
+          >
+            <ModuleIcon k={it.key} size={Math.max(14, Math.min(36, w - 14))} />
+            {!painted && !cat.noPieces && <span className="absolute top-0.5 right-0.5 text-[9px] opacity-70">∅</span>}
+          </button>
+        </div>
+      );
+    };
 
     return (
-      <div key={row} className="space-y-2">
-        <div className={`flex flex-wrap items-center gap-2 text-xs rounded px-3 py-1.5 ${row === "upper" ? "bg-purple-900/50 border border-purple-400/40" : "bg-teal-900/50 border border-teal-400/40"}`}>
-          <span className={`font-bold uppercase tracking-widest ${row === "upper" ? "text-purple-200" : "text-teal-200"}`}>{row === "upper" ? "▲ Muebles superiores" : "▼ Muebles inferiores"}</span>
-          <span className={over ? "text-red-400 font-semibold" : "text-white/60"}>
-            llevas {m2(used)} de {m2(tr.length)} m
-            {tr.length > 0 && (over ? ` · te pasas ${m2(-rem)}` : ` · faltan ${m2(rem)}`)}
+      <div className="overflow-x-auto pb-1">
+        <div className="relative" style={{ width: widthPx, height: heightPx + 20 }}>
+          {/* líneas */}
+          {!tr.isIsland && (
+            <div className="absolute left-0 top-0 flex rounded bg-purple-950/40" style={{ height: LANE_H, width: widthPx }}>
+              {up.map((it, i) => tile(it, "upper", i))}
+            </div>
+          )}
+          {!tr.isIsland && (
+            <div className="absolute left-0 flex items-center justify-center rounded-full bg-gradient-to-r from-purple-500/60 via-white/30 to-teal-500/60 text-[9px] font-bold tracking-widest text-white/80"
+              style={{ top: LANE_H + 1, height: DIV_H - 2, width: widthPx }}>
+              ▲ SUPERIORES · INFERIORES ▼
+            </div>
+          )}
+          <div className="absolute left-0 flex rounded bg-teal-950/40" style={{ top: tr.isIsland ? 0 : LANE_H + DIV_H, height: LANE_H, width: widthPx }}>
+            {lo.map((it, i) => tile(it, "lower", i))}
+          </div>
+
+          {/* guías de corte: verde = coincide arriba y abajo, ámbar = solo en una línea */}
+          {!tr.isIsland && allCuts.map(x => {
+            const both = near(upCuts, x) && near(loCuts, x);
+            return (
+              <div key={`g${x}`} className={`absolute pointer-events-none ${both ? "border-l border-emerald-400/50" : "border-l border-dashed border-amber-400/60"}`}
+                style={{ left: x * PX, top: both ? 0 : (near(upCuts, x) ? 0 : LANE_H + DIV_H), height: both ? heightPx : LANE_H }} />
+            );
+          })}
+
+          {/* módulos de piso a techo: un solo bloque largo que cruza las dos líneas */}
+          {talls.map(it => {
+            const s = it.special!;
+            const isSel = !!sel && "tall" in sel && sel.t === t && sel.tall === s.key;
+            return (
+              <button key={`tall-${s.key}`} type="button"
+                onClick={() => setSel(isSel ? null : { t, tall: s.key })}
+                title={`${s.label} · ${m2(s.w)} m · piso a techo`}
+                className={`absolute rounded border flex flex-col items-center justify-center gap-1 bg-amber-900/60 border-amber-400/70 text-amber-100 ${isSel ? "ring-2 ring-white" : ""}`}
+                style={{ left: it.start * PX + 2, top: 2, width: Math.max(it.width * PX - 4, 10), height: heightPx - 4 }}>
+                <ModuleIcon k={s.key} size={Math.max(16, Math.min(40, it.width * PX - 14))} />
+              </button>
+            );
+          })}
+
+          {/* regla en metros */}
+          <div className="absolute left-0 text-[9px] text-white/40" style={{ top: heightPx + 3, width: widthPx }}>
+            {ticks.map(x => (
+              <span key={x} className="absolute" style={{ left: x * PX - 6 }}>{x % 1 === 0 ? `${x} m` : "·"}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // ── Barra del módulo seleccionado ────────────────────────────────────────
+  const renderSelected = () => {
+    if (!sel) return <p className="text-[11px] text-white/35">Toca un icono para ver y cambiar su medida, moverlo o quitarlo.</p>;
+    if ("tall" in sel) {
+      const s = specials.find(x => x.key === sel.tall);
+      if (!s) return null;
+      return (
+        <div className="flex flex-wrap items-center gap-3 rounded border border-amber-400/40 bg-amber-900/20 p-2 text-xs text-amber-100">
+          <ModuleIcon k={s.key} size={26} />
+          <span className="font-semibold">{s.label}</span>
+          <span className="font-mono">{m2(s.w)} m</span>
+          <span className="text-amber-100/50">piso a techo: ocupa superior e inferior</span>
+          <span className="flex gap-1">
+            <button type="button" className="w-9 h-9 rounded bg-white/10 hover:bg-white/25" onClick={() => edit(p => moveTall(p, s.key, -1, config))} title="Mover a la izquierda">◀</button>
+            <button type="button" className="w-9 h-9 rounded bg-white/10 hover:bg-white/25" onClick={() => edit(p => moveTall(p, s.key, 1, config))} title="Mover a la derecha">▶</button>
           </span>
         </div>
+      );
+    }
+    const tr = plan.tramos[sel.t];
+    const arr = tr?.[sel.row] || [];
+    const idx = arr.findIndex(m => m.id === sel.id);
+    const mod = arr[idx];
+    if (!mod) return null;
+    const cat = CATALOG_BY_KEY[mod.key];
+    const adjustable = !cat.locked && mod.autoBase === undefined;
+    const painted = isPainted(plan, mod, sel.row);
+    return (
+      <div className={`flex flex-wrap items-center gap-3 rounded border p-2 text-xs ${sel.row === "upper" ? "border-purple-400/40 bg-purple-900/20 text-purple-100" : "border-teal-400/40 bg-teal-900/20 text-teal-100"}`}>
+        <ModuleIcon k={mod.key} size={26} />
+        <span className="font-semibold">{cat.label}</span>
+        <label className="flex items-center gap-1">
+          {adjustable ? (
+            <input type="number" step="0.05" min="0" value={mod.width}
+              onChange={(e) => edit(p => setModuleWidth(p, sel.t, sel.row, mod.id, parseFloat(e.target.value) || 0))}
+              className="w-16 bg-black/20 border-b border-white/40 text-right font-mono text-sm focus:outline-none" />
+          ) : <span className="font-mono text-sm">{m2(mod.width)}</span>}
+          m
+        </label>
+        {Math.abs(mod.width - cat.width) > 0.004 && mod.autoBase === undefined && (
+          <span className="text-amber-300">{mod.width > cat.width ? "+" : ""}{m2(mod.width - cat.width)} vs normal</span>
+        )}
+        {cat.locked && <span className="text-white/50">🔒 medida fija</span>}
+        {mod.autoBase !== undefined && <span className="text-white/50">automático (sigue a los inferiores)</span>}
+        {mod.key === "moduloRepisa" && (
+          <label className="flex items-center gap-1">
+            repisas
+            <input type="number" min="0" step="1" placeholder="?" value={mod.qty ?? ""}
+              onChange={(e) => edit(p => { const m = p.tramos[sel.t][sel.row].find(x => x.id === mod.id); if (m) m.qty = e.target.value === "" ? undefined : Math.max(0, parseInt(e.target.value) || 0); })}
+              className="w-12 bg-black/20 border-b border-amber-300/60 text-right font-mono focus:outline-none" />
+          </label>
+        )}
+        <span className="flex gap-1">
+          <button type="button" className="w-9 h-9 rounded bg-white/10 hover:bg-white/25 disabled:opacity-30" disabled={idx <= 0}
+            onClick={() => edit(p => moveModule(p, sel.t, sel.row, mod.id, idx - 1))} title="Mover a la izquierda">◀</button>
+          <button type="button" className="w-9 h-9 rounded bg-white/10 hover:bg-white/25 disabled:opacity-30" disabled={idx >= arr.length - 1}
+            onClick={() => edit(p => moveModule(p, sel.t, sel.row, mod.id, idx + 1))} title="Mover a la derecha">▶</button>
+        </span>
+        {adjustable && (
+          <button type="button" className="h-9 px-2 rounded bg-emerald-700/40 hover:bg-emerald-700/70" title="Ajusta la medida para que el final coincida con el corte de la otra línea"
+            onClick={() => edit(p => alignEnd(p, sel.t, sel.row, mod.id, config))}>Alinear con la otra línea</button>
+        )}
+        {!cat.noPieces && (
+          <button type="button" className={`h-9 px-2 rounded bg-white/10 hover:bg-white/25 ${painted ? "" : "opacity-50"}`}
+            onClick={() => edit(p => { const m = p.tramos[sel.t][sel.row].find(x => x.id === mod.id); if (m) { m.paint = !painted; m.unpainted = undefined; } })}>
+            🎨 {painted ? "va pintado" : "sin pintar"}
+          </button>
+        )}
+        <button type="button" className="h-9 px-2 rounded bg-red-900/40 hover:bg-red-900/70"
+          onClick={() => { edit(p => removeModuleFromPlan(p, sel.t, sel.row, mod.id)); setSel(null); }}>✕ Quitar</button>
+      </div>
+    );
+  };
 
-        {/* Línea de la cocina, en el orden real */}
-        <div className="flex flex-wrap gap-1.5 items-stretch">
-          {spHere.map(s => (
-            <div key={s.key} className="rounded bg-amber-900/40 border border-amber-500/40 px-2 py-1 text-xs text-amber-200" title="Piso a techo">
-              <ModuleIcon k={s.key} className="w-9 h-9" />
-              <div className="font-semibold leading-tight">{s.label}</div>
-              <span className="font-mono">{m2(s.w)} m</span>
-            </div>
-          ))}
-          {seq.map(({ mod, fromPrev, ownIndex }) => {
-            const cat = CATALOG_BY_KEY[mod.key];
-            if (!cat) return null;
-            const mine = !fromPrev;
-            const painted = isPainted(plan, mod, row);
-            const adjustable = !cat.locked && !(mod.autoBase !== undefined);
-            const outOfRange = (!!cat.min && mod.width < cat.min - 1e-9) || (!!cat.max && mod.width > cat.max + 1e-9);
-            return (
-              <div
-                key={(fromPrev ? "p-" : "") + mod.id}
-                draggable={mine}
-                onDragStart={() => mine && setDragId(mod.id)}
-                onDragOver={(e) => { if (mine && dragId) e.preventDefault(); }}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  if (mine && dragId && dragId !== mod.id) edit(p => moveModule(p, t, row, dragId, ownIndex));
-                  setDragId(null);
-                }}
-                onDragEnd={() => setDragId(null)}
-                className={`rounded border px-2 py-1 text-xs flex flex-col gap-1 min-w-[104px] ${mine ? "cursor-grab" : ""} ${
-                  cat.key === "ventana" ? "bg-slate-700/40 border-slate-500/40 text-slate-200"
-                  : outOfRange ? "bg-red-900/30 border-red-500/50 text-red-200"
-                  : fromPrev ? "bg-teal-900/20 border-teal-500/20 text-teal-200/70"
-                  : mod.autoOf ? "bg-sky-900/30 border-sky-500/30 text-sky-100"
-                  : "bg-teal-900/40 border-teal-500/40 text-teal-100"}`}
-              >
-                <div className="flex items-start justify-between gap-1">
-                  <ModuleIcon k={mod.key} className="w-9 h-9 opacity-90" />
-                  {mine && (
-                    <button type="button" className="text-white/50 hover:text-red-300 leading-none px-1" onClick={() => edit(p => removeModuleFromPlan(p, t, row, mod.id))} title="Quitar">✕</button>
-                  )}
-                </div>
-                <div className="font-semibold leading-tight">{cat.locked ? "🔒 " : ""}{cat.short}{fromPrev ? " (vértice)" : ""}</div>
-                <div className="flex items-center gap-1">
-                  {mine && adjustable ? (
-                    <input
-                      type="number" step="0.05" min="0"
-                      value={mod.width}
-                      onChange={(e) => edit(p => setModuleWidth(p, t, row, mod.id, parseFloat(e.target.value) || 0))}
-                      className="w-14 bg-transparent border-b border-white/30 text-right font-mono focus:outline-none"
-                    />
-                  ) : (
-                    <span className="font-mono">{m2(mod.width)}</span>
-                  )}
-                  <span className="text-white/40">m</span>
-                  {mine && Math.abs(mod.width - cat.width) > 0.004 && mod.autoBase === undefined && (
-                    <span className="text-amber-300" title="Cambio frente a la medida normal">{mod.width > cat.width ? "+" : ""}{m2(mod.width - cat.width)}</span>
-                  )}
-                </div>
-                {mine && mod.key === "moduloRepisa" && (
-                  <label className="flex items-center gap-1 text-[11px] text-white/70">
-                    repisas
-                    <input
-                      type="number" min="0" step="1" placeholder="?"
-                      value={mod.qty ?? ""}
-                      onChange={(e) => edit(p => { const m = p.tramos[t][row].find(x => x.id === mod.id); if (m) m.qty = e.target.value === "" ? undefined : Math.max(0, parseInt(e.target.value) || 0); })}
-                      className="w-12 bg-transparent border-b border-amber-300/60 text-right font-mono focus:outline-none"
-                    />
-                  </label>
-                )}
-                {mine && (
-                  <div className="flex items-center justify-between gap-1 text-white/60">
-                    <span className="flex gap-1">
-                      <button type="button" className="w-7 h-7 rounded bg-white/10 hover:bg-white/25 disabled:opacity-30" disabled={ownIndex <= 0}
-                        onClick={() => edit(p => moveModule(p, t, row, mod.id, ownIndex - 1))} title="Mover a la izquierda">◀</button>
-                      <button type="button" className="w-7 h-7 rounded bg-white/10 hover:bg-white/25 disabled:opacity-30" disabled={ownIndex >= own.length - 1}
-                        onClick={() => edit(p => moveModule(p, t, row, mod.id, ownIndex + 1))} title="Mover a la derecha">▶</button>
-                    </span>
-                    {!cat.noPieces && (
-                      <button type="button" className={`w-7 h-7 rounded bg-white/10 ${painted ? "" : "opacity-30"}`}
-                        onClick={() => edit(p => { const m = p.tramos[t][row].find(x => x.id === mod.id); if (m) { m.paint = !painted; m.unpainted = undefined; } })}
-                        title={painted ? "Va pintado" : "No va pintado"}>🎨</button>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-          {seq.length === 0 && spHere.length === 0 && (
-            <span className="text-xs text-white/30 py-2">Marca los módulos de abajo para armar la línea.</span>
+  // ── Tarjetas de módulos: icono + nombre + medida + cantidad ─────────────
+  const renderPalette = (t: number, row: PlanRow) => {
+    const tr = plan.tramos[t];
+    const own = tr[row];
+    const options = CATALOG.filter(c => c.row === row);
+    const rem = round2(tr.length - rowUsed(plan, t, row, config));
+    const over = tr.length > 0 && rem < -0.005;
+    const used = rowUsed(plan, t, row, config);
+    const fillOpts = FILL_KEYS.lower.map(k => CATALOG_BY_KEY[k]);
+    return (
+      <div className="space-y-2">
+        <div className={`flex flex-wrap items-center gap-2 text-xs rounded px-3 py-1.5 ${row === "upper" ? "bg-purple-900/50 border border-purple-400/40" : "bg-teal-900/50 border border-teal-400/40"}`}>
+          <span className={`font-bold uppercase tracking-widest ${row === "upper" ? "text-purple-200" : "text-teal-200"}`}>{row === "upper" ? "▲ Módulos superiores" : "▼ Módulos inferiores"}</span>
+          <span className={over ? "text-red-400 font-semibold" : "text-white/60"}>
+            llevas {m2(used)} de {m2(tr.length)} m{tr.length > 0 && (over ? ` · te pasas ${m2(-rem)}` : ` · faltan ${m2(rem)}`)}
+          </span>
+          {row === "lower" && rem > 0.01 && (
+            <select className="h-8 rounded bg-[#0C1A1A] border border-teal-500/40 text-xs text-teal-200 px-2 ml-auto" value=""
+              onChange={(e) => { if (e.target.value) fillRemaining(t, e.target.value); }}>
+              <option value="">Completar {m2(rem)} m con…</option>
+              {fillOpts.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
+            </select>
           )}
         </div>
-
-        {/* Casillas: marcar agrega el módulo (y su superior si aplica) */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5">
           {options.map(o => {
-            const count = own.filter(m => m.key === o.key).length;
+            const mods = own.filter(m => m.key === o.key);
+            const count = mods.length;
+            const curW = count > 0 ? mods[0].width : ((!o.locked && plan.defaultWidth?.[o.key]) || o.width);
             return (
-              <div key={o.key} className={`flex items-center gap-2 rounded px-2 py-1.5 text-xs ${count > 0 ? "bg-teal-900/40 border border-teal-500/40" : "bg-white/[0.03] border border-transparent"}`}>
-                <input
-                  type="checkbox"
-                  className="h-4 w-4 accent-teal-500 shrink-0"
-                  checked={count > 0}
-                  onChange={() => edit(p => {
-                    if (count > 0) own.filter(m => m.key === o.key).forEach(m => removeModuleFromPlan(p, t, row, m.id));
-                    else addModuleToPlan(p, t, row, o.key);
-                  })}
-                />
-                <ModuleIcon k={o.key} className="w-6 h-6 shrink-0 text-white/70" />
-                <span className="flex-1 text-white/80 leading-tight">{o.label} <span className="text-white/35">{m2(o.width)}</span></span>
-                {count > 0 && (
-                  <span className="flex items-center gap-1 shrink-0">
-                    <button type="button" className="w-6 h-6 rounded bg-white/10 hover:bg-white/25"
+              <div key={o.key} className={`rounded border p-2 flex flex-col gap-1.5 ${count > 0 ? (row === "upper" ? "bg-purple-900/30 border-purple-400/50" : "bg-teal-900/40 border-teal-400/50") : "bg-white/[0.03] border-white/10"}`}>
+                <button type="button" className="flex items-center gap-2 text-left" title="Tocar para agregar uno"
+                  onClick={() => edit(p => { addModuleToPlan(p, t, row, o.key); })}>
+                  <ModuleIcon k={o.key} size={34} className="shrink-0 text-white/80" />
+                  <span className="text-xs font-semibold text-white/85 leading-tight">{o.label}</span>
+                </button>
+                <div className="flex items-center justify-between gap-1">
+                  {o.locked ? (
+                    <span className="text-xs font-mono text-white/60" title="Medida fija">🔒 {m2(o.width)} m</span>
+                  ) : (
+                    <label className="flex items-center gap-1 text-xs text-white/70">
+                      <input type="number" step="0.05" min="0" value={curW}
+                        onChange={(e) => edit(p => setTypeWidth(p, t, row, o.key, parseFloat(e.target.value) || 0))}
+                        className="w-14 bg-black/30 border-b border-white/40 text-right font-mono text-white focus:outline-none" />
+                      m
+                    </label>
+                  )}
+                  <span className="flex items-center gap-1">
+                    <button type="button" className="w-7 h-7 rounded bg-white/10 hover:bg-white/25 disabled:opacity-30" disabled={count === 0}
                       onClick={() => edit(p => { const last = [...own].reverse().find(m => m.key === o.key); if (last) removeModuleFromPlan(p, t, row, last.id); })}>−</button>
-                    <span className="w-4 text-center font-mono text-teal-200">{count}</span>
-                    <button type="button" className="w-6 h-6 rounded bg-white/10 hover:bg-white/25"
+                    <span className={`w-5 text-center font-mono text-sm ${count > 0 ? "text-white font-bold" : "text-white/40"}`}>{count}</span>
+                    <button type="button" className="w-7 h-7 rounded bg-white/10 hover:bg-white/25"
                       onClick={() => edit(p => { addModuleToPlan(p, t, row, o.key); })}>+</button>
                   </span>
-                )}
+                </div>
               </div>
             );
           })}
         </div>
-
-        {row === "lower" && rem > 0.01 && (
-          <select
-            className="h-8 rounded bg-[#0C1A1A] border border-teal-500/40 text-xs text-teal-200 px-2"
-            value=""
-            onChange={(e) => { if (e.target.value) fillRemaining(t, row, e.target.value); }}
-          >
-            <option value="">Completar {m2(rem)} m con…</option>
-            {fillOpts.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
-          </select>
-        )}
       </div>
     );
   };
@@ -255,9 +345,9 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
 
   const stepper = (label: string, field: keyof ModulePlan["extras"]) => (
     <div key={field} className="flex items-center gap-2 text-xs text-white/70">
-      <button type="button" className="w-6 h-6 rounded bg-white/10 hover:bg-white/20" onClick={() => edit(p => { p.extras[field] = Math.max(0, (p.extras[field] || 0) - 1); })}>−</button>
+      <button type="button" className="w-7 h-7 rounded bg-white/10 hover:bg-white/20" onClick={() => edit(p => { p.extras[field] = Math.max(0, (p.extras[field] || 0) - 1); })}>−</button>
       <span className="w-6 text-center font-mono text-white">{plan.extras[field] || 0}</span>
-      <button type="button" className="w-6 h-6 rounded bg-white/10 hover:bg-white/20" onClick={() => edit(p => { p.extras[field] = (p.extras[field] || 0) + 1; })}>+</button>
+      <button type="button" className="w-7 h-7 rounded bg-white/10 hover:bg-white/20" onClick={() => edit(p => { p.extras[field] = (p.extras[field] || 0) + 1; })}>+</button>
       <span>{label}</span>
     </div>
   );
@@ -280,8 +370,8 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
       {enabled && (
         <div className="space-y-4">
           <p className="text-xs text-teal-400/70">
-            Forma de la cocina: <b>{config?.layout || "sin definir"}</b>. Pon el largo de cada pared y marca los módulos en el orden de la cocina.
-            🔒 no se mueve · 🎨 va pintado · ✕ quita · arrastra o usa ◀ ▶ para cambiar el orden.
+            Forma de la cocina: <b>{config?.layout || "sin definir"}</b>. Pon el largo de cada pared, agrega módulos con las tarjetas y acomódalos en el dibujo.
+            Líneas verdes = el corte coincide arriba y abajo; ámbar = solo en una línea.
           </p>
           <label className="flex items-center gap-2 text-xs text-white/70 cursor-pointer">
             <input type="checkbox" className="h-4 w-4 accent-sky-500" checked={plan.autoUpper !== false}
@@ -305,9 +395,11 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
                   m
                 </label>
               </div>
-              {!tr.isIsland && renderRow(t, "upper")}
-              {!tr.isIsland && <div className="h-1.5 rounded-full bg-gradient-to-r from-purple-500/60 via-white/30 to-teal-500/60" aria-hidden />}
-              {renderRow(t, "lower")}
+
+              {renderElevation(t)}
+              {renderSelected()}
+              {!tr.isIsland && renderPalette(t, "upper")}
+              {renderPalette(t, "lower")}
             </div>
           ))}
 
@@ -316,7 +408,7 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
               <p className="font-semibold text-amber-200">Módulos de piso a techo (ya marcados en la cotización)</p>
               {specials.map(s => (
                 <div key={s.key} className="flex flex-wrap items-center gap-3 text-amber-100/80">
-                  <ModuleIcon k={s.key} className="w-6 h-6" />
+                  <ModuleIcon k={s.key} size={26} />
                   <span className="w-44">{s.label} <span className="text-amber-100/40">({s.detail})</span></span>
                   {SPECIALS.find(x => x.key === s.key)?.editable ? (
                     <label className="flex items-center gap-1">
@@ -338,6 +430,10 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
                       con lateral (pieza grande)
                     </label>
                   )}
+                  <span className="flex gap-1">
+                    <button type="button" className="w-8 h-8 rounded bg-white/10 hover:bg-white/25" onClick={() => edit(p => moveTall(p, s.key, -1, config))} title="Mover a la izquierda">◀</button>
+                    <button type="button" className="w-8 h-8 rounded bg-white/10 hover:bg-white/25" onClick={() => edit(p => moveTall(p, s.key, 1, config))} title="Mover a la derecha">▶</button>
+                  </span>
                   {plan.tramos.length > 1 && (
                     <label className="flex items-center gap-1">
                       en
@@ -352,7 +448,7 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
                   )}
                 </div>
               ))}
-              <p className="text-amber-200/50">Ocupan las dos filas del tramo. El descuento de metros del precio sigue calculándose como hoy.</p>
+              <p className="text-amber-200/50">Ocupan las dos líneas del tramo. El descuento de metros del precio sigue calculándose como hoy.</p>
             </div>
           )}
 
@@ -374,7 +470,6 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
                       <input type="checkbox" className="h-4 w-4 accent-pink-500" checked={on}
                         onChange={(e) => edit(p => {
                           p.paintRows = { ...(p.paintRows || {}), [r]: e.target.checked };
-                          // al cambiar toda una fila se borran las excepciones de esa fila
                           const keys = new Set(CATALOG.filter(cc => cc.row === r).map(cc => cc.key));
                           p.paintKeys = Object.fromEntries(Object.entries(p.paintKeys || {}).filter(([k]) => !keys.has(k)));
                           p.tramos.forEach(tt => tt[r].forEach(mm => { mm.paint = undefined; mm.unpainted = undefined; }));
@@ -402,12 +497,13 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
                               p.paintKeys = { ...(p.paintKeys || {}), [k]: e.target.checked };
                               p.tramos.forEach(tt => (["upper", "lower"] as PlanRow[]).forEach(r => tt[r].forEach(mm => { if (mm.key === k) { mm.paint = undefined; mm.unpainted = undefined; } })));
                             })} />
+                          <ModuleIcon k={k} size={16} />
                           {cat ? cat.short : sp?.label}
                         </label>
                       );
                     })}
                   </div>
-                  <p className="text-[11px] text-white/35 mt-1">El 🎨 de cada bloque cambia solo ese módulo.</p>
+                  <p className="text-[11px] text-white/35 mt-1">Al tocar un icono del dibujo puedes cambiar solo ese módulo (∅ = sin pintar).</p>
                 </div>
               )}
             </div>

@@ -1270,6 +1270,11 @@ export default function Quotations() {
     }
     current[fields[fields.length - 1]] = value;
 
+    // Al desmarcar el salpicadero alto del mesón, limpiar sus laterales en la misma operación
+    if (field === 'countertop.incluyeSalpicaderoAlto' && value === false && config.countertop) {
+      config.countertop.cantLateralesSalpicadero = 0;
+    }
+
     // Cuando se desmarca medidas independientes, limpiar ML de superiores/inferiores en una sola operación
     if (field === 'independentMeters' && value === false) {
       config.upperMeters = undefined;
@@ -1609,6 +1614,7 @@ export default function Quotations() {
     if ((config as any).dismantle) {
       total += getPrice('DESMONTE_COCINA');
     }
+    mark("Desmonte de cocina");
     // 10. Transporte e imprevistos - OPCIONAL (se maneja con checkbox)
     // Solo incluir si el checkbox está marcado
     if (item.includesFixedCosts) {
@@ -2765,6 +2771,21 @@ export default function Quotations() {
                               <ChefHat className="h-4 w-4 sm:h-5 sm:w-5 text-orange-500" />
                               Configuración de Cocina Integral
                             </h3>
+
+                            {/* Desmonte de cocina existente - Opcional */}
+                            <div className={`flex items-center gap-3 p-3 rounded-lg border-2 ${(item.kitchenConfig as any)?.dismantle ? 'bg-green-500/15 border-green-400' : 'bg-white/[0.04] border-white/[0.15]'}`}>
+                              <input
+                                type="checkbox"
+                                id={`dismantle-${index}`}
+                                className="size-6 border-2 cursor-pointer accent-teal-500"
+                                checked={!!(item.kitchenConfig as any)?.dismantle}
+                                onChange={(e) => updateKitchenConfig(index, "dismantle", e.target.checked)}
+                              />
+                              <Label htmlFor={`dismantle-${index}`} className="text-xs sm:text-sm font-semibold text-white/85 cursor-pointer">
+                                Desmonte de cocina existente ({formatPrice(getPrice('DESMONTE_COCINA'))})
+                              </Label>
+                            </div>
+
                             
                             {/* 1. Tipo de Cocina (define el precio) */}
                             <div className="space-y-2">
@@ -3495,8 +3516,8 @@ export default function Quotations() {
                                       type="checkbox"
                                       checked={item.kitchenConfig?.countertop.incluyeSalpicaderoAlto || false}
                                       onChange={(e) => {
+                                        // Una sola actualización (dos seguidas se pisaban y no dejaban desmarcar)
                                         updateKitchenConfig(index, "countertop.incluyeSalpicaderoAlto", e.target.checked);
-                                        if (!e.target.checked) updateKitchenConfig(index, "countertop.cantLateralesSalpicadero", 0);
                                       }}
                                       className="h-4 w-4 accent-emerald-500"
                                     />
@@ -4204,20 +4225,6 @@ export default function Quotations() {
                                   </div>
                                 </div>
                               )}
-                            </div>
-
-                            {/* Desmonte de cocina existente - Opcional */}
-                            <div className={`flex items-center gap-3 p-3 rounded ${(item.kitchenConfig as any)?.dismantle ? 'bg-green-500/15 border border-green-300' : 'bg-yellow-500/10'}`}>
-                              <input
-                                type="checkbox"
-                                id={`dismantle-${index}`}
-                                className="size-6 border-2 cursor-pointer accent-teal-500"
-                                checked={!!(item.kitchenConfig as any)?.dismantle}
-                                onChange={(e) => updateKitchenConfig(index, "dismantle", e.target.checked)}
-                              />
-                              <Label htmlFor={`dismantle-${index}`} className="text-xs sm:text-sm font-semibold text-white/85 cursor-pointer">
-                                Desmonte de cocina existente ({formatPrice(getPrice('DESMONTE_COCINA'))})
-                              </Label>
                             </div>
 
                             {/* 10. Transporte e imprevistos - Opcional y editable */}

@@ -634,8 +634,9 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
                 </div>
               )}
             </div>
+            {pieceRows.every(([, n]) => !n) && <p className="text-xs text-white/40">Ninguna pieza marcada para pintar.</p>}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {pieceRows.map(([label, n]) => (
+              {pieceRows.filter(([, n]) => n > 0).map(([label, n]) => (
                 <div key={label} className="rounded bg-black/25 px-2 py-1.5 text-center">
                   <div className="text-lg font-bold text-pink-200 font-mono">{n}</div>
                   <div className="text-[11px] text-white/50 leading-tight">{label}</div>

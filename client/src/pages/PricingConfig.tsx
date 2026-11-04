@@ -31,6 +31,8 @@ import {
   X,
   DatabaseZap,
   Loader2,
+  Plus,
+  Trash2,
 } from "lucide-react";
 
 // Configuración de categorías con colores e iconos
@@ -147,6 +149,8 @@ export default function PricingConfig() {
   const [isSearching, setIsSearching] = useState(false);
   const [herrajeGroup, setHerrajeGroup] = useState<"cocinas" | "closets" | "puertas" | "otros">("cocinas");
   const [uploadingId, setUploadingId] = useState<number | null>(null);
+  const [showNewHw, setShowNewHw] = useState(false);
+  const [hwForm, setHwForm] = useState({ name: "", description: "", options: "", price: "" });
 
   // Queries
   const { data: allPricing, isLoading, refetch } = trpc.pricing.getAll.useQuery();
@@ -166,6 +170,37 @@ export default function PricingConfig() {
       toast.error(error.message);
     },
   });
+
+  const createHerraje = trpc.hardwareCatalog.create.useMutation({
+    onSuccess: () => {
+      toast.success("Herraje creado");
+      setShowNewHw(false);
+      setHwForm({ name: "", description: "", options: "", price: "" });
+      refetch();
+    },
+    onError: (error) => toast.error("No se pudo crear: " + error.message),
+  });
+
+  const deleteHerraje = trpc.hardwareCatalog.delete.useMutation({
+    onSuccess: () => {
+      toast.success("Herraje eliminado (las cotizaciones ya hechas no cambian)");
+      refetch();
+    },
+    onError: (error) => toast.error("No se pudo eliminar: " + error.message),
+  });
+
+  const handleCreateHerraje = () => {
+    const price = parseFloat(hwForm.price || "0");
+    if (!hwForm.name.trim()) { toast.error("Escribe el nombre del herraje"); return; }
+    if (isNaN(price) || price < 0) { toast.error("El precio debe ser un número válido"); return; }
+    createHerraje.mutate({
+      category: herrajeGroup === "otros" ? "cocinas" : herrajeGroup,
+      name: hwForm.name.trim(),
+      description: hwForm.description.trim() || undefined,
+      options: hwForm.options.trim() || undefined,
+      price,
+    });
+  };
 
   const uploadHerrajePhoto = trpc.hardwareCatalog.uploadPhoto.useMutation({
     onSuccess: () => {
@@ -634,6 +669,12 @@ export default function PricingConfig() {
                       {activePricing.length} {activePricing.length === 1 ? 'precio configurado' : 'precios configurados'}
                     </p>
                   </div>
+                  {activeCategory === "herrajes" && (
+                    <Button onClick={() => setShowNewHw(true)} className="ml-auto bg-teal-600 hover:bg-teal-500 text-white">
+                      <Plus className="h-4 w-4 mr-1" />
+                      Agregar herraje
+                    </Button>
+                  )}
                 </div>
               </div>
 
@@ -710,15 +751,33 @@ export default function PricingConfig() {
                           <span className="text-xl font-bold" style={{ color: activeConfig.accentColor }}>
                             {formatValue(item)}
                           </span>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleEdit(item)}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity border-white/[0.15] text-white/70 hover:text-white"
-                          >
-                            <Edit2 className="h-4 w-4 mr-1" />
-                            Editar
-                          </Button>
+                          <div className="flex items-center gap-2">
+                            {activeCategory === "herrajes" && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={deleteHerraje.isPending}
+                                onClick={() => {
+                                  if (confirm(`¿Eliminar "${item.name}"? Dejará de salir en cotizaciones nuevas; las ya hechas no cambian.`)) {
+                                    deleteHerraje.mutate({ id: herrajeHwId(item) });
+                                  }
+                                }}
+                                className="border-red-500/30 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                title="Eliminar herraje"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleEdit(item)}
+                              className={`${activeCategory === "herrajes" ? "" : "opacity-0 group-hover:opacity-100 transition-opacity "}border-white/[0.15] text-white/70 hover:text-white`}
+                            >
+                              <Edit2 className="h-4 w-4 mr-1" />
+                              Editar
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -736,6 +795,42 @@ export default function PricingConfig() {
             )}
           </div>
         </div>
+
+        {/* Modal: nuevo herraje (queda en el grupo de la pestaña activa) */}
+        <Dialog open={showNewHw} onOpenChange={setShowNewHw}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-white/85">
+                Nuevo herraje — {herrajeGroup === "otros" ? "Cocinas" : herrajeGroup === "cocinas" ? "Cocinas" : herrajeGroup === "closets" ? "Closets" : "Puertas"}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <p className="text-xs text-white/45">Se guarda en la pestaña que tienes abierta. Si es de otro grupo, cierra esto y cambia de pestaña primero.</p>
+              <div>
+                <Label>Nombre *</Label>
+                <Input value={hwForm.name} onChange={(e) => setHwForm({ ...hwForm, name: e.target.value })} placeholder="Ej: Cajón con freno" />
+              </div>
+              <div>
+                <Label>Descripción</Label>
+                <Textarea value={hwForm.description} onChange={(e) => setHwForm({ ...hwForm, description: e.target.value })} rows={2} />
+              </div>
+              <div>
+                <Label>Opciones (separadas por coma)</Label>
+                <Input value={hwForm.options} onChange={(e) => setHwForm({ ...hwForm, options: e.target.value })} placeholder="Cromado,Negro" />
+              </div>
+              <div>
+                <Label>Precio (COP)</Label>
+                <Input type="number" min="0" value={hwForm.price} onChange={(e) => setHwForm({ ...hwForm, price: e.target.value })} placeholder="0" />
+              </div>
+            </div>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button variant="outline" onClick={() => setShowNewHw(false)}>Cancelar</Button>
+              <Button onClick={handleCreateHerraje} disabled={createHerraje.isPending} className="bg-teal-600 hover:bg-teal-500 text-white">
+                {createHerraje.isPending ? "Creando..." : "Crear herraje"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Modal de edición mejorado */}
         <Dialog open={!!editingItem} onOpenChange={() => setEditingItem(null)}>

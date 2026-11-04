@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactElement } from "react";
 import {
   CATALOG, CATALOG_BY_KEY, FILL_KEYS, SPECIALS,
   normalizePlan, computePlan, rowSequence, rowUsed, activeSpecials, lateralOn,
@@ -16,6 +16,42 @@ interface Props {
 }
 
 const m2 = (n: number) => (Number(n) || 0).toFixed(2);
+
+// Iconos simples por tipo de módulo (trazo, sin dependencias)
+const ICONS: Record<string, ReactElement> = {
+  moduloEstufaPuerta: <g><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="2"/><circle cx="15.5" cy="8.5" r="2"/><circle cx="8.5" cy="15.5" r="2"/><circle cx="15.5" cy="15.5" r="2"/></g>,
+  moduloEstufaHorno: <g><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="7.5" r="1.7"/><circle cx="15.5" cy="7.5" r="1.7"/><line x1="3" y1="12" x2="21" y2="12"/><rect x="6" y="14.5" width="12" height="4.5" rx="1"/></g>,
+  moduloLavaplatos: <g><rect x="3" y="10" width="18" height="9" rx="2"/><path d="M12 10V5h3"/><line x1="7" y1="14.5" x2="17" y2="14.5"/></g>,
+  moduloLavaplatosDoble: <g><rect x="2" y="10" width="20" height="9" rx="2"/><line x1="12" y1="10" x2="12" y2="19"/><path d="M12 10V5h3"/></g>,
+  cajoneroTriple: <g><rect x="4" y="3" width="16" height="18" rx="1.5"/><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="6" x2="14" y2="6"/><line x1="10" y1="12" x2="14" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></g>,
+  cajoneroDoble: <g><rect x="4" y="3" width="16" height="18" rx="1.5"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="10" y1="7.5" x2="14" y2="7.5"/><line x1="10" y1="16.5" x2="14" y2="16.5"/></g>,
+  basurero: <g><path d="M6 8h12l-1 12H7L6 8z"/><line x1="4" y1="8" x2="20" y2="8"/><path d="M9 8V5h6v3"/></g>,
+  especiero: <g><rect x="4" y="6" width="4" height="13" rx="1"/><rect x="10" y="6" width="4" height="13" rx="1"/><rect x="16" y="6" width="4" height="13" rx="1"/><line x1="4" y1="4" x2="20" y2="4"/></g>,
+  botellero: <g><path d="M10 3h4v4l2 3v10a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V10l2-3V3z"/><line x1="8" y1="14" x2="16" y2="14"/></g>,
+  moduloAlmacInf: <g><rect x="3" y="4" width="18" height="16" rx="1.5"/><line x1="12" y1="4" x2="12" y2="20"/><circle cx="10" cy="12" r=".8"/><circle cx="14" cy="12" r=".8"/></g>,
+  moduloAlmacSup: <g><rect x="3" y="4" width="18" height="16" rx="1.5"/><line x1="12" y1="4" x2="12" y2="20"/><circle cx="10" cy="14" r=".8"/><circle cx="14" cy="14" r=".8"/></g>,
+  esquinero1x1: <g><path d="M4 4h10v6h6v10H4V4z"/><line x1="4" y1="10" x2="14" y2="10"/></g>,
+  esquineroSuperior: <g><path d="M5 5h9v5h5v9H5V5z"/></g>,
+  moduloExtractor: <g><path d="M8 3h8v6l4 7H4l4-7V3z"/><line x1="6" y1="19" x2="18" y2="19"/></g>,
+  moduloExtractorMicroondas: <g><path d="M9 2h6v4l3 4H6l3-4V2z"/><rect x="4" y="12" width="16" height="8" rx="1"/><rect x="6" y="14" width="8" height="4"/></g>,
+  moduloMicroondas: <g><rect x="3" y="7" width="18" height="11" rx="1.5"/><rect x="5" y="9" width="10" height="7"/><circle cx="18" cy="11" r="1"/><circle cx="18" cy="15" r="1"/></g>,
+  moduloPlatero: <g><rect x="3" y="4" width="18" height="15" rx="1.5"/><line x1="8" y1="8" x2="8" y2="16"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="16" y1="8" x2="16" y2="16"/><line x1="3" y1="19" x2="21" y2="19"/></g>,
+  moduloRepisa: <g><rect x="4" y="3" width="16" height="18"/><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/></g>,
+  ventana: <g><rect x="4" y="4" width="16" height="16" rx="1"/><line x1="12" y1="4" x2="12" y2="20"/><line x1="4" y1="12" x2="20" y2="12"/></g>,
+  nichoNevecon: <g><rect x="6" y="2" width="12" height="20" rx="1.5"/><line x1="6" y1="9" x2="18" y2="9"/><line x1="9" y1="5" x2="9" y2="7"/><line x1="9" y1="12" x2="9" y2="16"/></g>,
+  nichoNevera: <g><rect x="6" y="4" width="12" height="16" rx="1.5"/><line x1="6" y1="10" x2="18" y2="10"/><line x1="9" y1="7" x2="9" y2="8"/><line x1="9" y1="13" x2="9" y2="16"/></g>,
+  alacenaEntrepanos: <g><rect x="6" y="2" width="12" height="20" rx="1.5"/><line x1="12" y1="2" x2="12" y2="22"/><circle cx="10" cy="12" r=".8"/></g>,
+  alacenaHerraje: <g><rect x="6" y="2" width="12" height="20" rx="1.5"/><path d="M9 7h6M9 12h6M9 17h6"/></g>,
+  torreHornos: <g><rect x="6" y="2" width="12" height="20" rx="1.5"/><rect x="8" y="4" width="8" height="5"/><rect x="8" y="11" width="8" height="5"/><line x1="8" y1="19" x2="16" y2="19"/></g>,
+};
+function ModuleIcon({ k, className = "" }: { k: string; className?: string }) {
+  const g = ICONS[k];
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
+      {g || <rect x="4" y="4" width="16" height="16" rx="2" />}
+    </svg>
+  );
+}
 
 export function KitchenModulePlanner({ config, onChange }: Props) {
   const plan = useMemo(() => normalizePlan(config?.modulePlan, config), [config]);
@@ -72,7 +108,9 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
         <div className="flex flex-wrap gap-1.5 items-stretch">
           {spHere.map(s => (
             <div key={s.key} className="rounded bg-amber-900/40 border border-amber-500/40 px-2 py-1 text-xs text-amber-200" title="Piso a techo">
-              {s.label} <span className="font-mono">{m2(s.w)}</span>
+              <ModuleIcon k={s.key} className="w-9 h-9" />
+              <div className="font-semibold leading-tight">{s.label}</div>
+              <span className="font-mono">{m2(s.w)} m</span>
             </div>
           ))}
           {seq.map(({ mod, fromPrev, ownIndex }) => {
@@ -94,19 +132,20 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
                   setDragId(null);
                 }}
                 onDragEnd={() => setDragId(null)}
-                className={`rounded border px-2 py-1 text-xs flex flex-col gap-1 min-w-[96px] ${mine ? "cursor-grab" : ""} ${
+                className={`rounded border px-2 py-1 text-xs flex flex-col gap-1 min-w-[104px] ${mine ? "cursor-grab" : ""} ${
                   cat.key === "ventana" ? "bg-slate-700/40 border-slate-500/40 text-slate-200"
                   : outOfRange ? "bg-red-900/30 border-red-500/50 text-red-200"
                   : fromPrev ? "bg-teal-900/20 border-teal-500/20 text-teal-200/70"
                   : mod.autoOf ? "bg-sky-900/30 border-sky-500/30 text-sky-100"
                   : "bg-teal-900/40 border-teal-500/40 text-teal-100"}`}
               >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-semibold truncate">{cat.locked ? "🔒 " : ""}{cat.short}{fromPrev ? " (vértice)" : ""}</span>
+                <div className="flex items-start justify-between gap-1">
+                  <ModuleIcon k={mod.key} className="w-9 h-9 opacity-90" />
                   {mine && (
                     <button type="button" className="text-white/50 hover:text-red-300 leading-none px-1" onClick={() => edit(p => removeModuleFromPlan(p, t, row, mod.id))} title="Quitar">✕</button>
                   )}
                 </div>
+                <div className="font-semibold leading-tight">{cat.locked ? "🔒 " : ""}{cat.short}{fromPrev ? " (vértice)" : ""}</div>
                 <div className="flex items-center gap-1">
                   {mine && adjustable ? (
                     <input
@@ -119,10 +158,21 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
                     <span className="font-mono">{m2(mod.width)}</span>
                   )}
                   <span className="text-white/40">m</span>
-                  {mine && Math.abs(mod.width - cat.width) > 0.004 && !mod.autoBase && !mod.autoGroup && (
-                    <span className="text-amber-300">{mod.width > cat.width ? "+" : ""}{m2(mod.width - cat.width)}</span>
+                  {mine && Math.abs(mod.width - cat.width) > 0.004 && mod.autoBase === undefined && (
+                    <span className="text-amber-300" title="Cambio frente a la medida normal">{mod.width > cat.width ? "+" : ""}{m2(mod.width - cat.width)}</span>
                   )}
                 </div>
+                {mine && mod.key === "moduloRepisa" && (
+                  <label className="flex items-center gap-1 text-[11px] text-white/70">
+                    repisas
+                    <input
+                      type="number" min="0" step="1" placeholder="?"
+                      value={mod.qty ?? ""}
+                      onChange={(e) => edit(p => { const m = p.tramos[t][row].find(x => x.id === mod.id); if (m) m.qty = e.target.value === "" ? undefined : Math.max(0, parseInt(e.target.value) || 0); })}
+                      className="w-12 bg-transparent border-b border-amber-300/60 text-right font-mono focus:outline-none"
+                    />
+                  </label>
+                )}
                 {mine && (
                   <div className="flex items-center justify-between gap-1 text-white/60">
                     <span className="flex gap-1">
@@ -161,6 +211,7 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
                     else addModuleToPlan(p, t, row, o.key);
                   })}
                 />
+                <ModuleIcon k={o.key} className="w-6 h-6 shrink-0 text-white/70" />
                 <span className="flex-1 text-white/80 leading-tight">{o.label} <span className="text-white/35">{m2(o.width)}</span></span>
                 {count > 0 && (
                   <span className="flex items-center gap-1 shrink-0">
@@ -199,7 +250,7 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
   const P = result.pieces;
   const pieceRows: Array<[string, number]> = [
     ["Puertas superiores", P.up], ["Puertas inferiores", P.lo], ["Puertas de alacena / altas", P.al],
-    ["Tapas de cajón", P.ca], ["Tapas de especiero", P.es], ["Golas / frentes pequeños", P.go], ["Piezas especiales", P.special],
+    ["Tapas de cajón", P.ca], ["Tapas de especiero", P.es], ["Golas / frentes pequeños", P.go], ["Laterales grandes (nicho / alacena)", P.lat], ["Piezas especiales", P.special],
   ];
 
   const stepper = (label: string, field: keyof ModulePlan["extras"]) => (
@@ -265,7 +316,8 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
               <p className="font-semibold text-amber-200">Módulos de piso a techo (ya marcados en la cotización)</p>
               {specials.map(s => (
                 <div key={s.key} className="flex flex-wrap items-center gap-3 text-amber-100/80">
-                  <span className="w-48">{s.label} <span className="text-amber-100/40">({s.detail})</span></span>
+                  <ModuleIcon k={s.key} className="w-6 h-6" />
+                  <span className="w-44">{s.label} <span className="text-amber-100/40">({s.detail})</span></span>
                   {SPECIALS.find(x => x.key === s.key)?.editable ? (
                     <label className="flex items-center gap-1">
                       ancho
@@ -283,7 +335,7 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
                     <label className="flex items-center gap-1 cursor-pointer">
                       <input type="checkbox" className="h-4 w-4 accent-amber-500" checked={lateralOn(plan, s.key)}
                         onChange={(e) => edit(p => { p.specialLateral = { ...(p.specialLateral || {}), [s.key]: e.target.checked }; })} />
-                      con lateral
+                      con lateral (pieza grande)
                     </label>
                   )}
                   {plan.tramos.length > 1 && (

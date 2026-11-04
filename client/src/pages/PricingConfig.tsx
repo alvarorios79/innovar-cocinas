@@ -145,6 +145,8 @@ export default function PricingConfig() {
   const [showHistory, setShowHistory] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
+  const [herrajeGroup, setHerrajeGroup] = useState<"cocinas" | "closets" | "puertas" | "otros">("cocinas");
+  const [uploadingId, setUploadingId] = useState<number | null>(null);
 
   // Queries
   const { data: allPricing, isLoading, refetch } = trpc.pricing.getAll.useQuery();
@@ -164,6 +166,50 @@ export default function PricingConfig() {
       toast.error(error.message);
     },
   });
+
+  const uploadHerrajePhoto = trpc.hardwareCatalog.uploadPhoto.useMutation({
+    onSuccess: () => {
+      toast.success("Foto actualizada");
+      setUploadingId(null);
+      refetch();
+    },
+    onError: (error) => {
+      setUploadingId(null);
+      toast.error("No se pudo subir la foto: " + error.message);
+    },
+  });
+
+  // Id que usa el sistema de herrajes: HERRAJE_<GRUPO>_<id> conserva el id del catálogo; los nuevos usan 100000 + id
+  const herrajeHwId = (item: any): number => {
+    const m = /^HERRAJE_(?:COCINAS|CLOSETS|PUERTAS)_(\d+)$/.exec(String(item.code));
+    return m ? Number(m[1]) : 100000 + item.id;
+  };
+  const herrajeGroupOf = (item: any): "cocinas" | "closets" | "puertas" | "otros" => {
+    const m = /^HERRAJE_(COCINAS|CLOSETS|PUERTAS)_/.exec(String(item.code));
+    return m ? (m[1].toLowerCase() as any) : "otros";
+  };
+  const handleHerrajePhoto = (item: any, file?: File | null) => {
+    if (!file) return;
+    setUploadingId(item.id);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        // Reducir a máx. 1000 px para que suba rápido
+        const max = 1000;
+        const scale = Math.min(1, max / Math.max(img.width, img.height));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+        uploadHerrajePhoto.mutate({ hardwareId: herrajeHwId(item), photoData: dataUrl, fileName: `${item.code}.jpg` });
+      };
+      img.onerror = () => { setUploadingId(null); toast.error("No se pudo leer la imagen"); };
+      img.src = reader.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
 
   const seedPiezas = trpc.pricing.seedPiezaPrices.useMutation({
     onSuccess: (result) => {
@@ -240,7 +286,10 @@ export default function PricingConfig() {
   };
 
   const activeConfig = categoryConfig[activeCategory];
-  const activePricing = pricingByCategory[activeCategory] || [];
+  const activePricingAll = pricingByCategory[activeCategory] || [];
+  const activePricing = activeCategory === "herrajes"
+    ? activePricingAll.filter((i: any) => herrajeGroupOf(i) === herrajeGroup)
+    : activePricingAll;
 
   // Filtrar precios por búsqueda
   const searchResults = searchQuery.trim() 
@@ -588,6 +637,25 @@ export default function PricingConfig() {
                 </div>
               </div>
 
+              {/* Pestañas de herrajes por grupo */}
+              {activeCategory === "herrajes" && (
+                <div className="flex gap-2 px-4 pt-4 bg-[#0C1A1A] flex-wrap">
+                  {([["cocinas", "Cocinas"], ["closets", "Closets"], ["puertas", "Puertas"], ["otros", "Otros"]] as const).map(([k, label]) => {
+                    const n = activePricingAll.filter((i: any) => herrajeGroupOf(i) === k).length;
+                    if (k === "otros" && n === 0) return null;
+                    return (
+                      <button
+                        key={k}
+                        onClick={() => setHerrajeGroup(k)}
+                        className={`px-4 py-2 rounded-lg text-sm font-semibold border transition-colors ${herrajeGroup === k ? "bg-teal-500/20 border-teal-400 text-teal-300" : "border-white/[0.1] text-white/55 hover:text-white/80"}`}
+                      >
+                        {label} ({n})
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
               {/* Lista de precios */}
               <CardContent className="p-4 bg-[#0C1A1A]">
                 {activePricing.length > 0 ? (
@@ -603,6 +671,26 @@ export default function PricingConfig() {
                           <div className={`absolute -top-2 -right-2 ${activeConfig.iconBg} text-xs font-medium px-2 py-0.5 rounded-full flex items-center gap-1`}>
                             {item.unit === "%" ? <Percent className="h-3 w-3" /> : null}
                             {item.unit}
+                          </div>
+                        )}
+
+                        {activeCategory === "herrajes" && (
+                          <div className="mb-3 flex items-center gap-3">
+                            {(item as any).photoUrl ? (
+                              <img src={(item as any).photoUrl} alt={item.name} className="h-20 w-20 rounded-lg object-cover border border-white/[0.1]" />
+                            ) : (
+                              <div className="h-20 w-20 rounded-lg border border-dashed border-white/[0.2] flex items-center justify-center text-[10px] text-white/35 text-center px-1">Sin foto</div>
+                            )}
+                            <label className="cursor-pointer text-xs font-semibold px-3 py-2 rounded-lg border border-teal-400/40 text-teal-300 hover:bg-teal-500/10">
+                              {uploadingId === item.id ? "Subiendo..." : ((item as any).photoUrl ? "Cambiar foto" : "Subir foto")}
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                disabled={uploadingId === item.id}
+                                onChange={(e) => { handleHerrajePhoto(item, e.target.files?.[0]); e.target.value = ""; }}
+                              />
+                            </label>
                           </div>
                         )}
 

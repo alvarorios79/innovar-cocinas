@@ -546,13 +546,21 @@ function dropInRow(p: ModulePlan, t: number, row: PlanRow, target: DropTarget, s
   // 5) acomodar en el hueco
   const prevEnd = at > 0 ? ends[at - 1] : prefix;
   const nextStart = at < list.length ? starts[at] : Infinity;
-  const hole = nextStart - prevEnd;
-  if (hole >= w - 1e-9) s = Math.min(Math.max(s, prevEnd), nextStart - w);
-  else s = prevEnd;
   const tl = p.tramos[t].length;
-  if (at >= list.length && tl > 0) s = Math.max(prevEnd, Math.min(s, tl - w));
+  // Límite derecho: el siguiente elemento o, si es el último, el largo de la pared
+  const limit = at < list.length ? nextStart : (tl > 0 && tl >= prevEnd + w - 1e-9 ? tl : Infinity);
+  const hole = limit - prevEnd;
+  const fits = hole >= w - 1e-9;
+  if (fits) {
+    s = Math.min(Math.max(s, prevEnd), limit - w);
+    // Imán: si queda a menos de 0.30 m de su vecino (o del tope de la pared), se pega
+    const MAG = 0.30;
+    const left = s - prevEnd, right = limit - (s + w);
+    if (left <= MAG && (right > MAG || left <= right)) s = prevEnd;
+    else if (right <= MAG && isFinite(limit)) s = limit - w;
+  } else s = prevEnd;
   const nextEl = list[at];
-  if (nextEl) setGap(nextEl, hole >= w - 1e-9 ? nextStart - (s + w) : 0);
+  if (nextEl) setGap(nextEl, fits ? nextStart - (s + w) : 0);
   setGap(el, s - prevEnd);
   list.splice(at, 0, el);
   saveList(p, row, list, config);

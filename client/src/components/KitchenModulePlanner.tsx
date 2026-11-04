@@ -4,7 +4,7 @@ import {
   normalizePlan, computePlan, rowItems, rowUsed, activeSpecials, lateralOn, isPainted,
   addModuleToPlan, removeModuleFromPlan, setModuleWidth, moveModule, moveTall, dropModule, dropTall, tidyPlan, packRow, setModuleLock, setTypeWidth, alignEnd, rebuildAutoUpper,
   round2,
-  type ModulePlan, type PlanRow, type RowItem,
+  type ModulePlan, type PlanModule, type PlanRow, type RowItem,
 } from "@shared/kitchenModulePlan";
 
 // Plano de módulos por tramos, visto de frente: superiores arriba, inferiores abajo,
@@ -444,6 +444,14 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
     ["Tapas de cajón", P.ca], ["Tapas de especiero", P.es], ["Golas / frentes pequeños", P.go], ["Laterales grandes (nicho / alacena)", P.lat], ["Piezas especiales", P.special],
   ];
 
+  // Estado REAL de pintura (cuenta lo marcado módulo por módulo, no solo la casilla de fila o tipo)
+  const allMods = plan.tramos.flatMap(tt => (["upper", "lower"] as PlanRow[]).flatMap(r => tt[r].map(mm => ({ mm, r }))))
+    .filter(x => !CATALOG_BY_KEY[x.mm.key]?.noPieces);
+  const paintState = (list: Array<{ mm: PlanModule; r: PlanRow }>): { state: "all" | "some" | "none"; n: number; total: number } => {
+    const n = list.filter(x => isPainted(plan, x.mm, x.r)).length;
+    return { state: list.length === 0 ? "none" : n === list.length ? "all" : n === 0 ? "none" : "some", n, total: list.length };
+  };
+
   // ── Detalle: de qué módulo sale cada pieza (lo que va pintado suma; lo tachado no) ──
   const PIECE_NAMES: Record<string, [string, string]> = {
     up: ["puerta superior", "puertas superiores"], lo: ["puerta inferior", "puertas inferiores"], al: ["puerta de alacena", "puertas de alacena"],
@@ -459,19 +467,23 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
       <div className="rounded bg-black/20 p-2 space-y-1">
         <p className="text-xs font-semibold text-white/60">De dónde sale cada pieza <span className="font-normal text-white/35">(toca una fila para ir al módulo)</span></p>
         <div className="max-h-64 overflow-auto space-y-0.5">
-          {rows.map((d, i) => {
+          {[...rows.filter(d => d.painted), ...rows.filter(d => !d.painted)].map((d, i, arr) => {
             const txt = pieceText(d.pieces as any);
             const go = () => { if (d.row === "tall") setSel({ t: d.t, tall: d.key }); else if (d.row !== "extra" && d.id) setSel({ t: d.t, row: d.row as PlanRow, id: d.id }); };
+            const first = !d.painted && (i === 0 || arr[i - 1].painted);
             return (
-              <button type="button" key={i} onClick={go} disabled={d.row === "extra"}
-                className={`w-full flex items-center gap-2 rounded px-2 py-1 text-left text-[11px] ${d.painted ? "bg-pink-900/20 text-pink-100" : "bg-white/[0.03] text-white/35"} ${d.row === "extra" ? "cursor-default" : "hover:bg-white/10"}`}>
-                {d.row !== "extra" && <ModuleIcon k={d.key} size={16} />}
-                <span className={`flex-1 ${d.painted ? "" : "line-through"}`}>
-                  {d.label}{d.width ? <span className="text-white/40"> · {m2(d.width)} m</span> : null}
-                  <span className="text-white/30"> · {d.row === "upper" ? "superior" : d.row === "lower" ? "inferior" : d.row === "tall" ? "piso a techo" : "extra"}{plan.tramos.length > 1 && d.t >= 0 ? ` · ${d.tramo}` : ""}</span>
-                </span>
-                <span className="font-mono shrink-0">{d.painted ? (txt || "sin piezas") : `sin pintar${txt ? ` (${txt})` : ""}`}</span>
-              </button>
+              <div key={i}>
+                {first && <p className="pt-1.5 pb-0.5 text-[10px] uppercase tracking-wide text-white/40">No se pintan (no suman piezas)</p>}
+                <button type="button" onClick={go} disabled={d.row === "extra"}
+                  className={`w-full flex items-center gap-2 rounded px-2 py-1 text-left text-[11px] ${d.painted ? "bg-pink-900/20 text-pink-100" : "bg-white/[0.03] text-white/35"} ${d.row === "extra" ? "cursor-default" : "hover:bg-white/10"}`}>
+                  {d.row !== "extra" && <ModuleIcon k={d.key} size={16} />}
+                  <span className={`flex-1 ${d.painted ? "" : "line-through"}`}>
+                    {d.label}{d.width ? <span className="text-white/40"> · {m2(d.width)} m</span> : null}
+                    <span className="text-white/30"> · {d.row === "upper" ? "superior" : d.row === "lower" ? "inferior" : d.row === "tall" ? "piso a techo" : "extra"}{plan.tramos.length > 1 && d.t >= 0 ? ` · ${d.tramo}` : ""}</span>
+                  </span>
+                  <span className="font-mono shrink-0">{d.painted ? (txt || "sin piezas") : "sin pintar"}</span>
+                </button>
+              </div>
             );
           })}
         </div>
@@ -617,10 +629,12 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
               <p className="text-xs font-semibold text-white/60">¿Qué va pintado?</p>
               <div className="flex flex-wrap gap-4 text-xs text-white/80">
                 {(["upper", "lower"] as PlanRow[]).map(r => {
-                  const on = plan.paintRows?.[r] ?? (plan.paintAll !== false);
+                  const ps = paintState(allMods.filter(x => x.r === r));
+                  const on = ps.total === 0 ? (plan.paintRows?.[r] ?? (plan.paintAll !== false)) : ps.state === "all";
                   return (
                     <label key={r} className="flex items-center gap-2 cursor-pointer">
                       <input type="checkbox" className="h-4 w-4 accent-pink-500" checked={on}
+                        ref={(el) => { if (el) el.indeterminate = ps.state === "some"; }}
                         onChange={(e) => edit(p => {
                           p.paintRows = { ...(p.paintRows || {}), [r]: e.target.checked };
                           const keys = new Set(CATALOG.filter(cc => cc.row === r).map(cc => cc.key));
@@ -628,6 +642,7 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
                           p.tramos.forEach(tt => tt[r].forEach(mm => { mm.paint = undefined; mm.unpainted = undefined; }));
                         })} />
                       {r === "upper" ? "Muebles superiores" : "Muebles inferiores"}
+                      {ps.total > 0 && <span className={ps.state === "some" ? "text-amber-300" : "text-white/40"}>({ps.n} de {ps.total} van pintados)</span>}
                     </label>
                   );
                 })}
@@ -640,18 +655,20 @@ export function KitchenModulePlanner({ config, onChange }: Props) {
                       const cat = CATALOG_BY_KEY[k];
                       const sp = SPECIALS.find(s => s.key === k);
                       const rowOf: PlanRow = cat?.row || "lower";
-                      const on = cat
-                        ? (plan.paintKeys?.[k] ?? (plan.paintRows?.[rowOf] ?? (plan.paintAll !== false)))
-                        : (plan.paintKeys?.[k] !== false);
+                      const ts = cat ? paintState(allMods.filter(x => x.mm.key === k)) : null;
+                      const on = ts ? ts.state === "all" : (plan.paintKeys?.[k] !== false);
+                      const some = ts?.state === "some";
                       return (
-                        <label key={k} className={`flex items-center gap-1.5 rounded px-2 py-1 text-xs cursor-pointer border ${on ? "bg-pink-900/30 border-pink-500/40 text-pink-100" : "bg-white/[0.03] border-white/10 text-white/40"}`}>
+                        <label key={k} className={`flex items-center gap-1.5 rounded px-2 py-1 text-xs cursor-pointer border ${on ? "bg-pink-900/30 border-pink-500/40 text-pink-100" : some ? "bg-amber-900/20 border-amber-400/40 text-amber-100" : "bg-white/[0.03] border-white/10 text-white/40"}`}>
                           <input type="checkbox" className="h-3.5 w-3.5 accent-pink-500" checked={on}
+                            ref={(el) => { if (el) el.indeterminate = !!some; }}
                             onChange={(e) => edit(p => {
                               p.paintKeys = { ...(p.paintKeys || {}), [k]: e.target.checked };
                               p.tramos.forEach(tt => (["upper", "lower"] as PlanRow[]).forEach(r => tt[r].forEach(mm => { if (mm.key === k) { mm.paint = undefined; mm.unpainted = undefined; } })));
                             })} />
                           <ModuleIcon k={k} size={16} />
                           {cat ? cat.short : sp?.label}
+                          {ts && ts.total > 1 && <span className="text-[10px] opacity-60">({ts.n}/{ts.total})</span>}
                         </label>
                       );
                     })}

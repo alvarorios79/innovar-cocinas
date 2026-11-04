@@ -2,6 +2,7 @@ import PDFDocument from "pdfkit";
 import { createWriteStream, existsSync } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { drawSchemePages } from "./plan-scheme-pdf";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -36,6 +37,7 @@ interface QuotationData {
   generalNotes?: string;
   versionNumber?: number;
   baseQuotationNumber?: string;
+  schemes?: any[];   // esquemas del plano de módulos de la cocina (última página)
 }
 
 const TEAL   = "#00BCD4";
@@ -363,6 +365,13 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
       // Línea de fecha bajo firma del cliente
       doc.moveTo(ML, Y + 62).lineTo(ML + 130, Y + 62).strokeColor("#9CA3AF").lineWidth(0.8).stroke();
       doc.fontSize(7.5).fillColor(MGRAY).font("Helvetica").text("Fecha", ML, Y + 65);
+
+      // ── ESQUEMA DE LA COCINA (última página, solo si la cotización tiene plano de módulos) ──
+      try {
+        if (data.schemes && data.schemes.length > 0) {
+          drawSchemePages(doc, data.schemes, { PW, PH, ML, CW }, () => { doc.addPage(); doc.rect(0, 0, PW, 5).fill(TEAL); return 22; });
+        }
+      } catch (e) { console.error("[pdf] esquema de la cocina:", e); }
 
       // ── FOOTER en todas las páginas ────────────────────────────────────────
       const { start, count } = doc.bufferedPageRange();

@@ -19,9 +19,40 @@ import { sanitizeText, sanitizeHtml, sanitizeForEmail, sanitizePhone, sanitizeEm
 import { eq, and, desc } from "drizzle-orm";
 import { projects, projectDetails, projectPhotos } from "../../drizzle/schema";
 import { randomBytes } from "crypto";
+import { buildScheme } from "@shared/kitchenPlanScheme";
 
+
+// Esquemas del plano de módulos de la cocina de un proyecto (a partir de los ítems de su cotización)
+async function loadModuleSchemes(projectId: number) {
+  const project = await db.getProjectById(projectId);
+  let items: any[] = await db.getLatestQuotationItems(projectId);
+  if ((!items || !items.length) && project?.quotationId) items = await db.getQuotationItems(project.quotationId);
+  const out: Array<{ itemNumber: number; scheme: NonNullable<ReturnType<typeof buildScheme>> }> = [];
+  for (const it of [...(items || [])].sort((a: any, b: any) => (a.itemNumber || 0) - (b.itemNumber || 0))) {
+    if (it.itemType !== "cocina" || !it.kitchenConfig) continue;
+    let cfg: any = it.kitchenConfig;
+    if (typeof cfg === "string") { try { cfg = JSON.parse(cfg); } catch { continue; } }
+    const scheme = cfg?.modulePlan?.enabled ? buildScheme(cfg.modulePlan, cfg, `Cocina integral · ítem ${it.itemNumber}`) : null;
+    if (scheme) out.push({ itemNumber: it.itemNumber, scheme });
+  }
+  return out;
+}
 
 export const projectsRouter = router({
+    // Plano de módulos de la cocina (solo lectura) para diseñador, jefe de taller y equipo
+    getModulePlans: protectedProcedure
+      .input(z.object({ projectId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const allowed = ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"];
+        if (!allowed.includes(ctx.user.role)) return [];
+        const project = await db.getProjectById(input.projectId);
+        if (!project) return [];
+        // El diseñador lo recibe cuando el proyecto está activo para diseñar (cliente confirmado)
+        const ACTIVE = ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"];
+        if (ctx.user.role === "disenador" && !ACTIVE.includes(String((project as any).status))) return [];
+        try { return await loadModuleSchemes(input.projectId); } catch (e) { console.error("[projects] getModulePlans:", e); return []; }
+      }),
+
     // Crear proyecto (Admin/Comercial)
     create: protectedProcedure
       .input(z.object({
@@ -738,12 +769,14 @@ export const projectsRouter = router({
         if (newStatus === "adelanto_recibido" && project.designerId) {
           try {
             const designer = await db.getUserById(project.designerId);
+            let hasPlanNote = false;
+            try { hasPlanNote = (await loadModuleSchemes(project.id)).length > 0; } catch { /* sin plano */ }
 
             // Notificación en campanilla
             await db.createNotification({
               userId: project.designerId,
               title: "✨ Cliente Confirmado - Iniciar Diseño",
-              body: `¡Nuevo proyecto listo para diseñar! El proyecto "${project.name}" está confirmado. Tienes 3 días hábiles para entregar el modelado.`,
+              body: `¡Nuevo proyecto listo para diseñar! El proyecto "${project.name}" está confirmado. Tienes 3 días hábiles para entregar el modelado.${hasPlanNote ? " El plano de módulos de la cocina está en la pestaña Diseño." : ""}`,
               type: "proyecto",
               referenceId: project.id,
               referenceType: "project",
@@ -793,7 +826,7 @@ export const projectsRouter = router({
                     <tr><td style="padding:8px;font-weight:bold;">Tipo de trabajo</td><td style="padding:8px;">${project.workType || ''}</td></tr>
                   </table>
                   <p style="color:#e67e22;font-weight:bold;">⏰ Tienes 3 días hábiles para entregar el modelado 3D.</p>
-                  <p>Ingresa al sistema para ver las medidas y fotos de la visita técnica.</p>
+                  <p>Ingresa al sistema para ver las medidas y fotos de la visita técnica.${hasPlanNote ? " El <strong>plano de módulos de la cocina</strong> está en la pestaña Diseño del proyecto." : ""}</p>
                 `, 'Nuevo Proyecto para Diseñar - INNOVAR Cocinas');
                 await sendEmail({
                   to: designer.email,

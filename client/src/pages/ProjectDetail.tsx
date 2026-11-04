@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
+import { ProjectModulePlan } from "@/components/ProjectModulePlan";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation, useParams } from "wouter";
 import { 
@@ -1072,6 +1073,9 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
 
           {/* Tab Producción */}
           <TabsContent value="produccion" className="space-y-4">
+            {(user?.role === "jefe_taller" || user?.role === "operario") && (
+              <ProjectModulePlan projectId={projectId} defaultOpen={false} />
+            )}
             <Card>
               <CardHeader className="py-3 bg-orange-500/10">
                 <CardTitle className="text-sm flex items-center gap-2">
@@ -1191,6 +1195,11 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
 
           {/* Tab Diseño */}
           <TabsContent value="diseno" className="space-y-4">
+
+            {/* Plano de módulos de la cocina (solo lectura): diseñador, taller y equipo */}
+            {(user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial" || user?.role === "disenador" || user?.role === "jefe_taller" || user?.role === "operario") && (
+              <ProjectModulePlan projectId={projectId} />
+            )}
 
             {/* Centro de Control de Diseño */}
             {(user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial" || user?.role === "disenador" || user?.role === "jefe_taller" || user?.role === "operario") && (

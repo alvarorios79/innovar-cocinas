@@ -5,6 +5,7 @@
 import * as db from "./db";
 import { buildKitchenQuoteDescription, appendHouseStandards } from "./kitchen-description";
 import { buildTVQuoteDescription } from "./tv-description";
+import { buildScheme } from "@shared/kitchenPlanScheme";
 
 const r2 = (n: number) => (Math.round((Number(n) || 0) * 100 + 1e-9) / 100).toFixed(2); // 0.245 -> 0.25
 export async function buildQuotationPdfData(quotation: any, client: any, items: any[]) {
@@ -508,6 +509,20 @@ export async function buildQuotationPdfData(quotation: any, client: any, items: 
         totalPrice: item.totalPrice,
       };
     }),
+    // Esquemas del plano de módulos (última página del PDF); si algo falla, el PDF sale igual sin esquema
+    schemes: (() => {
+      const out: any[] = [];
+      try {
+        for (const it of sortedItems) {
+          if (it.itemType !== 'cocina' || !it.kitchenConfig) continue;
+          let cfg: any = it.kitchenConfig;
+          if (typeof cfg === 'string') cfg = JSON.parse(cfg);
+          const sc = cfg?.modulePlan?.enabled ? buildScheme(cfg.modulePlan, cfg, `Cocina integral${sortedItems.filter((x: any) => x.itemType === 'cocina').length > 1 ? ` · ítem ${it.itemNumber}` : ''}`) : null;
+          if (sc) out.push(sc);
+        }
+      } catch (e) { console.error('[pdf] esquema del plano:', e); }
+      return out;
+    })(),
     subtotal: String(parseFloat(String(quotation.subtotal)) || 0),
     transportCost: String(parseFloat(String(quotation.transportCost)) || 0),
     discountPercent: String(parseFloat(String(quotation.discountPercent)) || 0),

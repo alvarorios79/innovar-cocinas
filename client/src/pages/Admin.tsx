@@ -17,7 +17,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link } from "wouter";
-import { HardwareCatalogAdmin } from "@/components/HardwareCatalogAdmin";
 import { CreateQuickClientDialog } from "@/components/CreateQuickClientDialog";
 import { SystemCleanupButton } from "@/components/SystemCleanupButton";
 import { formatPrice } from "@/lib/formatters";
@@ -2115,11 +2114,6 @@ export default function Admin() {
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
-
-          {/* Hardware Catalog Tab */}
-          <TabsContent value="hardware" className="space-y-4">
-            <HardwareCatalogAdmin />
           </TabsContent>
 
           {/* Projects Tab */}

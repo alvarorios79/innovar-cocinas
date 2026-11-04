@@ -37,7 +37,6 @@ import Clients from "./pages/Clients";
 import Design from "./pages/Design";
 import Production from "./pages/Production";
 import Postventa from "./pages/Postventa";
-import Herrajes from "./pages/Herrajes";
 import GalleryAdmin from "./pages/GalleryAdmin";
 import Contador from "./pages/Contador";
 import Medidor from "./pages/Medidor";
@@ -86,7 +85,7 @@ function Router() {
         <Route path={"/cita"}><CitaPublica /></Route>
         <Route path={"/cotizacion"}><PublicQuotation /></Route>
         <Route path={"/pricing-config"}><PricingConfig /></Route>
-        <Route path={"/herrajes"}><Herrajes /></Route>
+        <Route path={"/herrajes"}><Redirect to="/pricing-config" /></Route>
         <Route path={"/accounting"}><Accounting /></Route>
         <Route path={"/ceo-dashboard"}><CEODashboard /></Route>
         <Route path={"/profitability-dashboard"}><Redirect to="/ceo-dashboard" /></Route>

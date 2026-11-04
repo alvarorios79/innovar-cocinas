@@ -339,8 +339,11 @@ export function appendHouseStandards(itemType: string | undefined | null, descri
       if (typeof cc === "string") { try { cc = JSON.parse(cc); } catch { cc = null; } }
       const t = cc?.type;
       const closetRails = t === "estandar" ? "• Rieles telescópicos full extensión" : rails;
-      lines = [mat, color, hinges, closetRails].filter((x): x is string => !!x);
-      if (cc?.doorType === "corredizas") lines.push("• Herraje y sistema de puertas corredizas incluido");
+      // Bisagras solo con puertas batientes (las corredizas no llevan); acero inoxidable únicamente en Deluxe.
+      const corredizas = cc?.doorType === "corredizas";
+      const closetHinges = t === "deluxe" ? "• Bisagras en acero inoxidable de cierre lento" : hinges;
+      lines = [mat, color, ...(corredizas ? [] : [closetHinges]), closetRails].filter((x): x is string => !!x);
+      if (corredizas) lines.push("• Herraje y sistema de puertas corredizas incluido");
       break;
     }
     case "mueble_cocina":

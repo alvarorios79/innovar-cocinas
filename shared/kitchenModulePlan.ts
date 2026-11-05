@@ -53,7 +53,7 @@ export const CATALOG: CatalogEntry[] = [
   { key: "moduloAlmacInf", label: "Almacenamiento inferior", short: "Alm. inf.", row: "lower", width: 0.60, flexible: true, pieces: (w) => ({ lo: doorsForWidth(w), go: 1 }) },
   { key: "esquinero1x1", label: "Esquinero inferior 1×1", short: "Esq. inf.", row: "lower", width: 1.00, min: 0.85, lastResort: true, corner: true, pieces: () => ({ lo: 2, go: 2 }) },
   // ── Superiores ──
-  { key: "moduloExtractor", label: "Extractor", short: "Extractor", row: "upper", width: 0.70, locked: true, pieces: () => ({ up: 3 }) }, // 2 laterales a la vista + 1 tapa arriba,
+  { key: "moduloExtractor", label: "Extractor", short: "Extractor", row: "upper", width: 0.70, locked: true, pieces: () => ({ up: 2 }) }, // extractor solo: arriba lleva 2 puertas,
   { key: "moduloPlatero", label: "Platero (0.70–0.90)", short: "Platero", row: "upper", width: 0.70, min: 0.70, max: 0.90, pieces: () => ({ up: 2 }) }, // siempre 2 puertas, para conservar las líneas con el lavaplatos
   { key: "moduloExtractorMicroondas", label: "Extractor y microondas", short: "Extr.+micro.", row: "upper", width: 0.70, locked: true, pieces: () => ({ up: 1 }) },
   { key: "moduloMicroondas", label: "Microondas", short: "Microondas", row: "upper", width: 0.60, pieces: () => ({ up: 1 }) },

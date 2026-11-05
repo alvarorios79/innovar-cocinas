@@ -93,6 +93,17 @@ export const publicGalleryRouter = router({
           throw new TRPCError({ code: "FORBIDDEN", message: "Enlace inválido o expirado" });
         }
 
+        // Evitar aprobaciones duplicadas (doble clic, enlace abierto en dos aparatos): no repetir tareas ni avisos
+        const alreadyApproved = input.type === "modelado_3d" ? !!project.modeladoApprovedAt : !!project.rendersApprovedAt;
+        if (alreadyApproved) {
+          return {
+            success: true,
+            message: "Este diseño ya fue aprobado. ¡Gracias! Nuestro equipo ya fue notificado.",
+            teamWhatsAppLink: null,
+            jefeTallerWhatsAppLink: null,
+          };
+        }
+
         const now = new Date();
         
         // Guardar la aprobación según el tipo
@@ -494,7 +505,12 @@ export const publicGalleryRouter = router({
         
         // Generar enlace de la galería pública (sin login)
         const baseUrl = process.env.VITE_APP_URL || "https://innovar-cocinas.onrender.com";
-        const portalLink = `${baseUrl}/gallery?project=${input.projectId}&token=${project.publicToken ?? ""}&type=renders`;
+        let resetPublicToken = project.publicToken;
+        if (!resetPublicToken) {
+          resetPublicToken = randomBytes(24).toString('hex');
+          await db.updateProject(input.projectId, { publicToken: resetPublicToken });
+        }
+        const portalLink = `${baseUrl}/gallery?project=${input.projectId}&token=${resetPublicToken}&type=renders`;
 
         // Generar enlace de WhatsApp si se debe notificar
         let whatsAppLink = null;
@@ -502,11 +518,13 @@ export const publicGalleryRouter = router({
           const phone = client.whatsappPhone.replace(/\D/g, '');
           const phoneWithCountry = phone.startsWith('57') ? phone : `57${phone}`;
           const message = encodeURIComponent(
-            `¡Hola ${client.name}! 👋\n\n` +
-            `Hemos actualizado los renders de tu proyecto "${project.name}" con los cambios que solicitaste.\n\n` +
-            `Por favor revisa los nuevos diseños y apruébalos cuando estés satisfecho:\n` +
+            `¡Hola ${client.name}! 🎉\n\n` +
+            `¡Ya hicimos los ajustes que nos pediste! Los renders de tu proyecto "${project.name}" están actualizados. ✨\n\n` +
+            `Míralos aquí y cuéntanos si ahora sí quedó como lo imaginabas: 😍\n` +
             `${portalLink}\n\n` +
-            `¡Gracias por tu confianza en INNOVAR Cocinas! 🏠`
+            `Si todo está a tu gusto, apruébalos desde el mismo enlace y arrancamos la fabricación. 🛠️ Y si falta algún detalle, con gusto lo seguimos afinando.\n\n` +
+            `Gracias por tu confianza y tu paciencia. ¡Ya casi estamos! 🏡\n` +
+            `— INNOVAR Cocinas de Diseño`
           );
           whatsAppLink = `https://wa.me/${phoneWithCountry}?text=${message}`;
         }

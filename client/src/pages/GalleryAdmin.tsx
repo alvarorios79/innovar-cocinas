@@ -205,7 +205,7 @@ function ProjectGalleryCard({
 
   const waRenders = clientPhone
     ? waLink(clientPhone,
-        `¡Hola ${project.client?.name}! 🎨\n\nTus renders están listos. Puedes verlos aquí:\n${rendersUrl}\n\nRevísalos y apruébalos cuando estés satisfecho. Si deseas algún ajuste, indícalo en la misma página.\n\n— INNOVAR Cocinas`)
+        `¡Hola ${project.client?.name}! 🎉\n\nTenemos una gran noticia: ¡los renders de tu proyecto ya están listos! ✨\n\nEs lo más cercano a ver tu espacio terminado: los colores y los acabados tal como van a quedar. 😍\n\n👉 Míralos aquí y cuéntanos qué te parecen:\n${rendersUrl}\n\nSi todo te encanta, apruébalos desde el mismo enlace y arrancamos la fabricación. 🛠️ Y si quieres ajustar algo, con gusto lo hacemos hasta que quede como lo soñaste.\n\nGracias por confiar en nosotros. ¡Estamos muy emocionados de hacer realidad tu espacio! 🏡\n— INNOVAR Cocinas de Diseño`)
     : null;
 
   return (

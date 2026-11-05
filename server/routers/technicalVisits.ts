@@ -9,6 +9,7 @@ import {
   appointments,
   clients,
   projects as projectsTable,
+  quotations,
 } from "../../drizzle/schema";
 import { eq, and, desc, isNull, isNotNull, or, inArray, gte, lte, ilike, sql } from "drizzle-orm";
 import { exec } from "child_process";
@@ -21,6 +22,24 @@ import { randomUUID } from "crypto";
 const execAsync = promisify(exec);
 
 // Roles que pueden ver todos los levantamientos
+// Levantamiento de un proyecto: vinculado por projectId o (datos históricos) por la cotización del proyecto y sus versiones.
+// Es la misma regla con la que el diseñador ve el listado de Levantamientos, para que dentro del proyecto aparezca el mismo.
+async function findVisitForProject(db: any, projectId: number) {
+  const [proj] = await db.select({ quotationId: projectsTable.quotationId }).from(projectsTable).where(eq(projectsTable.id, projectId));
+  let quotationIds: number[] = [];
+  if (proj?.quotationId) {
+    const [q] = await db.select({ baseQuotationId: quotations.baseQuotationId }).from(quotations).where(eq(quotations.id, proj.quotationId));
+    const base = q?.baseQuotationId || proj.quotationId;
+    const family = await db.select({ id: quotations.id }).from(quotations).where(or(eq(quotations.id, base), eq(quotations.baseQuotationId, base)));
+    quotationIds = Array.from(new Set<number>([proj.quotationId, ...family.map((x: any) => x.id)]));
+  }
+  const cond = quotationIds.length > 0
+    ? or(eq(technicalVisits.projectId, projectId), inArray(technicalVisits.quotationId, quotationIds))
+    : eq(technicalVisits.projectId, projectId);
+  const [visit] = await db.select().from(technicalVisits).where(and(cond, isNull(technicalVisits.deletedAt))).orderBy(desc(technicalVisits.createdAt));
+  return visit;
+}
+
 const MANAGER_ROLES = ["super_admin", "admin", "comercial"];
 
 // Material complementario (fotos, PDFs, notas) permitido aunque ya exista cotización:
@@ -220,16 +239,7 @@ export const technicalVisitsRouter = router({
       if (!["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"].includes(ctx.user.role)) {
         throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso" });
       }
-      const [visit] = await db
-        .select({
-          clientAddress: technicalVisits.clientAddress,
-          visitCity: technicalVisits.visitCity,
-          latitude: technicalVisits.latitude,
-          longitude: technicalVisits.longitude,
-        })
-        .from(technicalVisits)
-        .where(and(eq(technicalVisits.projectId, input.projectId), isNull(technicalVisits.deletedAt)))
-        .orderBy(desc(technicalVisits.createdAt));
+      const visit = await findVisitForProject(db, input.projectId);
       if (!visit) return null;
       return {
         address: visit.clientAddress || null,
@@ -251,14 +261,7 @@ export const technicalVisitsRouter = router({
         throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso" });
       }
 
-      const [visit] = await db
-        .select()
-        .from(technicalVisits)
-        .where(and(
-          eq(technicalVisits.projectId, input.projectId),
-          isNull(technicalVisits.deletedAt)
-        ))
-        .orderBy(desc(technicalVisits.createdAt));
+      const visit = await findVisitForProject(db, input.projectId);
 
       if (!visit) return null;
 

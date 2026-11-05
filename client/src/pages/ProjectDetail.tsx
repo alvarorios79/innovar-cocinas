@@ -156,7 +156,7 @@ export default function ProjectDetail() {
   );
 
   // Levantamiento técnico vinculado al proyecto (para diseñador y admins)
-  const { data: technicalVisit } = trpc.technicalVisits.getByProjectId.useQuery(
+  const { data: technicalVisit, isLoading: loadingVisit } = trpc.technicalVisits.getByProjectId.useQuery(
     { projectId },
     { enabled: !!projectId, staleTime: 30000 }
   );
@@ -1429,6 +1429,15 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                 </CardHeader>
                 <CardContent className="pt-4">
                   <div className="space-y-4">
+                    {/* Sin levantamiento vinculado todavía */}
+                    {category === "medidas" && !technicalVisit && !loadingVisit && (
+                      <p className="text-xs text-gray-400 bg-white/[0.04] rounded p-3">
+                        Este proyecto aún no tiene un levantamiento del medidor vinculado.
+                      </p>
+                    )}
+                    {category === "medidas" && loadingVisit && (
+                      <p className="text-xs text-gray-400">Cargando levantamiento…</p>
+                    )}
                     {/* Levantamiento del medidor — solo en la sección Medidas */}
                     {category === "medidas" && technicalVisit && (
                       <div className="mb-4 pb-4 border-b border-teal-500/20 space-y-3">

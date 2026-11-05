@@ -8,7 +8,7 @@
 //   - "• " = viñeta;  "  - " = sub-viñeta.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { computePlan, descriptiveFromPlan, kitchenModulesFromPlan } from "@shared/kitchenModulePlan";
+import { computePlan, descriptiveFromPlan, kitchenModulesFromPlan, EXTRA_PAINT } from "@shared/kitchenModulePlan";
 
 const toQty = (v: any): number => (typeof v === "boolean" ? (v ? 1 : 0) : Number(v) || 0);
 const ml = (n: any) => `${(Number(n) || 0).toFixed(2)} ml`;
@@ -268,14 +268,16 @@ export function buildKitchenQuoteDescription(rawConfig: any, manualDescription?:
   // ── Pintado alto brillo ─────────────────────────────────────────────────
   let pd = config.paintedDoors;
   if (pd && pd.enabled && planOn) {
-    const pr = computePlan(config.modulePlan, config).priced;
-    pd = { enabled: true, upperQty: pr.up, lowerQty: pr.lo, pantryQty: pr.al, drawerQty: pr.ca, spiceQty: pr.es, golaQty: pr.go, lateralQty: pr.lat };
+    const res = computePlan(config.modulePlan, config);
+    const pr = res.priced;
+    pd = { enabled: true, upperQty: pr.up, lowerQty: pr.lo, pantryQty: pr.al, drawerQty: pr.ca, spiceQty: pr.es, golaQty: pr.go, lateralQty: pr.lat, extra: res.extraPaint };
   }
   if (pd && pd.enabled) {
     const items: Array<[number, string]> = [
       [pd.upperQty, "Puertas superiores"], [pd.lowerQty, "Puertas inferiores"], [pd.pantryQty, "Puertas de alacena"],
       [pd.drawerQty, "Tapas de cajón"], [pd.spiceQty, "Tapas de especiero"], [pd.golaQty, "Tapas gola / pequeñas"],
       [pd.lateralQty, "Laterales grandes"],
+      ...EXTRA_PAINT.map((e): [number, string] => [(pd.extra && pd.extra[e.key]) || 0, e.label]),
     ];
     const present = items.filter(([q]) => q > 0);
     if (present.length) {

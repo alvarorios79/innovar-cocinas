@@ -80,6 +80,9 @@ const DEFAULT_PRICES: Record<string, { value: number; unit: string | null }> = {
   PINTADO_ESPECIERO:    { value: 100000,  unit: "unidad" },
   PINTADO_GOLA:         { value: 45000,   unit: "unidad" },
   PINTADO_LATERAL:      { value: 200000,  unit: "unidad" },
+  PINTADO_LATERAL_ISLA: { value: 150000,  unit: "unidad" },
+  PINTADO_PUERTA_ELECTRO: { value: 180000, unit: "unidad" },
+  PINTADO_PUERTA_NEVERA: { value: 300000, unit: "unidad" },
 
   // Closets — precio por m²
   CLOSET_ESTANDAR_M2:   { value: 750000,  unit: "m2" },

@@ -16,6 +16,28 @@ import { addBusinessDays, calculateEstimatedDeliveryDate } from "../business-day
 import { sanitizeText, sanitizeHtml, sanitizeForEmail, sanitizePhone, sanitizeEmail } from "../sanitize";
 
 
+// Precios de pintura alto brillo que el plano de módulos necesita en el Motor. Se crean solos (una vez por arranque) si faltan; nunca se sobrescribe uno existente.
+const PLAN_PAINT_PRICES: Array<[string, string, string, number, number]> = [
+  ["PINTADO_LATERAL", "Alto Brillo Lateral grande (nicho / alacena)", "Lateral grande de nicho o alacena de piso a techo.", 200000, 14],
+  ["PINTADO_LATERAL_ISLA", "Alto Brillo Lateral de isla", "Solo si la isla no lleva laterales de mesón.", 150000, 15],
+  ["PINTADO_PUERTA_ELECTRO", "Alto Brillo Puerta lavavajillas / lavadora integrada", "Bajo pedido.", 180000, 16],
+  ["PINTADO_PUERTA_NEVERA", "Alto Brillo Puerta nevera integrada", "Bajo pedido.", 300000, 17],
+];
+let planPaintPricesEnsured = false;
+async function ensurePlanPaintPrices() {
+  if (planPaintPricesEnsured) return;
+  planPaintPricesEnsured = true;
+  for (const [code, name, description, value, sortOrder] of PLAN_PAINT_PRICES) {
+    try {
+      const existing = await db.getPricingByCode(code);
+      if (!existing) await db.createPricingConfig({ category: "puertas_tapas", code, name, description, value, unit: "unidad", sortOrder });
+    } catch (e: any) {
+      console.error(`[ensurePlanPaintPrices] ${code}:`, String(e?.cause?.message || e?.message || e));
+      planPaintPricesEnsured = false; // reintentar en la próxima carga
+    }
+  }
+}
+
 export const pricingRouter = router({
     // Obtener todos los precios configurables
     getAll: protectedProcedure.query(async ({ ctx }) => {
@@ -23,6 +45,7 @@ export const pricingRouter = router({
       if (!["super_admin", "admin"].includes(ctx.user.role)) {
         throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para ver la configuración de precios" });
       }
+      await ensurePlanPaintPrices();
       return await db.getAllPricingConfig();
     }),
 

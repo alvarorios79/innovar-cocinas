@@ -100,7 +100,14 @@ export interface PlanModule {
   gap?: number;          // espacio libre (m) entre el elemento anterior y este módulo
 }
 export interface PlanTramo { name: string; length: number; isIsland?: boolean; upper: PlanModule[]; lower: PlanModule[] }
-export interface PlanExtras { latSup: number; latInf: number; latNevera: number; puertaAlta: number; especiales: number }
+export interface PlanExtras { latSup: number; latInf: number; latNevera: number; puertaAlta: number; especiales: number; latIsla?: number; puertaElectro?: number; puertaNevera?: number }
+
+// Piezas extra con precio propio de pintura (Motor de Cotización → Puertas y Tapas). La clave es el campo de `extras`.
+export const EXTRA_PAINT = [
+  { key: "latIsla" as const, code: "PINTADO_LATERAL_ISLA", label: "Laterales de isla", defaultPrice: 150000 },
+  { key: "puertaElectro" as const, code: "PINTADO_PUERTA_ELECTRO", label: "Puertas de lavavajillas / lavadora integrada", defaultPrice: 180000 },
+  { key: "puertaNevera" as const, code: "PINTADO_PUERTA_NEVERA", label: "Puerta de nevera integrada", defaultPrice: 300000 },
+];
 export interface ModulePlan {
   enabled: boolean;
   tramos: PlanTramo[];
@@ -129,7 +136,7 @@ export function layoutTramoNames(layout?: string): string[] {
   }
 }
 
-const emptyExtras = (): PlanExtras => ({ latSup: 0, latInf: 0, latNevera: 0, puertaAlta: 0, especiales: 0 });
+const emptyExtras = (): PlanExtras => ({ latSup: 0, latInf: 0, latNevera: 0, puertaAlta: 0, especiales: 0, latIsla: 0, puertaElectro: 0, puertaNevera: 0 });
 
 // Asegura que el plan tenga los tramos que corresponden a la forma de la cocina (sin perder lo ya armado).
 export function normalizePlan(raw: any, config: any): ModulePlan {
@@ -769,6 +776,7 @@ export interface PlanResult {
   // (de tamaño de mueble superior) se cobran como puertas superiores; las alacenas, como puertas de alacena.
   priced: Required<Pieces>;
   pieces: Required<Pieces> & { special: number };
+  extraPaint: { latIsla: number; puertaElectro: number; puertaNevera: number }; // piezas extra con precio propio
   modules: Array<{ key: string; label: string; qty: number; widths: number[] }>;
   warnings: string[];
 }
@@ -865,6 +873,8 @@ export function computePlan(rawPlan: any, config: any): PlanResult {
     ["Lateral de mueble superior", { up: 1 }, ex.latSup || 0], ["Lateral de nevera (superior)", { up: 1 }, ex.latNevera || 0],
     ["Lateral de mueble inferior", { lo: 1 }, ex.latInf || 0], ["Puerta de módulo alto", { al: 1 }, ex.puertaAlta || 0], ["Piezas especiales", { special: 1 }, ex.especiales || 0],
   ];
+  const extraPaint = { latIsla: Math.max(0, ex.latIsla || 0), puertaElectro: Math.max(0, ex.puertaElectro || 0), puertaNevera: Math.max(0, ex.puertaNevera || 0) };
+  EXTRA_PAINT.forEach(e => { const n = extraPaint[e.key]; if (n > 0) detail.push({ t: -1, tramo: "Extras", row: "extra", key: "extra", label: `${n} × ${e.label}`, painted: true, pieces: {} as any }); });
   exRows.forEach(([label, pc, n]) => { if (n > 0) detail.push({ t: -1, tramo: "Extras", row: "extra", key: "extra", label: `${n} × ${label}`, painted: true, pieces: Object.fromEntries(Object.entries(pc).map(([k, v]) => [k, (v as number) * n])) as any }); });
 
   const priced: Required<Pieces> = { ...acc };
@@ -874,7 +884,7 @@ export function computePlan(rawPlan: any, config: any): PlanResult {
   });
 
   const modules = Array.from(counted.entries()).map(([key, v]) => ({ key, label: v.label, qty: v.widths.length, widths: v.widths }));
-  return { detail, priced, pieces: { ...acc, special: ex.especiales || 0 }, modules, warnings };
+  return { detail, priced, pieces: { ...acc, special: ex.especiales || 0 }, extraPaint, modules, warnings };
 }
 
 // Casillas de "Muebles que lleva la cocina" (descripción de la cotización) a partir del plano:

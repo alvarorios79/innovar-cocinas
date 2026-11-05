@@ -43,7 +43,7 @@ import { InitialPaymentModal } from "@/components/InitialPaymentModal";
 import { PageHeader } from "@/components/PageHeader";
 import { ExportQuotationsButton } from "@/components/ExportQuotationsButton";
 import { KitchenModulePlanner } from "@/components/KitchenModulePlanner";
-import { descriptiveFromPlan, computePlan, kitchenModulesFromPlan } from "@shared/kitchenModulePlan";
+import { descriptiveFromPlan, computePlan, kitchenModulesFromPlan, EXTRA_PAINT } from "@shared/kitchenModulePlan";
 
 
 interface HardwareSelection {
@@ -116,8 +116,9 @@ function NumberField(props: React.ComponentProps<typeof Input>) {
 // Cantidades de pintura alto brillo para cobrar: con el plano de módulos activo salen del plano; si no, de lo que se escribió
 function planPaintedQtys(config: any): any {
   if (config?.modulePlan?.enabled) {
-    const pr = computePlan(config.modulePlan, config).priced;
-    return { upperQty: pr.up, lowerQty: pr.lo, pantryQty: pr.al, drawerQty: pr.ca, spiceQty: pr.es, golaQty: pr.go, lateralQty: pr.lat };
+    const res = computePlan(config.modulePlan, config);
+    const pr = res.priced;
+    return { upperQty: pr.up, lowerQty: pr.lo, pantryQty: pr.al, drawerQty: pr.ca, spiceQty: pr.es, golaQty: pr.go, lateralQty: pr.lat, extra: res.extraPaint };
   }
   return config?.paintedDoors || {};
 }
@@ -128,7 +129,7 @@ function syncPlanPaint(config: any) {
   // Planos antiguos sin ajuste de pintura: si el cobro estaba apagado, nada va pintado; si estaba encendido, todo (como antes)
   if (config.modulePlan.paintAll === undefined) config.modulePlan.paintAll = config.paintedDoors?.enabled === true;
   const q = planPaintedQtys(config);
-  const n = (q.upperQty || 0) + (q.lowerQty || 0) + (q.pantryQty || 0) + (q.drawerQty || 0) + (q.spiceQty || 0) + (q.golaQty || 0) + (q.lateralQty || 0);
+  const n = (q.upperQty || 0) + (q.lowerQty || 0) + (q.pantryQty || 0) + (q.drawerQty || 0) + (q.spiceQty || 0) + (q.golaQty || 0) + (q.lateralQty || 0) + EXTRA_PAINT.reduce((a, e) => a + ((q.extra && q.extra[e.key]) || 0), 0);
   config.paintedDoors = { upperQty: 0, lowerQty: 0, pantryQty: 0, drawerQty: 0, spiceQty: 0, golaQty: 0, ...(config.paintedDoors || {}), ...q, enabled: n > 0 };
 }
 
@@ -1629,6 +1630,7 @@ export default function Quotations() {
       total += (pdq.spiceQty || 0) * getPrice('PINTADO_ESPECIERO');
       total += (pdq.golaQty || 0) * getPrice('PINTADO_GOLA');
       total += (pdq.lateralQty || 0) * getPrice('PINTADO_LATERAL');
+      for (const e of EXTRA_PAINT) total += ((pdq.extra && pdq.extra[e.key]) || 0) * getPrice(e.code);
     }
 
     mark("Pintado alto brillo");
@@ -2031,6 +2033,7 @@ export default function Quotations() {
           total += (pdq.spiceQty || 0) * getPrice('PINTADO_ESPECIERO');
           total += (pdq.golaQty || 0) * getPrice('PINTADO_GOLA');
           total += (pdq.lateralQty || 0) * getPrice('PINTADO_LATERAL');
+          for (const e of EXTRA_PAINT) total += ((pdq.extra && pdq.extra[e.key]) || 0) * getPrice(e.code);
         }
 
         // Acabados Especiales - Puertas Aluminio + Vidrio y LED Alacenas (misma lógica que calculateKitchenTotal)
@@ -3302,6 +3305,7 @@ export default function Quotations() {
                                 ["Puertas de alacena / piso a techo", q.pantryQty, 'PINTADO_ALACENA'], ["Tapas de cajón", q.drawerQty, 'PINTADO_CAJON'],
                                 ["Tapas de especiero", q.spiceQty, 'PINTADO_ESPECIERO'], ["Tapas pequeña / gola", q.golaQty, 'PINTADO_GOLA'],
                                 ["Laterales grandes", q.lateralQty, 'PINTADO_LATERAL'],
+                                ...EXTRA_PAINT.map(e => [e.label, (q.extra && q.extra[e.key]) || 0, e.code] as [string, number, string]),
                               ];
                               const extra = ((item.kitchenConfig as any)?.modulePlan?.extras?.especiales) || 0;
                               const present = rows.filter(([, n]) => (n || 0) > 0);
@@ -4084,6 +4088,7 @@ export default function Quotations() {
                                   ["Puertas de alacena", q.pantryQty, 'PINTADO_ALACENA'], ["Tapas de cajón", q.drawerQty, 'PINTADO_CAJON'],
                                   ["Tapas de especiero", q.spiceQty, 'PINTADO_ESPECIERO'], ["Tapas pequeña / gola", q.golaQty, 'PINTADO_GOLA'],
                                   ["Laterales grandes", q.lateralQty, 'PINTADO_LATERAL'],
+                                ...EXTRA_PAINT.map(e => [e.label, (q.extra && q.extra[e.key]) || 0, e.code] as [string, number, string]),
                                 ];
                                 const extra = ((item.kitchenConfig as any)?.modulePlan?.extras?.especiales) || 0;
                                 return (

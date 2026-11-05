@@ -60,6 +60,7 @@ interface AcabadosConfig {
     enabled: boolean;
     meters: number;
   };
+  notes?: string;
 }
 
 interface QuotationItem {
@@ -4686,6 +4687,22 @@ export default function Quotations() {
                               )}
                             </div>
                             
+                            {/* Notas para el cliente (salen en el PDF y en el enlace) */}
+                            <div className="bg-[#162828] rounded-lg p-4 border border-[rgba(106,207,199,0.12)] space-y-2">
+                              <Label className="text-sm font-semibold text-white/85">Notas adicionales (opcional)</Label>
+                              <p className="text-xs text-white/45">Lo que escribas aquí aparece al cliente en el PDF y en el enlace, debajo del detalle de puertas y LED.</p>
+                              <Textarea
+                                value={item.acabadosConfig?.notes || ""}
+                                onChange={(e) => {
+                                  const newItems = [...items];
+                                  newItems[index].acabadosConfig = { ...newItems[index].acabadosConfig, notes: e.target.value } as any;
+                                  setItems(newItems);
+                                }}
+                                placeholder="Ej: las puertas se instalan sobre los marcos existentes…"
+                                rows={2}
+                              />
+                            </div>
+
                             {/* Transporte e imprevistos */}
                             <div className="flex items-center space-x-2 flex-wrap gap-2">
                               <input
@@ -5033,7 +5050,7 @@ export default function Quotations() {
                         )}
 
                         {/* Campos estándar para otros tipos */}
-                        {item.itemType !== "cocina" && item.itemType !== "herrajes" && item.itemType !== "closet" && item.itemType !== "puerta" && item.itemType !== "centro_tv" && item.itemType !== "mesones" && item.itemType !== "mueble_cocina" && (
+                        {item.itemType !== "cocina" && item.itemType !== "herrajes" && item.itemType !== "closet" && item.itemType !== "puerta" && item.itemType !== "centro_tv" && item.itemType !== "mesones" && item.itemType !== "mueble_cocina" && item.itemType !== "acabados_especiales" && (
                           <>
                             <div>
                               <Label>Descripción *</Label>

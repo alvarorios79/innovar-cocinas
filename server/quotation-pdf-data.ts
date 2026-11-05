@@ -465,7 +465,10 @@ export async function buildQuotationPdfData(quotation: any, client: any, items: 
           ? JSON.parse(item.kitchenConfig)
           : item.kitchenConfig;
         const sfLines = specialFinishesLines(cfg);
-        if (sfLines.length > 0) description = ['ACABADOS ESPECIALES:', ...sfLines].join('\n');
+        if (sfLines.length > 0) {
+          const sfNotes = typeof cfg?.notes === 'string' ? cfg.notes.trim() : '';
+          description = ['ACABADOS ESPECIALES:', ...sfLines, ...(sfNotes ? ['', 'NOTAS ADICIONALES:', sfNotes] : [])].join('\n');
+        }
       }
       
       // Usar descripción personalizada si existe

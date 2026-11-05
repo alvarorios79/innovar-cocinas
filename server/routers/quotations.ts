@@ -229,7 +229,10 @@ function buildPublicItemDescBase(item: any): string {
   if (item.itemType === 'acabados_especiales' && item.kitchenConfig) {
     const cfg: any = typeof item.kitchenConfig === 'string' ? JSON.parse(item.kitchenConfig) : item.kitchenConfig;
     const sfLines = specialFinishesLines(cfg);
-    if (sfLines.length > 0) return ['ACABADOS ESPECIALES:', ...sfLines].join('\n');
+    if (sfLines.length > 0) {
+      const sfNotes = typeof cfg?.notes === 'string' ? cfg.notes.trim() : '';
+      return ['ACABADOS ESPECIALES:', ...sfLines, ...(sfNotes ? ['', 'NOTAS ADICIONALES:', sfNotes] : [])].join('\n');
+    }
   }
 
   // ── Fallback: texto guardado en BD ───────────────────────────────────────

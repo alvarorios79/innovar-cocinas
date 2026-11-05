@@ -1521,10 +1521,10 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                             </div>
                           </div>
                         )}
-                        {user?.role === "disenador" && (
+                        {["disenador", "admin", "super_admin", "comercial"].includes(user?.role || "") && (
                           <div className="pt-2">
                             <button
-                              onClick={() => navigate("/levantamientos")}
+                              onClick={() => navigate(`/levantamientos?visitId=${technicalVisit.id}&from=${encodeURIComponent(`/projects/${projectId}`)}`)}
                               className="flex items-center gap-2 text-xs text-teal-400 hover:text-teal-300 bg-teal-500/10 hover:bg-teal-500/20 px-3 py-1.5 rounded-lg transition-colors w-full justify-center"
                             >
                               <ArrowRight className="h-3.5 w-3.5" />

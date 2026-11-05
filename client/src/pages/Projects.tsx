@@ -229,8 +229,8 @@ export default function Projects() {
   // Conteos para las pestañas
   const { data: tabCounts } = trpc.projects.getCounts.useQuery();
 
-  // "Cerrados" es información financiera: jefe de taller y operario no lo ven
-  const canSeeClosedTab = user?.role !== "jefe_taller" && user?.role !== "operario";
+  // "Cerrados" es información financiera: jefe de taller, operario y diseñador no lo ven
+  const canSeeClosedTab = user?.role !== "jefe_taller" && user?.role !== "operario" && user?.role !== "disenador";
   useEffect(() => {
     if (!canSeeClosedTab && archiveTab === 'closed') setArchiveTab('active');
   }, [canSeeClosedTab, archiveTab]);

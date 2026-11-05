@@ -144,7 +144,13 @@ export default function VisitasTecnicas() {
   const { user } = useAuth();
   const isManager = ["super_admin", "admin", "comercial"].includes(user?.role ?? "");
   const [, navigate] = useLocation();
-  const [selectedVisitId, setSelectedVisitId] = useState<number | null>(null);
+  // Si llegan desde un proyecto (?visitId=..&from=/projects/..) se abre directo ese levantamiento y "volver" regresa al proyecto
+  const urlParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+  const backTo = urlParams?.get("from") && urlParams.get("from")!.startsWith("/") ? urlParams.get("from")! : null;
+  const [selectedVisitId, setSelectedVisitId] = useState<number | null>(() => {
+    const v = urlParams?.get("visitId");
+    return v && /^\d+$/.test(v) ? Number(v) : null;
+  });
   const [lightboxUrl, setLightboxUrl]         = useState<string | null>(null);
   const [statusFilter, setStatusFilter]       = useState<VisitStatus | "todas">("todas");
 
@@ -283,7 +289,7 @@ export default function VisitasTecnicas() {
         {/* Header detalle */}
         <div className="bg-[#162828] border-b border-[#1DB5A8]/20 px-6 py-4 sticky top-0 z-10">
           <div className="flex items-center gap-4 max-w-4xl mx-auto">
-            <button onClick={() => setSelectedVisitId(null)} className="text-gray-400 hover:text-white">
+            <button onClick={() => { if (backTo) navigate(backTo); else setSelectedVisitId(null); }} className="text-gray-400 hover:text-white" title={backTo ? "Volver al proyecto" : "Volver a la lista"}>
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div className="flex-1">

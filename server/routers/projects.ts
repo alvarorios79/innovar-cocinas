@@ -224,7 +224,7 @@ export const projectsRouter = router({
       .query(async ({ ctx, input }) => {
         const role = ctx.user.role;
         // Cerrados = cierre contable (financiero): jefe de taller y operario no lo consultan
-        if ((role === "jefe_taller" || role === "operario") && input?.closed) {
+        if ((role === "jefe_taller" || role === "operario" || role === "disenador") && input?.closed) {
           throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso a proyectos cerrados" });
         }
         const page = input?.page || 1;

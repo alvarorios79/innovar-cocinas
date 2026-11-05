@@ -687,6 +687,12 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle }: Prop
                     <span className="block text-sm font-bold tracking-wide text-pink-100">{showExtras ? "− Ocultar piezas extra" : "+ Agregar pieza extra"}</span>
                     <span className="block text-[11px] text-pink-200/60">Laterales de mueble, puerta de módulo alto o piezas de diseño especial</span>
                   </button>
+                  {showExtras && (
+                    <p className="text-[11px] text-white/45 leading-snug">
+                      Laterales de isla: usa «Lateral de mueble inferior» (cuenta como una puerta inferior; solo si la isla no lleva laterales de mesón).
+                      Puerta de lavavajillas, lavadora o nevera integrada y otras piezas de diseño: usa «Piezas especiales» (se cotizan aparte; referencia: lavavajillas/lavadora $180.000, nevera integrada $300.000).
+                    </p>
+                  )}
                 </div>
               );
             })()}

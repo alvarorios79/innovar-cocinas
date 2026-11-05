@@ -41,24 +41,24 @@ export function doorsForWidth(w: number): number {
 // El orden de esta lista es el orden en que se muestran los módulos al armar la cocina.
 export const CATALOG: CatalogEntry[] = [
   // ── Inferiores ──
-  { key: "moduloEstufaPuerta", label: "Estufa (puerta)", short: "Estufa", row: "lower", width: 0.70, locked: true, pieces: () => ({ lo: 1, go: 1 }) },
-  { key: "moduloEstufaHorno", label: "Estufa y horno", short: "Estufa+horno", row: "lower", width: 0.70, locked: true, pieces: () => ({ lo: 1, go: 1 }) },
+  { key: "moduloEstufaPuerta", label: "Estufa (puerta)", short: "Estufa", row: "lower", width: 0.70, locked: true, pieces: () => ({ lo: 2, go: 1 }) },
+  { key: "moduloEstufaHorno", label: "Estufa y horno", short: "Estufa+horno", row: "lower", width: 0.70, locked: true, pieces: () => ({ lo: 1 }) },
   { key: "moduloLavaplatos", label: "Lavaplatos", short: "Lavaplatos", row: "lower", width: 0.70, locked: true, pieces: () => ({ lo: 2, go: 1 }) },
   { key: "moduloLavaplatosDoble", label: "Lavaplatos doble (0.85–0.95)", short: "Lavap. doble", row: "lower", width: 0.90, min: 0.85, max: 0.95, pieces: () => ({ lo: 2, go: 1 }) }, // siempre 2 puertas: ahí van las conexiones de plomería
   { key: "cajoneroTriple", label: "Cajonero triple", short: "Caj. triple", row: "lower", width: 0.70, pieces: () => ({ ca: 2, go: 3 }) },
   { key: "cajoneroDoble", label: "Cajonero doble", short: "Caj. doble", row: "lower", width: 0.60, pieces: () => ({ ca: 2, go: 2 }) },
   { key: "basurero", label: "Basurero integrado", short: "Basurero", row: "lower", width: 0.50, flexible: true, pieces: () => ({ lo: 1, go: 1 }) },
-  { key: "especiero", label: "Especiero", short: "Especiero", row: "lower", width: 0.25, flexible: true, pieces: () => ({ es: 1, go: 1 }) },
+  { key: "especiero", label: "Especiero", short: "Especiero", row: "lower", width: 0.25, flexible: true, pieces: () => ({ lo: 1, es: 1, go: 1 }) },
   { key: "botellero", label: "Botellero", short: "Botellero", row: "lower", width: 0.35, flexible: true, pieces: () => ({ lo: 1, go: 1 }) },
   { key: "moduloAlmacInf", label: "Almacenamiento inferior", short: "Alm. inf.", row: "lower", width: 0.60, flexible: true, pieces: (w) => ({ lo: doorsForWidth(w), go: 1 }) },
-  { key: "esquinero1x1", label: "Esquinero inferior 1×1", short: "Esq. inf.", row: "lower", width: 1.00, min: 0.85, lastResort: true, corner: true, pieces: () => ({ lo: 2 }) },
+  { key: "esquinero1x1", label: "Esquinero inferior 1×1", short: "Esq. inf.", row: "lower", width: 1.00, min: 0.85, lastResort: true, corner: true, pieces: () => ({ lo: 2, go: 2 }) },
   // ── Superiores ──
-  { key: "moduloExtractor", label: "Extractor", short: "Extractor", row: "upper", width: 0.70, locked: true, pieces: () => ({}) },
+  { key: "moduloExtractor", label: "Extractor", short: "Extractor", row: "upper", width: 0.70, locked: true, pieces: () => ({ up: 3 }) }, // 2 laterales a la vista + 1 tapa arriba,
   { key: "moduloPlatero", label: "Platero (0.70–0.90)", short: "Platero", row: "upper", width: 0.70, min: 0.70, max: 0.90, pieces: () => ({ up: 2 }) }, // siempre 2 puertas, para conservar las líneas con el lavaplatos
-  { key: "moduloExtractorMicroondas", label: "Extractor y microondas", short: "Extr.+micro.", row: "upper", width: 0.70, locked: true, pieces: () => ({ up: 4 }) },
-  { key: "moduloMicroondas", label: "Microondas", short: "Microondas", row: "upper", width: 0.60, pieces: () => ({}) },
+  { key: "moduloExtractorMicroondas", label: "Extractor y microondas", short: "Extr.+micro.", row: "upper", width: 0.70, locked: true, pieces: () => ({ up: 1 }) },
+  { key: "moduloMicroondas", label: "Microondas", short: "Microondas", row: "upper", width: 0.60, pieces: () => ({ up: 1 }) },
   { key: "moduloAlmacSup", label: "Almacenamiento superior", short: "Alm. sup.", row: "upper", width: 0.65, flexible: true, pieces: (w) => ({ up: doorsForWidth(w) }) },   // los superiores no llevan golas
-  { key: "moduloRepisa", label: "Espacio de repisas", short: "Repisas", row: "upper", width: 0.30, min: 0.20, flexible: true, pieces: (_w, m) => ({ up: Math.max(0, Math.floor(m?.qty || 0)) }) },
+  { key: "moduloRepisa", label: "Espacio de repisas", short: "Repisas", row: "upper", width: 0.30, min: 0.20, flexible: true, pieces: () => ({}) },
   { key: "esquineroSuperior", label: "Esquinero superior (0.60×0.60)", short: "Esq. sup.", row: "upper", width: 0.60, locked: true, corner: true, pieces: () => ({ up: 1 }) },
   { key: "ventana", label: "Ventana (sin mueble)", short: "Ventana", row: "upper", width: 1.00, noPieces: true, pieces: () => ({}) },
 ];

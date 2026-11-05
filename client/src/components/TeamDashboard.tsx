@@ -6,6 +6,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Link } from "wouter";
 import { NotificationBell } from "@/components/NotificationBell";
 import { MobileNav } from "@/components/MobileNav";
+import { RanchoArdiendoCards } from "@/components/RanchoArdiendo";
 import {
   Palette,
   ClipboardList,
@@ -615,6 +616,9 @@ export function TeamDashboard() {
       <div className="mb-6">
         <DailyMotivation userName={user?.name || undefined} userBirthDate={user?.birthDate ? new Date(user.birthDate) : undefined} />
       </div>
+
+      {/* "El rancho ardiendo": proyectos en diseño que el jefe de taller debe ir preparando */}
+      {role === "jefe_taller" && <RanchoArdiendoCards projects={projects as any[]} />}
 
       {/* Estadísticas */}
       <section className="mb-6">

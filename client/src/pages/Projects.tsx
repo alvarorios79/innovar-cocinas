@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { RanchoArdiendoCards } from "@/components/RanchoArdiendo";
 import { trpc } from "@/lib/trpc";
 import { 
   FolderKanban, 
@@ -228,12 +229,24 @@ export default function Projects() {
   // Conteos para las pestañas
   const { data: tabCounts } = trpc.projects.getCounts.useQuery();
 
+  // "Cerrados" es información financiera: jefe de taller y operario no lo ven
+  const canSeeClosedTab = user?.role !== "jefe_taller" && user?.role !== "operario";
+  useEffect(() => {
+    if (!canSeeClosedTab && archiveTab === 'closed') setArchiveTab('active');
+  }, [canSeeClosedTab, archiveTab]);
+
+  // Tarjetas "El rancho ardiendo": lista completa (no paginada) y se refresca sola cada minuto
+  const { data: ranchoProjects = [] } = trpc.projects.list.useQuery(undefined, {
+    enabled: user?.role === "jefe_taller",
+    refetchInterval: 60000,
+  });
+
   const { data: projectsData, isLoading: loadingProjects } = trpc.projects.listPaginated.useQuery({
     page: projectPage,
     limit: PROJECTS_PER_PAGE,
     ...(statusFilter !== "all" && { status: statusFilter }),
     archived: archiveTab === 'archived' ? true : archiveTab === 'active' ? false : undefined,
-    closed: archiveTab === 'closed' ? true : undefined,
+    closed: archiveTab === 'closed' && canSeeClosedTab ? true : undefined,
   });
   const projects = projectsData?.data || [];
   
@@ -671,6 +684,7 @@ export default function Projects() {
             )}
           </Button>
 
+          {canSeeClosedTab && (
           <Button
             variant={archiveTab === 'closed' ? 'default' : 'ghost'}
             size="sm"
@@ -688,6 +702,7 @@ export default function Projects() {
               </span>
             )}
           </Button>
+          )}
         </div>
         
         <div className="flex flex-col gap-4 mb-4 md:mb-6">
@@ -938,44 +953,8 @@ export default function Projects() {
           </div>
         </div>
 
-        {/* Próximos trabajos — solo jefe_taller, proyectos en diseño */}
-        {user?.role === "jefe_taller" && designPreviewProjects.length > 0 && (
-          <div className="mb-6">
-            <div className="flex items-center gap-2 mb-3">
-              <Flame className="h-4 w-4 text-[#1DB5A8]" />
-              <span className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide">Próximos trabajos</span>
-              <span className="text-xs text-white/40 ml-1">— en diseño</span>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              {designPreviewProjects.map((project: any) => {
-                const typeLabel = WORK_TYPES[(project.workType as keyof typeof WORK_TYPES)] ?? project.workType;
-                return (
-                  <div
-                    key={project.id}
-                    className="rounded-xl border-2 p-4 min-w-[220px] max-w-[260px]"
-                    style={{ borderColor: "#1DB5A8", background: "rgba(29,181,168,0.06)" }}
-                  >
-                    <div className="flex items-center gap-1.5 mb-3">
-                      <Flame className="h-4 w-4 text-orange-400" />
-                      <span className="text-xs font-bold text-orange-400 uppercase tracking-wide">El rancho ardiendo</span>
-                    </div>
-                    <p className="text-sm font-semibold text-white mb-1">Nuevo {typeLabel}</p>
-                    {project.client?.name && (
-                      <p className="flex items-center gap-1 text-xs text-white/60 mb-1">
-                        <User className="h-3 w-3 shrink-0" />{project.client.name}
-                      </p>
-                    )}
-                    {project.client?.address && (
-                      <p className="flex items-center gap-1 text-xs text-white/40">
-                        <MapPin className="h-3 w-3 shrink-0" />{project.client.address}
-                      </p>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
+        {/* Próximos trabajos — "El rancho ardiendo" (solo jefe_taller): lista completa, no depende de pestañas ni de la página */}
+        {user?.role === "jefe_taller" && <RanchoArdiendoCards projects={ranchoProjects as any[]} />}
 
         {/* Lista de proyectos - clic abre modal de detalle */}
         {loadingProjects ? (

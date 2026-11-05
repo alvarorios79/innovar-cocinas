@@ -38,6 +38,10 @@ async function loadModuleSchemes(projectId: number) {
   return out;
 }
 
+// Producción (jefe de taller y operario) no recibe el contacto directo del cliente: todo contacto es con admin
+const hideClientContact = (role: string, c: any) =>
+  c && (role === "jefe_taller" || role === "operario") ? { ...c, whatsappPhone: null, email: null, identificationNumber: null } : c;
+
 export const projectsRouter = router({
     // Plano de módulos de la cocina (solo lectura) para diseñador, jefe de taller y equipo
     getModulePlans: protectedProcedure
@@ -200,7 +204,7 @@ export const projectsRouter = router({
 
         return projectsList.map(p => ({
           ...p,
-          client: clientMap.get(p.clientId),
+          client: hideClientContact(role, clientMap.get(p.clientId)),
         }));
       }),
 
@@ -219,6 +223,10 @@ export const projectsRouter = router({
       }).optional())
       .query(async ({ ctx, input }) => {
         const role = ctx.user.role;
+        // Cerrados = cierre contable (financiero): jefe de taller y operario no lo consultan
+        if ((role === "jefe_taller" || role === "operario") && input?.closed) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso a proyectos cerrados" });
+        }
         const page = input?.page || 1;
         const limit = input?.limit || 50;
         const result = await db.getAllProjectsPaginated({
@@ -267,7 +275,7 @@ export const projectsRouter = router({
                 console.error('[listPaginated] Error obteniendo ultima version:', error);
               }
             }
-            return { ...p, name: quotationNumber, client: clientMap.get(p.clientId) };
+            return { ...p, name: quotationNumber, client: hideClientContact(role, clientMap.get(p.clientId)) };
           })
         );
         
@@ -470,7 +478,7 @@ export const projectsRouter = router({
             ? `${quotation.quotationNumber} - ${client.name}`
             : quotation?.quotationNumber || project.name,
           quotationId: project.quotationId,
-          client,
+          client: hideClientContact(role, client),
           photos,
           details,
           history: unifiedHistory,

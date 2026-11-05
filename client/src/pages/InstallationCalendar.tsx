@@ -82,9 +82,16 @@ interface Installation {
 
 export default function InstallationCalendar() {
   const { user } = useAuth();
+  const isAdminUser = !!user && ["super_admin", "admin"].includes(user.role); // solo admin ve el contacto directo del cliente
+  const canSeeAppointments = !!user && ["super_admin", "admin", "comercial"].includes(user.role);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedInstallation, setSelectedInstallation] = useState<Installation | null>(null);
+  // Ubicación del trabajo: viene del levantamiento (dirección y GPS)
+  const { data: siteLocation } = trpc.technicalVisits.getLocationByProjectId.useQuery(
+    { projectId: selectedInstallation?.projectId ?? 0 },
+    { enabled: !!selectedInstallation, staleTime: 60000 }
+  );
 
   // Obtener proyectos con instalación programada
   const { data: projects = [], isLoading } = trpc.projects.list.useQuery({});
@@ -116,7 +123,7 @@ export default function InstallationCalendar() {
           projectId: p.id,
           projectName: p.name,
           clientName: p.client?.name || "Cliente",
-          clientPhone: p.client?.whatsappPhone,
+          clientPhone: isAdminUser ? p.client?.whatsappPhone : undefined,
           address: p.client?.address,
           scheduledDate,
           status: p.status,
@@ -124,7 +131,7 @@ export default function InstallationCalendar() {
           isOfficial,
         };
       });
-  }, [projects]);
+  }, [projects, isAdminUser]);
 
   // Obtener instalaciones para una fecha específica
   const getInstallationsForDate = (date: Date): Installation[] => {
@@ -218,12 +225,14 @@ export default function InstallationCalendar() {
           showBack={true}
           actions={
             <div className="flex gap-2">
-              <Link href="/appointments-calendar">
-                <Button variant="outline" size="sm" className="gap-2">
-                  <Calendar className="h-4 w-4" />
-                  <span className="hidden sm:inline">Citas</span>
-                </Button>
-              </Link>
+              {canSeeAppointments && (
+                <Link href="/appointments-calendar">
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <Calendar className="h-4 w-4" />
+                    <span className="hidden sm:inline">Citas</span>
+                  </Button>
+                </Link>
+              )}
               <Link href="/projects">
                 <Button variant="outline" size="sm">
                   <Wrench className="h-4 w-4 md:mr-2" />
@@ -560,13 +569,26 @@ export default function InstallationCalendar() {
                 )}
               </div>
 
-              {selectedInstallation.address && (
+              {(siteLocation?.address || selectedInstallation.address || (siteLocation?.latitude && siteLocation?.longitude)) && (
                 <div className="border-t pt-4">
                   <div className="text-sm text-gray-500 flex items-center gap-1 mb-2">
                     <MapPin className="h-4 w-4" />
-                    Dirección
+                    Ubicación del trabajo
                   </div>
-                  <div className="font-medium">{selectedInstallation.address}</div>
+                  <div className="font-medium">
+                    {siteLocation?.address || selectedInstallation.address}
+                    {siteLocation?.city ? ` · ${siteLocation.city}` : ""}
+                  </div>
+                  {siteLocation?.latitude != null && siteLocation?.longitude != null && (
+                    <a
+                      href={`https://www.google.com/maps/dir//${siteLocation.latitude},${siteLocation.longitude}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-2 flex items-center gap-2 px-3 py-2 bg-emerald-700/80 hover:bg-emerald-600 text-white text-sm font-semibold rounded-lg transition-colors w-full justify-center"
+                    >
+                      📍 Cómo llegar
+                    </a>
+                  )}
                 </div>
               )}
 
@@ -576,7 +598,7 @@ export default function InstallationCalendar() {
                     Ver Proyecto
                   </Button>
                 </Link>
-                {selectedInstallation.clientPhone && (
+                {isAdminUser && selectedInstallation.clientPhone && (
                   <a
                     href={`https://wa.me/57${selectedInstallation.clientPhone.replace(/\D/g, "")}?text=${encodeURIComponent(
                       `Hola ${selectedInstallation.clientName}, le escribo de INNOVAR Cocinas de Diseño para confirmar la instalación de su ${selectedInstallation.workType} programada para el ${new Date(selectedInstallation.scheduledDate).toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long" })}.`

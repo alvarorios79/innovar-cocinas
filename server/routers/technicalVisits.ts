@@ -211,6 +211,34 @@ export const technicalVisitsRouter = router({
       };
     }),
 
+  // ── Ubicación del trabajo (heredada del levantamiento) — solo dirección y GPS, sin medidas ni contacto ─────
+  getLocationByProjectId: protectedProcedure
+    .input(z.object({ projectId: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB no disponible" });
+      if (!["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"].includes(ctx.user.role)) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Sin acceso" });
+      }
+      const [visit] = await db
+        .select({
+          clientAddress: technicalVisits.clientAddress,
+          visitCity: technicalVisits.visitCity,
+          latitude: technicalVisits.latitude,
+          longitude: technicalVisits.longitude,
+        })
+        .from(technicalVisits)
+        .where(and(eq(technicalVisits.projectId, input.projectId), isNull(technicalVisits.deletedAt)))
+        .orderBy(desc(technicalVisits.createdAt));
+      if (!visit) return null;
+      return {
+        address: visit.clientAddress || null,
+        city: visit.visitCity || null,
+        latitude: visit.latitude ? parseFloat(String(visit.latitude)) : null,
+        longitude: visit.longitude ? parseFloat(String(visit.longitude)) : null,
+      };
+    }),
+
   // ── Obtener por projectId (para el diseñador en ProjectDetail) ─────────────
   getByProjectId: protectedProcedure
     .input(z.object({ projectId: z.number() }))

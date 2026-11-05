@@ -851,6 +851,8 @@ export default function Medidor() {
     (user?.role === "medidor" && (visit as any).createdBy === user?.id)
   );
   const canAddMaterial = isEditable || canComplement;
+  // La pizarra queda activa siempre (también con cotización): cada PDF exportado es una captura nueva que no toca los anteriores
+  const canUsePizarra = !!visit && (isEditable || canComplement || user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial" || (user?.role === "medidor" && (visit as any).createdBy === user?.id));
   const completion = calculateCompletion();
 
   // ── Vistas ────────────────────────────────────────────────────────────────
@@ -1859,7 +1861,7 @@ export default function Medidor() {
             </div>
           )}
 
-          {isEditable && (
+          {canUsePizarra && (
             <div className={pizarraFullscreen
               ? "fixed inset-0 z-50 flex flex-col bg-white"
               : "bg-[#162828] border border-[#1DB5A8]/20 rounded-lg overflow-hidden"

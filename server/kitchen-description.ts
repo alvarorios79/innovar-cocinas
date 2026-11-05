@@ -51,12 +51,16 @@ export function specialFinishesLines(rawSf: any): string[] {
   const doors: any[] = Array.isArray(sf.aluminumGlassDoors) ? sf.aluminumGlassDoors : [];
   const hasLed = sf.ledLighting && sf.ledLighting.enabled && sf.ledLighting.meters > 0;
   if (doors.length > 0) {
-    const sqm = doors.reduce((s, d) => s + (Number(d.height) || 0) * (Number(d.width) || 0), 0);
-    out.push(`• Puertas en marco de aluminio con vidrio ahumado: ${doors.length} ${doors.length === 1 ? "puerta" : "puertas"} (${r2(sqm)} m²)`);
+    const q = (d: any) => Math.max(1, Math.floor(Number(d.qty) || 1));
+    const total = doors.reduce((s, d) => s + q(d), 0);
+    const sqm = doors.reduce((s, d) => s + (Number(d.height) || 0) * (Number(d.width) || 0) * q(d), 0);
+    out.push(`• Puertas en marco de aluminio con vidrio ahumado: ${total} ${total === 1 ? "puerta" : "puertas"} (${r2(sqm)} m²)`);
     doors.forEach((d, i) => {
-      const h = Number(d.height) || 0, w = Number(d.width) || 0;
-      const hinges = h > 1.4 ? 2 : (h > 0.8 ? 1 : 0);
-      out.push(`  - Puerta ${i + 1}: ${h.toFixed(2)} m × ${w.toFixed(2)} m = ${r2(h * w)} m²${hinges ? ` (+${hinges} par${hinges > 1 ? "es" : ""} de bisagras adicionales)` : ""}`);
+      const h = Number(d.height) || 0, w = Number(d.width) || 0, n = q(d);
+      const hinges = (h > 1.4 ? 2 : (h > 0.8 ? 1 : 0)) * n;
+      const bis = hinges ? ` (+${hinges} par${hinges > 1 ? "es" : ""} de bisagras adicionales)` : "";
+      if (n > 1) out.push(`  - ${n} puertas de ${h.toFixed(2)} m × ${w.toFixed(2)} m = ${r2(h * w)} m² c/u · ${r2(h * w * n)} m² en total${bis}`);
+      else out.push(`  - Puerta ${i + 1}: ${h.toFixed(2)} m × ${w.toFixed(2)} m = ${r2(h * w)} m²${bis}`);
     });
   }
   if (hasLed) out.push(`• Iluminación LED para alacenas: ${ml(sf.ledLighting.meters)}`);

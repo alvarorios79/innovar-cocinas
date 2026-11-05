@@ -55,7 +55,7 @@ interface HardwareSelection {
 }
 
 interface AcabadosConfig {
-  aluminumGlassDoors?: Array<{ height: number; width: number }>;
+  aluminumGlassDoors?: Array<{ height: number; width: number; qty?: number }>;
   ledLighting?: {
     enabled: boolean;
     meters: number;
@@ -1380,11 +1380,11 @@ export default function Quotations() {
       if (config.aluminumGlassDoors && config.aluminumGlassDoors.length > 0) {
         for (const door of config.aluminumGlassDoors) {
           const sqm = (door.height || 0) * (door.width || 0);
-          total += sqm * getPrice('ACABADO_ALUMINIO_VIDRIO_M2');
+          total += sqm * ((door as any).qty || 1) * getPrice('ACABADO_ALUMINIO_VIDRIO_M2');
           
           // Bisagras adicionales
           const extraHinges = door.height > 1.4 ? 2 : (door.height > 0.8 ? 1 : 0);
-          total += extraHinges * getPrice('ACABADO_BISAGRA_PAR');
+          total += extraHinges * ((door as any).qty || 1) * getPrice('ACABADO_BISAGRA_PAR');
         }
       }
       
@@ -1640,8 +1640,8 @@ export default function Quotations() {
           const sqm = door.height * door.width;
           // Bisagras adicionales: >0.8m = 1 par, >1.4m = 2 pares
           const extraHinges = door.height > 1.4 ? 2 : (door.height > 0.8 ? 1 : 0);
-          total += sqm * getPrice('ACABADO_ALUMINIO_VIDRIO_M2');
-          total += extraHinges * getPrice('ACABADO_BISAGRA_PAR');
+          total += sqm * ((door as any).qty || 1) * getPrice('ACABADO_ALUMINIO_VIDRIO_M2');
+          total += extraHinges * ((door as any).qty || 1) * getPrice('ACABADO_BISAGRA_PAR');
         });
       }
       // LED para alacenas (precio desde configuración)
@@ -2040,8 +2040,8 @@ export default function Quotations() {
               const sqm = door.height * door.width;
               // Bisagras adicionales: >0.8m = 1 par, >1.4m = 2 pares
               const extraHinges = door.height > 1.4 ? 2 : (door.height > 0.8 ? 1 : 0);
-              total += sqm * getPrice('ACABADO_ALUMINIO_VIDRIO_M2');
-              total += extraHinges * getPrice('ACABADO_BISAGRA_PAR');
+              total += sqm * ((door as any).qty || 1) * getPrice('ACABADO_ALUMINIO_VIDRIO_M2');
+              total += extraHinges * ((door as any).qty || 1) * getPrice('ACABADO_BISAGRA_PAR');
             });
           }
           if (config.specialFinishes.ledLighting?.enabled && config.specialFinishes.ledLighting.meters > 0) {
@@ -2161,8 +2161,9 @@ export default function Quotations() {
         
         // Puertas de aluminio
         if (config.aluminumGlassDoors && config.aluminumGlassDoors.length > 0) {
-          const totalSqm = config.aluminumGlassDoors.reduce((sum, d) => sum + (d.height * d.width), 0);
-          parts.push(`Puertas aluminio+vidrio: ${config.aluminumGlassDoors.length} puerta(s) (${r2(totalSqm)} m²)`);
+          const totalSqm = config.aluminumGlassDoors.reduce((sum, d) => sum + (d.height * d.width * (d.qty || 1)), 0);
+          const totalDoors = config.aluminumGlassDoors.reduce((sum, d) => sum + (d.qty || 1), 0);
+          parts.push(`Puertas aluminio+vidrio: ${totalDoors} puerta(s) (${r2(totalSqm)} m²)`);
         }
         
         // LED
@@ -4217,7 +4218,7 @@ export default function Quotations() {
                                     {(item.kitchenConfig?.specialFinishes?.aluminumGlassDoors || []).map((door, doorIdx) => (
                                       <div key={door.id} className="flex items-center gap-2 bg-[#162828] p-2 rounded border">
                                         <span className="text-xs font-medium text-purple-400">#{doorIdx + 1}</span>
-                                        <div className="flex-1 grid grid-cols-2 gap-2">
+                                        <div className="flex-1 grid grid-cols-3 gap-2">
                                           <div>
                                             <Label className="text-xs">Alto (m)</Label>
                                             <NumberField
@@ -4263,11 +4264,29 @@ export default function Quotations() {
                                               placeholder="0.40"
                                             />
                                           </div>
+                                          <div>
+                                            <Label className="text-xs">Cantidad</Label>
+                                            <NumberField
+                                              type="number"
+                                              step="1"
+                                              min="1"
+                                              value={(door as any).qty || 1}
+                                              onChange={(e) => {
+                                                const newDoors = [...(item.kitchenConfig?.specialFinishes?.aluminumGlassDoors || [])];
+                                                const qty = Math.max(1, Math.floor(parseFloat(e.target.value) || 1));
+                                                newDoors[doorIdx] = { ...newDoors[doorIdx], qty } as any;
+                                                updateKitchenConfig(index, "specialFinishes.aluminumGlassDoors", newDoors);
+                                              }}
+                                              className="h-8"
+                                              placeholder="1"
+                                            />
+                                          </div>
                                         </div>
                                         <div className="text-xs text-right min-w-[80px]">
-                                          <div className="text-purple-400 font-medium">{r2(door.squareMeters || 0)} m²</div>
+                                          <div className="text-purple-400 font-medium">{r2((door.squareMeters || 0) * ((door as any).qty || 1))} m²</div>
+                                          {((door as any).qty || 1) > 1 && <div className="text-white/45">{(door as any).qty} und</div>}
                                           {door.extraHinges > 0 && (
-                                            <div className="text-orange-500">+{door.extraHinges} par{door.extraHinges > 1 ? 'es' : ''}</div>
+                                            <div className="text-orange-500">+{door.extraHinges * ((door as any).qty || 1)} par{door.extraHinges * ((door as any).qty || 1) > 1 ? 'es' : ''}</div>
                                           )}
                                         </div>
                                         <Button
@@ -4292,6 +4311,7 @@ export default function Quotations() {
                                       onClick={() => {
                                         const newDoor = {
                                           id: `door-${Date.now()}`,
+                                          qty: 1,
                                           height: 0,
                                           width: 0,
                                           squareMeters: 0,
@@ -4590,10 +4610,28 @@ export default function Quotations() {
                                         }}
                                         className="w-20 h-8 text-sm"
                                       />
+                                      <span className="text-white/40">×</span>
+                                      <NumberField
+                                        type="number"
+                                        step="1"
+                                        min="1"
+                                        placeholder="Cant."
+                                        value={door.qty || 1}
+                                        onChange={(e) => {
+                                          const newItems = [...items];
+                                          const doors = [...(newItems[index].acabadosConfig?.aluminumGlassDoors || [])];
+                                          doors[doorIdx] = { ...doors[doorIdx], qty: Math.max(1, Math.floor(parseFloat(e.target.value) || 1)) };
+                                          newItems[index].acabadosConfig = { ...newItems[index].acabadosConfig, aluminumGlassDoors: doors };
+                                          newItems[index].totalPrice = calculateAcabadosTotal(newItems[index]);
+                                          setItems(newItems);
+                                        }}
+                                        className="w-16 h-8 text-sm"
+                                        title="Cantidad de puertas de esta medida"
+                                      />
                                     </div>
                                     <span className="text-sm text-white/60">
-                                      = {r2(sqm)} m²
-                                      {extraHinges > 0 && <span className="text-cyan-400"> + {extraHinges} par{extraHinges > 1 ? 'es' : ''} bisagras</span>}
+                                      = {r2(sqm * (door.qty || 1))} m²{(door.qty || 1) > 1 ? ` (${door.qty} und)` : ''}
+                                      {extraHinges > 0 && <span className="text-cyan-400"> + {extraHinges * (door.qty || 1)} par{extraHinges * (door.qty || 1) > 1 ? 'es' : ''} bisagras</span>}
                                     </span>
                                     <Button
                                       type="button"
@@ -4622,7 +4660,7 @@ export default function Quotations() {
                                 className="text-cyan-400 border-cyan-300 hover:bg-cyan-500/10"
                                 onClick={() => {
                                   const newItems = [...items];
-                                  const doors = [...(newItems[index].acabadosConfig?.aluminumGlassDoors || []), { height: 0, width: 0 }];
+                                  const doors = [...(newItems[index].acabadosConfig?.aluminumGlassDoors || []), { height: 0, width: 0, qty: 1 }];
                                   newItems[index].acabadosConfig = { ...newItems[index].acabadosConfig, aluminumGlassDoors: doors };
                                   newItems[index].totalPrice = calculateAcabadosTotal(newItems[index]);
                                   setItems(newItems);

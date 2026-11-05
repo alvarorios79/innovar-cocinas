@@ -150,6 +150,8 @@ export default function PricingConfig() {
   const [herrajeGroup, setHerrajeGroup] = useState<"cocinas" | "closets" | "puertas" | "otros">("cocinas");
   const [uploadingId, setUploadingId] = useState<number | null>(null);
   const [showNewHw, setShowNewHw] = useState(false);
+  const [showNewPrice, setShowNewPrice] = useState(false);
+  const [priceForm, setPriceForm] = useState({ name: "", description: "", value: "", unit: "unidad" });
   const [hwForm, setHwForm] = useState({ name: "", description: "", options: "", price: "" });
 
   // Queries
@@ -170,6 +172,36 @@ export default function PricingConfig() {
       toast.error(error.message);
     },
   });
+
+  const createPrice = trpc.pricing.create.useMutation({
+    onSuccess: () => {
+      toast.success("Precio agregado");
+      setShowNewPrice(false);
+      setPriceForm({ name: "", description: "", value: "", unit: "unidad" });
+      refetch();
+    },
+    onError: (error) => toast.error("No se pudo agregar: " + error.message),
+  });
+
+  const deletePrice = trpc.pricing.delete.useMutation({
+    onSuccess: () => { toast.success("Precio eliminado"); refetch(); },
+    onError: (error) => toast.error("No se pudo eliminar: " + error.message),
+  });
+
+  const handleCreatePrice = () => {
+    const value = parseFloat(priceForm.value);
+    if (!priceForm.name.trim()) { toast.error("Escribe el nombre del precio"); return; }
+    if (isNaN(value) || value < 0) { toast.error("El valor debe ser un número válido"); return; }
+    createPrice.mutate({
+      category: activeCategory,
+      code: `EXTRA_${activeCategory.toUpperCase()}_${Date.now()}`,
+      name: priceForm.name.trim(),
+      description: priceForm.description.trim() || undefined,
+      value,
+      unit: priceForm.unit.trim() || "unidad",
+      sortOrder: 500,
+    });
+  };
 
   const createHerraje = trpc.hardwareCatalog.create.useMutation({
     onSuccess: () => {
@@ -669,10 +701,15 @@ export default function PricingConfig() {
                       {activePricing.length} {activePricing.length === 1 ? 'precio configurado' : 'precios configurados'}
                     </p>
                   </div>
-                  {activeCategory === "herrajes" && (
+                  {activeCategory === "herrajes" ? (
                     <Button onClick={() => setShowNewHw(true)} className="ml-auto bg-teal-600 hover:bg-teal-500 text-white">
                       <Plus className="h-4 w-4 mr-1" />
                       Agregar herraje
+                    </Button>
+                  ) : (
+                    <Button onClick={() => setShowNewPrice(true)} className="ml-auto bg-teal-600 hover:bg-teal-500 text-white">
+                      <Plus className="h-4 w-4 mr-1" />
+                      Agregar precio
                     </Button>
                   )}
                 </div>
@@ -752,6 +789,20 @@ export default function PricingConfig() {
                             {formatValue(item)}
                           </span>
                           <div className="flex items-center gap-2">
+                            {activeCategory !== "herrajes" && String(item.code).startsWith("EXTRA_") && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={deletePrice.isPending}
+                                onClick={() => {
+                                  if (confirm(`¿Eliminar el precio "${item.name}"?`)) deletePrice.mutate({ id: item.id });
+                                }}
+                                className="border-red-500/30 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                title="Eliminar precio"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
                             {activeCategory === "herrajes" && (
                               <Button
                                 size="sm"
@@ -795,6 +846,45 @@ export default function PricingConfig() {
             )}
           </div>
         </div>
+
+        {/* Modal: nuevo precio (en la categoría activa) */}
+        <Dialog open={showNewPrice} onOpenChange={setShowNewPrice}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-white/85">Nuevo precio — {activeConfig.name}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <p className="text-xs text-white/45">Queda guardado en esta categoría y puedes editarlo después. Para que se cobre automáticamente en las cotizaciones hay que conectarlo al cotizador.</p>
+              <div>
+                <Label>Nombre *</Label>
+                <Input value={priceForm.name} onChange={(e) => setPriceForm({ ...priceForm, name: e.target.value })} placeholder="Ej: Repisa flotante adicional" />
+              </div>
+              <div>
+                <Label>Descripción</Label>
+                <Textarea value={priceForm.description} onChange={(e) => setPriceForm({ ...priceForm, description: e.target.value })} rows={2} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Valor *</Label>
+                  <Input type="number" min="0" value={priceForm.value} onChange={(e) => setPriceForm({ ...priceForm, value: e.target.value })} placeholder="0" />
+                </div>
+                <div>
+                  <Label>Unidad</Label>
+                  <Input list="unidades-precio" value={priceForm.unit} onChange={(e) => setPriceForm({ ...priceForm, unit: e.target.value })} />
+                  <datalist id="unidades-precio">
+                    {["unidad", "ml", "m2", "%", "fijo", "servicio", "par"].map(u => <option key={u} value={u} />)}
+                  </datalist>
+                </div>
+              </div>
+            </div>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button variant="outline" onClick={() => setShowNewPrice(false)}>Cancelar</Button>
+              <Button onClick={handleCreatePrice} disabled={createPrice.isPending} className="bg-teal-600 hover:bg-teal-500 text-white">
+                {createPrice.isPending ? "Agregando..." : "Agregar precio"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Modal: nuevo herraje (queda en el grupo de la pestaña activa) */}
         <Dialog open={showNewHw} onOpenChange={setShowNewHw}>

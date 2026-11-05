@@ -2173,6 +2173,7 @@ export default function Quotations() {
         return {
           ...item,
           description,
+          kitchenConfig: config as any, // se guarda la config para que el PDF detalle cada puerta y para poder reabrir la cotización
           quantity: "1",
           totalPrice: item.totalPrice,
           includesFixedCosts: item.includesFixedCosts,

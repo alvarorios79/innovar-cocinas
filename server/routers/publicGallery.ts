@@ -942,17 +942,14 @@ ${whatsAppLink}` : "⚠️ El cliente no tiene número de WhatsApp registrado.")
 
         // Mensaje elegante para enviar desde el WhatsApp oficial de Innovar
         const message =
-          `✨ Hola ${client.name}! Ya puedes ver cómo quedará tu espacio.
-
-` +
-          `Revisa los renders y si estás de acuerdo, apuébalos aquí:
-` +
-          `${portalLink}
-
-` +
-          `Si necesitas algún ajuste, con gusto lo hacemos!
-` +
-          `— INNOVAR Cocinas de Diseño 🏡`;
+          `¡Hola ${client.name}! 🎉\n\n` +
+          `Tenemos una gran noticia: ¡los renders de tu proyecto ya están listos! ✨\n\n` +
+          `Es lo más cercano a ver tu espacio terminado: los colores y los acabados tal como van a quedar. 😍\n\n` +
+          `👉 Míralos aquí y cuéntanos qué te parecen:\n` +
+          `${portalLink}\n\n` +
+          `Si todo te encanta, apruébalos desde el mismo enlace y arrancamos la fabricación. 🛠️ Y si quieres ajustar algo, con gusto lo hacemos hasta que quede como lo soñaste.\n\n` +
+          `Gracias por confiar en nosotros. ¡Estamos muy emocionados de hacer realidad tu espacio! 🏡\n` +
+          `— INNOVAR Cocinas de Diseño`;
 
         // Enlace wa.me para abrir WhatsApp oficial y enviar al cliente
         const phone = client.whatsappPhone.replace(/\D/g, '');

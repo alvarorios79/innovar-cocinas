@@ -14,7 +14,7 @@ import { createRemindersForStatusChange } from "../reminders-service";
 import * as whatsappCloud from "../whatsapp-cloud";
 import { addBusinessDays, calculateEstimatedDeliveryDate } from "../business-days";
 import { sanitizeText, sanitizeHtml, sanitizeForEmail, sanitizePhone, sanitizeEmail } from "../sanitize";
-import { buildKitchenQuoteDescription, appendHouseStandards } from "../kitchen-description";
+import { buildKitchenQuoteDescription, appendHouseStandards, specialFinishesLines } from "../kitchen-description";
 import { buildQuotationPdfData } from "../quotation-pdf-data";
 import { buildTVQuoteDescription } from "../tv-description";
 
@@ -228,19 +228,8 @@ function buildPublicItemDescBase(item: any): string {
   // ── ACABADOS ESPECIALES ──────────────────────────────────────────────────
   if (item.itemType === 'acabados_especiales' && item.kitchenConfig) {
     const cfg: any = typeof item.kitchenConfig === 'string' ? JSON.parse(item.kitchenConfig) : item.kitchenConfig;
-    const lines: string[] = ['ACABADOS ESPECIALES'];
-    if (cfg?.aluminumGlassDoors?.length > 0) {
-      const td = cfg.aluminumGlassDoors.length;
-      const tsq = cfg.aluminumGlassDoors.reduce((s: number, d: any) => s + d.height * d.width, 0);
-      lines.push(`• Puertas aluminio + vidrio ahumado: ${td} ${td === 1 ? 'puerta' : 'puertas'} (${r2(tsq)} m²)`);
-      cfg.aluminumGlassDoors.forEach((door: any, i: number) => {
-        const sq = door.height * door.width;
-        const eh = door.height > 1.4 ? 2 : (door.height > 0.8 ? 1 : 0);
-        lines.push(`  - Puerta ${i + 1}: ${door.height.toFixed(2)}m x ${door.width.toFixed(2)}m = ${r2(sq)} m²${eh > 0 ? ` (+${eh} par${eh > 1 ? 'es' : ''} bisagras)` : ''}`);
-      });
-    }
-    if (cfg?.ledLighting?.enabled && cfg.ledLighting.meters > 0) lines.push(`• LED para alacenas: ${cfg.ledLighting.meters.toFixed(2)}ml`);
-    if (lines.length > 1) return lines.join('\n');
+    const sfLines = specialFinishesLines(cfg);
+    if (sfLines.length > 0) return ['ACABADOS ESPECIALES:', ...sfLines].join('\n');
   }
 
   // ── Fallback: texto guardado en BD ───────────────────────────────────────

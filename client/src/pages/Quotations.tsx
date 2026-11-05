@@ -2175,7 +2175,10 @@ export default function Quotations() {
           description,
           kitchenConfig: config as any, // se guarda la config para que el PDF detalle cada puerta y para poder reabrir la cotización
           quantity: "1",
-          totalPrice: item.totalPrice,
+          // Igual que la cocina: el total se recalcula al guardar con los precios vigentes del Motor
+          totalPrice: ((config.aluminumGlassDoors?.length || 0) > 0 || (config.ledLighting?.enabled && config.ledLighting.meters > 0))
+            ? calculateAcabadosTotal(item)
+            : item.totalPrice,
           includesFixedCosts: item.includesFixedCosts,
           fixedCostsAmount: item.fixedCostsAmount
         };
@@ -4588,7 +4591,7 @@ export default function Quotations() {
                                       />
                                     </div>
                                     <span className="text-sm text-white/60">
-                                      = {sqm.toFixed(2)} m²
+                                      = {r2(sqm)} m²
                                       {extraHinges > 0 && <span className="text-cyan-400"> + {extraHinges} par{extraHinges > 1 ? 'es' : ''} bisagras</span>}
                                     </span>
                                     <Button
@@ -4620,6 +4623,7 @@ export default function Quotations() {
                                   const newItems = [...items];
                                   const doors = [...(newItems[index].acabadosConfig?.aluminumGlassDoors || []), { height: 0, width: 0 }];
                                   newItems[index].acabadosConfig = { ...newItems[index].acabadosConfig, aluminumGlassDoors: doors };
+                                  newItems[index].totalPrice = calculateAcabadosTotal(newItems[index]);
                                   setItems(newItems);
                                 }}
                               >

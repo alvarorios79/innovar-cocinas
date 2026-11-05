@@ -3,7 +3,7 @@
 // WhatsApp, portal del cliente, enlace público, versiones) deben usar esta función
 // para que el PDF sea siempre idéntico.
 import * as db from "./db";
-import { buildKitchenQuoteDescription, appendHouseStandards } from "./kitchen-description";
+import { buildKitchenQuoteDescription, appendHouseStandards, specialFinishesLines } from "./kitchen-description";
 import { buildTVQuoteDescription } from "./tv-description";
 import { buildScheme } from "@shared/kitchenPlanScheme";
 
@@ -464,23 +464,8 @@ export async function buildQuotationPdfData(quotation: any, client: any, items: 
         const cfg: any = typeof item.kitchenConfig === 'string'
           ? JSON.parse(item.kitchenConfig)
           : item.kitchenConfig;
-        const lines: string[] = [];
-        lines.push('ACABADOS ESPECIALES');
-        if (cfg?.aluminumGlassDoors && cfg.aluminumGlassDoors.length > 0) {
-          const totalDoors = cfg.aluminumGlassDoors.length;
-          const totalSqm = cfg.aluminumGlassDoors.reduce((sum: number, d: any) => sum + (d.height * d.width), 0);
-          lines.push(`• Puertas aluminio + vidrio ahumado: ${totalDoors} ${totalDoors === 1 ? 'puerta' : 'puertas'} (${r2(totalSqm)} m²)`);
-          cfg.aluminumGlassDoors.forEach((door: any, idx: number) => {
-            const sqm = door.height * door.width;
-            const extraHinges = door.height > 1.4 ? 2 : (door.height > 0.8 ? 1 : 0);
-            const hingeText = extraHinges > 0 ? ` (+${extraHinges} par${extraHinges > 1 ? 'es' : ''} bisagras)` : '';
-            lines.push(`  - Puerta ${idx + 1}: ${door.height.toFixed(2)}m x ${door.width.toFixed(2)}m = ${r2(sqm)} m²${hingeText}`);
-          });
-        }
-        if (cfg?.ledLighting?.enabled && cfg.ledLighting.meters > 0) {
-          lines.push(`• LED para alacenas: ${cfg.ledLighting.meters.toFixed(2)}ml`);
-        }
-        if (lines.length > 1) description = lines.join('\n');
+        const sfLines = specialFinishesLines(cfg);
+        if (sfLines.length > 0) description = ['ACABADOS ESPECIALES:', ...sfLines].join('\n');
       }
       
       // Usar descripción personalizada si existe

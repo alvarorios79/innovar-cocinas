@@ -199,6 +199,8 @@ async function startServer() {
   });
   // development mode uses Vite, production mode uses static files
   if (process.env.NODE_ENV === "development") {
+    // Archivos subidos en local (storage.ts → storagePutLocalDev). Nunca en producción.
+    app.use("/local-uploads", express.static(".local-uploads"));
     await setupVite(app, server);
   } else {
     serveStatic(app);

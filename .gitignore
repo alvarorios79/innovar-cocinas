@@ -116,3 +116,6 @@ android/
 ios/
 # pnpm lockfile — Render uses npm
 pnpm-lock.yaml
+
+# Subidas de archivos en desarrollo local (storage.ts)
+.local-uploads/

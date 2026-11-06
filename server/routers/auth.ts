@@ -18,6 +18,51 @@ import { sanitizeText, sanitizeHtml, sanitizeForEmail, sanitizePhone, sanitizeEm
 
 export const authRouter = router({
     me: publicProcedure.query(opts => opts.ctx.user),
+
+    // ── Foto de perfil del usuario actual ──
+    // El navegador envía la imagen ya recortada y reducida (cuadrada, JPEG/PNG/WebP).
+    updateMyAvatar: protectedProcedure
+      .input(z.object({
+        fileData: z.string().min(1).max(3_000_000), // base64, ~2 MB máx.
+        contentType: z.enum(["image/jpeg", "image/png", "image/webp"]),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { storagePut } = await import("../storage");
+        const { users } = await import("../../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+        const database = await db.getDb();
+        if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Base de datos no disponible" });
+
+        const base64 = input.fileData.replace(/^data:[^;]+;base64,/, "");
+        const buffer = Buffer.from(base64, "base64");
+        const ext = input.contentType === "image/png" ? "png" : input.contentType === "image/webp" ? "webp" : "jpg";
+        const fileKey = `avatars/${ctx.user.id}/${Date.now()}.${ext}`;
+
+        let url: string;
+        try {
+          ({ url } = await storagePut(fileKey, buffer, input.contentType));
+        } catch (error) {
+          const msg = error instanceof Error ? error.message : String(error);
+          console.error("[Avatar] Error subiendo foto:", msg);
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: `No se pudo subir la foto: ${msg}` });
+        }
+
+        await database.update(users)
+          .set({ avatarUrl: url, updatedAt: new Date().toISOString() })
+          .where(eq(users.id, ctx.user.id));
+        return { success: true, avatarUrl: url };
+      }),
+
+    removeMyAvatar: protectedProcedure.mutation(async ({ ctx }) => {
+      const { users } = await import("../../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
+      const database = await db.getDb();
+      if (!database) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Base de datos no disponible" });
+      await database.update(users)
+        .set({ avatarUrl: null, updatedAt: new Date().toISOString() })
+        .where(eq(users.id, ctx.user.id));
+      return { success: true };
+    }),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });

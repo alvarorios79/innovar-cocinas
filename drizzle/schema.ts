@@ -778,6 +778,8 @@ export const users = pgTable("users", {
 	dataOrigin: text().default('manual').notNull(),
 	deletedAt: timestamp({ mode: 'string' }),
 	isTeamMember: integer().default(0).notNull(),
+	// Foto de perfil (creada con SQL manual en Render el 6 nov 2026)
+	avatarUrl: text(),
 },
 (table) => [
 	index("users_openId_unique").on(table.openId),

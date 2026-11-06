@@ -1,5 +1,5 @@
 import { useAuth } from "@/_core/hooks/useAuth";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ProfileAvatar, useProfileAvatar } from "@/components/ProfileAvatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -46,6 +46,7 @@ import {
   Package,
   BookOpen,
   ClipboardCheck,
+  Camera,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -260,6 +261,8 @@ type DashboardLayoutContentProps = {
 
 function DashboardLayoutContent({ children, setSidebarWidth, sidebarWidth }: DashboardLayoutContentProps) {
   const { user, logout } = useAuth();
+  const profileAvatar = useProfileAvatar();
+  const hasAvatar = !!(user as any)?.avatarUrl;
   const [location, setLocation] = useLocation();
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";
@@ -403,12 +406,7 @@ function DashboardLayoutContent({ children, setSidebarWidth, sidebarWidth }: Das
                   onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(106,207,199,0.10)")}
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                 >
-                  <Avatar className="h-8 w-8 shrink-0" style={{ border: "2px solid #6ACFC7" }}>
-                    <AvatarFallback className="text-xs font-bold"
-                      style={{ background: "#6ACFC7", color: "#0C1A1A" }}>
-                      {user?.name?.charAt(0).toUpperCase() ?? "?"}
-                    </AvatarFallback>
-                  </Avatar>
+                  <ProfileAvatar user={user as any} size={32} />
                   {!isCollapsed && (
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold truncate leading-tight" style={{ color: "rgba(255,255,255,0.90)" }}>
@@ -428,6 +426,22 @@ function DashboardLayoutContent({ children, setSidebarWidth, sidebarWidth }: Das
                   <p className="text-xs font-medium truncate" style={{ color: "rgba(255,255,255,0.90)" }}>{user?.name}</p>
                   <p className="text-[11px] truncate" style={{ color: "rgba(255,255,255,0.45)" }}>{(user as any)?.email}</p>
                 </div>
+                <DropdownMenuItem onClick={profileAvatar.openPicker}
+                  disabled={profileAvatar.busy}
+                  className="cursor-pointer m-1 rounded-lg"
+                  style={{ color: "rgba(255,255,255,0.85)" }}>
+                  <Camera className="mr-2 h-4 w-4" style={{ color: "#6ACFC7" }} />
+                  <span>{profileAvatar.busy ? "Guardando foto…" : hasAvatar ? "Cambiar foto de perfil" : "Poner foto de perfil"}</span>
+                </DropdownMenuItem>
+                {hasAvatar && (
+                  <DropdownMenuItem onClick={profileAvatar.removeAvatar}
+                    disabled={profileAvatar.busy}
+                    className="cursor-pointer m-1 rounded-lg"
+                    style={{ color: "rgba(255,255,255,0.60)" }}>
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    <span>Quitar foto</span>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem onClick={logout}
                   className="cursor-pointer m-1 rounded-lg"
                   style={{ color: "rgba(248,113,113,0.90)" }}>
@@ -450,6 +464,8 @@ function DashboardLayoutContent({ children, setSidebarWidth, sidebarWidth }: Das
           />
         )}
       </div>
+
+      {profileAvatar.fileInput}
 
       {/* Contenido principal */}
       <SidebarInset
@@ -508,12 +524,16 @@ function DashboardLayoutContent({ children, setSidebarWidth, sidebarWidth }: Das
                 {roleInfo.label}
               </span>
               <NotificationBell />
-              <div
-                className="h-9 w-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0"
-                style={{ background: "#6ACFC7" }}
+              <button
+                type="button"
+                onClick={profileAvatar.openPicker}
+                disabled={profileAvatar.busy}
+                title={hasAvatar ? "Cambiar foto de perfil" : "Poner foto de perfil"}
+                className="rounded-full focus:outline-none"
+                style={{ opacity: profileAvatar.busy ? 0.5 : 1 }}
               >
-                {user?.name?.charAt(0).toUpperCase() ?? "?"}
-              </div>
+                <ProfileAvatar user={user as any} size={36} />
+              </button>
             </div>
           </header>
         )}

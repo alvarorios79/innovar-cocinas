@@ -101,6 +101,22 @@ async function storagePutS3(relKey: string, data: Buffer | Uint8Array | string, 
 }
 
 
+// ── Backend local (solo NODE_ENV=development) ────────────────────────────────
+// Guarda en <proyecto>/.local-uploads/ y se sirve en /local-uploads/ (ver _core/index.ts).
+// Permite probar subidas en el Mac sin claves de Firebase/S3.
+
+export const LOCAL_UPLOADS_DIR = ".local-uploads";
+
+async function storagePutLocalDev(relKey: string, data: Buffer | Uint8Array | string): Promise<{ key: string; url: string }> {
+  const { mkdir, writeFile } = await import("fs/promises");
+  const path = await import("path");
+  const key = normalizeKey(relKey).replace(/\.\.+/g, "_");
+  const filePath = path.resolve(LOCAL_UPLOADS_DIR, key);
+  await mkdir(path.dirname(filePath), { recursive: true });
+  await writeFile(filePath, data);
+  return { key, url: `/local-uploads/${key}` };
+}
+
 // ── Diagnóstico de storage ───────────────────────────────────────────────────
 
 export function logStorageStatus() {
@@ -213,6 +229,11 @@ export async function storagePut(
   // Fallback 2: S3-compatible (Cloudflare R2, AWS S3, etc.)
   if (getS3Config()) {
     return storagePutS3(relKey, data, contentType);
+  }
+
+  // Fallback 3 (SOLO desarrollo local, nunca en Render): carpeta .local-uploads/
+  if (process.env.NODE_ENV === "development") {
+    return storagePutLocalDev(relKey, data);
   }
 
   throw new Error(

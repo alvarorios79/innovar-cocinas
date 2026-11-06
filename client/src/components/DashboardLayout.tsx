@@ -406,7 +406,7 @@ function DashboardLayoutContent({ children, setSidebarWidth, sidebarWidth }: Das
                   onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(106,207,199,0.10)")}
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                 >
-                  <ProfileAvatar user={user as any} size={32} />
+                  <ProfileAvatar user={user as any} size={46} />
                   {!isCollapsed && (
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold truncate leading-tight" style={{ color: "rgba(255,255,255,0.90)" }}>
@@ -488,6 +488,16 @@ function DashboardLayoutContent({ children, setSidebarWidth, sidebarWidth }: Das
             <div className="flex items-center gap-2">
               <NotificationBell />
               <img src="/logo-light.png" alt="INNOVAR" style={{ height: 32, width: 32, objectFit: "contain" }} />
+              <button
+                type="button"
+                onClick={profileAvatar.openPicker}
+                disabled={profileAvatar.busy}
+                aria-label={hasAvatar ? "Cambiar foto de perfil" : "Poner foto de perfil"}
+                className="rounded-full focus:outline-none"
+                style={{ opacity: profileAvatar.busy ? 0.5 : 1 }}
+              >
+                <ProfileAvatar user={user as any} size={40} />
+              </button>
             </div>
           </div>
         )}
@@ -532,7 +542,7 @@ function DashboardLayoutContent({ children, setSidebarWidth, sidebarWidth }: Das
                 className="rounded-full focus:outline-none"
                 style={{ opacity: profileAvatar.busy ? 0.5 : 1 }}
               >
-                <ProfileAvatar user={user as any} size={36} />
+                <ProfileAvatar user={user as any} size={52} />
               </button>
             </div>
           </header>

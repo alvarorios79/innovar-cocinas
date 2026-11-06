@@ -17,6 +17,7 @@ import { sanitizeText, sanitizeHtml, sanitizeForEmail, sanitizePhone, sanitizeEm
 import { buildKitchenQuoteDescription, appendHouseStandards, specialFinishesLines } from "../kitchen-description";
 import { buildQuotationPdfData } from "../quotation-pdf-data";
 import { buildTVQuoteDescription } from "../tv-description";
+import { sendPushToRole } from "../push-notifications";
 
 
 // ─── buildPublicItemDesc ─────────────────────────────────────────────────────

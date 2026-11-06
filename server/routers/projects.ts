@@ -20,6 +20,7 @@ import { eq, and, desc } from "drizzle-orm";
 import { projects, projectDetails, projectPhotos } from "../../drizzle/schema";
 import { randomBytes } from "crypto";
 import { buildScheme } from "@shared/kitchenPlanScheme";
+import { sendPushToRole } from "../push-notifications";
 
 
 // Esquemas del plano de módulos de la cocina de un proyecto (a partir de los ítems de su cotización)
@@ -2145,12 +2146,12 @@ export const projectPhotosRouter = router({
             await sendPushToRole("super_admin", {
               title: `📐 ${typeLabel} listo — ${projectName}`,
               body: `El diseñador subió ${typeLabel}. Revisa y envía al cliente cuando esté listo.`,
-              url: `/projects/${input.projectId}`,
+              data: { url: `/projects/${input.projectId}` },
             });
             await sendPushToRole("admin", {
               title: `📐 ${typeLabel} listo — ${projectName}`,
               body: `El diseñador subió ${typeLabel}. Revisa y envía al cliente cuando esté listo.`,
-              url: `/projects/${input.projectId}`,
+              data: { url: `/projects/${input.projectId}` },
             });
           } catch (pushErr) {
             console.error("[Notif] Error enviando push:", pushErr);
@@ -2158,6 +2159,7 @@ export const projectPhotosRouter = router({
 
           // Email a Álvaro
           try {
+            const { sendEmail, generateEmailHTML } = await import("../email");
             const appUrl = process.env.VITE_APP_URL || "https://innovar-cocinas.onrender.com";
             const projectUrl = `${appUrl}/projects/${input.projectId}`;
             const emailHtml = generateEmailHTML(`

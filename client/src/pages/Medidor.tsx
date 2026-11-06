@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useSearch } from "wouter";
 import { Pizarra, type PizarraRef, type PizarraStatus } from "@/components/Pizarra";
 import { trpc } from "@/lib/trpc";
+import { COCINA_ELECTRO, CLOSET_ACCESORIOS } from "@/lib/visitChecklist";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -82,6 +83,8 @@ type TechnicalChecklist = {
   puntoTV?: boolean;
   internet?: boolean;
   canalizaciones?: boolean;
+  // Electrodomésticos de cocina (elec_*), accesorios de closet (closet_*), descripciones y nota especial
+  [key: string]: boolean | string | undefined;
 };
 
 type GeoLocation = {
@@ -833,7 +836,7 @@ export default function Medidor() {
     if (v.photos && v.photos.length > 0) score += 25;
 
     // Checklist: 15 pts
-    const checklistKeys = v.checklist ? Object.keys(v.checklist).filter(k => k !== 'otroDescripcion') : [];
+    const checklistKeys = v.checklist ? Object.keys(v.checklist).filter(k => !k.endsWith('Descripcion') && k !== 'notaEspecial') : [];
     if (checklistKeys.length > 0) score += 15;
 
     // Firma: 10 pts
@@ -1647,7 +1650,7 @@ export default function Medidor() {
                 Checklist técnico
               </h2>
               <div className="grid grid-cols-1 gap-2">
-                {TECHNICAL_CHECKLIST[visit.workType].map((item) => (
+                {(TECHNICAL_CHECKLIST[visit.workType] ?? []).map((item) => (
                   <div key={item.key}>
                     <label className="flex items-center gap-3 p-2 rounded hover:bg-[#0C1A1A] cursor-pointer">
                       <input
@@ -1669,6 +1672,69 @@ export default function Medidor() {
                     )}
                   </div>
                 ))}
+              </div>
+              {(visit.workType === "cocina" || !!(localMeasurements as any)._tipo_cocina) && (
+                <div className="space-y-2 border-t border-[#1DB5A8]/15 pt-3">
+                  <p className="text-sm font-semibold text-[#1DB5A8]">Electrodomésticos que llevará la cocina</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {COCINA_ELECTRO.map((item) => (
+                      <label key={item.key} className="flex items-center gap-3 p-2 rounded hover:bg-[#0C1A1A] cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={!!localChecklist[item.key]}
+                          onChange={(e) => setLocalChecklist((prev) => ({ ...prev, [item.key]: e.target.checked }))}
+                          className="h-4 w-4 rounded border-[#1DB5A8]/40 text-[#1DB5A8] focus:ring-[#1DB5A8]"
+                        />
+                        <span className="text-sm text-white">{item.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                  {!!localChecklist["elec_otro"] && (
+                    <input
+                      type="text"
+                      placeholder="¿Cuál?"
+                      value={(localChecklist["elec_otroDescripcion"] as string) || ""}
+                      onChange={(e) => setLocalChecklist((prev) => ({ ...prev, elec_otroDescripcion: e.target.value }))}
+                      className="w-full px-3 py-1.5 rounded bg-[#0C1A1A] border border-[#1DB5A8]/30 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#1DB5A8]"
+                    />
+                  )}
+                </div>
+              )}
+              {(visit.workType === "closet" || !!(localMeasurements as any)._tipo_closet) && (
+                <div className="space-y-2 border-t border-[#1DB5A8]/15 pt-3">
+                  <p className="text-sm font-semibold text-[#1DB5A8]">Accesorios del closet</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {CLOSET_ACCESORIOS.map((item) => (
+                      <label key={item.key} className="flex items-center gap-3 p-2 rounded hover:bg-[#0C1A1A] cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={!!localChecklist[item.key]}
+                          onChange={(e) => setLocalChecklist((prev) => ({ ...prev, [item.key]: e.target.checked }))}
+                          className="h-4 w-4 rounded border-[#1DB5A8]/40 text-[#1DB5A8] focus:ring-[#1DB5A8]"
+                        />
+                        <span className="text-sm text-white">{item.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                  {!!localChecklist["closet_otro"] && (
+                    <input
+                      type="text"
+                      placeholder="¿Cuál?"
+                      value={(localChecklist["closet_otroDescripcion"] as string) || ""}
+                      onChange={(e) => setLocalChecklist((prev) => ({ ...prev, closet_otroDescripcion: e.target.value }))}
+                      className="w-full px-3 py-1.5 rounded bg-[#0C1A1A] border border-[#1DB5A8]/30 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#1DB5A8]"
+                    />
+                  )}
+                </div>
+              )}
+              <div className="space-y-1 border-t border-[#1DB5A8]/15 pt-3">
+                <label className="block text-xs font-semibold text-[#1DB5A8]">Nota especial (opcional)</label>
+                <Textarea
+                  value={(localChecklist["notaEspecial"] as string) || ""}
+                  onChange={(e) => setLocalChecklist((prev) => ({ ...prev, notaEspecial: e.target.value }))}
+                  placeholder="Algo especial para dejar registro: acceso difícil, pared inclinada, pedido particular del cliente..."
+                  className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white min-h-[80px]"
+                />
               </div>
             </div>
           )}

@@ -7,6 +7,7 @@
 import { useState } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
+import { getChecklistView } from "@/lib/visitChecklist";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -475,25 +476,54 @@ export default function VisitasTecnicas() {
             )}
 
             {/* Checklist */}
-            {Object.keys(checklist).length > 0 && (
-              <div className="bg-[#162828] rounded-xl p-5 border border-[#1DB5A8]/10">
-                <h2 className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide mb-4 flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4" /> Checklist del medidor
-                </h2>
-                <div className="space-y-2">
-                  {Object.entries(checklist).map(([key, done]) => (
-                    <div key={key} className="flex items-center gap-2 text-sm">
-                      {done
-                        ? <CheckCircle2 className="h-4 w-4 text-[#1DB5A8] flex-shrink-0" />
-                        : <Square className="h-4 w-4 text-gray-600 flex-shrink-0" />}
-                      <span className={done ? "text-gray-300" : "text-gray-600 line-through"}>
-                        {CHECKLIST_LABELS[key] ?? key}
-                      </span>
+            {Object.keys(checklist).length > 0 && (() => {
+              const view = getChecklistView(checklist as Record<string, unknown>, CHECKLIST_LABELS);
+              return (
+                <div className="bg-[#162828] rounded-xl p-5 border border-[#1DB5A8]/10">
+                  <h2 className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide mb-4 flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4" /> Checklist del medidor
+                  </h2>
+                  {view.general.length > 0 && (
+                    <div className="space-y-2">
+                      {view.general.map(({ key, label, done }) => (
+                        <div key={key} className="flex items-center gap-2 text-sm">
+                          {done
+                            ? <CheckCircle2 className="h-4 w-4 text-[#1DB5A8] flex-shrink-0" />
+                            : <Square className="h-4 w-4 text-gray-600 flex-shrink-0" />}
+                          <span className={done ? "text-gray-300" : "text-gray-600 line-through"}>{label}</span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
+                  {view.electro.length > 0 && (
+                    <div className="mt-4">
+                      <p className="text-xs font-semibold text-[#1DB5A8] mb-2">Electrodomésticos que llevará la cocina</p>
+                      <div className="flex flex-wrap gap-2">
+                        {view.electro.map((l) => (
+                          <span key={l} className="text-xs px-2 py-1 rounded-full bg-[#1DB5A8]/15 text-[#1DB5A8]">{l}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {view.closet.length > 0 && (
+                    <div className="mt-4">
+                      <p className="text-xs font-semibold text-[#1DB5A8] mb-2">Accesorios del closet</p>
+                      <div className="flex flex-wrap gap-2">
+                        {view.closet.map((l) => (
+                          <span key={l} className="text-xs px-2 py-1 rounded-full bg-[#1DB5A8]/15 text-[#1DB5A8]">{l}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {view.nota && (
+                    <div className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3">
+                      <p className="text-xs font-semibold text-amber-300 mb-1">Nota especial del medidor</p>
+                      <p className="text-sm text-gray-200 whitespace-pre-wrap">{view.nota}</p>
+                    </div>
+                  )}
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* Notas */}
             {visit?.notes && (

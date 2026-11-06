@@ -64,6 +64,7 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { ExportProjectReportButton } from "@/components/ExportProjectReportButton";
 import { ExportProjectWordButton } from "@/components/ExportProjectWordButton";
 import { toast } from "sonner";
+import { getChecklistView } from "@/lib/visitChecklist";
 
 
 // Estados del proyecto según Ruta INNOVAR (14 estados simplificados)
@@ -1464,12 +1465,37 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                           <div>
                             <p className="text-xs text-gray-400 mb-1">Checklist técnico</p>
                             <div className="grid grid-cols-2 gap-1">
-                              {Object.entries(technicalVisit.checklist as Record<string, unknown>).map(([key, val]) => (
-                                <div key={key} className="flex items-center gap-1 text-xs">
-                                  <span className={val === true ? "text-emerald-400" : "text-red-400"}>{val === true ? "✓" : "✗"}</span>
-                                  <span className="text-gray-300">{key.replace(/([A-Z])/g, ' $1').toLowerCase()}</span>
-                                </div>
-                              ))}
+                              {(() => {
+                                const view = getChecklistView(technicalVisit.checklist as Record<string, unknown>);
+                                return (
+                                  <>
+                                    {view.general.map(({ key, label, done }) => (
+                                      <div key={key} className="flex items-center gap-1 text-xs">
+                                        <span className={done ? "text-emerald-400" : "text-red-400"}>{done ? "✓" : "✗"}</span>
+                                        <span className="text-gray-300">{label}</span>
+                                      </div>
+                                    ))}
+                                    {view.electro.length > 0 && (
+                                      <div className="col-span-2 mt-1 text-xs">
+                                        <span className="text-gray-400">Electrodomésticos: </span>
+                                        <span className="text-gray-200">{view.electro.join(", ")}</span>
+                                      </div>
+                                    )}
+                                    {view.closet.length > 0 && (
+                                      <div className="col-span-2 mt-1 text-xs">
+                                        <span className="text-gray-400">Accesorios de closet: </span>
+                                        <span className="text-gray-200">{view.closet.join(", ")}</span>
+                                      </div>
+                                    )}
+                                    {view.nota && (
+                                      <div className="col-span-2 mt-1 text-xs rounded border border-amber-500/30 bg-amber-500/10 p-2">
+                                        <span className="text-amber-300 font-semibold">Nota especial: </span>
+                                        <span className="text-gray-200 whitespace-pre-wrap">{view.nota}</span>
+                                      </div>
+                                    )}
+                                  </>
+                                );
+                              })()}
                             </div>
                           </div>
                         )}

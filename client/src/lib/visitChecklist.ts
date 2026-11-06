@@ -19,6 +19,7 @@ export const COCINA_ELECTRO: Array<{ key: string; label: string }> = [
   { key: "elec_nevecon", label: "Nevecón" },
   { key: "elec_airFryer", label: "Air fryer" },
   { key: "elec_filtroAgua", label: "Filtro de agua" },
+  { key: "elec_cafetera", label: "Cafetera (estación de café)" },
   { key: "elec_otro", label: "Otro" },
 ];
 

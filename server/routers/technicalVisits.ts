@@ -515,10 +515,12 @@ export const technicalVisitsRouter = router({
         .where(eq(technicalVisits.id, input.visitId));
 
       if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Levantamiento no encontrado" });
-      if (visit.status === "cot_hecha" || visit.status === "cot_enviada") {
-        // Con cotización generada solo se permite agregar notas complementarias (no tocar lo cotizado)
-        const touchesQuoted = Object.entries(input).some(([k, v]) => k !== "visitId" && k !== "notes" && v !== undefined);
-        if (touchesQuoted || input.notes === undefined) {
+      const isQuotedStatus = visit.status === "cot_hecha" || visit.status === "cot_enviada";
+      if (isQuotedStatus) {
+        // Con cotización generada solo se permite agregar notas complementarias y datos extra del checklist
+        // (electrodomésticos elec_*, accesorios closet_* y notaEspecial) — nada de lo cotizado se modifica
+        const touchesQuoted = Object.entries(input).some(([k, v]) => k !== "visitId" && k !== "notes" && k !== "checklist" && v !== undefined);
+        if (touchesQuoted || (input.notes === undefined && input.checklist === undefined)) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "No se puede editar un levantamiento con cotización generada" });
         }
         if (!canAddComplement(ctx.user.role, ctx.user.id, visit)) {
@@ -536,7 +538,21 @@ export const technicalVisitsRouter = router({
       if (input.clientAddress !== undefined) updateData.clientAddress = input.clientAddress;
       if (input.visitCity !== undefined) updateData.visitCity = input.visitCity;
       if (input.measurements !== undefined) updateData.measurements = input.measurements;
-      if (input.checklist !== undefined) updateData.checklist = input.checklist;
+      if (input.checklist !== undefined) {
+        if (isQuotedStatus || visit.status === "convertida") {
+          if (!canAddComplement(ctx.user.role, ctx.user.id, visit)) {
+            throw new TRPCError({ code: "FORBIDDEN", message: "Sin permisos para agregar información a este levantamiento" });
+          }
+          // Solo se mezclan las claves complementarias; el resto del checklist original queda intacto
+          const prev = ((visit.checklist as Record<string, unknown> | null) ?? {}) as Record<string, unknown>;
+          const extras = Object.fromEntries(
+            Object.entries(input.checklist).filter(([k]) => k.startsWith("elec_") || k.startsWith("closet_") || k === "notaEspecial"),
+          );
+          updateData.checklist = { ...prev, ...extras };
+        } else {
+          updateData.checklist = input.checklist;
+        }
+      }
       if (input.technicalEvaluation !== undefined) updateData.technicalEvaluation = input.technicalEvaluation;
       if (input.criticalObservations !== undefined) updateData.criticalObservations = input.criticalObservations;
       if (input.notes !== undefined) updateData.notes = input.notes;

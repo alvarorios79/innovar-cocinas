@@ -614,6 +614,21 @@ export default function Medidor() {
     setLocalMeasurements((prev: any) => ({ ...prev, [`_${wt}_unidades`]: units.length > 0 ? units : [{}] }));
   };
 
+    const handleSaveComplementChecklist = async () => {
+    if (!visit) return;
+    // Solo se envían los datos complementarios; el servidor los mezcla sin tocar el checklist original
+    const extras = Object.fromEntries(
+      Object.entries(localChecklist).filter(([k]) => k.startsWith("elec_") || k.startsWith("closet_") || k === "notaEspecial"),
+    );
+    try {
+      await updateVisit.mutateAsync({ visitId: (visit as any).id, checklist: extras } as any);
+      await refetchDetail();
+      toast.success("Checklist complementario guardado");
+    } catch (error) {
+      toast.error("No se pudo guardar el checklist");
+    }
+  };
+
     const handleAddComplementNote = async () => {
     if (!visit || !complementNote.trim()) return;
     const stamp = new Date().toLocaleDateString("es-CO", { timeZone: "America/Bogota" });
@@ -848,7 +863,7 @@ export default function Medidor() {
   const visit = visitDetail ?? selectedVisit;
   const isEditable = visit?.status === "borrador" || visit?.status === "enviada";
   // Con cotización generada: managers y el medidor dueño pueden agregar fotos, PDFs y notas (sin tocar lo cotizado)
-  const isQuotedVisit = visit?.status === "cot_hecha" || visit?.status === "cot_enviada";
+  const isQuotedVisit = visit?.status === "cot_hecha" || visit?.status === "cot_enviada" || visit?.status === "convertida";
   const canComplement = !!visit && isQuotedVisit && (
     user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial" ||
     (user?.role === "medidor" && (visit as any).createdBy === user?.id)
@@ -1923,6 +1938,85 @@ export default function Medidor() {
                 className="w-full bg-[#1DB5A8] hover:bg-[#17a396] text-white"
               >
                 Guardar nota
+              </Button>
+            </div>
+          )}
+
+          {canComplement && (
+            <div className="bg-[#162828] border border-amber-500/30 rounded-lg p-4 space-y-3">
+              <h2 className="text-lg font-semibold text-white">Checklist complementario</h2>
+              <p className="text-xs text-slate-400">
+                Marca o agrega datos para ayudar al diseñador. Lo que ya estaba en el levantamiento no se modifica.
+              </p>
+              {((visit as any).workType === "cocina" || !!(localMeasurements as any)._tipo_cocina) && (
+                <div className="space-y-2 border-t border-[#1DB5A8]/15 pt-3">
+                  <p className="text-sm font-semibold text-[#1DB5A8]">Electrodomésticos que llevará la cocina</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {COCINA_ELECTRO.map((item) => (
+                      <label key={item.key} className="flex items-center gap-3 p-2 rounded hover:bg-[#0C1A1A] cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={!!localChecklist[item.key]}
+                          onChange={(e) => setLocalChecklist((prev) => ({ ...prev, [item.key]: e.target.checked }))}
+                          className="h-4 w-4 rounded border-[#1DB5A8]/40 text-[#1DB5A8] focus:ring-[#1DB5A8]"
+                        />
+                        <span className="text-sm text-white">{item.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                  {!!localChecklist["elec_otro"] && (
+                    <input
+                      type="text"
+                      placeholder="¿Cuál?"
+                      value={(localChecklist["elec_otroDescripcion"] as string) || ""}
+                      onChange={(e) => setLocalChecklist((prev) => ({ ...prev, elec_otroDescripcion: e.target.value }))}
+                      className="w-full px-3 py-1.5 rounded bg-[#0C1A1A] border border-[#1DB5A8]/30 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#1DB5A8]"
+                    />
+                  )}
+                </div>
+              )}
+              {((visit as any).workType === "closet" || !!(localMeasurements as any)._tipo_closet) && (
+                <div className="space-y-2 border-t border-[#1DB5A8]/15 pt-3">
+                  <p className="text-sm font-semibold text-[#1DB5A8]">Accesorios del closet</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {CLOSET_ACCESORIOS.map((item) => (
+                      <label key={item.key} className="flex items-center gap-3 p-2 rounded hover:bg-[#0C1A1A] cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={!!localChecklist[item.key]}
+                          onChange={(e) => setLocalChecklist((prev) => ({ ...prev, [item.key]: e.target.checked }))}
+                          className="h-4 w-4 rounded border-[#1DB5A8]/40 text-[#1DB5A8] focus:ring-[#1DB5A8]"
+                        />
+                        <span className="text-sm text-white">{item.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                  {!!localChecklist["closet_otro"] && (
+                    <input
+                      type="text"
+                      placeholder="¿Cuál?"
+                      value={(localChecklist["closet_otroDescripcion"] as string) || ""}
+                      onChange={(e) => setLocalChecklist((prev) => ({ ...prev, closet_otroDescripcion: e.target.value }))}
+                      className="w-full px-3 py-1.5 rounded bg-[#0C1A1A] border border-[#1DB5A8]/30 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#1DB5A8]"
+                    />
+                  )}
+                </div>
+              )}
+              <div className="space-y-1 border-t border-[#1DB5A8]/15 pt-3">
+                <label className="block text-xs font-semibold text-[#1DB5A8]">Nota especial</label>
+                <Textarea
+                  value={(localChecklist["notaEspecial"] as string) || ""}
+                  onChange={(e) => setLocalChecklist((prev) => ({ ...prev, notaEspecial: e.target.value }))}
+                  placeholder="Algo especial para dejar registro..."
+                  className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white min-h-[80px]"
+                />
+              </div>
+              <Button
+                onClick={handleSaveComplementChecklist}
+                disabled={updateVisit.isPending}
+                className="w-full bg-[#1DB5A8] hover:bg-[#17a396] text-white"
+              >
+                Guardar checklist
               </Button>
             </div>
           )}

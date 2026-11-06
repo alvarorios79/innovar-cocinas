@@ -438,7 +438,7 @@ export function AccountingClosureTab() {
                             className="border-teal-500 text-teal-400 hover:bg-teal-500/10"
                             onClick={async () => {
                               try {
-                                const result = await trpc.accountingClosures.downloadPDF.query({ closureId: closure.id });
+                                const result = await utils.accountingClosures.downloadPDF.fetch({ closureId: closure.id });
                                 const bytes = Uint8Array.from(atob(result.base64), c => c.charCodeAt(0));
                                 const blob = new Blob([bytes], { type: result.mimeType });
                                 const link = document.createElement("a");
@@ -459,7 +459,7 @@ export function AccountingClosureTab() {
                             className="border-blue-500 text-blue-400 hover:bg-blue-500/10"
                             onClick={async () => {
                               try {
-                                const result = await trpc.accountingClosures.downloadWord.query({ closureId: closure.id });
+                                const result = await utils.accountingClosures.downloadWord.fetch({ closureId: closure.id });
                                 const bytes = Uint8Array.from(atob(result.base64), c => c.charCodeAt(0));
                                 const blob = new Blob([bytes], { type: result.mimeType });
                                 const link = document.createElement("a");

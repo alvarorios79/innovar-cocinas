@@ -207,6 +207,16 @@ export default function VisitasTecnicas() {
     onError: (e) => toast.error(e.message || "Error asignando medidor"),
   });
 
+  // Eliminar levantamiento (borrado lógico: deletedAt). Antes el botón llamaba
+  // a una mutación que no existía y no hacía nada.
+  const deleteVisitMutation = trpc.technicalVisits.delete.useMutation({
+    onSuccess: () => {
+      toast.success("Levantamiento eliminado");
+      utils.technicalVisits.list.invalidate();
+    },
+    onError: (e) => toast.error(e.message || "Error eliminando levantamiento"),
+  });
+
   const handleCreateQuotation = (visit: Visit) => {
     // Usar clientId si está disponible, si no URL params como fallback
     const clientParam = (visit as any).clientId

@@ -612,8 +612,8 @@ export const appointmentsRouter = router({
           if (!dbConn) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB no disponible" });
           const [apt] = await dbConn
             .select()
-            .from(appointments)
-            .where(eq(appointments.id, input.id))
+            .from(appointmentsTable)
+            .where(eq(appointmentsTable.id, input.id))
             .limit(1);
           if (!apt) throw new TRPCError({ code: "NOT_FOUND", message: "Cita no encontrada" });
           if (apt.assignedMedidorId !== ctx.user.id) {

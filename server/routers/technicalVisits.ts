@@ -927,7 +927,7 @@ export const technicalVisitsRouter = router({
       const [visit] = await db
         .select()
         .from(technicalVisits)
-        .where(eq(technicalVisits.id, input.visitId ?? input.id))
+        .where(eq(technicalVisits.id, input.id))
         .limit(1);
 
       const isManager = ["admin", "super_admin", "comercial"].includes(ctx.user.role);

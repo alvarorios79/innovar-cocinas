@@ -40,6 +40,15 @@ const DOC_TYPES = [
   { value: "otro",             label: "Otro" },
 ];
 
+// Documentos subidos antes del arreglo guardaron {"key","url"} como texto: extraer la URL.
+function docFileUrl(fileUrl: string | null | undefined): string | undefined {
+  if (!fileUrl) return undefined;
+  if (fileUrl.trim().startsWith("{")) {
+    try { return JSON.parse(fileUrl).url ?? undefined; } catch { return undefined; }
+  }
+  return fileUrl;
+}
+
 const MONTHS = [
   "Enero","Febrero","Marzo","Abril","Mayo","Junio",
   "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"
@@ -346,7 +355,7 @@ function Documentos() {
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
-                  <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer">
+                  <a href={docFileUrl(doc.fileUrl)} target="_blank" rel="noopener noreferrer">
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-white/50 hover:text-white">
                       <Download className="h-4 w-4" />
                     </Button>

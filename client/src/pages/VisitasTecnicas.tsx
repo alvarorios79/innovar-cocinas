@@ -14,6 +14,9 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from "@/components/ui/dialog";
+import {
   Ruler, Camera, FileText, ChevronRight, Loader2,
   CheckCircle2, Clock, Send, User, MapPin, Phone,
   FileSpreadsheet, Eye, Maximize2, X, ArrowLeft,
@@ -141,6 +144,7 @@ const parseDBDate = (ds: string | Date | null | undefined): Date => {
 export default function VisitasTecnicas() {
   const { user } = useAuth();
   const isManager = ["super_admin", "admin", "comercial"].includes(user?.role ?? "");
+  const isSuperAdmin = user?.role === "super_admin";
   const [, navigate] = useLocation();
   // Si llegan desde un proyecto (?visitId=..&from=/projects/..) se abre directo ese levantamiento y "volver" regresa al proyecto
   const urlParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
@@ -151,6 +155,9 @@ export default function VisitasTecnicas() {
   });
   const [lightboxUrl, setLightboxUrl]         = useState<string | null>(null);
   const [statusFilter, setStatusFilter]       = useState<VisitStatus | "todas">("todas");
+  // Pregunta de seguridad para borrar un levantamiento con cotización/proyecto (solo super_admin)
+  const [quotedToDelete, setQuotedToDelete]   = useState<{ id: number; clientName: string } | null>(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
 
   const utils = trpc.useUtils();
@@ -698,10 +705,20 @@ export default function VisitasTecnicas() {
                         Lista para cotizar
                       </span>
                     )}
-                    {(isManager || (visit.status !== "cot_hecha" && visit.status !== "cot_enviada")) && (
+                    {(() => {
+                      // Con cotización o proyecto: solo super_admin, con pregunta de seguridad
+                      const quoted = visit.status === "cot_hecha" || visit.status === "cot_enviada" || (visit as any).projectId != null;
+                      return quoted ? isSuperAdmin : true;
+                    })() && (
                       <button
                         onClick={async (e) => {
                           e.stopPropagation();
+                          const quoted = visit.status === "cot_hecha" || visit.status === "cot_enviada" || (visit as any).projectId != null;
+                          if (quoted) {
+                            setDeleteConfirmText("");
+                            setQuotedToDelete({ id: visit.id, clientName: visit.clientName });
+                            return;
+                          }
                           if (!confirm("¿Eliminar este levantamiento? Esta acción no se puede deshacer.")) return;
                           try {
                             await deleteVisitMutation.mutateAsync({ id: visit.id });
@@ -724,6 +741,53 @@ export default function VisitasTecnicas() {
         </div>
       </div>
 
+      {/* ── Pregunta de seguridad: borrar levantamiento con cotización (solo super_admin) ── */}
+      <Dialog open={!!quotedToDelete} onOpenChange={open => { if (!open) setQuotedToDelete(null); }}>
+        <DialogContent className="bg-[#162828] border border-red-500/30 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-red-400 flex items-center gap-2">
+              <Trash2 className="h-5 w-5" /> Eliminar levantamiento con cotización
+            </DialogTitle>
+            <DialogDescription className="text-gray-300">
+              El levantamiento de <span className="font-semibold text-white">{quotedToDelete?.clientName}</span> ya
+              tiene cotización o proyecto. Si lo eliminas, <span className="text-red-300">deja de verse en el proyecto</span> (medidas,
+              checklist, fotos y planos) para el diseñador y el taller.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-1">
+            <label className="text-xs text-gray-400 block">
+              Para confirmar escribe <span className="font-mono font-bold text-white">ELIMINAR</span>
+            </label>
+            <Input
+              autoFocus
+              value={deleteConfirmText}
+              onChange={e => setDeleteConfirmText(e.target.value)}
+              placeholder="ELIMINAR"
+              className="bg-[#0C1A1A] border-red-500/30 text-white"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setQuotedToDelete(null)} className="text-gray-400">
+              Cancelar
+            </Button>
+            <Button
+              disabled={deleteConfirmText.trim().toUpperCase() !== "ELIMINAR" || deleteVisitMutation.isPending}
+              onClick={async () => {
+                if (!quotedToDelete) return;
+                try {
+                  await deleteVisitMutation.mutateAsync({ id: quotedToDelete.id });
+                  setQuotedToDelete(null);
+                } catch {
+                  // onError muestra el aviso
+                }
+              }}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {deleteVisitMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Eliminar definitivamente"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

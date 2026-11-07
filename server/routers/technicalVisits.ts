@@ -943,6 +943,11 @@ export const technicalVisitsRouter = router({
       if (!isManager && !isMedidor) {
         throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para eliminar levantamientos" });
       }
+      // Con cotización o proyecto: solo super_admin (al borrarlo desaparece del proyecto).
+      const isQuoted = visit.status === "cot_hecha" || visit.status === "cot_enviada" || visit.projectId != null;
+      if (isQuoted && ctx.user.role !== "super_admin") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Solo el super administrador puede eliminar un levantamiento con cotización o proyecto" });
+      }
 
       const now = new Date().toISOString().replace('T', ' ').replace('Z', '');
       await db

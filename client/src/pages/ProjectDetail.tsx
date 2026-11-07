@@ -161,10 +161,17 @@ export default function ProjectDetail() {
     }
   );
 
-  // Levantamiento técnico vinculado al proyecto (para diseñador y admins)
+  // Levantamiento técnico vinculado al proyecto (para diseñador y admins; el taller no tiene acceso)
+  const isWorkshop = user?.role === "jefe_taller" || user?.role === "operario";
   const { data: technicalVisit, isLoading: loadingVisit } = trpc.technicalVisits.getByProjectId.useQuery(
     { projectId },
-    { enabled: !!projectId, staleTime: 30000 }
+    { enabled: !!projectId && !isWorkshop, staleTime: 30000 }
+  );
+  // Ubicación del trabajo (solo dirección y GPS del levantamiento): para TODOS, incluido el taller,
+  // que la necesita para llegar a la instalación
+  const { data: siteLocation } = trpc.technicalVisits.getLocationByProjectId.useQuery(
+    { projectId },
+    { enabled: !!projectId, staleTime: 60000 }
   );
 
   // Cargar gastos de materiales del proyecto
@@ -847,16 +854,33 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                     <MapPin className="h-4 w-4 text-muted-foreground" />
                     <strong>Dirección:</strong> {projectDetail.client?.address || "N/A"}
                   </p>
-                  {(technicalVisit as any)?.geoLocation && (
-                    <a
-                      href={`https://www.google.com/maps/dir//${(technicalVisit as any).geoLocation.latitude},${(technicalVisit as any).geoLocation.longitude}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-2 flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold rounded-lg transition-colors w-full"
-                    >
-                      📍 Navegar al domicilio
-                    </a>
-                  )}
+                  {(() => {
+                    // GPS del levantamiento (o, si no hay GPS, búsqueda por dirección)
+                    const lat = (technicalVisit as any)?.geoLocation?.latitude ?? siteLocation?.latitude;
+                    const lng = (technicalVisit as any)?.geoLocation?.longitude ?? siteLocation?.longitude;
+                    const addr = [siteLocation?.address || projectDetail.client?.address, siteLocation?.city].filter(Boolean).join(", ");
+                    const href = lat != null && lng != null
+                      ? `https://www.google.com/maps/dir//${lat},${lng}`
+                      : addr ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}` : null;
+                    if (!href) return null;
+                    return (
+                      <>
+                        {siteLocation?.address && siteLocation.address !== projectDetail.client?.address && (
+                          <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <MapPin className="h-3.5 w-3.5" /> Sitio de la obra: {siteLocation.address}{siteLocation.city ? `, ${siteLocation.city}` : ""}
+                          </p>
+                        )}
+                        <a
+                          href={href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-2 flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold rounded-lg transition-colors w-full"
+                        >
+                          📍 {lat != null ? "Navegar al domicilio" : "Buscar dirección en Maps"}
+                        </a>
+                      </>
+                    );
+                  })()}
                 </CardContent>
               </Card>
 

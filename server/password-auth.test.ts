@@ -7,7 +7,7 @@ import { eq } from "drizzle-orm";
 
 describe("Password Authentication", () => {
   let testUserId: number;
-  const testEmail = `test-${Date.now()}@example.com`;
+  const testEmail = `test-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.com`;
   const testPassword = "TestPassword123";
 
   beforeAll(async () => {

@@ -2,14 +2,14 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { TRPCError } from "@trpc/server";
 
 // Mock de la función sendTextMessage de WhatsApp
-vi.mock("../whatsapp-cloud", () => ({
+vi.mock("./whatsapp-cloud", () => ({
   sendTextMessage: vi.fn(async (phone: string, message: string) => ({
     messageId: "test-message-id-123",
   })),
 }));
 
 // Mock de las funciones de base de datos
-vi.mock("../db", () => ({
+vi.mock("./db", () => ({
   getProjectById: vi.fn(async (id: number) => {
     if (id === 1) {
       return {
@@ -35,8 +35,8 @@ vi.mock("../db", () => ({
 
 describe("projects.sendSectionNotification", () => {
   it("debe enviar notificación correctamente para sección corte", async () => {
-    const { sendTextMessage } = await import("../whatsapp-cloud");
-    const { getProjectById, getClientById } = await import("../db");
+    const { sendTextMessage } = await import("./whatsapp-cloud");
+    const { getProjectById, getClientById } = await import("./db");
 
     // Simular llamada al endpoint
     const projectId = 1;
@@ -66,7 +66,7 @@ describe("projects.sendSectionNotification", () => {
   });
 
   it("debe rechazar si el cliente no tiene WhatsApp", async () => {
-    const { getProjectById, getClientById } = await import("../db");
+    const { getProjectById, getClientById } = await import("./db");
 
     const projectId = 1;
     const project = await getProjectById(projectId);
@@ -82,7 +82,7 @@ describe("projects.sendSectionNotification", () => {
   });
 
   it("debe rechazar si el proyecto no existe", async () => {
-    const { getProjectById } = await import("../db");
+    const { getProjectById } = await import("./db");
 
     const projectId = 999;
     const project = await getProjectById(projectId);

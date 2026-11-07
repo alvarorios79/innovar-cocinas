@@ -17,7 +17,7 @@ function createTestContext() {
 }
 
 describe("User Registration and Password Reset", () => {
-  const testEmail = `test-${Date.now()}@example.com`;
+  const testEmail = `test-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.com`;
   const testPassword = "TestPass123!";
   const testName = "Test User";
   const testPhone = "3001234567";

@@ -20,7 +20,9 @@ describe("Accounting Closure - Eligible Projects", () => {
         expect(project).toHaveProperty("projectId");
         expect(project).toHaveProperty("projectName");
         expect(project).toHaveProperty("clientName");
-        expect(project).toHaveProperty("totalAmount");
+        // Desde el cálculo con descuentos/recargos se devuelve originalPrice y netPrice (no totalAmount)
+        expect(project).toHaveProperty("originalPrice");
+        expect(project).toHaveProperty("netPrice");
         expect(project).toHaveProperty("totalPaid");
         expect(project).toHaveProperty("balance");
         
@@ -28,15 +30,13 @@ describe("Accounting Closure - Eligible Projects", () => {
         expect(typeof project.projectId).toBe("number");
         expect(typeof project.projectName).toBe("string");
         expect(typeof project.clientName).toBe("string");
-        expect(typeof project.totalAmount).toBe("number");
+        expect(typeof project.netPrice).toBe("number");
         expect(typeof project.totalPaid).toBe("number");
         expect(typeof project.balance).toBe("number");
         
-        // Verificar que balance = 0 (criterio de elegibilidad)
-        expect(project.balance).toBe(0);
-        
-        // Verificar que totalPaid = totalAmount (pagos completados)
-        expect(project.totalPaid).toBe(project.totalAmount);
+        // Elegible = pagado (balance ≈ 0 o negativo por descuento posterior al pago)
+        expect(project.balance).toBeLessThanOrEqual(0.01);
+        expect(project.totalPaid).toBeGreaterThanOrEqual(project.netPrice - 0.01);
       }
     });
 
@@ -52,8 +52,8 @@ describe("Accounting Closure - Eligible Projects", () => {
       
       // Todos los proyectos retornados deben tener balance = 0
       eligibleProjects.forEach((project) => {
-        expect(project.balance).toBe(0);
-        expect(project.totalPaid).toBe(project.totalAmount);
+        expect(project.balance).toBeLessThanOrEqual(0.01);
+        expect(project.totalPaid).toBeGreaterThanOrEqual(project.netPrice - 0.01);
       });
     });
   });

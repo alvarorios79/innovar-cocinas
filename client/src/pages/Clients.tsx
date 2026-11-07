@@ -123,6 +123,7 @@ export default function Clients() {
       name: c.name,
       email: c.email ?? "",
       whatsappPhone: c.whatsappPhone,
+      countryCode: "57", // antes quedaba undefined al editar (teléfono de 10 dígitos → "undefined300…")
       address: c.address ?? "",
       identificationNumber: c.identificationNumber ?? "",
       internalManagement: c.internalManagement === 1,

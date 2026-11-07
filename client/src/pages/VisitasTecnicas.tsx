@@ -162,8 +162,9 @@ export default function VisitasTecnicas() {
 
   const utils = trpc.useUtils();
 
+  // El servidor no filtra por estado: el filtro de pestañas se aplica aquí abajo
   const { data: visits = [], isLoading } = trpc.technicalVisits.list.useQuery(
-    statusFilter !== "todas" ? { status: statusFilter } : undefined,
+    undefined,
     { refetchOnWindowFocus: false }
   );
 
@@ -552,7 +553,7 @@ export default function VisitasTecnicas() {
                     <div key={pdf.id} className="flex items-center gap-3 bg-[#0C1A1A] rounded-lg px-4 py-3">
                       <FileText className="h-5 w-5 text-red-400 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-white truncate">{pdf.description ?? "Plano"}</p>
+                        <p className="text-sm text-white truncate">{pdf.originalFileName ?? "Plano"}</p>
                       </div>
                       <a
                         href={pdf.url}
@@ -629,7 +630,7 @@ export default function VisitasTecnicas() {
           </div>
         )}
 
-        {!isLoading && (visits as Visit[]).filter(v => v.status !== "borrador").length === 0 && (
+        {!isLoading && (visits as unknown as Visit[]).filter(v => v.status !== "borrador").length === 0 && (
           <div className="text-center py-20 text-gray-400">
             <Ruler className="h-12 w-12 mx-auto mb-4 opacity-30" />
             <p className="text-lg">Sin visitas en esta categoría</p>
@@ -637,7 +638,7 @@ export default function VisitasTecnicas() {
         )}
 
         <div className="space-y-3">
-          {(visits as Visit[]).filter(v => {
+          {(visits as unknown as Visit[]).filter(v => {
             if (statusFilter === "todas") return v.status !== "borrador";
             return v.status === statusFilter;
           }).map(visit => {

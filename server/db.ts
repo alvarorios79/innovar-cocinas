@@ -1310,7 +1310,7 @@ export async function deleteExpense(id: number) {
   if (!db) throw new Error("Database not available");
 
   // Soft delete: marca deletedAt en vez de borrar permanentemente
-  await db.update(expenses).set({ deletedAt: new Date() }).where(eq(expenses.id, id));
+  await db.update(expenses).set({ deletedAt: new Date().toISOString() }).where(eq(expenses.id, id));
 }
 
 // ============ AUDIT LOGS ============
@@ -1428,7 +1428,7 @@ export async function updateUserLastSignedIn(userId: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  await db.update(users).set({ lastSignedIn: new Date() }).where(eq(users.id, userId));
+  await db.update(users).set({ lastSignedIn: new Date().toISOString() }).where(eq(users.id, userId));
 }
 
 export async function getFinancialSettings() {
@@ -1821,7 +1821,7 @@ export async function getAllQuotationsGroupedByBase(options?: { page?: number; l
     }
 
     // 4. Aplicar a cada grupo
-    for (const group of grouped) {
+    for (const group of grouped as any[]) {
       // Buscar proyecto por cualquiera de los versionIds del grupo
       let foundProj: typeof allProjects[0] | undefined;
       for (const vId of (group.versionIds ?? [])) {

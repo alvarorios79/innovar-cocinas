@@ -165,7 +165,8 @@ const MEASUREMENT_FIELDS: Record<WorkType, Array<{ key: keyof Measurements; labe
   ],
 };
 
-const TECHNICAL_CHECKLIST: Record<WorkType, Array<{ key: keyof TechnicalChecklist; label: string }>> = {
+// Partial: mueble_bano y otro no tienen checklist técnico (se usa `?? []` al leerlo)
+const TECHNICAL_CHECKLIST: Partial<Record<WorkType, Array<{ key: keyof TechnicalChecklist; label: string }>>> = {
   cocina: [
     { key: "puntoGas", label: "Punto de gas" },
     { key: "puntoHidraulico", label: "Punto hidráulico" },
@@ -590,7 +591,7 @@ export default function Medidor() {
   };
 
   // ── Helpers para medidas por unidad ────────────────────────────────────────
-  const getUnidades = (wt: WorkType): Array<Record<string, number | undefined>> => {
+  const getUnidades = (wt: WorkType): Array<Record<string, number | string | undefined>> => {
     const stored = (localMeasurements as any)[`_${wt}_unidades`];
     if (stored && Array.isArray(stored)) return stored;
     // Retrocompat: convertir formato plano anterior

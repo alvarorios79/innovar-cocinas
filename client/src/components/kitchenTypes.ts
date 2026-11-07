@@ -1,8 +1,11 @@
 // Tipo de datos de la configuración de cocina integral (se guarda en kitchenConfig de cada ítem de cotización).
 // Separado del antiguo componente KitchenConfigurator.tsx (eliminado: no se usaba).
 
+import type { ModulePlan } from "@shared/kitchenModulePlan";
+
 export interface KitchenConfig {
   shape: string;
+  modulePlan?: ModulePlan; // plano de módulos (siempre activo en cocinas nuevas)
   layout?: string; // Forma física: L, U, lineal, cuadrada (informativo, no afecta precio)
   includeLower?: boolean; // Incluir muebles inferiores (default true)
   includeUpper?: boolean; // Incluir muebles superiores (default true)

@@ -3356,7 +3356,7 @@ export default function Quotations() {
                               {/* Tracker ML consumido */}
                               {(() => {
                                 const kmT = (item.kitchenConfig?.kitchenModules || {}) as any;
-                                const smT = item.kitchenConfig?.specialModules || {};
+                                const smT: Partial<NonNullable<typeof item.kitchenConfig>["specialModules"]> = item.kitchenConfig?.specialModules || {};
                                 // Superiores e inferiores tracked por separado
                                 const SUP_ML_DEFAULT: Record<string, number> = {
                                   esquineroSuperior:1.20, moduloAlmacSup:0.65, moduloExtractor:0.70,
@@ -4845,9 +4845,9 @@ export default function Quotations() {
                                 }}
                                 className="w-24 h-9 text-center font-semibold"
                               />
-                              {parseInt(item.quantity || "1") > 1 && item.closetConfig?.subtotal > 0 && (
+                              {parseInt(item.quantity || "1") > 1 && (item.closetConfig?.subtotal ?? 0) > 0 && (
                                 <span className="text-xs text-purple-300">
-                                  {parseInt(item.quantity)} × {formatPrice(item.closetConfig.subtotal)} = {formatPrice(item.closetConfig.subtotal * parseInt(item.quantity))}
+                                  {parseInt(item.quantity)} × {formatPrice(item.closetConfig!.subtotal!)} = {formatPrice(item.closetConfig!.subtotal! * parseInt(item.quantity))}
                                 </span>
                               )}
                             </div>

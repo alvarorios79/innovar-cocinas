@@ -12,8 +12,8 @@ export const drizzleMigrations = pgTable("__drizzle_migrations__", {
 
 export const accountingClosureOperationalExpenses = pgTable("accounting_op_expenses", {
 	id: serial('id').primaryKey(),
-	closureId: integer().notNull().references(() => accountingClosures.id, { onDelete: "cascade", name: "fk_acoe_closure" }),
-	expenseId: integer().notNull().references(() => expenses.id, { name: "fk_acoe_expense" }),
+	closureId: integer().notNull().references(() => accountingClosures.id, { onDelete: "cascade" }), // FK en BD: fk_acoe_closure
+	expenseId: integer().notNull().references(() => expenses.id), // FK en BD: fk_acoe_expense
 	category: text().notNull(),
 	description: text().notNull(),
 	amount: decimal({ precision: 12, scale: 2 }).notNull(),
@@ -537,6 +537,8 @@ export const projectStatusHistory = pgTable("projectStatusHistory", {
 	toStatus: varchar({ length: 50 }).notNull(),
 	changedBy: integer().notNull().references(() => users.id),
 	notes: text(),
+	// Ya existía en la BD (producción) desde antes; agregado al schema el 6 nov 2026
+	evidenceUrl: text(),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 },
 (table) => [
@@ -923,3 +925,34 @@ export const fixedExpenseConfig = pgTable("fixedExpenseConfig", {
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 });
+
+// ── Tipos de inserción usados por server/db.ts (solo tipos, no afectan la BD) ──
+export type InsertUser = typeof users.$inferInsert;
+export type InsertClient = typeof clients.$inferInsert;
+export type InsertAppointment = typeof appointments.$inferInsert;
+export type InsertAppointmentWorkType = typeof appointmentWorkTypes.$inferInsert;
+export type InsertAdvisoryRequest = typeof advisoryRequests.$inferInsert;
+export type InsertPriorEstimate = typeof priorEstimates.$inferInsert;
+export type InsertQuotation = typeof quotations.$inferInsert;
+export type InsertQuotationItem = typeof quotationItems.$inferInsert;
+export type InsertColombianHoliday = typeof colombianHolidays.$inferInsert;
+export type InsertReminder = typeof reminders.$inferInsert;
+export type InsertProject = typeof projects.$inferInsert;
+export type InsertProjectPhoto = typeof projectPhotos.$inferInsert;
+export type InsertProjectDetail = typeof projectDetails.$inferInsert;
+export type InsertTask = typeof tasks.$inferInsert;
+export type InsertProjectStatusHistory = typeof projectStatusHistory.$inferInsert;
+export type InsertPushSubscription = typeof pushSubscriptions.$inferInsert;
+export type InsertNotification = typeof notifications.$inferInsert;
+export type InsertPayment = typeof payments.$inferInsert;
+export type InsertPricingConfig = typeof pricingConfig.$inferInsert;
+export type InsertPricingHistory = typeof pricingHistory.$inferInsert;
+export type InsertExpense = typeof expenses.$inferInsert;
+export type InsertClientRevisionHistory = typeof clientRevisionHistory.$inferInsert;
+export type InsertFinancialAlert = typeof financialAlerts.$inferInsert;
+export type InsertFinancialSettings = typeof financialSettings.$inferInsert;
+export type InsertAuditLog = typeof auditLogs.$inferInsert;
+export type InsertAccountingClosure = typeof accountingClosures.$inferInsert;
+export type InsertAccountingClosureProject = typeof accountingClosureProjects.$inferInsert;
+export type InsertAccountingClosureOperationalExpense = typeof accountingClosureOperationalExpenses.$inferInsert;
+export type InsertClosureAuditLog = typeof closureAuditLog.$inferInsert;

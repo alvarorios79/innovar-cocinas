@@ -17,6 +17,7 @@ interface CEOFinancialMetrics {
   gastos: number;
   margen: number;
   rentabilidad: number;
+  fixedMonthlyReserve?: number; // reserva fija mensual (gastos fijos), ver getCEOFinancialMetrics
 }
 
 export const dashboardRouter = router({

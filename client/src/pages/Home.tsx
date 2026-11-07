@@ -187,10 +187,6 @@ export default function Home() {
         description: "Te contactaremos pronto por WhatsApp al " + appointmentForm.whatsappPhone,
       });
 
-      // Abrir WhatsApp Business para notificar
-      if (result.whatsappLink) {
-        window.open(result.whatsappLink, "_blank");
-      }
 
       // Limpiar formulario
       setAppointmentForm({

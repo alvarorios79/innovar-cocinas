@@ -62,7 +62,7 @@ export const uploadRouter = router({
 
         // Decodificar base64 y subir
         const base64Data = input.fileData.replace(/^data:[^;]+;base64,/, "");
-        let buffer = Buffer.from(base64Data, "base64");
+        let buffer: Buffer = Buffer.from(base64Data, "base64");
 
         // Validar tamaño máximo (10MB)
         const maxSize = 20 * 1024 * 1024;
@@ -170,7 +170,7 @@ export const uploadRouter = router({
             const fileKey = `${filePath}/${safeFileName}`;
 
             const base64Data = file.fileData.replace(/^data:image\/\w+;base64,/, "");
-            let buffer = Buffer.from(base64Data, "base64");
+            let buffer: Buffer = Buffer.from(base64Data, "base64");
 
             // Validar tamaño
             const maxSize = 20 * 1024 * 1024;

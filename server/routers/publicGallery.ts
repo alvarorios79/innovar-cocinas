@@ -16,6 +16,7 @@ import { createAndSendNotification, sendPushToRole } from "../push-notifications
 import { addBusinessDays, calculateEstimatedDeliveryDate } from "../business-days";
 import { sanitizeText, sanitizeHtml, sanitizeForEmail, sanitizePhone, sanitizeEmail } from "../sanitize";
 import { randomBytes } from "crypto";
+import { computeDesignVersions } from "@shared/designVersions";
 
 
 export const publicGalleryRouter = router({
@@ -72,6 +73,11 @@ export const publicGalleryRouter = router({
           })),
           totalModelado: allPhotos.filter(p => p.subcategory === "modelado_3d").length,
           totalRenders: allPhotos.filter(p => p.subcategory === "renders").length,
+          // Versión de cada foto de diseño según los envíos al cliente (ver shared/designVersions.ts)
+          designVersions: computeDesignVersions(
+            allPhotos as any,
+            (await db.getProjectStatusHistory(input.projectId)) as any,
+          ),
         };
       }),
 
@@ -519,7 +525,8 @@ export const publicGalleryRouter = router({
           const phoneWithCountry = phone.startsWith('57') ? phone : `57${phone}`;
           const message = encodeURIComponent(
             `¡Hola ${client.name}! 🎉\n\n` +
-            `¡Ya hicimos los ajustes que nos pediste! Los renders de tu proyecto "${project.name}" están actualizados. ✨\n\n` +
+            `¡Ya hicimos los ajustes que nos pediste! Te enviamos la *versión ${newRevision}* de los renders de tu proyecto "${project.name}". ✨\n\n` +
+            `En el enlace la verás arriba, marcada como *NUEVO*; las versiones anteriores quedan abajo por si quieres comparar. Cada imagen tiene su número para que nos indiques fácil cualquier detalle.\n\n` +
             `Míralos aquí y cuéntanos si ahora sí quedó como lo imaginabas: 😍\n` +
             `${portalLink}\n\n` +
             `Si todo está a tu gusto, apruébalos desde el mismo enlace y arrancamos la fabricación. 🛠️ Y si falta algún detalle, con gusto lo seguimos afinando.\n\n` +
@@ -605,7 +612,8 @@ export const publicGalleryRouter = router({
           const phoneWithCountry = phone.startsWith('57') ? phone : `57${phone}`;
           const message = encodeURIComponent(
             `¡Hola ${client.name}! 👋\n\n` +
-            `Hemos actualizado el modelado 3D de tu proyecto "${project.name}" con los cambios que solicitaste.\n\n` +
+            `Hemos actualizado el modelado 3D de tu proyecto "${project.name}" con los cambios que solicitaste: es la *versión ${newRevision}*.\n\n` +
+            `En el enlace la verás arriba, marcada como *NUEVO*; las versiones anteriores quedan abajo por si quieres comparar.\n\n` +
             `Por favor revisa el nuevo diseño y apruébalo cuando estés satisfecho:\n` +
             `${portalLink}\n\n` +
             `¡Gracias por tu confianza en INNOVAR Cocinas! 🏠`

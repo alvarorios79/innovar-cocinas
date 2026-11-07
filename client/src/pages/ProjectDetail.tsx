@@ -65,6 +65,7 @@ import { ExportProjectReportButton } from "@/components/ExportProjectReportButto
 import { ExportProjectWordButton } from "@/components/ExportProjectWordButton";
 import { toast } from "sonner";
 import { getChecklistView } from "@/lib/visitChecklist";
+import { groupByVersion, type DesignVersionInfo } from "@shared/designVersions";
 
 
 // Estados del proyecto según Ruta INNOVAR (14 estados simplificados)
@@ -1570,9 +1571,20 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                       </div>
                     )}
                     {category !== "medidas" && subcategories.map((subcategory) => {
-                      const photos = projectDetail.photos?.filter(
+                      const rawPhotos = projectDetail.photos?.filter(
                         (p: any) => p.category === category && p.subcategory === subcategory
                       ) || [];
+                      // Renders y modelado: agrupar por versión (la más reciente primero, numeradas),
+                      // igual que el enlace del cliente (shared/designVersions.ts)
+                      const dv = (projectDetail as any).designVersions as DesignVersionInfo | undefined;
+                      const isDesign = subcategory === "renders" || subcategory === "modelado_3d";
+                      const vGroups = isDesign && dv ? groupByVersion(rawPhotos as any[], dv) : null;
+                      const photos = vGroups ? vGroups.flatMap(g => g.photos) : rawPhotos;
+                      const multiV = (vGroups?.length ?? 0) > 1;
+                      const vLabel: Record<number, { text: string; isNew: boolean; old: boolean }> = {};
+                      vGroups?.forEach((g, gi) => g.photos.forEach((p: any, i: number) => {
+                        vLabel[p.id] = { text: `${multiV ? `V${g.version} · ` : ""}${i + 1}`, isNew: gi === 0 && multiV, old: gi > 0 };
+                      }));
                       return (
                         <div key={subcategory} className="border rounded-lg p-3">
                           <div className="flex items-center justify-between mb-2">
@@ -1631,7 +1643,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                                       <img
                                         src={photo.photoUrl || ''}
                                         alt={photo.description || "Foto"}
-                                        className="w-full h-full object-cover"
+                                        className={`w-full h-full object-cover ${vLabel[photo.id]?.old ? "opacity-50" : ""}`}
                                         onError={(e) => {
                                           (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%22%23f0f0f0%22 width=%22100%22 height=%22100%22/%3E%3C/svg%3E';
                                         }}
@@ -1640,6 +1652,16 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                                     <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                       <ZoomIn className="h-6 w-6 text-white" />
                                     </div>
+                                    {vLabel[photo.id] && (
+                                      <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded text-[10px] font-bold whitespace-nowrap bg-black/70 text-white">
+                                        {vLabel[photo.id].text}
+                                      </span>
+                                    )}
+                                    {vLabel[photo.id]?.isNew && (
+                                      <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded text-[9px] font-extrabold whitespace-nowrap bg-amber-500 text-black">
+                                        NUEVO
+                                      </span>
+                                    )}
                                     {/* Botón eliminar — solo admin/comercial/diseñador en pre-producción; jefe/operario solo ven */}
                                     {(user?.role === "super_admin" || user?.role === "admin" ||
                                       user?.role === "comercial" || user?.role === "disenador") && (

@@ -21,6 +21,7 @@ import { projects, projectDetails, projectPhotos } from "../../drizzle/schema";
 import { randomBytes } from "crypto";
 import { buildScheme } from "@shared/kitchenPlanScheme";
 import { sendPushToRole } from "../push-notifications";
+import { computeDesignVersions } from "@shared/designVersions";
 
 
 // Esquemas del plano de módulos de la cocina de un proyecto (a partir de los ítems de su cotización)
@@ -481,6 +482,8 @@ export const projectsRouter = router({
           quotationId: project.quotationId,
           client: hideClientContact(role, client),
           photos,
+          // Versión de cada render/modelado según los envíos al cliente (shared/designVersions.ts)
+          designVersions: computeDesignVersions(photos as any, history as any),
           details,
           history: unifiedHistory,
           tasks: projectTasks,

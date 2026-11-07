@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { WatermarkedImage, WatermarkedFullscreenImage } from "@/components/WatermarkedImage";
 import { toast } from "sonner";
+import { groupByVersion, type DesignVersionInfo } from "@shared/designVersions";
 import { 
   Image as ImageIcon, 
   ZoomIn, 
@@ -31,6 +32,12 @@ import {
   MessageSquare,
   Loader2
 } from "lucide-react";
+
+function shortDate(iso?: string): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString("es-CO", { day: "numeric", month: "short" });
+}
 
 const WORK_TYPES: Record<string, string> = {
   cocina: "Cocina Integral",
@@ -159,6 +166,7 @@ export default function PublicGallery() {
   }
 
   const { project, client, photos, totalModelado, totalRenders } = data;
+  const versionInfo = (data as any).designVersions as DesignVersionInfo | undefined;
 
   // ─────────────────────────────────────────────────────────────────
   // PORTAL COMPLETO — se activa cuando no hay ?type= en la URL
@@ -289,20 +297,34 @@ export default function PublicGallery() {
                 <div className="flex-1 h-px" style={{ background: "#252525" }} />
               </div>
               <div className="rounded-2xl p-4 md:p-5" style={{ background: "#141414", border: "1px solid #222" }}>
-                {modeladoPhotos.length > 0 && (
-                  <PhotoRow
-                    rowPhotos={modeladoPhotos}
-                    sublabel={rendersPhotos.length > 0 ? "Modelado 3D" : undefined}
-                  />
-                )}
-                {rendersPhotos.length > 0 && (
-                  <div className={modeladoPhotos.length > 0 ? "mt-5" : ""}>
-                    <PhotoRow
-                      rowPhotos={rendersPhotos}
-                      sublabel={modeladoPhotos.length > 0 ? "Renders" : undefined}
-                    />
-                  </div>
-                )}
+                {([["modelado_3d", modeladoPhotos, "Modelado 3D"], ["renders", rendersPhotos, "Renders"]] as const)
+                  .filter(([, list]) => list.length > 0)
+                  .map(([type, list, label], i) => {
+                    const groups = versionInfo ? groupByVersion(list as any[], versionInfo) : [{ version: 1, photos: list as any[] }];
+                    const [latest, ...older] = groups;
+                    const multi = groups.length > 1;
+                    return (
+                      <div key={type} className={i > 0 ? "mt-5" : ""}>
+                        <PhotoRow
+                          rowPhotos={latest.photos}
+                          sublabel={`${label}${multi ? ` · Versión ${latest.version} (la más reciente)` : ""}`}
+                        />
+                        {older.length > 0 && (
+                          <details className="mt-2">
+                            <summary className="text-xs cursor-pointer select-none" style={{ color: "#777" }}>
+                              Ver versiones anteriores ({older.length})
+                            </summary>
+                            <div className="mt-3 opacity-70">
+                              {older.map(g => (
+                                <PhotoRow key={g.version} rowPhotos={g.photos}
+                                  sublabel={`${label} · Versión ${g.version}${versionInfo?.sentAt[type]?.[g.version] ? ` · enviada el ${shortDate(versionInfo.sentAt[type][g.version])}` : ""}`} />
+                              ))}
+                            </div>
+                          </details>
+                        )}
+                      </div>
+                    );
+                  })}
               </div>
             </section>
           )}
@@ -472,9 +494,14 @@ export default function PublicGallery() {
   }
 
   // Filtrar fotos según la pestaña activa
-  const filteredPhotos = activeTab === "all" 
+  const tabPhotos = activeTab === "all" 
     ? photos 
     : photos.filter(p => p.subcategory === activeTab);
+  // Con ?type=: agrupar por versión (la más reciente primero, numeradas). Sin versiones: igual que antes.
+  const versionGroups = photoType && versionInfo ? groupByVersion(tabPhotos as any[], versionInfo) : null;
+  const filteredPhotos = (versionGroups ? versionGroups.flatMap(g => g.photos) : tabPhotos) as typeof photos;
+  const latestVersion = versionGroups?.[0]?.version ?? 1;
+  const hasOlderVersions = (versionGroups?.length ?? 0) > 1;
 
   // Navegación del visor
   const currentPhotoIndex = selectedPhoto !== null 
@@ -646,6 +673,87 @@ export default function PublicGallery() {
             <ImageIcon className="h-16 w-16 mx-auto text-gray-300 mb-4" />
             <p className="text-gray-500">No hay imágenes disponibles en esta categoría</p>
           </Card>
+        ) : versionGroups ? (
+          <div className="space-y-8">
+            {versionGroups.map((g, gi) => {
+              const isLatest = gi === 0;
+              const sent = versionInfo?.sentAt[photoType!]?.[g.version];
+              const header = (
+                <div className="flex items-center gap-2 flex-wrap mb-3">
+                  <h2 className={`font-bold ${isLatest ? "text-lg text-foreground" : "text-base text-muted-foreground"}`}>
+                    {designTypeLabel} · Versión {g.version}{g.version > 1 ? " (ajustes)" : ""}
+                  </h2>
+                  {isLatest && hasOlderVersions && (
+                    <Badge className="bg-amber-500 hover:bg-amber-500 text-black font-bold">NUEVO</Badge>
+                  )}
+                  {sent && <span className="text-xs text-muted-foreground">enviada el {shortDate(sent)}</span>}
+                </div>
+              );
+              const grid = (
+                <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 ${isLatest ? "" : "opacity-60"}`}>
+                  {g.photos.map((photo: any, index: number) => (
+                    <Card key={photo.id} className="overflow-hidden cursor-pointer group hover:shadow-lg transition-shadow"
+                      onClick={() => setSelectedPhoto(photo.id)}>
+                      <div className="relative aspect-[4/3] bg-white/[0.06]">
+                        <WatermarkedImage src={photo.photoUrl} alt={photo.description || `Imagen ${index + 1}`}
+                          className="w-full h-full" watermarkOpacity={0.35} watermarkSize={30} watermarkPosition="bottom-right" />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center pointer-events-none">
+                          <ZoomIn className="h-8 w-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                        {/* Número de la imagen dentro de su versión (para pedir cambios: "en la 2…") */}
+                        <span className="absolute top-2 left-2 min-w-[28px] h-7 px-2 rounded-full bg-black/70 text-white text-sm font-bold flex items-center justify-center">
+                          {index + 1}
+                        </span>
+                        {hasOlderVersions && (
+                          <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-black/60 text-white text-[11px]">V{g.version}</span>
+                        )}
+                      </div>
+                      {photo.description && (
+                        <CardContent className="p-3">
+                          <p className="text-sm text-muted-foreground line-clamp-2">{photo.description}</p>
+                        </CardContent>
+                      )}
+                    </Card>
+                  ))}
+                </div>
+              );
+              return isLatest ? (
+                <section key={g.version}>{header}{grid}</section>
+              ) : null;
+            })}
+            {hasOlderVersions && (
+              <details className="rounded-xl border border-white/10 p-4">
+                <summary className="cursor-pointer select-none text-sm text-muted-foreground">
+                  Ver versiones anteriores ({versionGroups.length - 1})
+                </summary>
+                <div className="mt-4 space-y-8">
+                  {versionGroups.slice(1).map((g) => {
+                    const sent = versionInfo?.sentAt[photoType!]?.[g.version];
+                    return (
+                      <section key={g.version}>
+                        <div className="flex items-center gap-2 flex-wrap mb-3">
+                          <h3 className="font-semibold text-muted-foreground">{designTypeLabel} · Versión {g.version}</h3>
+                          {sent && <span className="text-xs text-muted-foreground">enviada el {shortDate(sent)}</span>}
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 opacity-60">
+                          {g.photos.map((photo: any, index: number) => (
+                            <div key={photo.id} className="relative aspect-[4/3] rounded-lg overflow-hidden cursor-pointer bg-white/[0.06]"
+                              onClick={() => setSelectedPhoto(photo.id)}>
+                              <WatermarkedImage src={photo.photoUrl} alt={`Versión ${g.version} · ${index + 1}`}
+                                className="w-full h-full" watermarkOpacity={0.35} watermarkSize={22} watermarkPosition="bottom-right" />
+                              <span className="absolute top-1.5 left-1.5 min-w-[24px] h-6 px-1.5 rounded-full bg-black/70 text-white text-xs font-bold flex items-center justify-center">
+                                {index + 1}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </section>
+                    );
+                  })}
+                </div>
+              </details>
+            )}
+          </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredPhotos.map((photo, index) => (
@@ -691,10 +799,12 @@ export default function PublicGallery() {
           <Card className="mt-8 p-6 bg-gradient-to-r from-amber-950/30 to-orange-950/30 border-amber-500/25">
             <div className="text-center">
               <h3 className="text-lg font-semibold text-foreground mb-2">
-                ¿Qué te parece el {designTypeLabel}?
+                {hasOlderVersions ? `¿Qué te parece la versión ${latestVersion} ${photoType === "renders" ? "de los renders" : "del modelado 3D"}?` : `¿Qué te parece el ${designTypeLabel}?`}
               </h3>
               <p className="text-muted-foreground mb-6">
-                Revisa las imágenes y dinos si estás conforme o si necesitas algún cambio.
+                {hasOlderVersions
+                  ? "Revisa la versión más reciente (arriba, marcada como NUEVO) y dinos si estás conforme o qué cambios necesitas. Puedes mencionar el número de cada imagen."
+                  : "Revisa las imágenes y dinos si estás conforme o si necesitas algún cambio. Puedes mencionar el número de cada imagen."}
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button
@@ -936,7 +1046,14 @@ export default function PublicGallery() {
                     <p className="text-white/90 text-sm">{selectedPhotoData.description}</p>
                   )}
                   <p className="text-white/60 text-xs mt-1">
-                    {currentPhotoIndex + 1} de {filteredPhotos.length}
+                    {versionGroups && versionInfo
+                      ? (() => {
+                          const v = versionInfo.byPhotoId[(selectedPhotoData as any).id] ?? 1;
+                          const g = versionGroups.find(x => x.version === v);
+                          const n = (g?.photos.findIndex((p: any) => p.id === (selectedPhotoData as any).id) ?? 0) + 1;
+                          return `Versión ${v}${v === latestVersion && hasOlderVersions ? " (nueva)" : ""} · imagen ${n} de ${g?.photos.length ?? 1}`;
+                        })()
+                      : `${currentPhotoIndex + 1} de ${filteredPhotos.length}`}
                   </p>
                 </div>
                 <Button

@@ -61,8 +61,8 @@ import { PaymentsSection } from "@/components/PaymentsSection";
 import { ProjectExpensesSection } from "@/components/ProjectExpensesSection";
 import { PageHeader } from "@/components/PageHeader";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
-import { ExportProjectReportButton } from "@/components/ExportProjectReportButton";
-import { ExportProjectWordButton } from "@/components/ExportProjectWordButton";
+import { ReportExportButtons } from "@/components/ReportExportButtons";
+import { buildProjectReport } from "@shared/businessReports";
 import { toast } from "sonner";
 import { getChecklistView } from "@/lib/visitChecklist";
 import { groupByVersion, type DesignVersionInfo } from "@shared/designVersions";
@@ -2173,11 +2173,12 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
               {/* Botones de exportación */}
               {(user?.role === "admin" || user?.role === "super_admin") && (
                 <div className="flex gap-2 justify-end">
-                  <ExportProjectReportButton
-                    projectId={projectId}
-                    clientName={(projectDetail as any).client?.name}
+                  <ReportExportButtons
+                    filename={`Reporte_Proyecto_${projectId}_${new Date().toISOString().slice(0, 10)}`}
+                    pdfLabel="PDF Reporte"
+                    wordLabel="Word Reporte"
+                    load={async () => buildProjectReport(await utils.projects.exportReport.fetch({ projectId }))}
                   />
-                  <ExportProjectWordButton projectId={projectId} />
                 </div>
               )}
               <PaymentsSection

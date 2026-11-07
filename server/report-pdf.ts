@@ -102,7 +102,10 @@ export function renderReportPdf(report: ReportDoc, logo?: Buffer): Promise<Buffe
         doc.fillColor(c(RC.teal)).font("Helvetica-Bold").fontSize(12).text(t.title, M.left, y + 4, { width: W });
         y += textH(t.title, 12, W, true) + 8;
       } else ensure(headH + 24);
-      drawHead();
+      if (t.hideHeader) {
+        doc.rect(M.left, y, W, 1.5).fill(c(RC.teal));
+        y += 1.5;
+      } else drawHead();
 
       t.rows.forEach((raw, ri) => {
         const cells = raw.map(cellOf);
@@ -110,7 +113,7 @@ export function renderReportPdf(report: ReportDoc, logo?: Buffer): Promise<Buffe
           const w = widths[i] - 2 * PAD;
           return textH(cell.text, SIZE, w, cell.bold) + (cell.note ? textH(cell.note, NOTE, w) + 2 : 0);
         })) + 2 * PAD;
-        if (ensure(h)) drawHead();
+        if (ensure(h) && !t.hideHeader) drawHead();
         if (ri % 2 === 1) doc.rect(M.left, y, W, h).fill(c(RC.zebra));
         cells.forEach((cell, i) => {
           const w = widths[i] - 2 * PAD, align = t.columns[i]?.align || "left";
@@ -127,7 +130,7 @@ export function renderReportPdf(report: ReportDoc, logo?: Buffer): Promise<Buffe
 
       if (t.footer) {
         const fh = 24;
-        if (ensure(fh)) drawHead();
+        if (ensure(fh) && !t.hideHeader) drawHead();
         doc.rect(M.left, y, W, fh).fill(c(RC.footerBg));
         doc.rect(M.left, y, W, 1.5).fill(c(RC.teal));
         footerSpans(t.footer).forEach(f => {

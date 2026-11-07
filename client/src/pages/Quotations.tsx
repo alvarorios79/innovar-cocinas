@@ -41,7 +41,8 @@ import { QuotationGroupCard } from "@/components/QuotationGroupCard";
 import { ArchiveFilterTabs } from "@/components/ArchiveFilterTabs";
 import { InitialPaymentModal } from "@/components/InitialPaymentModal";
 import { PageHeader } from "@/components/PageHeader";
-import { ExportQuotationsButton } from "@/components/ExportQuotationsButton";
+import { ReportExportButtons } from "@/components/ReportExportButtons";
+import { buildQuotationsListReport } from "@shared/businessReports";
 import { KitchenModulePlanner } from "@/components/KitchenModulePlanner";
 import { descriptiveFromPlan, computePlan, kitchenModulesFromPlan, EXTRA_PAINT } from "@shared/kitchenModulePlan";
 
@@ -2266,11 +2267,16 @@ export default function Quotations() {
         showBack={true}
         actions={
           <div className="flex gap-2 flex-wrap">
-            <ExportQuotationsButton
-              filters={{
-                status: filterStatus,
-                dateFrom: filterDateFrom,
-                dateTo: filterDateTo,
+            <ReportExportButtons
+              filename={`Cotizaciones_INNOVAR_${new Date().toISOString().slice(0, 10)}`}
+              emptyMessage="No hay cotizaciones con los filtros actuales"
+              load={async () => {
+                const status = filterStatus && filterStatus !== 'all' ? filterStatus : undefined;
+                const rows = await utils.quotations.exportList.fetch({ status, dateFrom: filterDateFrom || undefined, dateTo: filterDateTo || undefined });
+                if (!rows.length) return null;
+                const statusText: Record<string, string> = { draft: 'Borradores', sent: 'Enviadas', approved: 'Aprobadas', rejected: 'Rechazadas' };
+                const parts = [status ? statusText[status] || status : '', filterDateFrom ? `desde ${filterDateFrom}` : '', filterDateTo ? `hasta ${filterDateTo}` : ''].filter(Boolean);
+                return buildQuotationsListReport(rows, parts.join(' · '));
               }}
             />
             <div className="hidden sm:block">

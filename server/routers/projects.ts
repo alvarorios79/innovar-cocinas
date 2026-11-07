@@ -2055,26 +2055,27 @@ ${input.notes || "No se especificaron detalles"}
         }
       }),
 
-    // Exportar proyectos a Excel
-    exportToExcel: protectedProcedure
-      .input(z.object({
-        archived: z.boolean().optional(),
-      }))
+    // Informes imprimibles (PDF / Word) — reemplazan los Excel
+    exportList: protectedProcedure
+      .input(z.object({ archived: z.boolean().optional() }))
       .query(async ({ ctx, input }) => {
-        // Solo admin y super_admin pueden exportar
         if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para exportar" });
         }
+        const { getProjectsListData } = await import("../report-data");
+        return getProjectsListData(input.archived);
+      }),
 
-        const { getProjectsForExport } = await import("../export");
-        const rows = await getProjectsForExport(input.archived);
-        
-        // Convertir a formato JSON para que el cliente lo descargue
-        return {
-          success: true,
-          data: rows,
-          timestamp: new Date().toISOString(),
-        };
+    exportReport: protectedProcedure
+      .input(z.object({ projectId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para exportar" });
+        }
+        const { getProjectReportData } = await import("../report-data");
+        const data = await getProjectReportData(input.projectId);
+        if (!data) throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
+        return data;
       }),
 });
 
@@ -2509,28 +2510,6 @@ export const projectMaterialsRouter = router({
         }
         const result = await db.getGlobalFinancialDashboard();
         return result;
-      }),
-
-    // Exportar proyectos a Excel
-    exportToExcel: protectedProcedure
-      .input(z.object({
-        archived: z.boolean().optional(),
-      }))
-      .query(async ({ ctx, input }) => {
-        // Solo admin y super_admin pueden exportar
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin") {
-          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para exportar" });
-        }
-
-        const { getProjectsForExport } = await import("../export");
-        const rows = await getProjectsForExport(input.archived);
-        
-        // Convertir a formato JSON para que el cliente lo descargue
-        return {
-          success: true,
-          data: rows,
-          timestamp: new Date().toISOString(),
-        };
       }),
 
 

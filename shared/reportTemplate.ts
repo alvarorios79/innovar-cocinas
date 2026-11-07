@@ -21,6 +21,8 @@ export interface ReportCell { text: string; note?: string; bold?: boolean; tone?
 export type ReportCellInput = string | ReportCell;
 export interface ReportTable {
   title?: string;
+  /** Sin fila de títulos (tablas de "dato: valor"). */
+  hideHeader?: boolean;
   columns: ReportColumn[];
   rows: ReportCellInput[][];
   /** Fila de totales, alineada con las columnas. Las celdas vacías tras la primera se unen a ella. */
@@ -145,7 +147,7 @@ export function renderReportHtml(doc: ReportDoc, opts: { logoUrl?: string; docum
     const foot = t.footer
       ? `<tfoot><tr>${footerSpans(t.footer).map(f => `<td colspan="${f.span}" class="${f.index === 0 ? "left" : t.columns[f.index]?.align || "left"}">${esc(f.text)}</td>`).join("")}</tr></tfoot>`
       : "";
-    return `${t.title ? `<h3>${esc(t.title)}</h3>` : ""}<table><colgroup>${cols}</colgroup><thead><tr>${head}</tr></thead><tbody>${body}</tbody>${foot}</table>`;
+    return `${t.title ? `<h3>${esc(t.title)}</h3>` : ""}<table><colgroup>${cols}</colgroup>${t.hideHeader ? "" : `<thead><tr>${head}</tr></thead>`}<tbody>${body}</tbody>${foot}</table>`;
   };
 
   const sections = doc.sections.map(s => `
@@ -317,7 +319,7 @@ function docxTable(t: ReportTable): (Paragraph | Table)[] {
       });
     }),
   }));
-  const all = [header, ...rows];
+  const all = t.hideHeader ? [...rows] : [header, ...rows];
   if (t.footer) {
     all.push(new TableRow({
       cantSplit: true,

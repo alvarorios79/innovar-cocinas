@@ -52,7 +52,8 @@ import { MaterialsForm } from "@/components/MaterialsForm";
 import { HardwareSelector } from "@/components/HardwareSelector";
 import { ProjectInlineDetail } from "@/components/ProjectInlineDetail";
 import { PageHeader } from "@/components/PageHeader";
-import { ExportProjectsButton } from "@/components/ExportProjectsButton";
+import { ReportExportButtons } from "@/components/ReportExportButtons";
+import { buildProjectsListReport } from "@shared/businessReports";
 // Usar tRPC mutations en lugar de fetch directo
 
 // Estados del proyecto según Ruta INNOVAR (14 estados simplificados)
@@ -636,7 +637,17 @@ export default function Projects() {
           actions={
             (user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial") ? (
               <div className="flex gap-2">
-                <ExportProjectsButton archived={archiveTab === 'archived'} />
+                {(user?.role === "admin" || user?.role === "super_admin") && (
+                  <ReportExportButtons
+                    filename={`Proyectos_${archiveTab === 'archived' ? 'Archivados' : 'Activos'}_${new Date().toISOString().slice(0, 10)}`}
+                    emptyMessage="No hay proyectos para exportar"
+                    load={async () => {
+                      const archived = archiveTab === 'archived';
+                      const rows = await utils.projects.exportList.fetch({ archived });
+                      return rows.length ? buildProjectsListReport(rows, archived) : null;
+                    }}
+                  />
+                )}
                 <Button
                   onClick={() => setShowCreateDialog(true)}
                   style={{ background: "linear-gradient(135deg, #1DB5A8, #0D9B8F)" }}

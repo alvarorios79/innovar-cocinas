@@ -53,9 +53,12 @@ interface PushPayload {
 }
 
 // Enviar notificación push a un usuario específico
-export async function sendPushToUser(userId: number, payload: PushPayload): Promise<{ success: number; failed: number }> {
+export type PushSendResult = { success: number; failed: number; devices: number; enabled: boolean; errors: string[] };
+
+export async function sendPushToUser(userId: number, payload: PushPayload): Promise<PushSendResult> {
   if (!isPushEnabled()) {
-    return { success: 0, failed: 0 };
+    console.warn(`[Push] usuario ${userId}: push deshabilitado (claves VAPID ausentes o inválidas)`);
+    return { success: 0, failed: 0, devices: 0, enabled: false, errors: ["Push deshabilitado en el servidor"] };
   }
   const allSubscriptions = await db.getPushSubscriptionsByUserId(userId);
   // Un mismo dispositivo (endpoint) puede estar repetido en la BD (antes se guardaba en cada
@@ -69,6 +72,7 @@ export async function sendPushToUser(userId: number, payload: PushPayload): Prom
 
   let success = 0;
   let failed = 0;
+  const errors: string[] = [];
 
   for (const sub of subscriptions) {
     try {
@@ -90,7 +94,10 @@ export async function sendPushToUser(userId: number, payload: PushPayload): Prom
       );
       success++;
     } catch (error: any) {
-      console.error(`Error sending push to subscription ${sub.id}:`, error);
+      const host = (() => { try { return new URL(sub.endpoint).host; } catch { return "?"; } })();
+      const msg = `${host}: ${error?.statusCode ?? ""} ${error?.body || error?.message || error}`.trim();
+      errors.push(msg);
+      console.error(`[Push] Error enviando a suscripción ${sub.id} (${host}):`, error?.statusCode, error?.body || error?.message);
       
       // Si la suscripción ya no es válida, eliminarla
       if (error.statusCode === 404 || error.statusCode === 410) {
@@ -100,7 +107,8 @@ export async function sendPushToUser(userId: number, payload: PushPayload): Prom
     }
   }
 
-  return { success, failed };
+  console.log(`[Push] usuario ${userId}: ${subscriptions.length} dispositivo(s), ${success} enviados, ${failed} fallidos`);
+  return { success, failed, devices: subscriptions.length, enabled: true, errors };
 }
 
 // Enviar notificación push a múltiples usuarios

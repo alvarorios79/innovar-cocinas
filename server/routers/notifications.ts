@@ -111,15 +111,24 @@ export const notificationsRouter = router({
           throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden enviar notificaciones de prueba" });
         }
 
-        const { createAndSendNotification } = await import("../push-notifications");
-        await createAndSendNotification(ctx.user.id, {
+        // Diagnóstico: crea el aviso de la campanita y envía el push, devolviendo el resultado
+        const { sendPushToUser } = await import("../push-notifications");
+        await db.createNotification({
+          userId: ctx.user.id,
           title: "Notificación de Prueba",
           body: "¡Las notificaciones push están funcionando correctamente!",
           type: "sistema",
-          url: "/",
+          read: 0,
+          sentPush: 0,
+        });
+        const result = await sendPushToUser(ctx.user.id, {
+          title: "Notificación de Prueba",
+          body: "¡Las notificaciones push están funcionando correctamente!",
+          tag: `prueba-${Date.now()}`,
+          data: { url: "/", type: "sistema" },
         });
 
-        return { success: true };
+        return { ok: true, ...result };
       }),
 });
 

@@ -151,8 +151,12 @@ export function NotificationBell() {
   // Mutations
   const subscribeMutation = trpc.notifications.subscribe.useMutation();
   const sendTestMutation = trpc.notifications.sendTest.useMutation({
-    onSuccess: () => {
-      toast.success("Notificación de prueba enviada. Si las notificaciones están permitidas, llega en unos segundos.");
+    onSuccess: (r: any) => {
+      // Diagnóstico visible: a cuántos dispositivos salió el push y por qué falló
+      if (!r?.enabled) toast.error("El servidor tiene el push desactivado (claves VAPID).");
+      else if (!r.devices) toast.error("Tu usuario no tiene ningún dispositivo registrado. Toca 'Activar notificaciones' en cada dispositivo.");
+      else if (r.failed > 0) toast.error(`Push: ${r.success} de ${r.devices} dispositivo(s) OK. Error: ${(r.errors || []).join(" | ").slice(0, 300)}`, { duration: 20000 });
+      else toast.success(`Push enviado a ${r.success} dispositivo(s). Debe llegar en unos segundos.`);
       refetchUnread();
       refetchNotifications();
     },

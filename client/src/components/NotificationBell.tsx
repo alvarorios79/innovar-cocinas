@@ -123,7 +123,7 @@ function getNotificationColor(type: string): string {
     case "proyecto": return "bg-blue-500";
     case "tarea": return "bg-purple-500";
     case "cita": return "bg-green-500";
-    case "cotizacion": return "bg-yellow-500";
+    case "cotizacion": return "bg-amber-500";
     default: return "bg-gray-500";
   }
 }

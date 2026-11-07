@@ -42,6 +42,11 @@ import { CreateQuickClientDialog } from "@/components/CreateQuickClientDialog";
 import { DailyMotivation } from "@/components/DailyMotivation";
 import { PageHeader } from "@/components/PageHeader";
 
+import { getProjectStatusLabel, getProjectStatusColor } from "@/lib/projectStatus";
+// Estados: nombre y color únicos (lib/projectStatus)
+const getStatusLabel = (status: string) => getProjectStatusLabel(status);
+const getStatusColor = (status: string) => `${getProjectStatusColor(status)} text-white border-transparent`;
+
 // Helper: Drizzle retorna timestamps sin timezone ("2026-09-28 13:30:00")
 // Chrome los parsea como hora local → forzar UTC
 const parseDBDate = (ds: string | Date | null | undefined): Date => {
@@ -190,48 +195,6 @@ export default function Comercial() {
     return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(num);
   };
 
-  // Obtener etiqueta del estado
-  const getStatusLabel = (status: string) => {
-    const statusLabels: Record<string, string> = {
-      contacto: "Contacto",
-      cotizacion_enviada: "Cotización Enviada",
-      cotizacion_aprobada: "Cotización Aprobada",
-      adelanto_recibido: "Adelanto Recibido",
-      en_diseno: "En Diseño",
-      pendiente_modelado: "Pendiente Modelado 3D",
-      pendiente_render: "Pendiente Renders",
-      aprobacion_final: "Diseño Aprobado",
-      despiece: "En Despiece",
-      corte: "En Corte",
-      enchape: "En Enchape",
-      ensamble: "En Ensamble",
-      listo_instalacion: "En Instalación",
-      entregado: "Entregado",
-    };
-    return statusLabels[status] || status;
-  };
-
-  // Obtener color del estado
-  const getStatusColor = (status: string) => {
-    const statusColors: Record<string, string> = {
-      contacto: "bg-white/[0.06] text-white/85",
-      cotizacion_enviada: "bg-blue-500/15 text-blue-300",
-      cotizacion_aprobada: "bg-emerald-500/15 text-emerald-300",
-      adelanto_recibido: "bg-green-500/15 text-green-300",
-      en_diseno: "bg-purple-500/15 text-purple-300",
-      pendiente_modelado: "bg-white/[0.06] text-white/85",
-      pendiente_render: "bg-amber-500/15 text-amber-300",
-      aprobacion_final: "bg-indigo-500/15 text-indigo-300",
-      despiece: "bg-orange-500/15 text-orange-300",
-      corte: "bg-amber-500/15 text-amber-300",
-      enchape: "bg-teal-500/15 text-teal-300",
-      ensamble: "bg-teal-500/15 text-teal-300",
-      listo_instalacion: "bg-cyan-100 text-cyan-300",
-      entregado: "bg-white/[0.06] text-muted-foreground",
-    };
-    return statusColors[status] || "bg-white/[0.06] text-muted-foreground";
-  };
-
   // Manejar programación de instalación
   const handleScheduleInstall = () => {
     if (!scheduleDialog || !installDate) return;
@@ -262,7 +225,7 @@ export default function Comercial() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-500"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -287,80 +250,27 @@ export default function Comercial() {
         showBack={false}
       />
 
-      {/* Hero Section con Logo y Contacto */}
-      <section className="py-5 md:py-6">
-        <div className="container">
-          <div className="max-w-4xl mx-auto text-center space-y-3">
-            {/* Logo grande */}
-            <div className="flex justify-center">
-              <img src="/logo-light.png" alt="INNOVAR Cocinas Integrales"
-                style={{ height: 96, width: 96, objectFit: "contain" }} />
-            </div>
-            
-            {/* Información de contacto */}
-            <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 text-xs md:text-sm text-muted-foreground">
-              <a href="tel:3136802025" className="flex items-center gap-1 hover:text-teal-400 transition-colors">
-                <Phone className="h-3.5 w-3.5" />
-                <span>313 680 2025</span>
-              </a>
-              <span className="flex items-center gap-1">
-                <MapPin className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">K9 vía Cerritos a Pereira</span>
-                <span className="sm:hidden">Cerritos, Pereira</span>
-              </span>
-              <a href="https://innovarcocinasintegrales.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-teal-400 transition-colors">
-                <Globe className="h-3.5 w-3.5" />
-                <span>Sitio Web</span>
-              </a>
-              <a 
-                href="https://wa.me/573136802025" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 bg-[#25D366] text-white px-2.5 py-1 rounded-full hover:bg-[#128C7E] transition-colors font-medium text-xs"
-              >
-                <MessageCircle className="h-3.5 w-3.5" />
-                <span>WhatsApp</span>
-              </a>
-            </div>
-
-            {/* Título del Portal - Banner Rosa Elegante */}
-            <div className="mt-4 p-5 md:p-6 rounded-2xl bg-gradient-to-r from-teal-600 to-teal-500 text-white shadow-xl">
-              <div className="flex items-center justify-center gap-3 mb-1">
-                <div className="bg-[#162828]/20 p-2 rounded-xl">
-                  <Briefcase className="h-8 w-8" />
-                </div>
-                <h1 className="text-xl md:text-2xl lg:text-3xl font-bold">Portal Comercial</h1>
-              </div>
-              <p className="text-white/90 text-sm md:text-base">Conecta clientes con sus sueños</p>
-              <p className="mt-2 text-white/80 text-sm">
-                ¡Hola, <span className="font-bold text-white">{user?.name || "Usuario"}</span>! 👋
-              </p>
-            </div>
-
-            {/* Frase Motivacional Diaria */}
-            <div className="mt-4">
-              <DailyMotivation userName={user?.name || undefined} userBirthDate={user?.birthDate ? new Date(user.birthDate) : undefined} />
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Frase del día (el encabezado de arriba ya identifica la pantalla) */}
+      <div className="mb-6">
+        <DailyMotivation userName={user?.name || undefined} userBirthDate={user?.birthDate ? new Date(user.birthDate) : undefined} />
+      </div>
 
       <main className="container mx-auto px-4 pb-8 space-y-6">
         {/* Cumpleaños de Clientes */}
         {upcomingBirthdays.length > 0 && (
           <section>
-            <Card className="border-teal-500/20 shadow-md">
+            <Card className="border-primary/20 shadow-md">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
-                  <div className="bg-teal-500/15 p-2 rounded-full">
-                    <Cake className="h-5 w-5 text-teal-400" />
+                  <div className="bg-primary/15 p-2 rounded-full">
+                    <Cake className="h-5 w-5 text-primary" />
                   </div>
                   <div>
                     <CardTitle className="text-teal-300 flex items-center gap-2">
                       🎂 Cumpleaños de Clientes
-                      <Heart className="h-4 w-4 text-teal-500 animate-pulse" />
+                      <Heart className="h-4 w-4 text-primary animate-pulse" />
                     </CardTitle>
-                    <CardDescription className="text-teal-500/70">
+                    <CardDescription className="text-primary/70">
                       ¡No olvides felicitarlos! Un detalle marca la diferencia 💕
                     </CardDescription>
                   </div>
@@ -368,15 +278,15 @@ export default function Comercial() {
               </CardHeader>
               <CardContent className="space-y-2">
                 {upcomingBirthdays.slice(0, 5).map((client: any) => (
-                  <div key={client.id} className="bg-[#162828] rounded-lg p-3 border border-teal-500/25 shadow-sm hover:shadow-md transition-shadow">
+                  <div key={client.id} className="bg-card rounded-lg p-3 border border-primary/25 shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-full ${client.daysUntil === 0 ? 'bg-teal-500 text-white animate-bounce' : 'bg-teal-500/20 text-teal-400'}`}>
+                        <div className={`p-2 rounded-full ${client.daysUntil === 0 ? 'bg-primary text-white animate-bounce' : 'bg-primary/20 text-primary'}`}>
                           <Gift className="h-4 w-4" />
                         </div>
                         <div>
                           <h3 className="font-semibold text-white/90">{client.name}</h3>
-                          <p className="text-sm text-teal-400">
+                          <p className="text-sm text-primary">
                             {client.daysUntil === 0 ? (
                               <span className="font-bold">🎉 ¡Hoy es su cumpleaños!</span>
                             ) : client.daysUntil === 1 ? (
@@ -389,7 +299,7 @@ export default function Comercial() {
                       </div>
                       <Button 
                         onClick={() => sendBirthdayWhatsApp(client)}
-                        className="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white shadow-md"
+                        className="bg-gradient-to-r from-primary to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white shadow-md"
                         size="sm"
                       >
                         <MessageCircle className="h-4 w-4 mr-1" />
@@ -406,7 +316,7 @@ export default function Comercial() {
         {/* Resumen del Día - IGUAL QUE CEO */}
         <section>
           <h2 className="text-lg font-semibold text-white/85 mb-3 flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-teal-500" />
+            <TrendingUp className="h-5 w-5 text-primary" />
             Resumen del Día
           </h2>
           <KpiGrid cols={4}>
@@ -414,21 +324,21 @@ export default function Comercial() {
               label="Proyectos Activos"
               value={activeProjects.length}
               icon={<Briefcase className="h-4 w-4" />}
-              accent="#1DB5A8"
+              accent="var(--primary)"
               href="/projects"
             />
             <KpiCard
               label="Citas Pendientes"
               value={pendingAppointments.length}
               icon={<Calendar className="h-4 w-4" />}
-              accent="#F59E0B"
+              accent="var(--warning)"
               href="/appointments-calendar"
             />
             <KpiCard
               label="Cotizaciones"
               value={quotations.length}
               icon={<DollarSign className="h-4 w-4" />}
-              accent="#3B82F6"
+              accent="var(--info)"
               href="/quotations"
             />
             <KpiCard
@@ -444,34 +354,34 @@ export default function Comercial() {
         {/* Acciones Rápidas */}
         <section>
           <h2 className="text-lg font-semibold text-white/85 mb-3 flex items-center gap-2">
-            <Target className="h-5 w-5 text-teal-500" />
+            <Target className="h-5 w-5 text-primary" />
             Acciones Rápidas
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
             <CreateQuickClientDialog 
               trigger={
-                <Button className="h-16 text-lg gap-2 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 shadow-lg hover:shadow-xl transition-all w-full">
-                  <Users className="h-5 w-5" />
-                  + Nuevo Cliente
+                <Button className="w-full h-auto py-3 md:py-4 flex flex-col items-center gap-1.5 bg-card text-foreground border border-border hover:border-primary/50 hover:bg-accent transition-colors">
+                  <span className="bg-primary/15 text-primary p-2 rounded-lg"><Users className="h-5 w-5" /></span>
+                  <span className="font-semibold text-sm">Nuevo Cliente</span>
                 </Button>
               }
             />
             <Link href="/admin?tab=appointments">
-              <Button className="w-full h-16 text-lg gap-2 bg-gradient-to-r from-teal-400 to-teal-500 hover:from-teal-500 hover:to-teal-600 shadow-lg hover:shadow-xl transition-all">
-                <Calendar className="h-5 w-5" />
-                + Nueva Cita
+              <Button className="w-full h-auto py-3 md:py-4 flex flex-col items-center gap-1.5 bg-card text-foreground border border-border hover:border-primary/50 hover:bg-accent transition-colors">
+                <span className="bg-primary/15 text-primary p-2 rounded-lg"><Calendar className="h-5 w-5" /></span>
+                <span className="font-semibold text-sm">Nueva Cita</span>
               </Button>
             </Link>
             <Link href="/quotations?new">
-              <Button className="w-full h-16 text-lg gap-2 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 shadow-lg hover:shadow-xl transition-all">
-                <FileText className="h-5 w-5" />
-                + Nueva Cotización
+              <Button className="w-full h-auto py-3 md:py-4 flex flex-col items-center gap-1.5 bg-card text-foreground border border-border hover:border-primary/50 hover:bg-accent transition-colors">
+                <span className="bg-primary/15 text-primary p-2 rounded-lg"><FileText className="h-5 w-5" /></span>
+                <span className="font-semibold text-sm">Nueva Cotización</span>
               </Button>
             </Link>
             <Link href="/tasks">
-              <Button className="w-full h-16 text-lg gap-2 bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 shadow-lg hover:shadow-xl transition-all">
-                <CheckCircle className="h-5 w-5" />
-                Mis Tareas
+              <Button className="w-full h-auto py-3 md:py-4 flex flex-col items-center gap-1.5 bg-card text-foreground border border-border hover:border-primary/50 hover:bg-accent transition-colors">
+                <span className="bg-primary/15 text-primary p-2 rounded-lg"><CheckCircle className="h-5 w-5" /></span>
+                <span className="font-semibold text-sm">Mis Tareas</span>
               </Button>
             </Link>
           </div>
@@ -482,11 +392,11 @@ export default function Comercial() {
           <section>
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-lg font-semibold text-white/85 flex items-center gap-2">
-                <Briefcase className="h-5 w-5 text-teal-500" />
+                <Briefcase className="h-5 w-5 text-primary" />
                 Proyectos Activos
               </h2>
               <Link href="/projects">
-                <Button variant="ghost" size="sm" className="text-teal-400 font-semibold">
+                <Button variant="ghost" size="sm" className="text-primary font-semibold">
                   Ver todos <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>
               </Link>
@@ -494,19 +404,19 @@ export default function Comercial() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {activeProjects.slice(0, 6).map((project: any, index: number) => {
                 const projectColors = [
-                  "bg-gradient-to-br from-teal-600 to-teal-500",
+                  "bg-gradient-to-br from-teal-600 to-primary",
                   "bg-gradient-to-br from-purple-500 to-indigo-600",
                   "bg-gradient-to-br from-orange-500 to-amber-600",
-                  "bg-gradient-to-br from-teal-500 to-teal-600",
-                  "bg-gradient-to-br from-teal-500 to-emerald-600",
-                  "bg-gradient-to-br from-blue-500 to-cyan-600",
+                  "bg-gradient-to-br from-primary to-teal-600",
+                  "bg-gradient-to-br from-primary to-green-600",
+                  "bg-gradient-to-br from-blue-500 to-teal-600",
                 ];
                 return (
                   <Link key={project.id} href={`/projects/${project.id}`}>
                     <Card className={`${projectColors[index % 6]} hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow-md hover:scale-[1.02] overflow-hidden`}>
                       <CardContent className="p-4 text-white">
                         <div className="flex items-center justify-between gap-2 mb-2">
-                          <div className="bg-[#162828]/20 p-2 rounded-lg">
+                          <div className="bg-card/20 p-2 rounded-lg">
                             {project.workType === "cocina" && <span className="text-xl">🍳</span>}
                             {project.workType === "closet" && <span className="text-xl">👔</span>}
                             {project.workType === "puertas" && <span className="text-xl">🛏</span>}
@@ -515,7 +425,7 @@ export default function Comercial() {
                           </div>
                           <Badge 
                             variant="outline" 
-                            className="bg-[#162828]/20 text-white border-white/30 font-semibold text-xs"
+                            className="bg-card/20 text-white border-white/30 font-semibold text-xs"
                           >
                             {getStatusLabel(project.status)}
                           </Badge>
@@ -557,13 +467,13 @@ export default function Comercial() {
               </CardHeader>
               <CardContent className="space-y-3">
                 {projectsInEnsamble.map((project: any) => (
-                  <div key={project.id} className="bg-[#162828] rounded-lg p-4 border border-orange-500/25 shadow-sm">
+                  <div key={project.id} className="bg-card rounded-lg p-4 border border-orange-500/25 shadow-sm">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div className="flex-1">
                         <h3 className="font-semibold text-white/90">{project.name}</h3>
                         <div className="flex flex-wrap items-center gap-3 mt-1 text-sm text-white/60">
                           {project.client?.whatsappPhone && (
-                            <a href={`tel:${project.client.whatsappPhone}`} className="flex items-center gap-1 hover:text-teal-400">
+                            <a href={`tel:${project.client.whatsappPhone}`} className="flex items-center gap-1 hover:text-primary">
                               <Phone className="h-4 w-4" />
                               {project.client.whatsappPhone}
                             </a>
@@ -601,15 +511,15 @@ export default function Comercial() {
         {/* Instalaciones Programadas */}
         {projectsWithInstallDate.length > 0 && (
           <section>
-            <Card className="border-emerald-500/20 shadow-md">
+            <Card className="border-green-500/20 shadow-md">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
-                  <div className="bg-emerald-500/15 p-2 rounded-full">
-                    <Truck className="h-5 w-5 text-emerald-400" />
+                  <div className="bg-green-500/15 p-2 rounded-full">
+                    <Truck className="h-5 w-5 text-green-400" />
                   </div>
                   <div>
-                    <CardTitle className="text-emerald-300">🗓️ Instalaciones Programadas</CardTitle>
-                    <CardDescription className="text-emerald-400/70">
+                    <CardTitle className="text-green-300">🗓️ Instalaciones Programadas</CardTitle>
+                    <CardDescription className="text-green-400/70">
                       Próximas instalaciones confirmadas
                     </CardDescription>
                   </div>
@@ -622,7 +532,7 @@ export default function Comercial() {
                     const isUrgent = new Date(project.estimatedInstallDate) <= threeDaysFromNow;
                     return (
                       <Link key={project.id} href={`/projects/${project.id}`}>
-                        <div className={`bg-[#162828] rounded-lg p-3 border shadow-sm hover:shadow-md transition-shadow cursor-pointer ${isUrgent ? 'border-yellow-300' : 'border-emerald-200'}`}>
+                        <div className={`bg-card rounded-lg p-3 border shadow-sm hover:shadow-md transition-shadow cursor-pointer ${isUrgent ? 'border-amber-300' : 'border-green-200'}`}>
                           <div className="flex items-center justify-between">
                             <div>
                               <h3 className="font-medium text-white/90">{project.name}</h3>
@@ -630,7 +540,7 @@ export default function Comercial() {
                                 {formatDate(project.estimatedInstallDate)} • {getStatusLabel(project.status)}
                               </p>
                             </div>
-                            <Badge className={isUrgent ? 'bg-yellow-500' : 'bg-emerald-500'}>
+                            <Badge className={isUrgent ? 'bg-amber-500' : 'bg-green-500'}>
                               {daysRemaining}
                             </Badge>
                           </div>
@@ -650,8 +560,8 @@ export default function Comercial() {
             <Card className="shadow-md border-white/[0.08]">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
-                  <div className="bg-teal-500/15 p-2 rounded-full">
-                    <Calendar className="h-5 w-5 text-teal-400" />
+                  <div className="bg-primary/15 p-2 rounded-full">
+                    <Calendar className="h-5 w-5 text-primary" />
                   </div>
                   <div>
                     <CardTitle className="text-teal-300">📅 Citas del Día</CardTitle>
@@ -669,7 +579,7 @@ export default function Comercial() {
                 ) : (
                   <div className="space-y-2">
                     {todayAppointments.map((apt: any) => (
-                      <div key={apt.id} className="bg-[#162828] rounded-lg p-3 border border-white/10">
+                      <div key={apt.id} className="bg-card rounded-lg p-3 border border-white/10">
                         <div className="flex items-center justify-between">
                           <div>
                             <h3 className="font-medium">{apt.client?.name || "Cliente"}</h3>
@@ -679,7 +589,7 @@ export default function Comercial() {
                           </div>
                           {apt.client?.whatsappPhone && (
                             <a href={`tel:${apt.client.whatsappPhone}`}>
-                              <Button size="sm" variant="outline" className="border-white/20 text-teal-400 hover:bg-teal-500/10">
+                              <Button size="sm" variant="outline" className="border-white/20 text-primary hover:bg-primary/10">
                                 <Phone className="h-4 w-4" />
                               </Button>
                             </a>
@@ -690,7 +600,7 @@ export default function Comercial() {
                   </div>
                 )}
                 <Link href="/appointments-calendar">
-                  <Button variant="ghost" className="w-full mt-3 text-teal-400 hover:text-teal-300 hover:bg-teal-500/10">
+                  <Button variant="ghost" className="w-full mt-3 text-primary hover:text-teal-300 hover:bg-primary/10">
                     Ver todas las citas <ArrowRight className="h-4 w-4 ml-1" />
                   </Button>
                 </Link>
@@ -703,8 +613,8 @@ export default function Comercial() {
             <Card className="shadow-md border-white/[0.08]">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
-                  <div className="bg-teal-500/15 p-2 rounded-full">
-                    <FileText className="h-5 w-5 text-teal-400" />
+                  <div className="bg-primary/15 p-2 rounded-full">
+                    <FileText className="h-5 w-5 text-primary" />
                   </div>
                   <div>
                     <CardTitle className="text-teal-300">📋 Cotizaciones Activas</CardTitle>
@@ -722,7 +632,7 @@ export default function Comercial() {
                 ) : (
                   <div className="space-y-2">
                     {activeQuotations.slice(0, 5).map((quot: any) => (
-                      <div key={quot.id} className="bg-[#162828] rounded-lg p-3 border border-white/10 hover:border-teal-500/30 transition-all">
+                      <div key={quot.id} className="bg-card rounded-lg p-3 border border-white/10 hover:border-primary/30 transition-all">
                         <div className="flex items-center justify-between">
                           <Link href={`/quotation/${quot.id}`} className="flex-1 cursor-pointer">
                             <div>
@@ -733,7 +643,7 @@ export default function Comercial() {
                             </div>
                           </Link>
                           <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="text-teal-400 border-teal-500/40">
+                            <Badge variant="outline" className="text-primary border-primary/40">
                               {getDaysRemaining(quot.validUntil)}
                             </Badge>
                             {quot.client?.whatsappPhone && (
@@ -766,7 +676,7 @@ export default function Comercial() {
                   </div>
                 )}
                 <Link href="/quotations">
-                  <Button variant="ghost" className="w-full mt-3 text-teal-400 hover:text-teal-300 hover:bg-teal-500/10">
+                  <Button variant="ghost" className="w-full mt-3 text-primary hover:text-teal-300 hover:bg-primary/10">
                     Ver todas las cotizaciones <ArrowRight className="h-4 w-4 ml-1" />
                   </Button>
                 </Link>
@@ -795,7 +705,7 @@ export default function Comercial() {
               <CardContent>
                 <div className="space-y-2">
                   {expiringQuotations.map((quot: any) => (
-                    <div key={quot.id} className="bg-[#162828] rounded-lg p-3 border border-red-500/25 shadow-sm">
+                    <div key={quot.id} className="bg-card rounded-lg p-3 border border-red-500/25 shadow-sm">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div>
                           <h3 className="font-medium text-white/90">{quot.client?.name || quot.quotationNumber}</h3>
@@ -813,7 +723,7 @@ export default function Comercial() {
                             </a>
                           )}
                           <Link href={`/quotation/${quot.id}`}>
-                            <Button size="sm" className="bg-gradient-to-r from-red-500 to-teal-500 hover:from-red-600 hover:to-teal-600">
+                            <Button size="sm" className="bg-gradient-to-r from-red-500 to-primary hover:from-red-600 hover:to-teal-600">
                               Ver Cotización
                             </Button>
                           </Link>
@@ -832,11 +742,11 @@ export default function Comercial() {
           <section>
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-lg font-semibold text-white/85 flex items-center gap-2">
-                <ClipboardList className="h-5 w-5 text-teal-500" />
+                <ClipboardList className="h-5 w-5 text-primary" />
                 Mis Tareas Pendientes
               </h2>
               <Link href="/tasks">
-                <Button variant="ghost" size="sm" className="text-teal-400 font-semibold">
+                <Button variant="ghost" size="sm" className="text-primary font-semibold">
                   Ver todas <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>
               </Link>
@@ -844,10 +754,10 @@ export default function Comercial() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {myTasks.slice(0, 4).map((task: any, index: number) => {
                 const taskColors = [
-                  "bg-gradient-to-br from-teal-600 to-teal-500",
-                  "bg-gradient-to-br from-slate-500 to-slate-600",
-                  "bg-gradient-to-br from-teal-500 to-teal-600",
-                  "bg-gradient-to-br from-teal-500 to-teal-600",
+                  "bg-gradient-to-br from-teal-600 to-primary",
+                  "bg-gradient-to-br from-gray-500 to-gray-600",
+                  "bg-gradient-to-br from-primary to-teal-600",
+                  "bg-gradient-to-br from-primary to-teal-600",
                 ];
                 const priorityIcons: Record<string, string> = {
                   alta: "🔥",
@@ -859,12 +769,12 @@ export default function Comercial() {
                     <Card className={`${taskColors[index % 4]} hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow-md hover:scale-[1.02] overflow-hidden`}>
                       <CardContent className="p-4 text-white">
                         <div className="flex items-center justify-between gap-2 mb-2">
-                          <div className="bg-[#162828]/20 p-2 rounded-lg">
+                          <div className="bg-card/20 p-2 rounded-lg">
                             <ClipboardList className="h-5 w-5" />
                           </div>
                           <Badge 
                             variant="outline" 
-                            className="bg-[#162828]/20 text-white border-white/30 font-semibold text-xs"
+                            className="bg-card/20 text-white border-white/30 font-semibold text-xs"
                           >
                             {priorityIcons[task.priority || "media"]} {task.priority === "alta" ? "Urgente" : task.priority === "media" ? "Media" : "Baja"}
                           </Badge>
@@ -920,7 +830,7 @@ export default function Comercial() {
             <Button 
               onClick={handleScheduleInstall}
               disabled={!installDate || updateInstallDate.isPending}
-              className="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700"
+              className="bg-gradient-to-r from-primary to-teal-600 hover:from-teal-600 hover:to-teal-700"
             >
               {updateInstallDate.isPending ? "Guardando..." : "Confirmar Fecha"}
             </Button>

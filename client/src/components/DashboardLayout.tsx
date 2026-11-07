@@ -75,7 +75,7 @@ const menuSections: MenuSection[] = [
   {
     title: "Principal",
     items: [
-      { icon: Home,            label: "Inicio",    path: "/", iconColor: "#1DB5A8",
+      { icon: Home,            label: "Inicio",    path: "/", iconColor: "var(--primary)",
         roles: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario", "contador"] },
       { icon: LayoutDashboard, label: "Financiero", path: "/ceo-dashboard",
         roles: ["super_admin", "admin"], iconColor: "#0ea5e9" },
@@ -91,7 +91,7 @@ const menuSections: MenuSection[] = [
       { icon: Users,         label: "Clientes",      path: "/clients",
         roles: ["super_admin", "admin", "comercial"], iconColor: "#0ea5e9" },
       { icon: ClipboardCheck, label: "Levantamientos", path: "/levantamientos",
-        roles: ["medidor", "super_admin", "admin", "comercial", "disenador"], iconColor: "#1DB5A8" },
+        roles: ["medidor", "super_admin", "admin", "comercial", "disenador"], iconColor: "var(--primary)" },
       { icon: FileText,      label: "Cotizaciones",  path: "/quotations",
         roles: ["super_admin", "admin", "comercial"], iconColor: "#6366f1" },
       { icon: FolderKanban,  label: "Proyectos",     path: "/projects", iconColor: "#8b5cf6",
@@ -115,7 +115,7 @@ const menuSections: MenuSection[] = [
     title: "Comercial",
     items: [
       { icon: KanbanSquare,  label: "Pipeline",      path: "/comercial",
-        roles: ["super_admin", "admin", "comercial"], iconColor: "#1DB5A8" },
+        roles: ["super_admin", "admin", "comercial"], iconColor: "var(--primary)" },
       { icon: Star,          label: "Postventa",     path: "/postventa",
         roles: ["super_admin", "admin", "comercial"], iconColor: "#eab308" },
     ],
@@ -153,13 +153,13 @@ const menuSections: MenuSection[] = [
 // ── Etiquetas de rol ─────────────────────────────────────────────────────────
 const roleLabels: Record<string, { label: string; color: string }> = {
   super_admin: { label: "Super Admin", color: "bg-purple-500/15 text-purple-300 border-purple-500/40/25" },
-  admin:       { label: "Admin",       color: "bg-[#6ACFC7]/15 text-[#6ACFC7] border-[#6ACFC7]/25" },
-  comercial:   { label: "Comercial",   color: "bg-[#6ACFC7]/10 text-[#88d9d3] border-[#6ACFC7]/20" },
+  admin:       { label: "Admin",       color: "bg-primary/15 text-primary border-primary/25" },
+  comercial:   { label: "Comercial",   color: "bg-primary/10 text-[#88d9d3] border-primary/20" },
   disenador:   { label: "Diseñador",   color: "bg-indigo-500/15 text-indigo-300 border-indigo-400/25" },
   jefe_taller: { label: "Jefe Taller", color: "bg-amber-500/15 text-amber-300 border-amber-400/25" },
   operario:    { label: "Operario",    color: "bg-white/10 text-white/60 border-white/15" },
   medidor:     { label: "Medidor",     color: "bg-amber-500/15 text-amber-300 border-amber-400/25" },
-  contador:    { label: "Contador",    color: "bg-violet-500/15 text-violet-300 border-violet-400/25" },
+  contador:    { label: "Contador",    color: "bg-purple-500/15 text-purple-300 border-purple-400/25" },
   user:        { label: "Usuario",     color: "bg-white/10 text-white/60 border-white/15" },
 };
 
@@ -223,9 +223,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (!user) {
     return (
       <div className="flex items-center justify-center min-h-screen"
-        style={{ background: "#0C1A1A" }}>
+        style={{ background: "var(--background)" }}>
         <div className="flex flex-col items-center gap-8 p-8 max-w-sm w-full rounded-2xl"
-          style={{ background: "#162828", border: "1px solid rgba(106,207,199,0.20)" }}>
+          style={{ background: "var(--card)", border: "1px solid rgba(106,207,199,0.20)" }}>
           <div className="flex flex-col items-center gap-3">
             <img src="/logo-light.png" alt="INNOVAR"
               style={{ width: 90, height: 90, objectFit: "contain" }} />
@@ -236,7 +236,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
           <Button onClick={() => { window.location.href = getLoginUrl(); }} size="lg"
             className="w-full font-semibold transition-all"
-            style={{ background: "#6ACFC7", color: "#0C1A1A" }}>
+            style={{ background: "#6ACFC7", color: "var(--background)" }}>
             Iniciar Sesión
           </Button>
         </div>
@@ -246,8 +246,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <SidebarProvider
-      defaultOpen={true}
-      style={{ "--sidebar-width": `${sidebarWidth}px`, "--sidebar-background": "#0A1616" } as CSSProperties}
+      // Tablet (768–1279 px): menú contraído a íconos para dejar espacio al contenido.
+      // Laptop (≥ 1280 px): menú abierto. El usuario puede abrirlo/cerrarlo cuando quiera.
+      defaultOpen={typeof window === "undefined" || window.innerWidth >= 1280}
+      style={{ "--sidebar-width": `${sidebarWidth}px`, "--sidebar-background": "var(--sidebar)" } as CSSProperties}
     >
       <DashboardLayoutContent setSidebarWidth={setSidebarWidth} sidebarWidth={sidebarWidth}>
         {children}
@@ -323,10 +325,10 @@ function DashboardLayoutContent({ children, setSidebarWidth, sidebarWidth }: Das
       <div className="relative" ref={sidebarRef}>
         <Sidebar
           collapsible="icon"
-          className="border-r border-white/[0.06] bg-[#0C1A1A]"
+          className="border-r border-white/[0.06] bg-background"
         >
           {/* Header — logo */}
-          <SidebarHeader className="h-16 justify-center border-b border-white/[0.06] bg-[#0C1A1A]">
+          <SidebarHeader className="h-16 justify-center border-b border-white/[0.06] bg-background">
             <button
               onClick={toggleSidebar}
               className="flex items-center gap-3 px-2 w-full rounded-lg transition-colors focus:outline-none"
@@ -340,7 +342,7 @@ function DashboardLayoutContent({ children, setSidebarWidth, sidebarWidth }: Das
           </SidebarHeader>
 
           {/* Menú con secciones */}
-          <SidebarContent className="gap-0 py-2 bg-[#0C1A1A]">
+          <SidebarContent className="gap-0 py-2 bg-background">
             {visibleSections.map((section) => (
               <div key={section.title} className="mb-1">
                 {!isCollapsed && (
@@ -382,9 +384,9 @@ function DashboardLayoutContent({ children, setSidebarWidth, sidebarWidth }: Das
                             style={{
                               width: 28,
                               height: 28,
-                              background: item.iconColor ?? "#1DB5A8",
+                              background: item.iconColor ?? "var(--primary)",
                               opacity: isActive ? 1 : 0.85,
-                              boxShadow: isActive ? `0 0 10px ${item.iconColor ?? "#1DB5A8"}55` : "none",
+                              boxShadow: isActive ? `0 0 10px ${item.iconColor ?? "var(--primary)"}55` : "none",
                             }}
                           >
                             <item.icon
@@ -411,7 +413,7 @@ function DashboardLayoutContent({ children, setSidebarWidth, sidebarWidth }: Das
           </SidebarContent>
 
           {/* Footer con perfil */}
-          <SidebarFooter className="p-3 border-t border-white/[0.06] bg-[#0C1A1A]">
+          <SidebarFooter className="p-3 border-t border-white/[0.06] bg-background">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
@@ -435,7 +437,7 @@ function DashboardLayoutContent({ children, setSidebarWidth, sidebarWidth }: Das
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-52 rounded-xl shadow-xl"
-                style={{ background: "#162828", border: "1px solid rgba(106,207,199,0.18)" }}>
+                style={{ background: "var(--card)", border: "1px solid rgba(106,207,199,0.18)" }}>
                 <div className="px-3 py-2" style={{ borderBottom: "1px solid rgba(106,207,199,0.12)" }}>
                   <p className="text-xs font-medium truncate" style={{ color: "rgba(255,255,255,0.90)" }}>{user?.name}</p>
                   <p className="text-[11px] truncate" style={{ color: "rgba(255,255,255,0.45)" }}>{(user as any)?.email}</p>
@@ -491,7 +493,7 @@ function DashboardLayoutContent({ children, setSidebarWidth, sidebarWidth }: Das
       >
         {isMobile && (
           <div className="flex border-b h-14 items-center justify-between px-3 sticky top-0 z-40"
-            style={{ backgroundColor: "#0C1A1A", borderColor: "rgba(106,207,199,0.10)" }}>
+            style={{ backgroundColor: "var(--background)", borderColor: "rgba(106,207,199,0.10)" }}>
             <div className="flex items-center gap-2">
               <SidebarTrigger className="h-9 w-9 rounded-lg text-white"
                 style={{ backgroundColor: "rgba(255,255,255,0.08)" }} />
@@ -562,7 +564,7 @@ function DashboardLayoutContent({ children, setSidebarWidth, sidebarWidth }: Das
           </header>
         )}
 
-        <main className="flex-1 min-h-screen" style={{ background: "#0C1A1A" }}>
+        <main className="flex-1 min-h-screen" style={{ background: "var(--background)" }}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             {children}
           </div>

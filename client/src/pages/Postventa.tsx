@@ -224,19 +224,19 @@ export default function Postventa() {
           label="Total entregados"
           value={delivered.length}
           icon={<Truck className="h-4 w-4" />}
-          accent="#1DB5A8"
+          accent="var(--primary)"
         />
         <KpiCard
           label="Pendientes"
           value={pendientesCount}
           icon={<AlertTriangle className="h-4 w-4" />}
-          accent="#EF4444"
+          accent="var(--destructive)"
         />
         <KpiCard
           label="Vencidos hoy"
           value={overdueFollowUps}
           icon={<Clock className="h-4 w-4" />}
-          accent="#F59E0B"
+          accent="var(--warning)"
         />
         <KpiCard
           label="Revisiones próximas"
@@ -262,7 +262,7 @@ export default function Postventa() {
       {/* Filtros */}
       <div className="flex flex-col sm:flex-row gap-2 mb-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
             placeholder="Buscar proyecto o cliente…"
             value={search}
@@ -288,7 +288,7 @@ export default function Postventa() {
           {[1, 2, 3].map((i) => <div key={i} className="h-20 rounded-xl bg-white/[0.06] animate-pulse" />)}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-16 text-slate-400">
+        <div className="text-center py-16 text-gray-400">
           <ShieldCheck className="h-12 w-12 mx-auto mb-3 opacity-30" />
           <p className="text-sm">{search ? "Sin coincidencias" : "No hay proyectos entregados aún"}</p>
         </div>
@@ -313,7 +313,7 @@ export default function Postventa() {
           <DialogHeader>
             <DialogTitle>Nueva reclamación</DialogTitle>
           </DialogHeader>
-          <p className="text-xs text-slate-500 -mt-2 mb-3">
+          <p className="text-xs text-gray-500 -mt-2 mb-3">
             Proyecto: <strong>{newReclamacion?.projectName}</strong>
           </p>
           <form onSubmit={handleCreate} className="space-y-3">
@@ -362,7 +362,7 @@ export default function Postventa() {
                 Cancelar
               </Button>
               <Button type="submit" size="sm" disabled={createRec.isPending}
-                style={{ background: "linear-gradient(135deg, #1DB5A8, #0D9B8F)" }} className="text-white">
+                style={{ background: "var(--brand-gradient)" }} className="text-white">
                 {createRec.isPending ? "Guardando…" : "Guardar"}
               </Button>
             </div>
@@ -379,7 +379,7 @@ export default function Postventa() {
           <p className="text-sm text-muted-foreground mb-3">{resolveDialog?.title}</p>
           <form onSubmit={handleResolve} className="space-y-3">
             <div className="space-y-1">
-              <Label className="text-xs">¿Cómo se resolvió? <span className="text-slate-400">(opcional)</span></Label>
+              <Label className="text-xs">¿Cómo se resolvió? <span className="text-gray-400">(opcional)</span></Label>
               <Textarea
                 placeholder="Descripción de lo que se hizo para resolver el caso…"
                 value={resolveNotes}
@@ -392,7 +392,7 @@ export default function Postventa() {
                 Cancelar
               </Button>
               <Button type="submit" size="sm" disabled={updateRec.isPending}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                className="bg-green-600 hover:bg-green-700 text-white">
                 {updateRec.isPending ? "Guardando…" : "Confirmar"}
               </Button>
             </div>
@@ -448,7 +448,7 @@ function ProjectPostventaCard({
                 </Badge>
               )}
             </div>
-            <div className="flex flex-wrap gap-3 text-xs text-slate-500">
+            <div className="flex flex-wrap gap-3 text-xs text-gray-500">
               {project.client && (
                 <span className="flex items-center gap-1 truncate">
                   <User className="h-3 w-3 shrink-0" />{project.client.name}
@@ -467,16 +467,16 @@ function ProjectPostventaCard({
 
           {/* Acciones */}
           <div className="flex items-center gap-1 shrink-0">
-            <Button variant="ghost" size="sm" onClick={onOpen} className="h-7 px-2 text-slate-500" title="Ver proyecto">
+            <Button variant="ghost" size="sm" onClick={onOpen} className="h-7 px-2 text-gray-500" title="Ver proyecto">
               <ExternalLink className="h-3.5 w-3.5" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={onNewReclamacion} className="h-7 px-2 text-slate-500" title="Nueva reclamación">
+            <Button variant="ghost" size="sm" onClick={onNewReclamacion} className="h-7 px-2 text-gray-500" title="Nueva reclamación">
               <Plus className="h-3.5 w-3.5" />
             </Button>
             <Button
               variant="ghost" size="sm"
               onClick={() => setExpanded(!expanded)}
-              className="h-7 px-2 text-slate-500"
+              className="h-7 px-2 text-gray-500"
               title={expanded ? "Ocultar" : "Ver reclamaciones"}
             >
               {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
@@ -492,8 +492,8 @@ function ProjectPostventaCard({
       {expanded && (
         <div className="border-t border-white/[0.08] bg-white/[0.03]">
           {project.reclamaciones.length === 0 ? (
-            <div className="px-4 py-6 text-center text-xs text-slate-400">
-              <CheckCircle2 className="h-6 w-6 mx-auto mb-1 text-emerald-400" />
+            <div className="px-4 py-6 text-center text-xs text-gray-400">
+              <CheckCircle2 className="h-6 w-6 mx-auto mb-1 text-green-400" />
               Sin reclamaciones — proyecto sin novedades
             </div>
           ) : (
@@ -545,18 +545,18 @@ function ReclamacionRow({
         <p className="text-sm font-medium text-foreground leading-tight">{rec.title}</p>
         <div className="flex flex-wrap gap-2 mt-1">
           <span className="text-[11px] font-medium" style={{ color: typeConf.color }}>{typeConf.label}</span>
-          <span className="text-[11px] text-slate-400">·</span>
+          <span className="text-[11px] text-gray-400">·</span>
           <span className="text-[11px] font-medium" style={{ color: priorityConf.color }}>{priorityConf.label}</span>
           {scheduledLabel && (
             <>
-              <span className="text-[11px] text-slate-400">·</span>
-              <span className={`text-[11px] ${isOverdue ? "text-amber-400 font-semibold" : "text-slate-500"}`}>
+              <span className="text-[11px] text-gray-400">·</span>
+              <span className={`text-[11px] ${isOverdue ? "text-amber-400 font-semibold" : "text-gray-500"}`}>
                 {isOverdue ? "⚠ Vence " : ""}{scheduledLabel}
               </span>
             </>
           )}
           {rec.resolvedAt && rec.resolvedNotes && (
-            <span className="text-[11px] text-emerald-400 italic">"{rec.resolvedNotes}"</span>
+            <span className="text-[11px] text-green-400 italic">"{rec.resolvedNotes}"</span>
           )}
         </div>
       </div>

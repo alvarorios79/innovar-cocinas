@@ -12,53 +12,54 @@ import { toast } from "sonner";
 import { useAuth } from "@/_core/hooks/useAuth";
 
 // ── Columnas del kanban de producción ─────────────────────────────────────────
+// Colores = los mismos de los estados en la lista de Proyectos (lib/projectStatus)
 const PROD_STAGES = [
   {
     key: "despiece",
     label: "Despiece",
     icon: Scissors,
     color: "#6366F1",
-    bg: "rgba(99,102,241,0.07)",
+    bg: "rgba(99,102,241,0.08)",
     description: "Lista de piezas",
   },
   {
     key: "corte",
     label: "Corte",
     icon: Layers,
-    color: "#F59E0B",
-    bg: "rgba(245,158,11,0.07)",
+    color: "#F97316",
+    bg: "rgba(249,115,22,0.08)",
     description: "Corte y mecanizado",
   },
   {
     key: "enchape",
     label: "Enchape",
     icon: Layers,
-    color: "#EC4899",
-    bg: "rgba(236,72,153,0.07)",
+    color: "#EA580C",
+    bg: "rgba(234,88,12,0.08)",
     description: "Aplicación de enchape",
   },
   {
     key: "ensamble",
     label: "Ensamble",
     icon: Package,
-    color: "#1DB5A8",
-    bg: "rgba(29,181,168,0.07)",
+    color: "#C2410C",
+    bg: "rgba(194,65,12,0.08)",
     description: "Armado de módulos",
   },
   {
     key: "listo_instalacion",
     label: "Listo",
     icon: CheckCircle2,
-    color: "#10B981",
-    bg: "rgba(16,185,129,0.07)",
+    color: "var(--primary)",
+    bg: "rgba(20,184,166,0.08)",
     description: "Listo para instalar",
   },
   {
     key: "entregado",
     label: "Entregado",
     icon: Truck,
-    color: "#64748B",
-    bg: "rgba(100,116,139,0.07)",
+    color: "#15803D",
+    bg: "rgba(21,128,61,0.08)",
     description: "Instalado y entregado",
   },
 ] as const;
@@ -317,7 +318,7 @@ function ProdCard({
                 size="sm"
                 onClick={onPrev}
                 disabled={isPending}
-                className="h-6 px-2 text-[10px] text-slate-500 flex-1"
+                className="h-6 px-2 text-[10px] text-gray-500 flex-1"
               >
                 <ChevronLeft className="h-3 w-3 mr-0.5" />
                 Retroceder
@@ -329,7 +330,7 @@ function ProdCard({
                 onClick={onNext}
                 disabled={isPending}
                 className="h-6 px-2 text-[10px] text-white flex-1"
-                style={{ background: "linear-gradient(135deg, #1DB5A8, #0D9B8F)" }}
+                style={{ background: "var(--brand-gradient)" }}
               >
                 Avanzar
                 <ChevronRight className="h-3 w-3 ml-0.5" />

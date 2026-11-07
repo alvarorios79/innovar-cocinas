@@ -181,7 +181,7 @@ export default function Register() {
 
             <Button
               type="submit"
-              className="w-full h-11 bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 text-white font-semibold"
+              className="w-full h-11 bg-gradient-to-r from-teal-600 to-primary hover:from-teal-700 hover:to-teal-600 text-white font-semibold"
               disabled={registerMutation.isPending || !isPasswordValid || !passwordsMatch}
             >
               {registerMutation.isPending ? (
@@ -201,13 +201,13 @@ export default function Register() {
           <div className="mt-6 text-center space-y-2">
             <p className="text-sm text-muted-foreground">
               ¿Ya tienes cuenta?{" "}
-              <Link href="/login" className="text-teal-400 hover:text-teal-300 font-medium">
+              <Link href="/login" className="text-primary hover:text-teal-300 font-medium">
                 Inicia sesión
               </Link>
             </p>
             <button
               onClick={() => window.history.back()}
-              className="text-sm text-gray-500 hover:text-teal-400 transition-colors"
+              className="text-sm text-gray-500 hover:text-primary transition-colors"
             >
               ← Volver a la página principal
             </button>

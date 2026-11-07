@@ -10,6 +10,7 @@ import { downloadPDFiOS } from "@/lib/pdf-download";
 import { QuotationVersionComparator } from "@/components/QuotationVersionComparator";
 import { ExportQuotationWordButton } from "@/components/ExportQuotationWordButton";
 
+import { confirmAction } from "@/lib/confirm";
 interface QuotationGroupCardProps {
   group: {
     baseQuotationId: number;
@@ -99,7 +100,7 @@ export function QuotationGroupCard({
     switch (status) {
       case "draft": return "bg-white/[0.06] text-foreground";
       case "sent": return "bg-blue-500/15 text-blue-300";
-      case "approved": return "bg-emerald-500/15 text-emerald-300";
+      case "approved": return "bg-green-500/15 text-green-300";
       case "rejected": return "bg-red-500/15 text-red-300";
       default: return "bg-white/[0.06] text-foreground";
     }
@@ -142,7 +143,7 @@ export function QuotationGroupCard({
   const approvedStatus = selectedVersion?.status === "approved" || group.activeVersion?.status === "approved" || (group as any).status === "approved";
   const isApprovedWithoutProject = approvedStatus && !group.hasProject;
   const cardBorderClass = isApprovedWithoutProject ? 'border-l-amber-400' : isExpired ? 'border-l-red-500' : isExpiringSoon ? 'border-l-yellow-500' : 'border-l-[#14B8A6]';
-  const cardBgClass = 'bg-[#162828]';
+  const cardBgClass = 'bg-card';
 
   return (
     <>
@@ -155,7 +156,7 @@ export function QuotationGroupCard({
         </div>
       )}
       {/* HEADER COMPACTO - UNA SOLA LÍNEA */}
-      <div className="px-3 py-2 md:px-3 md:py-2 border-b border-[rgba(106,207,199,0.12)] bg-[#162828]">
+      <div className="px-3 py-2 md:px-3 md:py-2 border-b border-[rgba(106,207,199,0.12)] bg-card">
         <div className="flex items-center gap-2 md:gap-3 mb-2">
           {/* Logo Innovar pequeño (32px) */}
           <div className="flex-shrink-0 w-8 h-8 md:w-8 md:h-8 rounded-md flex items-center justify-center overflow-hidden">
@@ -182,7 +183,7 @@ export function QuotationGroupCard({
                 {group.quotationNumber}
               </p>
               {isActiveVersion && (
-                <Badge className="bg-[#14B8A6] text-white text-xs py-0 px-2">
+                <Badge className="bg-primary text-white text-xs py-0 px-2">
                   Versión actual
                 </Badge>
               )}
@@ -205,12 +206,12 @@ export function QuotationGroupCard({
                 </Badge>
               )}
               {isExpiringSoon && !isExpired && (
-                <Badge className="bg-yellow-500 text-white text-xs py-0 px-2 border-0">
+                <Badge className="bg-amber-500 text-white text-xs py-0 px-2 border-0">
                   Vence pronto
                 </Badge>
               )}
               {group.hasProject ? (
-                <Badge className="bg-emerald-500/15 text-emerald-300 text-xs py-0 px-2 border border-emerald-300 flex items-center gap-1">
+                <Badge className="bg-green-500/15 text-green-300 text-xs py-0 px-2 border border-green-300 flex items-center gap-1">
                   <span className="text-base">✅</span>
                   <span>Proyecto</span>
                 </Badge>
@@ -300,7 +301,7 @@ export function QuotationGroupCard({
             </button>
             
             {showValues && (
-              <div className="mt-1 p-2 rounded bg-[#14B8A6]/5 border border-[#14B8A6]/20 text-xs space-y-1">
+              <div className="mt-1 p-2 rounded bg-primary/5 border border-primary/20 text-xs space-y-1">
                 <div className="flex justify-between">
                   <span className="text-white/60">Subtotal:</span>
                   <span className="font-semibold">
@@ -329,7 +330,7 @@ export function QuotationGroupCard({
           {/* PRIMARIOS - Editar disponible para cualquier versión */}
           <Button
             size="sm"
-            className="text-xs py-1 px-2 h-7 gap-1 bg-[#14B8A6] hover:bg-[#0d9488] text-white"
+            className="text-xs py-1 px-2 h-7 gap-1 bg-primary hover:bg-[#0d9488] text-white"
             onClick={() => onEdit(selectedVersion)}
             disabled={isLocked}
           >
@@ -342,14 +343,14 @@ export function QuotationGroupCard({
               size="sm"
               variant="outline"
               className="text-xs py-1 px-2 h-7 gap-1"
-              onClick={() => {
+              onClick={async () => {
                 if (group.hasProject) {
-                  const confirmed = window.confirm(
+                  const confirmed = (await confirmAction(
                     '⚠️ Esta cotización tiene un proyecto vinculado.\n\n' +
                     'Al crear una nueva versión y modificar los precios, ' +
                     'el valor del proyecto se actualizará automáticamente con el nuevo total.\n\n' +
                     '¿Continuar?'
-                  );
+                  ));
                   if (!confirmed) return;
                 }
                 onCreateVersion(selectedVersion);
@@ -381,7 +382,7 @@ export function QuotationGroupCard({
           {isActiveVersion && !group.activeVersion.projectId && (
             <Button
               size="sm"
-              className="text-xs py-1 px-2 h-7 gap-1 bg-emerald-600 hover:bg-emerald-700 text-white"
+              className="text-xs py-1 px-2 h-7 gap-1 bg-green-600 hover:bg-green-700 text-white"
               onClick={() => onCreateProject(group.activeVersion)}
               disabled={isLocked}
               title="Crea proyecto con la ultima version aprobada"
@@ -420,7 +421,7 @@ export function QuotationGroupCard({
           {isActiveVersion && (
             <Button
               size="sm"
-              className="text-xs py-1 px-2 h-7 gap-1 bg-[#14B8A6] hover:bg-[#0d9488] text-white"
+              className="text-xs py-1 px-2 h-7 gap-1 bg-primary hover:bg-[#0d9488] text-white"
               onClick={() => {
                 if (!client?.whatsappPhone) {
                   toast.error("El cliente no tiene número de teléfono registrado");
@@ -465,9 +466,9 @@ export function QuotationGroupCard({
             <Button
               size="sm"
               variant="outline"
-              className="text-xs py-1 px-2 h-7 gap-1 border-emerald-500 text-emerald-400 hover:bg-emerald-500/20"
-              onClick={() => {
-                if (window.confirm("¿Marcar esta cotización como APROBADA? Esto indica que el cliente confirmó por teléfono o WhatsApp.")) {
+              className="text-xs py-1 px-2 h-7 gap-1 border-green-500 text-green-400 hover:bg-green-500/20"
+              onClick={async () => {
+                if ((await confirmAction("¿Marcar esta cotización como APROBADA? Esto indica que el cliente confirmó por teléfono o WhatsApp."))) {
                   manualApproveMutation.mutate({ quotationId: group.activeVersion.id });
                 }
               }}
@@ -528,7 +529,7 @@ export function QuotationGroupCard({
                     : ""
                   }
                   onChange={() => {}}
-                  className="text-xs px-2 py-1 rounded border border-[rgba(106,207,199,0.3)] bg-[#162828] text-white/70"
+                  className="text-xs px-2 py-1 rounded border border-[rgba(106,207,199,0.3)] bg-card text-white/70"
                 >
                   <option value="">Sin estado</option>
                   <option value="aprobado">Aprobado</option>
@@ -538,7 +539,7 @@ export function QuotationGroupCard({
               </div>
             </div>
             <textarea
-              className="w-full text-xs p-2 rounded border border-[rgba(106,207,199,0.3)] bg-[#162828] text-white/80 placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/40"
+              className="w-full text-xs p-2 rounded border border-[rgba(106,207,199,0.3)] bg-card text-white/80 placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-primary/40"
               placeholder="Ingresa la respuesta del cliente aquí..."
               rows={2}
               defaultValue={selectedVersion.clientResponseNotes || ""}

@@ -409,12 +409,12 @@ export default function Portal() {
 
   // Configuración de estados de proyecto (14 estados simplificados)
   const PROJECT_STATUSES: Record<string, { label: string; color: string; icon: any }> = {
-    contacto: { label: "Contacto", color: "bg-slate-400", icon: Clock },
+    contacto: { label: "Contacto", color: "bg-gray-400", icon: Clock },
     cotizacion_enviada: { label: "Cotización Enviada", color: "bg-gray-500", icon: Clock },
     cotizacion_aprobada: { label: "Cotización Aprobada", color: "bg-blue-400", icon: CheckCircle2 },
     adelanto_recibido: { label: "Adelanto Recibido", color: "bg-blue-500", icon: CheckCircle2 },
     en_diseno: { label: "En Diseño", color: "bg-purple-500", icon: Paintbrush },
-    pendiente_modelado: { label: "Pendiente tu Aprobación", color: "bg-violet-500", icon: AlertCircle },
+    pendiente_modelado: { label: "Pendiente tu Aprobación", color: "bg-purple-500", icon: AlertCircle },
     pendiente_render: { label: "Pendiente tu Aprobación", color: "bg-amber-500", icon: AlertCircle },
     aprobacion_final: { label: "Diseño Aprobado", color: "bg-green-400", icon: CheckCircle2 },
     despiece: { label: "En Producción", color: "bg-indigo-500", icon: Hammer },
@@ -660,14 +660,14 @@ export default function Portal() {
                             new Date(project.estimatedInstallDate) < new Date() 
                               ? "bg-red-500/10 border border-red-500/25" 
                               : new Date(project.estimatedInstallDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-                                ? "bg-yellow-500/10 border border-yellow-200"
+                                ? "bg-amber-500/10 border border-amber-200"
                                 : "bg-green-500/10 border border-green-500/25"
                           }`}>
                             <Truck className={`h-5 w-5 ${
                               new Date(project.estimatedInstallDate) < new Date() 
                                 ? "text-red-400" 
                                 : new Date(project.estimatedInstallDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-                                  ? "text-yellow-400"
+                                  ? "text-amber-400"
                                   : "text-green-400"
                             }`} />
                             <div>
@@ -675,7 +675,7 @@ export default function Portal() {
                                 new Date(project.estimatedInstallDate) < new Date() 
                                   ? "text-red-300" 
                                   : new Date(project.estimatedInstallDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-                                    ? "text-yellow-300"
+                                    ? "text-amber-300"
                                     : "text-green-300"
                               }`}>
                                 {new Date(project.estimatedInstallDate) < new Date() 
@@ -686,7 +686,7 @@ export default function Portal() {
                                 new Date(project.estimatedInstallDate) < new Date() 
                                   ? "text-red-400" 
                                   : new Date(project.estimatedInstallDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-                                    ? "text-yellow-400"
+                                    ? "text-amber-400"
                                     : "text-green-400"
                               }`}>
                                 {new Date(project.estimatedInstallDate).toLocaleDateString("es-CO", {
@@ -791,12 +791,12 @@ export default function Portal() {
 
                         {/* Aprobación de diseño */}
                         {project.status === "pendiente_render" && (
-                          <div className="bg-yellow-500/10 border border-yellow-200 rounded-lg p-4">
-                            <h4 className="font-medium text-yellow-300 mb-2 flex items-center gap-2">
+                          <div className="bg-amber-500/10 border border-amber-200 rounded-lg p-4">
+                            <h4 className="font-medium text-amber-300 mb-2 flex items-center gap-2">
                               <AlertCircle className="h-4 w-4" />
                               Acción Requerida: Aprobar Diseño
                             </h4>
-                            <p className="text-sm text-yellow-300 mb-4">
+                            <p className="text-sm text-amber-300 mb-4">
                               El diseño 3D de tu proyecto está listo. Por favor revísalo y apruébalo para continuar con la producción.
                             </p>
                             <div className="flex gap-2">

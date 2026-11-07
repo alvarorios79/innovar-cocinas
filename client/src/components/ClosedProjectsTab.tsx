@@ -22,15 +22,7 @@ import {
 } from "@/components/ui/select";
 import { CheckCircle2, DollarSign, TrendingUp, Loader2, Archive } from "lucide-react";
 
-function formatCurrency(value: string | number) {
-  const numValue = typeof value === "string" ? parseFloat(value) : value;
-  return new Intl.NumberFormat("es-CO", {
-    style: "currency",
-    currency: "COP",
-    minimumFractionDigits: 0,
-  }).format(numValue);
-}
-
+import { formatCurrency } from "@/lib/format";
 export function ClosedProjectsTab() {
   const [sortBy, setSortBy] = useState<"recent" | "oldest">("recent");
   const [filterClient, setFilterClient] = useState("");
@@ -65,7 +57,7 @@ export function ClosedProjectsTab() {
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Archive className="h-5 w-5 text-teal-400" />
+            <Archive className="h-5 w-5 text-primary" />
             Filtrar Proyectos Cerrados
           </CardTitle>
           <CardDescription>Busca proyectos cerrados por cliente o nombre</CardDescription>
@@ -122,7 +114,7 @@ export function ClosedProjectsTab() {
         <CardContent>
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-6 w-6 animate-spin text-teal-400" />
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
               <span className="ml-2 text-muted-foreground">Cargando proyectos...</span>
             </div>
           ) : filteredProjects.length === 0 ? (
@@ -176,7 +168,7 @@ export function ClosedProjectsTab() {
                       </TableCell>
                       <TableCell>
                         <div className="space-y-1">
-                          <Badge className="bg-teal-500/15 text-teal-300 block">
+                          <Badge className="bg-primary/15 text-teal-300 block">
                             ID: {project.closureId}
                           </Badge>
                           <span className="text-xs text-muted-foreground">
@@ -244,7 +236,7 @@ export function ClosedProjectsTab() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-teal-400">
+              <div className="text-2xl font-bold text-primary">
                 {filteredProjects.length}
               </div>
             </CardContent>

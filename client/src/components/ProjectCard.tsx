@@ -29,24 +29,7 @@ import {
   Pencil
 } from "lucide-react";
 
-// Estados del proyecto según Ruta INNOVAR (14 estados simplificados)
-const PROJECT_STATUSES = {
-  contacto: { label: "Contacto", color: "bg-slate-400", icon: Clock },
-  cotizacion_enviada: { label: "Cotización Enviada", color: "bg-gray-500", icon: Clock },
-  cotizacion_aprobada: { label: "Cotización Aprobada", color: "bg-blue-400", icon: CheckCircle2 },
-  adelanto_recibido: { label: "Cliente Confirmado - Iniciar Diseño", color: "bg-blue-500", icon: CheckCircle2 },
-  en_diseno: { label: "En Diseño", color: "bg-purple-500", icon: Paintbrush },
-  pendiente_modelado: { label: "Pendiente Modelado 3D", color: "bg-violet-500", icon: AlertCircle },
-  pendiente_render: { label: "Pendiente Renders", color: "bg-amber-500", icon: AlertCircle },
-  aprobacion_final: { label: "Diseño Aprobado", color: "bg-green-400", icon: CheckCircle2 },
-  despiece: { label: "Despiece", color: "bg-indigo-500", icon: Paintbrush },
-  corte: { label: "En Corte", color: "bg-orange-500", icon: Hammer },
-  enchape: { label: "En Enchape", color: "bg-orange-600", icon: Paintbrush },
-  ensamble: { label: "En Ensamble", color: "bg-orange-700", icon: Package },
-  listo_instalacion: { label: "En Instalación", color: "bg-teal-500", icon: Truck },
-  entregado: { label: "Entregado", color: "bg-green-700", icon: CheckCircle2 },
-};
-
+import { PROJECT_STATUS as PROJECT_STATUSES } from "@/lib/projectStatus";
 const WORK_TYPES = {
   cocina: "Cocina Integral",
   closet: "Closet",
@@ -170,7 +153,7 @@ export function ProjectCard({
                   </Badge>
                 )}
               </div>
-              <div className="text-sm text-muted-foreground grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-1">
+              <div className="text-sm text-muted-foreground grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-4 gap-y-1">
                 <p className="flex items-center gap-1">
                   <Package className="h-3 w-3" />
                   {WORK_TYPES[project.workType as keyof typeof WORK_TYPES]}
@@ -184,7 +167,7 @@ export function ProjectCard({
                     new Date(project.estimatedInstallDate) < new Date() 
                       ? "text-red-400" 
                       : new Date(project.estimatedInstallDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-                        ? "text-yellow-400"
+                        ? "text-amber-400"
                         : "text-green-400"
                   }`}>
                     <Truck className="h-3 w-3" />
@@ -284,12 +267,12 @@ export function ProjectCard({
             {detail.status === "pendiente_render" && 
               (user?.role === "admin" || user?.role === "super_admin") && 
               onApproveDesign && (
-              <div className="bg-yellow-500/10 border border-yellow-200 rounded-lg p-4 my-3">
-                <h4 className="font-medium text-yellow-300 mb-2 flex items-center gap-2">
+              <div className="bg-amber-500/10 border border-amber-200 rounded-lg p-4 my-3">
+                <h4 className="font-medium text-amber-300 mb-2 flex items-center gap-2">
                   <AlertCircle className="h-4 w-4" />
                   Pendiente de Aprobación del Cliente
                 </h4>
-                <p className="text-sm text-yellow-300 mb-3">
+                <p className="text-sm text-amber-300 mb-3">
                   Puedes aprobar el diseño en nombre del cliente si este no usa la aplicación.
                 </p>
                 <div className="flex gap-2">
@@ -422,7 +405,7 @@ export function ProjectCard({
                         new Date(detail.estimatedInstallDate) < new Date() 
                           ? "text-red-400" 
                           : new Date(detail.estimatedInstallDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-                            ? "text-yellow-400"
+                            ? "text-amber-400"
                             : "text-green-400"
                       }`}>
                         <strong>Entrega estimada:</strong> {new Date(detail.estimatedInstallDate).toLocaleDateString("es-CO")}

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 
+import { toast } from "sonner";
 function useTokenFromUrl(): string {
   const params = new URLSearchParams(window.location.search);
   return params.get("token") ?? "";
@@ -54,7 +55,7 @@ export default function PublicQuotation() {
   const approveMutation = trpc.quotations.publicApprove.useMutation({
     onSuccess: () => { setApproved(true); },
     onError: (err) => {
-      alert(err.message || "Error al aprobar. Intente de nuevo.");
+      toast.error(err.message || "Error al aprobar. Intente de nuevo.");
       setApproving(false);
     },
   });
@@ -68,7 +69,7 @@ export default function PublicQuotation() {
   const rejectMutation = trpc.quotations.publicReject.useMutation({
     onSuccess: () => { setRejected(true); setShowRejectDialog(false); },
     onError: (err) => {
-      alert(err.message || "Error al rechazar. Intente de nuevo.");
+      toast.error(err.message || "Error al rechazar. Intente de nuevo.");
       setRejecting(false);
     },
   });
@@ -85,7 +86,7 @@ export default function PublicQuotation() {
     return (
       <div className="min-h-screen bg-[#0a1a1a] flex items-center justify-center">
         <div className="text-center">
-          <div className="w-10 h-10 border-4 border-[#1DB5A8] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-gray-400">Cargando su cotización...</p>
         </div>
       </div>
@@ -102,7 +103,7 @@ export default function PublicQuotation() {
     <div className="min-h-screen bg-[#0a1a1a] text-white">
 
       {/* Header */}
-      <div className="bg-gradient-to-r from-[#1DB5A8] to-[#148f84] px-4 py-6">
+      <div className="bg-gradient-to-r from-primary to-[#148f84] px-4 py-6">
         <div className="max-w-2xl mx-auto flex items-center gap-3">
           <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-2xl font-bold">N</div>
           <div>
@@ -137,23 +138,23 @@ export default function PublicQuotation() {
             </p>
             <div className="pt-1 space-y-2 text-sm text-gray-400">
               <p>📋 Número: <span className="text-white font-medium">{data.quotationNumber}</span></p>
-              <p>💰 Total aprobado: <span className="text-[#1DB5A8] font-bold">{data.total}</span></p>
+              <p>💰 Total aprobado: <span className="text-primary font-bold">{data.total}</span></p>
             </div>
             {(data as any).projectId && (
               <a href={`/gallery?project=${(data as any).projectId}&token=${token}`}
-                className="inline-flex items-center gap-2 mt-2 bg-[#1DB5A8] hover:bg-[#17a396] text-white font-bold px-6 py-3 rounded-xl transition-colors text-sm">
+                className="inline-flex items-center gap-2 mt-2 bg-primary hover:bg-primary text-white font-bold px-6 py-3 rounded-xl transition-colors text-sm">
                 📷 Ver avance de tu proyecto →
               </a>
             )}
             <button
               onClick={handleDownloadPdf}
               disabled={downloadingPdf}
-              className="flex items-center justify-center gap-2 w-full bg-[#162828] border border-[#1DB5A8]/40 hover:border-[#1DB5A8] rounded-xl p-4 text-[#1DB5A8] font-semibold transition-colors disabled:opacity-60">
+              className="flex items-center justify-center gap-2 w-full bg-card border border-primary/40 hover:border-primary rounded-xl p-4 text-primary font-semibold transition-colors disabled:opacity-60">
               <span>📄</span> {downloadingPdf ? "Generando PDF..." : "Descargar cotización aprobada (PDF)"}
             </button>
             <p className="text-xs text-gray-600 pt-2">
               Este enlace siempre te permitirá descargar tu cotización.{" "}
-              <a href="https://wa.me/573136802025" className="text-[#1DB5A8] hover:underline">¿Dudas? Escríbenos por WhatsApp</a>
+              <a href="https://wa.me/573136802025" className="text-primary hover:underline">¿Dudas? Escríbenos por WhatsApp</a>
             </p>
           </div>
         )}
@@ -165,17 +166,17 @@ export default function PublicQuotation() {
             <h2 className="text-red-400 font-bold text-xl">Cotización Rechazada</h2>
             <p className="text-gray-300 text-sm">Si deseas ajustar la propuesta, contáctanos.</p>
             <a href="https://wa.me/573136802025"
-              className="inline-flex items-center gap-2 bg-[#1DB5A8] text-white font-bold px-5 py-3 rounded-xl text-sm">
+              className="inline-flex items-center gap-2 bg-primary text-white font-bold px-5 py-3 rounded-xl text-sm">
               Hablar con nosotros
             </a>
           </div>
         )}
 
         {/* ── RESUMEN DE COTIZACIÓN ── */}
-        <div className="bg-[#0f2424] border border-[#1DB5A8]/20 rounded-xl p-5 space-y-4">
+        <div className="bg-[#0f2424] border border-primary/20 rounded-xl p-5 space-y-4">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-[#1DB5A8] text-xs uppercase tracking-widest font-semibold">Cotización</p>
+              <p className="text-primary text-xs uppercase tracking-widest font-semibold">Cotización</p>
               <h2 className="text-white font-bold text-2xl">{data.quotationNumber}</h2>
             </div>
             <StatusBadge status={approved ? "approved" : rejected ? "rejected" : data.status} />
@@ -192,15 +193,15 @@ export default function PublicQuotation() {
               </div>
             )}
           </div>
-          <div className="border-t border-[#1DB5A8]/10 pt-4 flex justify-between items-center">
+          <div className="border-t border-primary/10 pt-4 flex justify-between items-center">
             <span className="text-gray-400">Total</span>
-            <span className="text-[#1DB5A8] font-bold text-2xl">{data.total}</span>
+            <span className="text-primary font-bold text-2xl">{data.total}</span>
           </div>
         </div>
 
         {/* ── DETALLE DE ÍTEMS — solo si NO está cerrada ── */}
         {!isClosed && data.items.length > 0 && (
-          <div className="bg-[#0f2424] border border-[#1DB5A8]/20 rounded-xl p-5">
+          <div className="bg-[#0f2424] border border-primary/20 rounded-xl p-5">
             <h3 className="text-gray-400 text-xs uppercase tracking-widest font-semibold mb-3">Detalle</h3>
             <div className="space-y-3">
               {data.items.map((item: any, idx: number) => (
@@ -218,14 +219,14 @@ export default function PublicQuotation() {
           <button
             onClick={handleDownloadPdf}
             disabled={downloadingPdf}
-            className="flex items-center justify-center gap-2 w-full bg-[#162828] border border-[#1DB5A8]/30 hover:border-[#1DB5A8] rounded-xl p-4 text-[#1DB5A8] font-medium transition-colors disabled:opacity-60">
+            className="flex items-center justify-center gap-2 w-full bg-card border border-primary/30 hover:border-primary rounded-xl p-4 text-primary font-medium transition-colors disabled:opacity-60">
             <span>📄</span> {downloadingPdf ? "Generando PDF..." : "Descargar cotización PDF"}
           </button>
         )}
 
         {/* ── BOTÓN DE APROBACIÓN — solo si está pendiente ── */}
         {!isClosed && data.status === "sent" && (
-          <div className="bg-[#0f2424] border border-[#1DB5A8]/20 rounded-xl p-5 space-y-4">
+          <div className="bg-[#0f2424] border border-primary/20 rounded-xl p-5 space-y-4">
             <h3 className="text-white font-semibold">¿Deseas aprobar esta cotización?</h3>
             <p className="text-gray-400 text-sm">
               Al aprobar, nuestro equipo se comunicará contigo para coordinar los próximos pasos.
@@ -235,10 +236,10 @@ export default function PublicQuotation() {
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Comentarios opcionales (ajustes de diseño, preferencias de color, etc.)..."
               rows={3}
-              className="w-full bg-[#0a1a1a] border border-[#1DB5A8]/20 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#1DB5A8]/60 resize-none"
+              className="w-full bg-[#0a1a1a] border border-primary/20 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-primary/60 resize-none"
             />
             <button onClick={handleApprove} disabled={approving}
-              className="w-full bg-[#1DB5A8] hover:bg-[#17a396] disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl text-lg transition-colors">
+              className="w-full bg-primary hover:bg-primary disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl text-lg transition-colors">
               {approving ? "Aprobando..." : "✅ Aprobar Cotización"}
             </button>
           </div>
@@ -292,7 +293,7 @@ export default function PublicQuotation() {
         {/* Footer */}
         <div className="text-center text-gray-600 text-xs pt-4 pb-8">
           <p>Innovar Cocinas de Diseño · Km 9 vía Cerritos, Pereira</p>
-          <p className="mt-1">WhatsApp: <a href="https://wa.me/573136802025" className="text-[#1DB5A8]">313 680 2025</a></p>
+          <p className="mt-1">WhatsApp: <a href="https://wa.me/573136802025" className="text-primary">313 680 2025</a></p>
         </div>
       </div>
     </div>
@@ -318,7 +319,7 @@ function ErrorScreen({ message }: { message: string }) {
         <h1 className="text-white font-bold text-xl mb-2">Enlace no disponible</h1>
         <p className="text-gray-400 text-sm mb-6">{message}</p>
         <a href="https://wa.me/573136802025"
-          className="inline-flex items-center gap-2 bg-[#1DB5A8] text-white font-medium px-5 py-3 rounded-xl text-sm">
+          className="inline-flex items-center gap-2 bg-primary text-white font-medium px-5 py-3 rounded-xl text-sm">
           Contactar por WhatsApp
         </a>
       </div>

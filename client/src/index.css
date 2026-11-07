@@ -41,108 +41,91 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   /* Colores corporativos INNOVAR — Paleta Verde Cardenal */
-  --color-innovar-turquesa: oklch(0.76 0.09 186);
-  --color-innovar-turquesa-dark: oklch(0.60 0.09 186);
-  --color-innovar-turquesa-light: oklch(0.88 0.06 186);
-  --color-innovar-bg: oklch(0.12 0.025 182);
-  --color-innovar-bg-panel: oklch(0.15 0.025 182);
-  --color-innovar-bg-card: oklch(0.18 0.028 182);
-  --color-innovar-bg-hover: oklch(0.22 0.030 182);
-  --color-innovar-gris: oklch(0.70 0.01 182);
-  --color-innovar-success: oklch(0.70 0.18 145);
-  --color-innovar-warning: oklch(0.80 0.15 85);
-  --color-innovar-info: oklch(0.65 0.15 230);
+  --color-innovar-turquesa: var(--primary);
+  --color-innovar-turquesa-dark: #0d9b8f;
+  --color-innovar-turquesa-light: #6acfc7;
+  --color-innovar-bg: var(--background);
+  --color-innovar-bg-panel: var(--surface);
+  --color-innovar-bg-card: var(--card);
+  --color-innovar-bg-hover: var(--accent);
+  --color-innovar-gris: var(--muted-foreground);
+  --color-innovar-success: var(--success);
+  --color-innovar-warning: var(--warning);
+  --color-innovar-info: var(--info);
+
+  /* ── Colores con función (usar SIEMPRE estos en vez de colores sueltos) ── */
+  --color-brand: var(--primary);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-danger: var(--destructive);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-design: var(--design);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
 }
 
 :root {
-  /* ── Paleta Verde Cardenal INNOVAR ───────────────────────────── */
+  /* ══ Paleta única INNOVAR (CRM oscuro) ════════════════════════════
+     Regla: las pantallas usan estos nombres (bg-card, text-primary,
+     bg-success/15, text-warning…), nunca colores escritos a mano.
+     Marca  #1DB5A8 · Fondo #0B1818 · Tarjeta #132525
+  ════════════════════════════════════════════════════════════════ */
   --radius: 0.65rem;
 
-  /* Fondo principal: #0C1A1A verde cardenal profundo */
-  --background: oklch(0.12 0.025 182);
-  --foreground: oklch(0.96 0.005 90);
+  --background: #0b1818;          /* fondo de la página */
+  --foreground: #eef4f3;          /* texto principal */
+  --surface: #0f1f1f;             /* franjas y zonas hundidas */
+  --surface-2: #1a2f2f;           /* elementos dentro de tarjetas */
 
-  /* Cards / superficies elevadas */
-  --card: oklch(0.16 0.026 182);
-  --card-foreground: oklch(0.96 0.005 90);
-  --popover: oklch(0.16 0.026 182);
-  --popover-foreground: oklch(0.96 0.005 90);
+  --card: #132525;                /* tarjetas */
+  --card-foreground: #eef4f3;
+  --popover: #152929;
+  --popover-foreground: #eef4f3;
 
-  /* Acento principal: #6ACFC7 verde azulado */
-  --primary: oklch(0.76 0.09 186);
-  --primary-foreground: oklch(0.12 0.025 182);
+  --primary: #1db5a8;             /* turquesa de marca: botones, enlaces, foco */
+  --primary-foreground: #04201d;
 
-  /* Superficies secundarias */
-  --secondary: oklch(0.20 0.028 182);
-  --secondary-foreground: oklch(0.90 0.005 90);
+  --secondary: #1c3232;
+  --secondary-foreground: #e3ecea;
+  --muted: #182c2c;
+  --muted-foreground: #8fa6a3;    /* texto secundario */
+  --accent: #1f3838;              /* fondo al pasar el mouse */
+  --accent-foreground: #eef4f3;
 
-  --muted: oklch(0.20 0.022 182);
-  --muted-foreground: oklch(0.62 0.015 182);
+  /* Colores con función */
+  --success: #22c55e;   --success-foreground: #04210f;   /* listo, pagado, aprobado */
+  --warning: #f59e0b;   --warning-foreground: #261600;   /* pendiente, por revisar */
+  --destructive: #ef4444; --destructive-foreground: #ffffff; /* atrasado, borrar, error */
+  --info: #38bdf8;      --info-foreground: #032130;      /* información, citas */
+  --design: #a78bfa;                                      /* etapas de diseño */
 
-  /* Acento hover */
-  --accent: oklch(0.22 0.030 182);
-  --accent-foreground: oklch(0.96 0.005 90);
+  --border: rgba(106, 207, 199, 0.14);
+  --input: #1a2f2f;
+  --ring: #1db5a8;
+  /* Degradado de marca: SOLO para el botón principal destacado */
+  --brand-gradient: linear-gradient(135deg, #1db5a8 0%, #0d9b8f 100%);
 
-  --destructive: oklch(0.60 0.22 25);
-  --destructive-foreground: oklch(0.99 0 0);
+  --chart-1: #1db5a8;
+  --chart-2: #38bdf8;
+  --chart-3: #f59e0b;
+  --chart-4: #22c55e;
+  --chart-5: #a78bfa;
 
-  /* Bordes sutiles en tono teal */
-  --border: oklch(0.76 0.09 186 / 0.14);
-  --input: oklch(0.22 0.028 182);
-  --ring: oklch(0.76 0.09 186);
-
-  /* Charts */
-  --chart-1: oklch(0.76 0.09 186);
-  --chart-2: oklch(0.60 0.09 186);
-  --chart-3: oklch(0.75 0.12 85);
-  --chart-4: oklch(0.70 0.18 145);
-  --chart-5: oklch(0.65 0.15 25);
-
-  /* Sidebar — más profundo que el contenido */
-  --sidebar: oklch(0.10 0.020 182);
-  --sidebar-foreground: oklch(0.96 0.005 90);
-  --sidebar-primary: oklch(0.76 0.09 186);
-  --sidebar-primary-foreground: oklch(0.12 0.025 182);
-  --sidebar-accent: oklch(0.76 0.09 186 / 0.10);
-  --sidebar-accent-foreground: oklch(0.76 0.09 186);
-  --sidebar-border: oklch(0.76 0.09 186 / 0.12);
-  --sidebar-ring: oklch(0.76 0.09 186);
+  --sidebar: #091414;
+  --sidebar-foreground: #eef4f3;
+  --sidebar-primary: #1db5a8;
+  --sidebar-primary-foreground: #04201d;
+  --sidebar-accent: rgba(29, 181, 168, 0.10);
+  --sidebar-accent-foreground: #6acfc7;
+  --sidebar-border: rgba(106, 207, 199, 0.12);
+  --sidebar-ring: #1db5a8;
 }
 
 .dark {
-  /* Dark mode idéntico al root — la app ya es toda oscura */
-  --background: oklch(0.10 0.020 182);
-  --foreground: oklch(0.96 0.005 90);
-  --card: oklch(0.14 0.024 182);
-  --card-foreground: oklch(0.96 0.005 90);
-  --popover: oklch(0.14 0.024 182);
-  --popover-foreground: oklch(0.96 0.005 90);
-  --primary: oklch(0.76 0.09 186);
-  --primary-foreground: oklch(0.12 0.025 182);
-  --secondary: oklch(0.18 0.026 182);
-  --secondary-foreground: oklch(0.90 0.005 90);
-  --muted: oklch(0.18 0.022 182);
-  --muted-foreground: oklch(0.60 0.015 182);
-  --accent: oklch(0.20 0.028 182);
-  --accent-foreground: oklch(0.96 0.005 90);
-  --destructive: oklch(0.65 0.20 25);
-  --destructive-foreground: oklch(0.99 0 0);
-  --border: oklch(0.76 0.09 186 / 0.14);
-  --input: oklch(0.20 0.026 182);
-  --ring: oklch(0.76 0.09 186);
-  --chart-1: oklch(0.76 0.09 186);
-  --chart-2: oklch(0.60 0.09 186);
-  --chart-3: oklch(0.75 0.12 85);
-  --chart-4: oklch(0.70 0.18 145);
-  --chart-5: oklch(0.65 0.15 25);
-  --sidebar: oklch(0.08 0.018 182);
-  --sidebar-foreground: oklch(0.96 0.005 90);
-  --sidebar-primary: oklch(0.76 0.09 186);
-  --sidebar-primary-foreground: oklch(0.12 0.025 182);
-  --sidebar-accent: oklch(0.76 0.09 186 / 0.10);
-  --sidebar-accent-foreground: oklch(0.76 0.09 186);
-  --sidebar-border: oklch(0.76 0.09 186 / 0.12);
-  --sidebar-ring: oklch(0.76 0.09 186);
+  /* La app es toda oscura: .dark usa la misma paleta de :root */
 }
 
 @layer base {
@@ -178,6 +161,57 @@
       font-size: 14px;
     }
   }
+}
+
+@layer base {
+  /* Casillas y opciones nativas: mismo aspecto que las del CRM */
+  input[type="checkbox"], input[type="radio"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+    border: 1.5px solid color-mix(in srgb, var(--primary) 55%, transparent);
+    background: var(--input);
+    display: inline-grid;
+    place-content: center;
+    vertical-align: middle;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  input[type="checkbox"] { border-radius: 4px; }
+  input[type="radio"] { border-radius: 9999px; }
+  input[type="checkbox"]:checked, input[type="radio"]:checked {
+    background: var(--primary);
+    border-color: var(--primary);
+  }
+  input[type="checkbox"]:checked::before {
+    content: "";
+    width: 0.55rem;
+    height: 0.55rem;
+    background: var(--primary-foreground);
+    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+  }
+  input[type="radio"]:checked::before {
+    content: "";
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 9999px;
+    background: var(--primary-foreground);
+  }
+  input[type="checkbox"]:focus-visible, input[type="radio"]:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  input[type="checkbox"]:disabled, input[type="radio"]:disabled { opacity: 0.45; }
+
+  /* Listas desplegables nativas */
+  select {
+    background-color: var(--input);
+    color: var(--foreground);
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius) - 2px);
+  }
+  select option { background: var(--popover); color: var(--popover-foreground); }
 }
 
 @layer components {
@@ -512,27 +546,33 @@
 
   /* Bordes */
   .border-innovar {
-    border-color: oklch(0.76 0.09 186 / 0.25);
+    border-color: color-mix(in srgb, var(--primary) 25%, transparent);
   }
 
   .border-innovar-strong {
-    border-color: oklch(0.76 0.09 186 / 0.50);
+    border-color: color-mix(in srgb, var(--primary) 50%, transparent);
   }
 
   /* Fondos */
   .bg-innovar-panel {
-    background: oklch(0.15 0.025 182);
+    background: var(--surface);
   }
 
   .bg-innovar-card {
-    background: oklch(0.18 0.028 182);
+    background: var(--card);
   }
 
   .bg-gradient-innovar {
-    background: linear-gradient(160deg, oklch(0.12 0.025 182), oklch(0.16 0.026 182));
+    background: var(--background);
   }
 
   .bg-gradient-innovar-strong {
-    background: oklch(0.76 0.09 186);
+    background: var(--primary);
   }
+}
+
+/* Filas que se deslizan de lado (pestañas en celular) sin barra visible */
+@layer utilities {
+  .scrollbar-hide { scrollbar-width: none; -ms-overflow-style: none; }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
 }

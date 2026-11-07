@@ -39,7 +39,7 @@ export default function NotFound() {
           >
             <Button
               onClick={handleGoHome}
-              className="text-white px-6 py-2.5 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg" style={{ background: "linear-gradient(135deg, #1DB5A8, #0D9B8F)" }}
+              className="text-white px-6 py-2.5 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg" style={{ background: "var(--brand-gradient)" }}
             >
               <Home className="w-4 h-4 mr-2" />
               Volver al Inicio

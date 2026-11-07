@@ -176,7 +176,7 @@ export function AccountingClosureTab() {
       );
     }
     return (
-      <Badge className="bg-yellow-500/15 text-yellow-300 hover:bg-yellow-500/15">
+      <Badge className="bg-amber-500/15 text-amber-300 hover:bg-amber-500/15">
         <AlertCircle className="h-3 w-3 mr-1" />
         Borrador
       </Badge>
@@ -239,7 +239,7 @@ export function AccountingClosureTab() {
             <CardContent>
               {loadingPending ? (
                 <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-teal-400" />
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
                 </div>
               ) : !pendingProjects || pendingProjects.length === 0 ? (
                 <div className="py-8 text-center text-gray-500">
@@ -250,13 +250,13 @@ export function AccountingClosureTab() {
                 <div className="space-y-3">
                   {/* Select All row */}
                   <div
-                    className="flex items-center gap-3 p-3 border rounded-lg bg-teal-500/10 border-teal-500/30 cursor-pointer"
+                    className="flex items-center gap-3 p-3 border rounded-lg bg-primary/10 border-primary/30 cursor-pointer"
                     onClick={handleToggleAll}
                   >
                     <Checkbox
                       checked={allSelected}
                       onCheckedChange={handleToggleAll}
-                      className="border-teal-400 data-[state=checked]:bg-teal-500 data-[state=checked]:border-teal-500"
+                      className="border-primary data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                       style={{ width: 20, height: 20 }}
                     />
                     <span className="font-semibold text-teal-300 text-sm">
@@ -271,7 +271,7 @@ export function AccountingClosureTab() {
                         key={project.projectId}
                         className={`flex items-start gap-3 p-4 border rounded-lg transition cursor-pointer ${
                           isChecked
-                            ? "border-teal-500/60 bg-teal-500/10"
+                            ? "border-primary/60 bg-primary/10"
                             : "border-white/10 hover:bg-white/[0.03]"
                         }`}
                         onClick={() => handleToggleProject(project.projectId)}
@@ -279,7 +279,7 @@ export function AccountingClosureTab() {
                         <Checkbox
                           checked={isChecked}
                           onCheckedChange={() => handleToggleProject(project.projectId)}
-                          className="mt-1 border-teal-400 data-[state=checked]:bg-teal-500 data-[state=checked]:border-teal-500"
+                          className="mt-1 border-primary data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                           style={{ width: 20, height: 20 }}
                           onClick={(e) => e.stopPropagation()}
                         />
@@ -303,7 +303,7 @@ export function AccountingClosureTab() {
                                 <span className="font-semibold">+${fmt(project.surchargesApplied)}</span>
                               </div>
                             )}
-                            <div className="border-t border-white/[0.15] pt-2 mt-2 flex justify-between font-bold text-teal-300 bg-teal-500/10 p-2 rounded">
+                            <div className="border-t border-white/[0.15] pt-2 mt-2 flex justify-between font-bold text-teal-300 bg-primary/10 p-2 rounded">
                               <span>💰 PRECIO NETO:</span>
                               <span>${fmt(project.netPrice)}</span>
                             </div>
@@ -319,15 +319,15 @@ export function AccountingClosureTab() {
 
           {/* Preview and Submit */}
           {selectedProjects.length > 0 && (
-            <Card className="bg-teal-500/10 border-teal-500/25">
+            <Card className="bg-primary/10 border-primary/25">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5 text-teal-400" />
+                  <DollarSign className="h-5 w-5 text-primary" />
                   Resumen del Cierre ({selectedProjects.length} proyectos)
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="bg-[#162828] p-4 rounded-lg border border-teal-500/25">
+                <div className="bg-card p-4 rounded-lg border border-primary/25">
                   <p className="text-sm font-semibold text-muted-foreground mb-3">💰 Desglose de Ingresos</p>
                   <div className="space-y-2 text-sm">
                     <div className="border-t border-white/[0.10] pt-2 mt-2 flex justify-between font-bold text-teal-300">
@@ -338,15 +338,15 @@ export function AccountingClosureTab() {
                 </div>
 
                 <div className="grid grid-cols-3 gap-4">
-                  <div className="bg-[#162828] p-4 rounded-lg">
+                  <div className="bg-card p-4 rounded-lg">
                     <p className="text-sm text-muted-foreground">Ventas Netas</p>
-                    <p className="text-xl font-bold text-teal-400">${fmt(previewTotals.totalSales)}</p>
+                    <p className="text-xl font-bold text-primary">${fmt(previewTotals.totalSales)}</p>
                   </div>
-                  <div className="bg-[#162828] p-4 rounded-lg">
+                  <div className="bg-card p-4 rounded-lg">
                     <p className="text-sm text-muted-foreground">Gastos Totales</p>
                     <p className="text-xl font-bold text-orange-400">${fmt(previewTotals.totalExpenses)}</p>
                   </div>
-                  <div className="bg-[#162828] p-4 rounded-lg">
+                  <div className="bg-card p-4 rounded-lg">
                     <p className="text-sm text-muted-foreground">Ganancia Neta</p>
                     <p className="text-xl font-bold text-green-400">${fmt(previewTotals.totalProfit)}</p>
                   </div>
@@ -374,7 +374,7 @@ export function AccountingClosureTab() {
         <div className="space-y-4">
           {loadingClosures ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-teal-400" />
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
             </div>
           ) : !closures || closures.length === 0 ? (
             <Card>
@@ -401,9 +401,9 @@ export function AccountingClosureTab() {
                 {selectedClosureId === closure.id && closureDetails && (
                   <CardContent className="space-y-4 border-t pt-4">
                     <div className="grid grid-cols-3 gap-4">
-                      <div className="bg-teal-500/10 p-4 rounded-lg">
+                      <div className="bg-primary/10 p-4 rounded-lg">
                         <p className="text-sm text-muted-foreground">Ventas Totales</p>
-                        <p className="text-xl font-bold text-teal-400">${fmt(closureDetails.totalSales)}</p>
+                        <p className="text-xl font-bold text-primary">${fmt(closureDetails.totalSales)}</p>
                       </div>
                       <div className="bg-orange-500/10 p-4 rounded-lg">
                         <p className="text-sm text-muted-foreground">Gastos Totales</p>
@@ -435,7 +435,7 @@ export function AccountingClosureTab() {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="border-teal-500 text-teal-400 hover:bg-teal-500/10"
+                            className="border-primary text-primary hover:bg-primary/10"
                             onClick={async () => {
                               try {
                                 const result = await utils.accountingClosures.downloadPDF.fetch({ closureId: closure.id });

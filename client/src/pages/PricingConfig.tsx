@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { formatCurrency } from "@/lib/format";
 import {
   DollarSign,
   Edit2,
@@ -35,6 +36,7 @@ import {
   Trash2,
 } from "lucide-react";
 
+import { confirmAction } from "@/lib/confirm";
 // Configuración de categorías con colores e iconos
 const categoryConfig: Record<string, {
   name: string;
@@ -46,7 +48,7 @@ const categoryConfig: Record<string, {
     name: "Cocina Base",
     icon: <ChefHat className="h-5 w-5" />,
     accentColor: "#10B981",
-    iconBg: "bg-emerald-500/15 text-emerald-400"
+    iconBg: "bg-green-500/15 text-green-400"
   },
   mesones: {
     name: "Mesones",
@@ -58,7 +60,7 @@ const categoryConfig: Record<string, {
     name: "Piezas de Cocina (suelta)",
     icon: <Box className="h-5 w-5" />,
     accentColor: "#EC4899",
-    iconBg: "bg-pink-500/15 text-pink-400"
+    iconBg: "bg-purple-500/15 text-purple-400"
   },
   muebles_especiales: {
     name: "Muebles Especiales",
@@ -76,7 +78,7 @@ const categoryConfig: Record<string, {
     name: "Puertas y Tapas",
     icon: <DoorOpen className="h-5 w-5" />,
     accentColor: "#F43F5E",
-    iconBg: "bg-rose-500/15 text-rose-400"
+    iconBg: "bg-red-500/15 text-red-400"
   },
   herrajes: {
     name: "Herrajes",
@@ -88,7 +90,7 @@ const categoryConfig: Record<string, {
     name: "Closets",
     icon: <LayoutGrid className="h-5 w-5" />,
     accentColor: "#22D3EE",
-    iconBg: "bg-cyan-500/15 text-cyan-400"
+    iconBg: "bg-primary/15 text-primary"
   },
   puertas_producto: {
     name: "Puertas (Producto)",
@@ -105,8 +107,8 @@ const categoryConfig: Record<string, {
   acabados_especiales: {
     name: "Acabados Especiales",
     icon: <Sparkles className="h-5 w-5" />,
-    accentColor: "#14B8A6",
-    iconBg: "bg-teal-500/15 text-teal-400"
+    accentColor: "var(--primary)",
+    iconBg: "bg-primary/15 text-primary"
   },
 };
 
@@ -311,16 +313,6 @@ export default function PricingConfig() {
   // Categorías disponibles
   const categories = Object.keys(categoryConfig);
 
-  const formatCurrency = (value: string | number) => {
-    const num = typeof value === "string" ? parseFloat(value) : value;
-    return new Intl.NumberFormat("es-CO", {
-      style: "currency",
-      currency: "COP",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(num);
-  };
-
   const formatValue = (item: PricingItem) => {
     if (item.unit === "%") {
       return `${item.value}%`;
@@ -388,7 +380,7 @@ export default function PricingConfig() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-emerald-500/20 border-t-emerald-400"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-green-500/20 border-t-emerald-400"></div>
       </div>
     );
   }
@@ -397,8 +389,8 @@ export default function PricingConfig() {
   if (!isLoading && (!allPricing || allPricing.length === 0)) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 text-center px-4">
-        <div className="flex h-24 w-24 items-center justify-center rounded-full bg-emerald-500/15">
-          <DatabaseZap className="h-12 w-12 text-emerald-400" />
+        <div className="flex h-24 w-24 items-center justify-center rounded-full bg-green-500/15">
+          <DatabaseZap className="h-12 w-12 text-green-400" />
         </div>
         <div>
           <h2 className="text-2xl font-bold text-white/85">Biblioteca de Precios vacía</h2>
@@ -411,7 +403,7 @@ export default function PricingConfig() {
           size="lg"
           onClick={() => seedDefaults.mutate()}
           disabled={seedDefaults.isPending}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 px-8 py-4 text-base"
+          className="bg-green-600 hover:bg-green-700 text-white gap-2 px-8 py-4 text-base"
         >
           {seedDefaults.isPending ? (
             <Loader2 className="h-5 w-5 animate-spin" />
@@ -430,25 +422,25 @@ export default function PricingConfig() {
   return (
     <div className="space-y-6">
         {/* Header */}
-        <div className="rounded-2xl bg-[#162828] p-6 sm:p-8 shadow-lg border border-white/[0.06]" style={{ borderTop: "3px solid #1DB5A8" }}>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-teal-500/15">
-                <DollarSign className="h-8 w-8 text-teal-400" />
+        <div className="rounded-2xl bg-card p-4 sm:p-6 border border-border" style={{ borderTop: "3px solid var(--primary)" }}>
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-4 min-w-0 flex-1 basis-64">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/15">
+                <DollarSign className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-white/90">Configuración de Precios</h1>
-                <p className="text-white/45 mt-1">
+                <h1 className="text-xl sm:text-2xl font-bold text-foreground">Configuración de Precios</h1>
+                <p className="text-sm text-muted-foreground mt-1">
                   Administra todos los precios del sistema de cotizaciones
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Button
-                variant="secondary"
+                variant="outline"
                 onClick={() => seedDefaults.mutate()}
                 disabled={seedDefaults.isPending}
-                className="flex items-center gap-2 bg-white/[0.06] hover:bg-white/[0.10] text-white/80 border border-white/[0.08]"
+                className="flex items-center gap-2"
                 title="Carga todos los precios base del catálogo INNOVAR en la BD"
               >
                 {seedDefaults.isPending ? (
@@ -459,19 +451,19 @@ export default function PricingConfig() {
                 {allPricing?.length === 0 ? "Inicializar Biblioteca" : "Restaurar Precios Base"}
               </Button>
               <Button
-                variant="secondary"
+                variant="outline"
                 onClick={() => seedPiezas.mutate()}
                 disabled={seedPiezas.isPending}
-                className="flex items-center gap-2 bg-white/[0.06] hover:bg-white/[0.10] text-white/80 border border-white/[0.08]"
+                className="flex items-center gap-2"
                 title="Agrega los precios de Piezas de cocina (suelta) si faltan. No sobrescribe nada."
               >
                 {seedPiezas.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <DatabaseZap className="h-4 w-4" />}
-                Cargar precios de piezas y centro de TV
+                Cargar piezas y TV
               </Button>
               <Button
-                variant="secondary"
+                variant="outline"
                 onClick={() => setShowHistory(true)}
-                className="flex items-center gap-2 bg-white/[0.06] hover:bg-white/[0.10] text-white/80 border border-white/[0.08]"
+                className="flex items-center gap-2"
               >
                 <History className="h-4 w-4" />
                 Ver Historial
@@ -481,21 +473,21 @@ export default function PricingConfig() {
           
           {/* Stats rápidos */}
           <div className="relative mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
-            <div className="bg-white/[0.05] border border-white/[0.06] rounded-lg p-3 text-center" style={{ borderLeft: "3px solid #1DB5A8" }}>
-              <p className="text-2xl font-bold text-white/90">{allPricing?.length || 0}</p>
-              <p className="text-xs text-white/40">Precios Configurados</p>
+            <div className="bg-surface-2 border border-border rounded-lg p-3 text-center" style={{ borderLeft: "3px solid var(--primary)" }}>
+              <p className="text-2xl font-bold text-foreground tabular-nums">{allPricing?.length || 0}</p>
+              <p className="text-xs text-muted-foreground">Precios Configurados</p>
             </div>
-            <div className="bg-white/[0.05] border border-white/[0.06] rounded-lg p-3 text-center" style={{ borderLeft: "3px solid #6366F1" }}>
-              <p className="text-2xl font-bold text-white/90">{categories.length}</p>
-              <p className="text-xs text-white/40">Categorías</p>
+            <div className="bg-surface-2 border border-border rounded-lg p-3 text-center" style={{ borderLeft: "3px solid var(--design)" }}>
+              <p className="text-2xl font-bold text-foreground tabular-nums">{categories.length}</p>
+              <p className="text-xs text-muted-foreground">Categorías</p>
             </div>
-            <div className="bg-white/[0.05] border border-white/[0.06] rounded-lg p-3 text-center" style={{ borderLeft: "3px solid #F59E0B" }}>
-              <p className="text-2xl font-bold text-white/90">{historyData?.length || 0}</p>
-              <p className="text-xs text-white/40">Cambios Registrados</p>
+            <div className="bg-surface-2 border border-border rounded-lg p-3 text-center" style={{ borderLeft: "3px solid var(--warning)" }}>
+              <p className="text-2xl font-bold text-foreground tabular-nums">{historyData?.length || 0}</p>
+              <p className="text-xs text-muted-foreground">Cambios Registrados</p>
             </div>
-            <div className="bg-white/[0.05] border border-white/[0.06] rounded-lg p-3 text-center" style={{ borderLeft: "3px solid #22C55E" }}>
-              <p className="text-2xl font-bold text-white/90">{activePricing.length}</p>
-              <p className="text-xs text-white/40">En Categoría Actual</p>
+            <div className="bg-surface-2 border border-border rounded-lg p-3 text-center" style={{ borderLeft: "3px solid var(--success)" }}>
+              <p className="text-2xl font-bold text-foreground tabular-nums">{activePricing.length}</p>
+              <p className="text-xs text-muted-foreground">En Categoría Actual</p>
             </div>
           </div>
 
@@ -511,7 +503,7 @@ export default function PricingConfig() {
                   setSearchQuery(e.target.value);
                   setIsSearching(e.target.value.trim().length > 0);
                 }}
-                className="w-full pl-12 pr-12 py-3 bg-white/[0.05] border-white/[0.10] text-white/85 placeholder:text-white/30 rounded-xl focus:bg-white/[0.07] focus:border-teal-500/40 transition-all"
+                className="w-full pl-12 pr-12 py-3 bg-white/[0.05] border-white/[0.10] text-white/85 placeholder:text-white/30 rounded-xl focus:bg-white/[0.07] focus:border-primary/40 transition-all"
               />
               {searchQuery && (
                 <button
@@ -539,8 +531,8 @@ export default function PricingConfig() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Sidebar de categorías */}
           <div className="lg:col-span-1">
-            <Card className="sticky top-4 overflow-hidden shadow-lg bg-[#162828] border-white/[0.06]" style={{ borderTop: "3px solid #6366F1" }}>
-              <div className="bg-[#162828] p-4 border-b border-white/[0.06]">
+            <Card className="sticky top-4 overflow-hidden shadow-lg bg-card border-white/[0.06]" style={{ borderTop: "3px solid #6366F1" }}>
+              <div className="bg-card p-4 border-b border-white/[0.06]">
                 <h2 className="text-white/80 font-semibold flex items-center gap-2">
                   <Tag className="h-4 w-4 text-indigo-400" />
                   Categorías
@@ -595,8 +587,8 @@ export default function PricingConfig() {
                   Object.entries(searchResultsByCategory).map(([category, items]) => {
                     const catConfig = categoryConfig[category];
                     return (
-                      <Card key={category} className="overflow-hidden border border-white/[0.06] shadow-lg bg-[#162828]" style={{ borderTop: `3px solid ${catConfig.accentColor}` }}>
-                        <div className="bg-[#162828] p-4 border-b border-white/[0.06]">
+                      <Card key={category} className="overflow-hidden border border-white/[0.06] shadow-lg bg-card" style={{ borderTop: `3px solid ${catConfig.accentColor}` }}>
+                        <div className="bg-card p-4 border-b border-white/[0.06]">
                           <div className="flex items-center gap-3">
                             <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${catConfig.iconBg}`}>
                               {catConfig.icon}
@@ -609,12 +601,12 @@ export default function PricingConfig() {
                             </div>
                           </div>
                         </div>
-                        <CardContent className="p-4 bg-[#0C1A1A]">
+                        <CardContent className="p-4 bg-background">
                           <div className="grid gap-3 sm:grid-cols-2">
                             {items.map((item) => (
                               <div
                                 key={item.id}
-                                className="group relative bg-[#162828] rounded-xl border border-white/[0.08] p-4 shadow-sm hover:bg-white/[0.03] transition-all duration-200"
+                                className="group relative bg-card rounded-xl border border-white/[0.08] p-4 shadow-sm hover:bg-white/[0.03] transition-all duration-200"
                                 style={{ borderLeft: `3px solid ${catConfig.accentColor}` }}
                               >
                                 {item.unit && (
@@ -628,7 +620,7 @@ export default function PricingConfig() {
                                     <h3 className="font-semibold text-white/85 truncate pr-8">
                                       {item.name.split(new RegExp(`(${searchQuery})`, 'gi')).map((part, i) =>
                                         part.toLowerCase() === searchQuery.toLowerCase()
-                                          ? <mark key={i} className="bg-yellow-400/30 text-yellow-300 px-0.5 rounded">{part}</mark>
+                                          ? <mark key={i} className="bg-amber-400/30 text-amber-300 px-0.5 rounded">{part}</mark>
                                           : part
                                       )}
                                     </h3>
@@ -638,7 +630,7 @@ export default function PricingConfig() {
                                     <p className="text-xs text-white/30 mt-2 font-mono">
                                       {item.code.split(new RegExp(`(${searchQuery})`, 'gi')).map((part, i) => 
                                         part.toLowerCase() === searchQuery.toLowerCase() 
-                                          ? <mark key={i} className="bg-yellow-200 px-0.5 rounded">{part}</mark>
+                                          ? <mark key={i} className="bg-amber-200 px-0.5 rounded">{part}</mark>
                                           : part
                                       )}
                                     </p>
@@ -666,7 +658,7 @@ export default function PricingConfig() {
                     );
                   })
                 ) : (
-                  <Card className="overflow-hidden border-2 border-white/[0.08] shadow-lg bg-[#162828]">
+                  <Card className="overflow-hidden border-2 border-white/[0.08] shadow-lg bg-card">
                     <CardContent className="p-12 text-center">
                       <div className="mx-auto h-16 w-16 rounded-full bg-white/[0.06] flex items-center justify-center mb-4">
                         <Search className="h-8 w-8 text-white/30" />
@@ -688,9 +680,9 @@ export default function PricingConfig() {
               </div>
             ) : (
               /* Vista normal por categoría */
-              <Card className="overflow-hidden border border-white/[0.06] shadow-lg bg-[#162828]" style={{ borderTop: `3px solid ${activeConfig.accentColor}` }}>
+              <Card className="overflow-hidden border border-white/[0.06] shadow-lg bg-card" style={{ borderTop: `3px solid ${activeConfig.accentColor}` }}>
               {/* Header de la categoría */}
-              <div className="bg-[#162828] p-5 border-b border-white/[0.06]">
+              <div className="bg-card p-5 border-b border-white/[0.06]">
                 <div className="flex items-center gap-3">
                   <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${activeConfig.iconBg}`}>
                     {activeConfig.icon}
@@ -702,12 +694,12 @@ export default function PricingConfig() {
                     </p>
                   </div>
                   {activeCategory === "herrajes" ? (
-                    <Button onClick={() => setShowNewHw(true)} className="ml-auto bg-teal-600 hover:bg-teal-500 text-white">
+                    <Button onClick={() => setShowNewHw(true)} className="ml-auto bg-teal-600 hover:bg-primary text-white">
                       <Plus className="h-4 w-4 mr-1" />
                       Agregar herraje
                     </Button>
                   ) : (
-                    <Button onClick={() => setShowNewPrice(true)} className="ml-auto bg-teal-600 hover:bg-teal-500 text-white">
+                    <Button onClick={() => setShowNewPrice(true)} className="ml-auto bg-teal-600 hover:bg-primary text-white">
                       <Plus className="h-4 w-4 mr-1" />
                       Agregar precio
                     </Button>
@@ -717,7 +709,7 @@ export default function PricingConfig() {
 
               {/* Pestañas de herrajes por grupo */}
               {activeCategory === "herrajes" && (
-                <div className="flex gap-2 px-4 pt-4 bg-[#0C1A1A] flex-wrap">
+                <div className="flex gap-2 px-4 pt-4 bg-background flex-wrap">
                   {([["cocinas", "Cocinas"], ["closets", "Closets"], ["puertas", "Puertas"], ["otros", "Otros"]] as const).map(([k, label]) => {
                     const n = activePricingAll.filter((i: any) => herrajeGroupOf(i) === k).length;
                     if (k === "otros" && n === 0) return null;
@@ -725,7 +717,7 @@ export default function PricingConfig() {
                       <button
                         key={k}
                         onClick={() => setHerrajeGroup(k)}
-                        className={`px-4 py-2 rounded-lg text-sm font-semibold border transition-colors ${herrajeGroup === k ? "bg-teal-500/20 border-teal-400 text-teal-300" : "border-white/[0.1] text-white/55 hover:text-white/80"}`}
+                        className={`px-4 py-2 rounded-lg text-sm font-semibold border transition-colors ${herrajeGroup === k ? "bg-primary/20 border-primary text-teal-300" : "border-white/[0.1] text-white/55 hover:text-white/80"}`}
                       >
                         {label} ({n})
                       </button>
@@ -735,13 +727,13 @@ export default function PricingConfig() {
               )}
 
               {/* Lista de precios */}
-              <CardContent className="p-4 bg-[#0C1A1A]">
+              <CardContent className="p-4 bg-background">
                 {activePricing.length > 0 ? (
                   <div className="grid gap-3 sm:grid-cols-2">
                     {activePricing.map((item) => (
                       <div
                         key={item.id}
-                        className="group relative bg-[#162828] rounded-xl border border-white/[0.08] p-4 shadow-sm hover:bg-white/[0.03] transition-all duration-200"
+                        className="group relative bg-card rounded-xl border border-white/[0.08] p-4 shadow-sm hover:bg-white/[0.03] transition-all duration-200"
                         style={{ borderLeft: `3px solid ${activeConfig.accentColor}` }}
                       >
                         {/* Badge de unidad */}
@@ -759,7 +751,7 @@ export default function PricingConfig() {
                             ) : (
                               <div className="h-20 w-20 rounded-lg border border-dashed border-white/[0.2] flex items-center justify-center text-[10px] text-white/35 text-center px-1">Sin foto</div>
                             )}
-                            <label className="cursor-pointer text-xs font-semibold px-3 py-2 rounded-lg border border-teal-400/40 text-teal-300 hover:bg-teal-500/10">
+                            <label className="cursor-pointer text-xs font-semibold px-3 py-2 rounded-lg border border-primary/40 text-teal-300 hover:bg-primary/10">
                               {uploadingId === item.id ? "Subiendo..." : ((item as any).photoUrl ? "Cambiar foto" : "Subir foto")}
                               <input
                                 type="file"
@@ -794,8 +786,8 @@ export default function PricingConfig() {
                                 size="sm"
                                 variant="outline"
                                 disabled={deletePrice.isPending}
-                                onClick={() => {
-                                  if (confirm(`¿Eliminar el precio "${item.name}"?`)) deletePrice.mutate({ id: item.id });
+                                onClick={async () => {
+                                  if ((await confirmAction(`¿Eliminar el precio "${item.name}"?`))) deletePrice.mutate({ id: item.id });
                                 }}
                                 className="border-red-500/30 text-red-400 hover:text-red-300 hover:bg-red-500/10"
                                 title="Eliminar precio"
@@ -808,8 +800,8 @@ export default function PricingConfig() {
                                 size="sm"
                                 variant="outline"
                                 disabled={deleteHerraje.isPending}
-                                onClick={() => {
-                                  if (confirm(`¿Eliminar "${item.name}"? Dejará de salir en cotizaciones nuevas; las ya hechas no cambian.`)) {
+                                onClick={async () => {
+                                  if ((await confirmAction(`¿Eliminar "${item.name}"? Dejará de salir en cotizaciones nuevas; las ya hechas no cambian.`))) {
                                     deleteHerraje.mutate({ id: herrajeHwId(item) });
                                   }
                                 }}
@@ -879,7 +871,7 @@ export default function PricingConfig() {
             </div>
             <DialogFooter className="gap-2 sm:gap-0">
               <Button variant="outline" onClick={() => setShowNewPrice(false)}>Cancelar</Button>
-              <Button onClick={handleCreatePrice} disabled={createPrice.isPending} className="bg-teal-600 hover:bg-teal-500 text-white">
+              <Button onClick={handleCreatePrice} disabled={createPrice.isPending} className="bg-teal-600 hover:bg-primary text-white">
                 {createPrice.isPending ? "Agregando..." : "Agregar precio"}
               </Button>
             </DialogFooter>
@@ -915,7 +907,7 @@ export default function PricingConfig() {
             </div>
             <DialogFooter className="gap-2 sm:gap-0">
               <Button variant="outline" onClick={() => setShowNewHw(false)}>Cancelar</Button>
-              <Button onClick={handleCreateHerraje} disabled={createHerraje.isPending} className="bg-teal-600 hover:bg-teal-500 text-white">
+              <Button onClick={handleCreateHerraje} disabled={createHerraje.isPending} className="bg-teal-600 hover:bg-primary text-white">
                 {createHerraje.isPending ? "Creando..." : "Crear herraje"}
               </Button>
             </DialogFooter>
@@ -927,8 +919,8 @@ export default function PricingConfig() {
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <div
-                className="-mx-6 -mt-6 mb-4 p-4 bg-[#162828] border-b border-white/[0.08] rounded-t-lg"
-                style={{ borderTop: `3px solid ${editingItem ? (categoryConfig[editingItem.category]?.accentColor || '#1DB5A8') : '#1DB5A8'}` }}
+                className="-mx-6 -mt-6 mb-4 p-4 bg-card border-b border-white/[0.08] rounded-t-lg"
+                style={{ borderTop: `3px solid ${editingItem ? (categoryConfig[editingItem.category]?.accentColor || 'var(--primary)') : 'var(--primary)'}` }}
               >
                 <DialogTitle className="flex items-center gap-2 text-white/85">
                   <Edit2 className="h-5 w-5 text-white/50" />
@@ -951,9 +943,9 @@ export default function PricingConfig() {
                       {formatValue(editingItem)}
                     </p>
                   </div>
-                  <div className="bg-emerald-500/10 rounded-lg p-4 border border-emerald-500/20">
-                    <Label className="text-xs text-emerald-400 uppercase tracking-wider">Nuevo Valor</Label>
-                    <p className="text-lg font-bold text-emerald-400 mt-1">
+                  <div className="bg-green-500/10 rounded-lg p-4 border border-green-500/20">
+                    <Label className="text-xs text-green-400 uppercase tracking-wider">Nuevo Valor</Label>
+                    <p className="text-lg font-bold text-green-400 mt-1">
                       {newValue ? (editingItem.unit === "%" ? `${newValue}%` : formatCurrency(newValue)) : "-"}
                     </p>
                   </div>
@@ -1011,7 +1003,7 @@ export default function PricingConfig() {
               <Button 
                 onClick={handleSave} 
                 disabled={updatePricing.isPending || !newValue}
-                className="bg-emerald-600 hover:bg-emerald-700"
+                className="bg-green-600 hover:bg-green-700"
               >
                 <Save className="h-4 w-4 mr-2" />
                 {updatePricing.isPending ? "Guardando..." : "Guardar Cambio"}
@@ -1024,7 +1016,7 @@ export default function PricingConfig() {
         <Dialog open={showHistory} onOpenChange={setShowHistory}>
           <DialogContent className="sm:max-w-2xl max-h-[85vh]">
             <DialogHeader>
-              <div className="-mx-6 -mt-6 mb-4 p-4 bg-[#162828] border-b border-white/[0.08] rounded-t-lg" style={{ borderTop: "3px solid #F59E0B" }}>
+              <div className="-mx-6 -mt-6 mb-4 p-4 bg-card border-b border-white/[0.08] rounded-t-lg" style={{ borderTop: "3px solid #F59E0B" }}>
                 <DialogTitle className="flex items-center gap-2 text-white/85">
                   <History className="h-5 w-5 text-amber-400" />
                   Historial de Cambios de Precios
@@ -1044,8 +1036,8 @@ export default function PricingConfig() {
                   return (
                     <div
                       key={item.id}
-                      className="p-4 rounded-xl border border-white/[0.08] bg-[#162828]"
-                      style={{ borderLeft: `3px solid ${config?.accentColor || '#1DB5A8'}` }}
+                      className="p-4 rounded-xl border border-white/[0.08] bg-card"
+                      style={{ borderLeft: `3px solid ${config?.accentColor || 'var(--primary)'}` }}
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-start gap-3">
@@ -1054,7 +1046,7 @@ export default function PricingConfig() {
                           </div>
                           <div>
                             <p className="font-semibold text-white/85">{item.pricingName}</p>
-                            <p className="text-xs text-white/40">
+                            <p className="text-xs text-muted-foreground">
                               {config?.name || item.pricingCategory} • <span className="font-mono">{item.pricingCode}</span>
                             </p>
                           </div>
@@ -1072,7 +1064,7 @@ export default function PricingConfig() {
                       <div className="mt-3 flex items-center gap-3 text-sm">
                         <span className="text-white/35 line-through">{formatCurrency(prevValue)}</span>
                         <ArrowRight className="h-4 w-4 text-white/30" />
-                        <span className="font-bold text-emerald-400">{formatCurrency(newVal)}</span>
+                        <span className="font-bold text-green-400">{formatCurrency(newVal)}</span>
                       </div>
                       
                       {item.reason && (

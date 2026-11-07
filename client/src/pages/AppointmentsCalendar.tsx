@@ -40,6 +40,7 @@ import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 
+import { confirmAction } from "@/lib/confirm";
 // Nombres de los días y meses en español
 const DAYS_SHORT = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
 const MONTHS = [
@@ -606,11 +607,11 @@ export default function AppointmentsCalendar() {
 
   const getStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
-      pendiente: "bg-yellow-500/15 text-yellow-400",
+      pendiente: "bg-amber-500/15 text-amber-400",
       confirmada: "bg-blue-500/20 text-blue-300",
       completada: "bg-green-500/15 text-green-400",
       cancelada: "bg-red-500/15 text-red-400",
-      enviada: "bg-teal-500/20 text-teal-300",
+      enviada: "bg-primary/20 text-teal-300",
     };
     const labels: Record<string, string> = {
       pendiente: "Pendiente",
@@ -659,7 +660,7 @@ export default function AppointmentsCalendar() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Calendario */}
           <div className="lg:col-span-3">
-            <Card className="bg-[#162828] border border-white/[0.06] overflow-hidden" style={{ borderTop: "3px solid #1DB5A8" }}>
+            <Card className="bg-card border border-white/[0.06] overflow-hidden" style={{ borderTop: "3px solid #1DB5A8" }}>
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -703,8 +704,8 @@ export default function AppointmentsCalendar() {
                         className={`
                           relative p-1 md:p-2 min-h-[60px] md:min-h-[80px] rounded-lg border transition-all
                           ${!isCurrentMonth ? "opacity-40" : ""}
-                          ${isToday ? "ring-2 ring-teal-500" : ""}
-                          ${isSelected ? "bg-teal-500/20 border-teal-500/50" : "border-white/[0.08] hover:border-white/[0.18]"}
+                          ${isToday ? "ring-2 ring-primary" : ""}
+                          ${isSelected ? "bg-primary/20 border-primary/50" : "border-white/[0.08] hover:border-white/[0.18]"}
                           ${availability === "none" ? "bg-transparent" : availability === "blocked" ? "bg-white/[0.03]" : "bg-white/[0.07]"}
                         `}
                       >
@@ -712,7 +713,7 @@ export default function AppointmentsCalendar() {
                           <span className={`text-[10px] font-normal ${availability === "none" ? "text-white/15" : availability === "blocked" ? "text-white/20" : "text-white/35"}`}>
                             {DAYS_SHORT[date.getDay()]}
                           </span>
-                          <span className={`text-sm font-semibold ${isToday ? "text-teal-400" : availability === "none" ? "text-white/20" : availability === "blocked" ? "text-white/30" : "text-white/85"}`}>
+                          <span className={`text-sm font-semibold ${isToday ? "text-primary" : availability === "none" ? "text-white/20" : availability === "blocked" ? "text-white/30" : "text-white/85"}`}>
                             {date.getDate()}
                           </span>
                         </div>
@@ -727,7 +728,7 @@ export default function AppointmentsCalendar() {
                                   apt.status === "completada" ? "bg-green-400" :
                                   apt.status === "cancelada" ? "bg-red-400" :
                                   apt.status === "confirmada" ? "bg-blue-400" :
-                                  "bg-yellow-400"
+                                  "bg-amber-400"
                                 }`}
                               />
                             ))}
@@ -744,7 +745,7 @@ export default function AppointmentsCalendar() {
                 {/* Leyenda de estados de citas */}
                 <div className="flex flex-wrap gap-4 mt-4 text-sm text-white/50">
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-yellow-400" />
+                    <div className="w-3 h-3 rounded-full bg-amber-400" />
                     <span>Pendiente</span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -764,7 +765,7 @@ export default function AppointmentsCalendar() {
                 {/* Leyenda de disponibilidad */}
                 <div className="flex flex-wrap gap-4 mt-3 pt-3 border-t text-sm">
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded bg-[#162828] border border-white/[0.15]" />
+                    <div className="w-4 h-4 rounded bg-card border border-white/[0.15]" />
                     <span>Disponible (Mar, Jue, Vie)</span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -782,10 +783,10 @@ export default function AppointmentsCalendar() {
 
           {/* Panel lateral - Citas del día seleccionado */}
           <div className="lg:col-span-1">
-            <Card className="bg-[#162828] border border-white/[0.06] overflow-hidden" style={{ borderTop: "3px solid #1DB5A8" }}>
+            <Card className="bg-card border border-white/[0.06] overflow-hidden" style={{ borderTop: "3px solid #1DB5A8" }}>
               <CardHeader>
                 <CardTitle className="text-sm flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-teal-400" />
+                  <Clock className="h-4 w-4 text-primary" />
                   {selectedDate ? (
                     <>Citas del {selectedDate.getDate()} de {MONTHS[selectedDate.getMonth()]}</>
                   ) : (
@@ -805,7 +806,7 @@ export default function AppointmentsCalendar() {
                         {getAppointmentsForDate(selectedDate).map(apt => (
                           <div
                             key={apt.id}
-                            className="p-3 rounded-lg border bg-[#162828] hover:shadow-sm cursor-pointer transition-all"
+                            className="p-3 rounded-lg border bg-card hover:shadow-sm cursor-pointer transition-all"
                             onClick={() => setSelectedAppointment(apt)}
                           >
                             <div className="flex items-start justify-between gap-2">
@@ -884,7 +885,7 @@ export default function AppointmentsCalendar() {
             </Card>
 
             {/* Resumen */}
-            <Card className="mt-4 bg-[#162828] border border-white/[0.06] overflow-hidden" style={{ borderTop: "3px solid #6366F1" }}>
+            <Card className="mt-4 bg-card border border-white/[0.06] overflow-hidden" style={{ borderTop: "3px solid #6366F1" }}>
               <CardHeader>
                 <CardTitle className="text-sm">Resumen del Mes</CardTitle>
               </CardHeader>
@@ -896,13 +897,13 @@ export default function AppointmentsCalendar() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-white/45">Pendientes:</span>
-                    <span className="font-medium text-yellow-400">
+                    <span className="font-medium text-amber-400">
                       {appointments.filter(a => a.status === "pendiente").length}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-white/45">Confirmadas:</span>
-                    <span className="font-medium text-teal-400">
+                    <span className="font-medium text-primary">
                       {appointments.filter(a => a.status === "confirmada").length}
                     </span>
                   </div>
@@ -924,7 +925,7 @@ export default function AppointmentsCalendar() {
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Plus className="h-5 w-5 text-teal-400" />
+              <Plus className="h-5 w-5 text-primary" />
               Nueva Cita
             </DialogTitle>
           </DialogHeader>
@@ -935,7 +936,7 @@ export default function AppointmentsCalendar() {
                 <Label>Cliente *</Label>
                 <button
                   type="button"
-                  className="text-xs text-teal-400 hover:text-teal-300 underline"
+                  className="text-xs text-primary hover:text-teal-300 underline"
                   onClick={() => {
                     setIsNewClient(!isNewClient);
                     setNewClientId(null);
@@ -959,7 +960,7 @@ export default function AppointmentsCalendar() {
                 />
               ) : newClientId ? (
                 /* Cliente seleccionado */
-                <div className="flex items-center justify-between p-2 bg-teal-500/10 border border-teal-500/30 rounded-lg mt-1">
+                <div className="flex items-center justify-between p-2 bg-primary/10 border border-primary/30 rounded-lg mt-1">
                   <div>
                     <span className="font-medium text-sm">{newClientName}</span>
                     {newClientPhone && <div className="text-xs text-white/40">{newClientPhone}</div>}
@@ -979,7 +980,7 @@ export default function AppointmentsCalendar() {
                     className="pl-9"
                   />
                   {newClientSearch.length >= 2 && (
-                    <div className="absolute z-50 w-full mt-1 bg-[#162828] border border-white/10 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                    <div className="absolute z-50 w-full mt-1 bg-card border border-white/10 rounded-lg shadow-lg max-h-48 overflow-y-auto">
                       {clientResults.length > 0 ? (
                         clientResults.map((c) => (
                           <button
@@ -995,7 +996,7 @@ export default function AppointmentsCalendar() {
                         <div className="px-3 py-2 text-sm text-white/40">
                           No encontrado —{" "}
                           <button
-                            className="text-teal-400 underline"
+                            className="text-primary underline"
                             onClick={() => { setIsNewClient(true); setNewClientName(newClientSearch); setNewClientSearch(""); }}
                           >
                             crear como nuevo
@@ -1018,7 +1019,7 @@ export default function AppointmentsCalendar() {
                 <select
                   value={newCountryCode}
                   onChange={(e) => setNewCountryCode(e.target.value)}
-                  className="bg-[#162828] border border-white/[0.10] text-white rounded-md px-2 py-2 text-sm"
+                  className="bg-card border border-white/[0.10] text-white rounded-md px-2 py-2 text-sm"
                 >
                   {COUNTRY_CODES.map((cc) => (
                     <option key={cc.code} value={cc.code}>{cc.flag} +{cc.code}</option>
@@ -1070,7 +1071,7 @@ export default function AppointmentsCalendar() {
                 <select
                   value={newMedidorId ?? ""}
                   onChange={(e) => setNewMedidorId(e.target.value ? Number(e.target.value) : null)}
-                  className="w-full mt-1 bg-[#162828] border border-white/[0.10] text-white rounded-md px-3 py-2 text-sm"
+                  className="w-full mt-1 bg-card border border-white/[0.10] text-white rounded-md px-3 py-2 text-sm"
                 >
                   <option value="">Sin asignar</option>
                   {medidores.length === 0 ? (
@@ -1153,7 +1154,7 @@ export default function AppointmentsCalendar() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-teal-400" />
+              <Calendar className="h-5 w-5 text-primary" />
               Detalle de Cita
             </DialogTitle>
           </DialogHeader>
@@ -1169,7 +1170,7 @@ export default function AppointmentsCalendar() {
                   {selectedAppointment.status !== "enviada" && (
                     <button
                       onClick={() => markSentMutation.mutate({ id: selectedAppointment.id, status: "enviada" })}
-                      className="text-xs px-2 py-0.5 rounded bg-teal-500/20 text-teal-300 hover:bg-teal-500/30 border border-teal-500/30 transition-colors"
+                      className="text-xs px-2 py-0.5 rounded bg-primary/20 text-teal-300 hover:bg-primary/30 border border-primary/30 transition-colors"
                       title="Marcar esta cita como ya enviada al cliente"
                     >
                       Marcar enviada
@@ -1229,7 +1230,7 @@ export default function AppointmentsCalendar() {
                       href={`${window.location.origin}/cita?token=${(selectedAppointment as any).appointmentToken}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-teal-400 text-xs underline truncate max-w-[220px]"
+                      className="text-primary text-xs underline truncate max-w-[220px]"
                     >
                       /cita?token={(selectedAppointment as any).appointmentToken?.slice(0, 12)}...
                     </a>
@@ -1286,7 +1287,7 @@ export default function AppointmentsCalendar() {
                       <select
                         value={selectedMedidorId ?? ""}
                         onChange={(e) => setSelectedMedidorId(e.target.value ? Number(e.target.value) : null)}
-                        className="flex-1 bg-[#162828] border border-white/[0.10] text-white rounded-md px-3 py-2 text-sm"
+                        className="flex-1 bg-card border border-white/[0.10] text-white rounded-md px-3 py-2 text-sm"
                       >
                         <option value="">Sin asignar</option>
                         {detailMedidores.map((m) => (
@@ -1319,8 +1320,8 @@ export default function AppointmentsCalendar() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => {
-                          if (!confirm("¿Cancelar esta cita? El estado cambiará a Cancelada (el registro se conserva).")) return;
+                        onClick={async () => {
+                          if (!(await confirmAction("¿Cancelar esta cita? El estado cambiará a Cancelada (el registro se conserva)."))) return;
                           cancelAppointmentMutation.mutate({ id: selectedAppointment.id, status: "cancelada" });
                         }}
                         disabled={cancelAppointmentMutation.isPending}
@@ -1333,8 +1334,8 @@ export default function AppointmentsCalendar() {
                     <Button
                       variant="destructive"
                       size="sm"
-                      onClick={() => {
-                        if (!confirm("¿Eliminar esta cita? Esta acción no se puede deshacer.")) return;
+                      onClick={async () => {
+                        if (!(await confirmAction("¿Eliminar esta cita? Esta acción no se puede deshacer."))) return;
                         deleteAppointmentMutation.mutate({ id: selectedAppointment.id });
                       }}
                       disabled={deleteAppointmentMutation.isPending}
@@ -1390,7 +1391,7 @@ export default function AppointmentsCalendar() {
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Pencil className="h-5 w-5 text-teal-400" />
+              <Pencil className="h-5 w-5 text-primary" />
               Reagendar Cita
             </DialogTitle>
           </DialogHeader>
@@ -1419,7 +1420,7 @@ export default function AppointmentsCalendar() {
                   <select
                     value={editMedidorId ?? ""}
                     onChange={(e) => setEditMedidorId(e.target.value ? Number(e.target.value) : null)}
-                    className="w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-teal-500"
+                    className="w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary"
                   >
                     <option value="">Sin asignar</option>
                     {detailMedidores.length === 0
@@ -1433,7 +1434,7 @@ export default function AppointmentsCalendar() {
               )}
 
               {newDate && newTime && (
-                <div className="bg-teal-500/10 border border-teal-500/25 rounded-lg p-3 text-sm">
+                <div className="bg-primary/10 border border-primary/25 rounded-lg p-3 text-sm">
                   <p className="font-semibold text-teal-300">Nueva fecha seleccionada:</p>
                   <p className="text-teal-300/80">
                     {new Date(newDate + "T12:00:00").toLocaleDateString("es-CO", {

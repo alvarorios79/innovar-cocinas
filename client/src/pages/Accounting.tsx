@@ -519,7 +519,7 @@ export default function Accounting() {
                     className={`flex-1 h-12 text-base font-semibold transition-all ${
                       expenseType === "materiales_proyecto"
                         ? "bg-teal-600 text-white shadow-md"
-                        : "bg-white/[0.06] text-slate-400 hover:bg-white/[0.10]"
+                        : "bg-white/[0.06] text-gray-400 hover:bg-white/[0.10]"
                     }`}
                   >
                     Proyecto
@@ -530,7 +530,7 @@ export default function Accounting() {
                     className={`flex-1 h-12 text-base font-semibold transition-all ${
                       expenseType === "gasto_operativo"
                         ? "bg-amber-600 text-white shadow-md"
-                        : "bg-white/[0.06] text-slate-400 hover:bg-white/[0.10]"
+                        : "bg-white/[0.06] text-gray-400 hover:bg-white/[0.10]"
                     }`}
                   >
                     Operativo
@@ -836,14 +836,14 @@ export default function Accounting() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-white/[0.08] bg-white/[0.04]">
-                    <th className="text-left py-3 px-4 font-semibold text-slate-400 text-xs uppercase tracking-wide">Fecha</th>
-                    <th className="text-left py-3 px-4 font-semibold text-slate-400 text-xs uppercase tracking-wide">Descripción</th>
-                    <th className="text-left py-3 px-4 font-semibold text-slate-400 text-xs uppercase tracking-wide">Cliente</th>
-                    <th className="text-left py-3 px-4 font-semibold text-slate-400 text-xs uppercase tracking-wide">Tipo</th>
-                    <th className="text-left py-3 px-4 font-semibold text-slate-400 text-xs uppercase tracking-wide">Categoría</th>
-                    <th className="text-right py-3 px-4 font-semibold text-slate-400 text-xs uppercase tracking-wide">Monto</th>
-                    <th className="text-center py-3 px-4 font-semibold text-slate-400 text-xs uppercase tracking-wide">Comprobante</th>
-                    {canEditDelete && <th className="text-center py-3 px-4 font-semibold text-slate-400 text-xs uppercase tracking-wide">Acciones</th>}
+                    <th className="text-left py-3 px-4 font-semibold text-gray-400 text-xs uppercase tracking-wide">Fecha</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-400 text-xs uppercase tracking-wide">Descripción</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-400 text-xs uppercase tracking-wide">Cliente</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-400 text-xs uppercase tracking-wide">Tipo</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-400 text-xs uppercase tracking-wide">Categoría</th>
+                    <th className="text-right py-3 px-4 font-semibold text-gray-400 text-xs uppercase tracking-wide">Monto</th>
+                    <th className="text-center py-3 px-4 font-semibold text-gray-400 text-xs uppercase tracking-wide">Comprobante</th>
+                    {canEditDelete && <th className="text-center py-3 px-4 font-semibold text-gray-400 text-xs uppercase tracking-wide">Acciones</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -853,7 +853,7 @@ export default function Accounting() {
                         {new Date(expense.expenseDate).toLocaleDateString('es-CO')}
                         {!expense.closureId && expense.lateAdjustment && (
                           <div className="mt-1">
-                            <Badge variant="outline" className="text-[10px] border-sky-500/40 text-sky-300" title="Fecha dentro de un periodo ya cerrado. Cuenta en el periodo actual; el cierre no cambia.">
+                            <Badge variant="outline" className="text-[10px] border-blue-500/40 text-blue-300" title="Fecha dentro de un periodo ya cerrado. Cuenta en el periodo actual; el cierre no cambia.">
                               Ajuste a periodo cerrado
                             </Badge>
                           </div>
@@ -891,7 +891,7 @@ export default function Accounting() {
                             href={expense.receiptUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-teal-400 hover:text-teal-300 hover:underline"
+                            className="inline-flex items-center gap-1 text-primary hover:text-teal-300 hover:underline"
                             title="Ver comprobante"
                           >
                             <span className="text-lg">📎</span>
@@ -905,7 +905,7 @@ export default function Accounting() {
                         <td className="py-3 px-4 text-center">
                           <div className="flex justify-center gap-2">
                             {expense.closureId ? (
-                              <span className="text-xs text-slate-500" title={`Cierre contable #${expense.closureId}`}>🔒 Cerrado</span>
+                              <span className="text-xs text-gray-500" title={`Cierre contable #${expense.closureId}`}>🔒 Cerrado</span>
                             ) : (<>
                             <Button
                               size="sm"
@@ -938,7 +938,7 @@ export default function Accounting() {
             </div>
 
             {filteredExpenses.length === 0 && (
-              <div className="text-center py-8 text-slate-500">
+              <div className="text-center py-8 text-gray-500">
                 No hay gastos registrados
               </div>
             )}
@@ -946,7 +946,7 @@ export default function Accounting() {
             {/* Paginación */}
             {filteredExpenses.length > 0 && (
               <div className="flex items-center justify-between mt-6 p-4 bg-white/[0.04] rounded-lg border border-white/[0.06]">
-                <div className="text-sm text-slate-400">
+                <div className="text-sm text-gray-400">
                   Mostrando {Math.min((currentPage - 1) * 50 + 1, filteredExpenses.length)} a {Math.min(currentPage * 50, filteredExpenses.length)} de {filteredExpenses.length} gastos
                 </div>
                 <div className="flex gap-2">
@@ -1262,7 +1262,7 @@ export default function Accounting() {
                         <tfoot>
                           <tr className="border-t-2">
                             <td className="py-3 pr-4 font-semibold">Total mensual</td>
-                            <td className="py-3 px-4 text-right font-bold font-mono text-emerald-600">
+                            <td className="py-3 px-4 text-right font-bold font-mono text-green-600">
                               ${(fixedExpenses ?? []).reduce((acc: number, i: any) => acc + parseFloat(i.monthlyAmount), 0).toLocaleString('es-CO')}
                             </td>
                             <td />

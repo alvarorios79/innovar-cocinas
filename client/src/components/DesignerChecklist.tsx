@@ -135,7 +135,7 @@ export function DesignerChecklist({
                   : timeRemaining.urgency === "critical"
                     ? "bg-orange-500/15 text-orange-300 border-orange-500/30"
                     : timeRemaining.urgency === "warning"
-                      ? "bg-yellow-500/15 text-yellow-300 border-yellow-300"
+                      ? "bg-amber-500/15 text-amber-300 border-amber-300"
                       : "bg-green-500/15 text-green-300 border-green-300"
               }`}
             >
@@ -166,14 +166,14 @@ export function DesignerChecklist({
               : timeRemaining.urgency === "critical"
                 ? "bg-orange-500/15 border border-orange-500/25"
                 : timeRemaining.urgency === "warning"
-                  ? "bg-yellow-500/15 border border-yellow-200"
+                  ? "bg-amber-500/15 border border-amber-200"
                   : "bg-green-500/15 border border-green-500/25"
           }`}>
             <div className="flex items-center gap-3">
               <Clock className={`h-8 w-8 ${
                 timeRemaining.expired ? "text-red-400" : 
                 timeRemaining.urgency === "critical" ? "text-orange-400" :
-                timeRemaining.urgency === "warning" ? "text-yellow-400" : "text-green-400"
+                timeRemaining.urgency === "warning" ? "text-amber-400" : "text-green-400"
               }`} />
               <div>
                 <p className="font-semibold text-sm">
@@ -219,7 +219,7 @@ export function DesignerChecklist({
                 {isChecked ? (
                   <CheckCircle2 className="h-5 w-5 text-green-400" />
                 ) : (
-                  <AlertTriangle className="h-5 w-5 text-yellow-500" />
+                  <AlertTriangle className="h-5 w-5 text-amber-500" />
                 )}
               </div>
             );

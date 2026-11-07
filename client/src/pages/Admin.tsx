@@ -22,6 +22,7 @@ import { formatPrice } from "@/lib/formatters";
 import { PageHeader } from "@/components/PageHeader";
 import { WhatsAppStatusPanel } from "@/components/WhatsAppStatusPanel";
 
+import { confirmAction } from "@/lib/confirm";
 // ── Levantamientos Tab ────────────────────────────────────────────────────────
 const WORK_LABELS: Record<string, string> = {
   cocina: "Cocina",
@@ -31,8 +32,8 @@ const WORK_LABELS: Record<string, string> = {
 };
 
 const STATUS_LABELS: Record<string, { label: string; className: string }> = {
-  borrador: { label: "Borrador", className: "bg-yellow-500/15 text-yellow-400" },
-  enviada: { label: "Enviado", className: "bg-teal-500/15 text-teal-400" },
+  borrador: { label: "Borrador", className: "bg-amber-500/15 text-amber-400" },
+  enviada: { label: "Enviado", className: "bg-primary/15 text-primary" },
   convertida: { label: "Convertido", className: "bg-green-500/15 text-green-400" },
 };
 
@@ -59,7 +60,7 @@ function LevantamientosTab() {
           <div className="flex items-center gap-3">
             <Button variant="outline" size="sm" onClick={() => setSelectedVisit(null)}>← Volver</Button>
             <CardTitle className="flex items-center gap-2">
-              <ClipboardList className="h-5 w-5 text-teal-400" />
+              <ClipboardList className="h-5 w-5 text-primary" />
               Levantamiento — {selectedVisit.clientName}
             </CardTitle>
           </div>
@@ -76,7 +77,7 @@ function LevantamientosTab() {
 
           {selectedVisit.measurements && Object.keys(selectedVisit.measurements).length > 0 && (
             <div>
-              <h4 className="font-semibold text-teal-400 mb-2">Medidas</h4>
+              <h4 className="font-semibold text-primary mb-2">Medidas</h4>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {Object.entries(selectedVisit.measurements).map(([k, v]: any) => (
                   <div key={k} className="bg-white/[0.04] rounded p-2 text-sm">
@@ -90,25 +91,25 @@ function LevantamientosTab() {
 
           {selectedVisit.notes && (
             <div>
-              <h4 className="font-semibold text-teal-400 mb-2">Notas</h4>
+              <h4 className="font-semibold text-primary mb-2">Notas</h4>
               <p className="text-sm bg-white/[0.04] rounded p-3">{selectedVisit.notes}</p>
             </div>
           )}
 
           {selectedVisit.technicalEvaluation && (
             <div>
-              <h4 className="font-semibold text-teal-400 mb-2">Evaluación técnica</h4>
+              <h4 className="font-semibold text-primary mb-2">Evaluación técnica</h4>
               <p className="text-sm">{selectedVisit.technicalEvaluation}</p>
             </div>
           )}
 
           {(selectedVisit.photos || []).length > 0 && (
             <div>
-              <h4 className="font-semibold text-teal-400 mb-2">Fotos ({(selectedVisit.photos || []).length})</h4>
+              <h4 className="font-semibold text-primary mb-2">Fotos ({(selectedVisit.photos || []).length})</h4>
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                 {(selectedVisit.photos || []).map((photo: any) => (
                   <a key={photo.id} href={photo.url} target="_blank" rel="noopener noreferrer">
-                    <img src={photo.url} alt={photo.fileName} className="w-full aspect-square object-cover rounded border border-white/10 hover:border-teal-400 transition-colors" />
+                    <img src={photo.url} alt={photo.fileName} className="w-full aspect-square object-cover rounded border border-white/10 hover:border-primary transition-colors" />
                   </a>
                 ))}
               </div>
@@ -138,7 +139,7 @@ function LevantamientosTab() {
               </span>
             )}
             {selectedVisit.status === "convertida" && (
-              <span className="text-xs text-emerald-400 self-center">
+              <span className="text-xs text-green-400 self-center">
                 ✓ Convertido a proyecto
               </span>
             )}
@@ -152,7 +153,7 @@ function LevantamientosTab() {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <ClipboardList className="h-5 w-5 text-teal-400" />
+          <ClipboardList className="h-5 w-5 text-primary" />
           Levantamientos Técnicos
         </CardTitle>
         <CardDescription>Visitas técnicas enviadas por el equipo de medidores.</CardDescription>
@@ -163,7 +164,7 @@ function LevantamientosTab() {
             <div
               key={visit.id}
               onClick={() => setSelectedVisit(visit)}
-              className="flex items-center justify-between p-3 rounded-lg border border-white/[0.06] hover:border-teal-500/30 bg-white/[0.02] hover:bg-white/[0.04] cursor-pointer transition-colors"
+              className="flex items-center justify-between p-3 rounded-lg border border-white/[0.06] hover:border-primary/30 bg-white/[0.02] hover:bg-white/[0.04] cursor-pointer transition-colors"
             >
               <div>
                 <p className="font-medium text-sm">{visit.clientName}</p>
@@ -535,7 +536,7 @@ export default function Admin() {
     }
   };
 
-  const handleBulkDelete = (type: 'appointments' | 'advisory' | 'quotations' | 'users') => {
+  const handleBulkDelete = async (type: 'appointments' | 'advisory' | 'quotations' | 'users') => {
     let count = 0;
     let items: number[] = [];
     
@@ -560,7 +561,7 @@ export default function Admin() {
 
     if (count === 0) return;
 
-    if (confirm(`¿Estás seguro de eliminar ${count} ${type === 'appointments' ? 'citas' : type === 'advisory' ? 'asesoramientos' : type === 'quotations' ? 'cotizaciones' : 'usuarios'}?`)) {
+    if ((await confirmAction(`¿Estás seguro de eliminar ${count} ${type === 'appointments' ? 'citas' : type === 'advisory' ? 'asesoramientos' : type === 'quotations' ? 'cotizaciones' : 'usuarios'}?`))) {
       // Eliminar cada item individualmente
       if (type === 'users') {
         // Para usuarios, eliminamos uno por uno esperando confirmación
@@ -721,7 +722,7 @@ export default function Admin() {
             label="Citas Pendientes"
             value={appointments.filter((a: any) => a.status === "pendiente").length}
             icon={<Calendar className="h-4 w-4" />}
-            accent="#1DB5A8"
+            accent="var(--primary)"
           />
           <KpiCard
             label="Asesoramiento"
@@ -733,13 +734,13 @@ export default function Admin() {
             label="Cotizaciones"
             value={quotations.length}
             icon={<FileText className="h-4 w-4" />}
-            accent="#3B82F6"
+            accent="var(--info)"
           />
           <KpiCard
             label="Clientes"
             value={clients.length}
             icon={<Users className="h-4 w-4" />}
-            accent="#22C55E"
+            accent="var(--success)"
           />
         </KpiGrid>
 
@@ -752,54 +753,54 @@ export default function Admin() {
 
         {/* Main Content */}
         <Tabs defaultValue="appointments" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-6 h-auto gap-2 bg-transparent p-1">
+          <TabsList className="w-full">
             <TabsTrigger 
               value="appointments" 
-              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-500/10 transition-colors"
+              className="text-xs sm:text-sm px-2 py-2 transition-colors"
             >
               Citas
             </TabsTrigger>
             <TabsTrigger 
               value="advisory" 
-              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-500/10 transition-colors"
+              className="text-xs sm:text-sm px-2 py-2 transition-colors"
             >
               Asesoría
             </TabsTrigger>
             <TabsTrigger 
               value="quotations" 
-              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-500/10 transition-colors"
+              className="text-xs sm:text-sm px-2 py-2 transition-colors"
             >
               Cotizaciones
             </TabsTrigger>
             <TabsTrigger 
               value="clients" 
-              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-500/10 transition-colors"
+              className="text-xs sm:text-sm px-2 py-2 transition-colors"
             >
               Clientes
             </TabsTrigger>
             <TabsTrigger 
               value="users" 
-              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-slate-500 data-[state=active]:text-white hover:bg-white/[0.06] transition-colors"
+              className="text-xs sm:text-sm px-2 py-2 transition-colors"
             >
               Usuarios
             </TabsTrigger>
             {/* Pestaña Herrajes oculta: los herrajes ahora se administran en Motor de Cotización → Herrajes */}
             <TabsTrigger
               value="projects"
-              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-500/10 transition-colors"
+              className="text-xs sm:text-sm px-2 py-2 transition-colors"
             >
               Proyectos
             </TabsTrigger>
             <TabsTrigger
               value="levantamientos"
-              className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white hover:bg-teal-500/10 transition-colors"
+              className="text-xs sm:text-sm px-2 py-2 transition-colors"
             >
               <ClipboardList className="h-3 w-3 mr-1 inline" />
               Levantamientos
             </TabsTrigger>
             {(user?.role === "super_admin" || user?.role === "admin") && (
               <Link href="/profitability-dashboard">
-                <Button variant="outline" className="text-xs sm:text-sm px-2 py-2 bg-teal-500/10 hover:bg-teal-500/15 text-teal-300 border-teal-300">
+                <Button variant="outline" className="text-xs sm:text-sm px-2 py-2 bg-primary/10 hover:bg-primary/15 text-teal-300 border-teal-300">
                   <DollarSign className="h-4 w-4 mr-1" />
                   Rentabilidad
                 </Button>
@@ -809,14 +810,14 @@ export default function Admin() {
               <>
                 <TabsTrigger 
                   value="pricing" 
-                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-emerald-600 data-[state=active]:text-white hover:bg-emerald-500/15 transition-colors"
+                  className="text-xs sm:text-sm px-2 py-2 transition-colors"
                 >
                   <DollarSign className="h-4 w-4 mr-1" />
                   Precios
                 </TabsTrigger>
                 <TabsTrigger 
                   value="system-zone" 
-                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-red-600 data-[state=active]:text-white hover:bg-red-500/15 transition-colors"
+                  className="text-xs sm:text-sm px-2 py-2 transition-colors"
                 >
                   <Wrench className="h-4 w-4 mr-1" />
                   Limpieza
@@ -1283,7 +1284,7 @@ export default function Admin() {
 
           {/* Quotations Tab */}
           <TabsContent value="quotations" className="space-y-3">
-            <Card className="border-teal-500/25 bg-gradient-to-br from-teal-950/30 to-white">
+            <Card className="border-primary/25 bg-gradient-to-br from-teal-950/30 to-white">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div>
@@ -1300,8 +1301,8 @@ export default function Admin() {
               </CardHeader>
               <CardContent className="pt-3">
                 <div className="grid gap-3 md:grid-cols-3">
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-[#162828] border border-teal-100">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-teal-500/15 flex items-center justify-center text-teal-400 font-bold">
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-card border border-teal-100">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center text-primary font-bold">
                       1
                     </div>
                     <div>
@@ -1309,8 +1310,8 @@ export default function Admin() {
                       <p className="text-xs text-muted-foreground">Múltiples items con descripción detallada</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-[#162828] border border-teal-100">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-teal-500/15 flex items-center justify-center text-teal-400 font-bold">
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-card border border-teal-100">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center text-primary font-bold">
                       2
                     </div>
                     <div>
@@ -1318,8 +1319,8 @@ export default function Admin() {
                       <p className="text-xs text-muted-foreground">Genera PDFs con logo y diseño corporativo</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-[#162828] border border-teal-100">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-teal-500/15 flex items-center justify-center text-teal-400 font-bold">
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-card border border-teal-100">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center text-primary font-bold">
                       3
                     </div>
                     <div>
@@ -1353,8 +1354,8 @@ export default function Admin() {
                       <Button
                         variant="destructive"
                         size="sm"
-                        onClick={() => {
-                          if (confirm(`¿Estás seguro de eliminar ${selectedClients.length} cliente(s)?`)) {
+                        onClick={async () => {
+                          if ((await confirmAction(`¿Estás seguro de eliminar ${selectedClients.length} cliente(s)?`))) {
                             selectedClients.forEach(id => deleteClient.mutate({ id }));
                             setSelectedClients([]);
                           }
@@ -1758,9 +1759,9 @@ export default function Admin() {
                                               usr.role === "super_admin" ? "bg-red-600" :
                                               usr.role === "admin" ? "bg-blue-500" :
                                               usr.role === "comercial" ? "bg-green-600" :
-                                              usr.role === "disenador" ? "bg-cyan-600" :
+                                              usr.role === "disenador" ? "bg-teal-600" :
                                               usr.role === "jefe_taller" ? "bg-orange-600" :
-                                              usr.role === "operario" ? "bg-yellow-600 text-black" :
+                                              usr.role === "operario" ? "bg-amber-600 text-black" :
                                               usr.role === "medidor" ? "bg-purple-600" :
                                               usr.role === "contador" ? "bg-teal-600" : ""
                                             }
@@ -1822,10 +1823,10 @@ export default function Admin() {
                                                 size="sm"
                                                 variant="secondary"
                                                 className="flex-1 min-w-0 sm:flex-none sm:w-auto"
-                                                onClick={() => {
-                                                  if (window.confirm(
+                                                onClick={async () => {
+                                                  if ((await confirmAction(
                                                     `¿Resetear contraseña de ${usr.name}? Se generará una contraseña temporal.`
-                                                  )) {
+                                                  ))) {
                                                     resetPassword.mutate({ userId: usr.id });
                                                   }
                                                 }}
@@ -1901,9 +1902,9 @@ export default function Admin() {
                                               usr.role === "super_admin" ? "bg-red-600" :
                                               usr.role === "admin" ? "bg-blue-500" :
                                               usr.role === "comercial" ? "bg-green-600" :
-                                              usr.role === "disenador" ? "bg-cyan-600" :
+                                              usr.role === "disenador" ? "bg-teal-600" :
                                               usr.role === "jefe_taller" ? "bg-orange-600" :
-                                              usr.role === "operario" ? "bg-yellow-600 text-black" :
+                                              usr.role === "operario" ? "bg-amber-600 text-black" :
                                               usr.role === "medidor" ? "bg-purple-600" :
                                               usr.role === "contador" ? "bg-teal-600" : ""
                                             }
@@ -1936,14 +1937,14 @@ export default function Admin() {
                                             size="sm"
                                             variant="outline"
                                             className="flex-1 min-w-0 sm:flex-none sm:w-auto"
-                                            onClick={() => {
+                                            onClick={async () => {
                                               const newRole = 
                                                 usr.role === "user" ? "admin" :
                                                 usr.role === "admin" ? "user" :
                                                 "user";
-                                              if (window.confirm(
+                                              if ((await confirmAction(
                                                 `¿Cambiar rol de ${usr.name} a ${newRole === "admin" ? "Administrador" : "Usuario"}?`
-                                              )) {
+                                              ))) {
                                                 updateUserRole.mutate({
                                                   userId: usr.id,
                                                   newRole: newRole as "user" | "admin" | "super_admin",
@@ -1961,10 +1962,10 @@ export default function Admin() {
                                               size="sm"
                                               variant="secondary"
                                               className="flex-1 min-w-0 sm:flex-none sm:w-auto"
-                                              onClick={() => {
-                                                if (window.confirm(
+                                              onClick={async () => {
+                                                if ((await confirmAction(
                                                   `¿Resetear contraseña de ${usr.name}? Se generará una contraseña temporal.`
-                                                )) {
+                                                ))) {
                                                   resetPassword.mutate({ userId: usr.id });
                                                 }
                                               }}
@@ -2012,8 +2013,8 @@ export default function Admin() {
                                     size="sm"
                                     variant="destructive"
                                     className="bg-red-600 hover:bg-red-700"
-                                    onClick={() => {
-                                      if (confirm(`🧹 LIMPIEZA DEL SISTEMA\n\nSe eliminarán en cascada:\n• ${testUsers.length} usuarios de prueba\n• Todos los clientes de prueba asociados\n• Todas las citas de clientes de prueba\n• Todas las cotizaciones de clientes de prueba\n• Todos los proyectos de clientes de prueba\n\n⚠️ Esta acción NO se puede deshacer.\n\n¿Continuar?`)) {
+                                    onClick={async () => {
+                                      if ((await confirmAction(`🧹 LIMPIEZA DEL SISTEMA\n\nSe eliminarán en cascada:\n• ${testUsers.length} usuarios de prueba\n• Todos los clientes de prueba asociados\n• Todas las citas de clientes de prueba\n• Todas las cotizaciones de clientes de prueba\n• Todos los proyectos de clientes de prueba\n\n⚠️ Esta acción NO se puede deshacer.\n\n¿Continuar?`))) {
                                         const testUserIds = testUsers.map(u => u.id);
                                         deleteTestUsers.mutate({ userIds: testUserIds }, {
                                           onSuccess: (result: any) => {
@@ -2120,7 +2121,7 @@ export default function Admin() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-teal-400" />
+                  <FileText className="h-5 w-5 text-primary" />
                   Gestión de Proyectos
                 </CardTitle>
                 <CardDescription>
@@ -2146,10 +2147,10 @@ export default function Admin() {
           {/* Pricing Config Tab - Solo Super Admin */}
           {user?.role === "super_admin" && (
             <TabsContent value="pricing" className="space-y-4">
-              <Card className="border-emerald-200 bg-emerald-500/10/50">
+              <Card className="border-green-200 bg-green-500/10/50">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <DollarSign className="h-5 w-5 text-emerald-400" />
+                    <DollarSign className="h-5 w-5 text-green-400" />
                     Configuración de Precios
                   </CardTitle>
                   <CardDescription>
@@ -2158,7 +2159,7 @@ export default function Admin() {
                 </CardHeader>
                 <CardContent>
                   <Link href="/pricing-config">
-                    <Button className="bg-emerald-600 hover:bg-emerald-700">
+                    <Button className="bg-green-600 hover:bg-green-700">
                       <DollarSign className="h-4 w-4 mr-2" />
                       Abrir Panel de Precios
                     </Button>
@@ -2205,7 +2206,7 @@ export default function Admin() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Key className="h-5 w-5 text-emerald-400" />
+              <Key className="h-5 w-5 text-green-400" />
               Contraseña Reseteada
             </DialogTitle>
             <DialogDescription>
@@ -2257,7 +2258,7 @@ export default function Admin() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Cake className="h-5 w-5 text-pink-500" />
+              <Cake className="h-5 w-5 text-purple-500" />
               Fecha de Cumpleaños
             </DialogTitle>
             <DialogDescription>

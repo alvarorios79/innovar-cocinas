@@ -11,8 +11,8 @@ export function ProjectModulePlan({ projectId, defaultOpen = true }: { projectId
   const { data, isLoading } = trpc.projects.getModulePlans.useQuery({ projectId }, { enabled: !!projectId, staleTime: 30000 });
   if (isLoading || !data || data.length === 0) return null;
   return (
-    <Card style={{ background: "#162828", border: "1px solid rgba(255,255,255,0.08)" }}>
-      <CardHeader className="py-3 bg-teal-500/10 cursor-pointer" onClick={() => setOpen(o => !o)}>
+    <Card style={{ background: "var(--card)", border: "1px solid rgba(255,255,255,0.08)" }}>
+      <CardHeader className="py-3 bg-primary/10 cursor-pointer" onClick={() => setOpen(o => !o)}>
         <CardTitle className="text-sm flex items-center gap-2">
           <LayoutGrid className="h-4 w-4 text-teal-300" />
           Plano de módulos de la cocina
@@ -42,15 +42,15 @@ export function ProjectModulePlan({ projectId, defaultOpen = true }: { projectId
                 </div>
                 {p.scheme.pieces.length > 0 && (
                   <div className="rounded bg-black/20 p-3 text-xs text-white/75 space-y-1">
-                    <p className="font-semibold text-pink-200">Piezas a pintar (alto brillo)</p>
+                    <p className="font-semibold text-purple-200">Piezas a pintar (alto brillo)</p>
                     {p.scheme.pieces.map((x: any, k: number) => (
-                      <p key={k} className="flex justify-between"><span>{x.label}</span><span className="font-mono text-pink-200">{x.n}</span></p>
+                      <p key={k} className="flex justify-between"><span>{x.label}</span><span className="font-mono text-purple-200">{x.n}</span></p>
                     ))}
                   </div>
                 )}
               </div>
               {p.scheme.warnings.length > 0 && (
-                <div className="rounded border border-yellow-500/30 bg-yellow-900/10 p-2 text-[11px] text-yellow-200 space-y-0.5">
+                <div className="rounded border border-amber-500/30 bg-amber-900/10 p-2 text-[11px] text-amber-200 space-y-0.5">
                   {p.scheme.warnings.map((w: string, k: number) => <p key={k}>⚠️ {w}</p>)}
                 </div>
               )}

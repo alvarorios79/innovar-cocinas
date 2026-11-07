@@ -3,6 +3,7 @@ import { AlertCircle, TrendingUp, DollarSign, TrendingDown, AlertTriangle, BarCh
 import { PageHeader } from "@/components/PageHeader";
 import { KpiCard, KpiGrid } from "@/components/KpiCard";
 import { trpc } from "@/lib/trpc";
+import { formatCurrency } from "@/lib/format";
 import {
   ResponsiveContainer,
   BarChart,
@@ -13,15 +14,6 @@ import {
   CartesianGrid,
   Legend
 } from "recharts";
-
-const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-};
 
 // ── Componente principal ─────────────────────────────────────────────────────
 export function CEODashboard() {
@@ -34,7 +26,7 @@ export function CEODashboard() {
         <div className="text-center">
           <div
             className="animate-spin rounded-full h-12 w-12 mx-auto mb-4"
-            style={{ border: "3px solid #e2e8f0", borderTopColor: "#1DB5A8" }}
+            style={{ border: "3px solid #e2e8f0", borderTopColor: "var(--primary)" }}
           />
           <p className="text-sm text-muted-foreground">Cargando métricas...</p>
         </div>
@@ -84,21 +76,21 @@ export function CEODashboard() {
           value={formatCurrency(ingresosRecibidos)}
           helper="Pagos registrados en el sistema"
           icon={<TrendingUp className="h-5 w-5" />}
-          accent="#1DB5A8"
+          accent="var(--primary)"
         />
         <KpiCard
           label="Total Vendido"
           value={formatCurrency(totalVendido)}
           helper="Valor total de proyectos activos"
           icon={<DollarSign className="h-5 w-5" />}
-          accent="#22C55E"
+          accent="var(--success)"
         />
         <KpiCard
           label="Por Cobrar"
           value={formatCurrency(porCobrar)}
           helper={`${pctPorCobrar}% del total vendido pendiente`}
           icon={<AlertTriangle className="h-5 w-5" />}
-          accent="#F59E0B"
+          accent="var(--warning)"
         />
       </KpiGrid>
 
@@ -109,21 +101,21 @@ export function CEODashboard() {
           value={formatCurrency(gastos)}
           helper={`${pctGastos}% de los ingresos recibidos`}
           icon={<TrendingDown className="h-5 w-5" />}
-          accent="#EF4444"
+          accent="var(--destructive)"
         />
         <KpiCard
           label="Margen Neto"
           value={formatCurrency(margen)}
           helper="Ingresos recibidos − gastos totales"
           icon={<DollarSign className="h-5 w-5" />}
-          accent="#1DB5A8"
+          accent="var(--primary)"
         />
         <KpiCard
           label="Rentabilidad"
           value={`${rentabilidad.toFixed(1)}%`}
           helper="Margen sobre ingresos recibidos"
           icon={<TrendingUp className="h-5 w-5" />}
-          accent="#F59E0B"
+          accent="var(--warning)"
         />
         <KpiCard
           label="Dinero Disponible Est."
@@ -152,7 +144,7 @@ export function CEODashboard() {
                   contentStyle={{ borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 12 }}
                 />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
-                <Bar dataKey="ingresos" fill="#1DB5A8" name="Ingresos" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="ingresos" fill="var(--primary)" name="Ingresos" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="egresos"  fill="#EF4444" name="Egresos"  radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -172,11 +164,11 @@ export function CEODashboard() {
             <div className="space-y-3">
               <p className="text-xs font-semibold uppercase tracking-wider text-white/35">Ingresos</p>
               {[
-                { label: "Recibidos",     value: formatCurrency(ingresosRecibidos), color: "text-teal-400" },
+                { label: "Recibidos",     value: formatCurrency(ingresosRecibidos), color: "text-primary" },
                 { label: "Total Vendido", value: formatCurrency(totalVendido),      color: "text-teal-300" },
                 { label: "Por Cobrar",    value: formatCurrency(porCobrar),         color: "text-amber-400" },
               ].map((row) => (
-                <div key={row.label} className="flex justify-between items-center py-2 border-b border-slate-50 last:border-0">
+                <div key={row.label} className="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
                   <span className="text-sm text-white/45">{row.label}</span>
                   <span className={`text-sm font-semibold ${row.color}`}>{row.value}</span>
                 </div>
@@ -190,7 +182,7 @@ export function CEODashboard() {
                 { label: "Total Gastos",  value: formatCurrency(gastos), color: "text-red-500" },
                 { label: "% del Ingreso", value: `${pctGastos}%`,        color: "text-red-500" },
               ].map((row) => (
-                <div key={row.label} className="flex justify-between items-center py-2 border-b border-slate-50 last:border-0">
+                <div key={row.label} className="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
                   <span className="text-sm text-white/45">{row.label}</span>
                   <span className={`text-sm font-semibold ${row.color}`}>{row.value}</span>
                 </div>
@@ -201,10 +193,10 @@ export function CEODashboard() {
             <div className="space-y-3">
               <p className="text-xs font-semibold uppercase tracking-wider text-white/35">Resultado</p>
               {[
-                { label: "Margen Neto",    value: formatCurrency(margen),       color: "text-teal-400" },
+                { label: "Margen Neto",    value: formatCurrency(margen),       color: "text-primary" },
                 { label: "Rentabilidad",   value: `${rentabilidad.toFixed(1)}%`, color: "text-amber-400" },
               ].map((row) => (
-                <div key={row.label} className="flex justify-between items-center py-2 border-b border-slate-50 last:border-0">
+                <div key={row.label} className="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
                   <span className="text-sm text-white/45">{row.label}</span>
                   <span className={`text-sm font-semibold ${row.color}`}>{row.value}</span>
                 </div>

@@ -23,7 +23,7 @@ export function OfflineIndicator() {
       className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-2 rounded-lg shadow-lg transition-all duration-300 ${
         isOnline
           ? 'bg-green-500/15 text-green-300 border border-green-300'
-          : 'bg-yellow-500/15 text-yellow-300 border border-yellow-300 animate-pulse'
+          : 'bg-amber-500/15 text-amber-300 border border-amber-300 animate-pulse'
       }`}
     >
       {isOnline ? (

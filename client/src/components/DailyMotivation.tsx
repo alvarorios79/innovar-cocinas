@@ -532,11 +532,11 @@ export function DailyMotivation({ userName, className = "", userBirthDate }: Dai
     ? "#EC4899"
     : isSpecial
       ? "#F59E0B"
-      : "#1DB5A8";
+      : "var(--primary)";
 
   return (
     <div
-      className={`relative bg-[#162828] rounded-xl p-3 border border-white/[0.06] ${className}`}
+      className={`relative bg-card rounded-xl p-3 border border-white/[0.06] ${className}`}
       style={{ borderLeft: `3px solid ${accentColor}` }}
     >
       {/* Confeti decorativo para cumpleaños (pequeño, no intrusivo) */}

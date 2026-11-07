@@ -67,10 +67,10 @@ export function WhatsAppStatusPanel() {
   };
 
   return (
-    <Card className="border-emerald-200 bg-emerald-500/10/30">
+    <Card className="border-green-200 bg-green-500/10/30">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-emerald-300">
+          <CardTitle className="flex items-center gap-2 text-green-300">
             <MessageCircle className="h-5 w-5" />
             WhatsApp Cloud API
           </CardTitle>
@@ -79,7 +79,7 @@ export function WhatsAppStatusPanel() {
             size="sm"
             onClick={handleRefresh}
             disabled={isLoading}
-            className="text-emerald-300 hover:text-emerald-300 hover:bg-emerald-500/15"
+            className="text-green-300 hover:text-green-300 hover:bg-green-500/15"
           >
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -95,7 +95,7 @@ export function WhatsAppStatusPanel() {
 
       <CardContent className="space-y-5">
         {/* Estado de conexión */}
-        <div className="rounded-lg border bg-[#162828] p-4 space-y-3">
+        <div className="rounded-lg border bg-card p-4 space-y-3">
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Estado de conexión
           </p>
@@ -121,9 +121,9 @@ export function WhatsAppStatusPanel() {
           ) : status.connected ? (
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" />
-                <span className="text-sm font-medium text-emerald-300">Conectado</span>
-                <Badge variant="outline" className="text-[10px] border-emerald-300 text-emerald-300 bg-emerald-500/10">
+                <CheckCircle2 className="h-5 w-5 text-green-400 shrink-0" />
+                <span className="text-sm font-medium text-green-300">Conectado</span>
+                <Badge variant="outline" className="text-[10px] border-green-300 text-green-300 bg-green-500/10">
                   ACTIVO
                 </Badge>
               </div>
@@ -152,7 +152,7 @@ export function WhatsAppStatusPanel() {
         </div>
 
         {/* Eventos activos */}
-        <div className="rounded-lg border bg-[#162828] p-4 space-y-3">
+        <div className="rounded-lg border bg-card p-4 space-y-3">
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Eventos con notificación automática
           </p>
@@ -165,7 +165,7 @@ export function WhatsAppStatusPanel() {
               >
                 <div className="mt-0.5 shrink-0">
                   {status?.connected ? (
-                    <Bell className="h-4 w-4 text-emerald-400" />
+                    <Bell className="h-4 w-4 text-green-400" />
                   ) : (
                     <BellOff className="h-4 w-4 text-muted-foreground" />
                   )}
@@ -186,7 +186,7 @@ export function WhatsAppStatusPanel() {
                 </div>
                 <div className="shrink-0">
                   <ShieldCheck
-                    className={`h-4 w-4 ${status?.connected ? "text-emerald-500" : "text-slate-300"}`}
+                    className={`h-4 w-4 ${status?.connected ? "text-green-500" : "text-gray-300"}`}
                   />
                 </div>
               </div>

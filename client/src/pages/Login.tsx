@@ -47,7 +47,7 @@ export default function Login() {
           className="h-20 mx-auto object-contain"
         />
         <div className="space-y-1">
-          <h1 className="text-3xl md:text-4xl font-black tracking-tight" style={{ color: "#00BCD4" }}>
+          <h1 className="text-3xl md:text-4xl font-black tracking-tight" style={{ color: "var(--primary)" }}>
             INNOVAR
           </h1>
           <p className="text-sm font-semibold text-gray-400 tracking-widest uppercase" style={{ letterSpacing: "0.18em" }}>
@@ -75,7 +75,7 @@ export default function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={loginMutation.isPending}
-              className="h-11 bg-white/10 border-white/20 text-white placeholder:text-gray-600 focus:border-teal-400"
+              className="h-11 bg-white/10 border-white/20 text-white placeholder:text-gray-600 focus:border-primary"
             />
           </div>
 
@@ -88,7 +88,7 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={loginMutation.isPending}
-                className="h-11 pr-10 bg-white/10 border-white/20 text-white placeholder:text-gray-600 focus:border-teal-400"
+                className="h-11 pr-10 bg-white/10 border-white/20 text-white placeholder:text-gray-600 focus:border-primary"
               />
               <button
                 type="button"
@@ -103,7 +103,7 @@ export default function Login() {
           <Button
             type="submit"
             className="w-full h-11 text-white font-semibold rounded-xl"
-            style={{ background: "linear-gradient(135deg, #00BCD4 0%, #0097A7 100%)" }}
+            style={{ background: "var(--brand-gradient)" }}
             disabled={loginMutation.isPending}
           >
             {loginMutation.isPending ? (
@@ -123,7 +123,7 @@ export default function Login() {
         <div className="pt-3 text-center border-t border-white/10">
           <p className="text-sm text-gray-500">
             ¿Eres cliente?{" "}
-            <Link href="/visita" className="text-teal-400 hover:text-teal-300 font-medium transition-colors">
+            <Link href="/visita" className="text-primary hover:text-teal-300 font-medium transition-colors">
               Pide tu visita aquí →
             </Link>
           </p>

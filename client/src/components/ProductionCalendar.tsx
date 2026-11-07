@@ -21,7 +21,7 @@ const PRODUCTION_STATUSES = {
   corte: { label: "Corte", color: "bg-orange-400" },
   enchape: { label: "Enchape", color: "bg-orange-500" },
   ensamble: { label: "Ensamble", color: "bg-orange-600" },
-  listo_instalacion: { label: "En Instalación", color: "bg-teal-500" },
+  listo_instalacion: { label: "En Instalación", color: "bg-primary" },
   entregado: { label: "Entregado", color: "bg-green-600" },
 };
 
@@ -126,7 +126,7 @@ export function ProductionCalendar({ className }: ProductionCalendarProps) {
         key={day}
         className={`min-h-[50px] sm:min-h-[80px] p-1 border rounded-md ${
           isToday ? "bg-blue-500/10 border-blue-300" : 
-          isPast ? "bg-white/[0.03]" : "bg-[#162828]"
+          isPast ? "bg-white/[0.03]" : "bg-card"
         }`}
       >
         <div className={`text-xs font-medium mb-1 ${isToday ? "text-blue-400" : "text-muted-foreground"}`}>
@@ -170,7 +170,7 @@ export function ProductionCalendar({ className }: ProductionCalendarProps) {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg flex items-center gap-2">
-            <CalendarIcon className="h-5 w-5 text-teal-400" />
+            <CalendarIcon className="h-5 w-5 text-primary" />
             Calendario de Producción
           </CardTitle>
           <div className="flex items-center gap-2">
@@ -247,8 +247,8 @@ export function ProductionCalendar({ className }: ProductionCalendarProps) {
                     <Link key={project.id} href={`/projects/${project.id}`}>
                       <div className={`p-3 rounded-lg border cursor-pointer hover:shadow-md transition-shadow ${
                         isOverdue ? "border-red-300 bg-red-500/10" :
-                        isWarning ? "border-yellow-300 bg-yellow-500/10" :
-                        "border-white/[0.10] bg-[#162828]"
+                        isWarning ? "border-amber-300 bg-amber-500/10" :
+                        "border-white/[0.10] bg-card"
                       }`}>
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
@@ -268,7 +268,7 @@ export function ProductionCalendar({ className }: ProductionCalendarProps) {
                           </div>
                           <div className={`flex items-center gap-1 font-medium ${
                             isOverdue ? "text-red-400" :
-                            isWarning ? "text-yellow-400" :
+                            isWarning ? "text-amber-400" :
                             "text-green-400"
                           }`}>
                             {isOverdue ? (
@@ -286,7 +286,7 @@ export function ProductionCalendar({ className }: ProductionCalendarProps) {
                             <div 
                               className={`h-full transition-all ${
                                 isOverdue ? "bg-red-500" :
-                                isWarning ? "bg-yellow-500" :
+                                isWarning ? "bg-amber-500" :
                                 "bg-green-500"
                               }`}
                               style={{ width: `${Math.min((daysInStage / estimatedDays) * 100, 100)}%` }}

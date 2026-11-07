@@ -42,6 +42,7 @@ import {
   X,
 } from "lucide-react";
 
+import { confirmAction } from "@/lib/confirm";
 // ── Tipos ────────────────────────────────────────────────────────────────────
 type WorkType = "cocina" | "closet" | "puertas" | "centro_tv" | "mueble_bano" | "otro";
 type VisitStatus = "borrador" | "enviada" | "cot_hecha" | "cot_enviada" | "convertida";
@@ -219,18 +220,18 @@ const WORK_TYPE_LABELS: Record<WorkType, string> = {
 };
 
 const STATUS_CONFIG: Record<VisitStatus, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
-  borrador: { label: "Borrador", color: "text-slate-400", bg: "bg-slate-500/20", icon: <Clock className="h-4 w-4" /> },
+  borrador: { label: "Borrador", color: "text-gray-400", bg: "bg-gray-500/20", icon: <Clock className="h-4 w-4" /> },
   enviada: { label: "Enviada", color: "text-blue-400", bg: "bg-blue-500/20", icon: <Send className="h-4 w-4" /> },
-  cot_hecha: { label: "Cot. Hecha", color: "text-emerald-400", bg: "bg-emerald-500/20", icon: <CheckCircle2 className="h-4 w-4" /> },
+  cot_hecha: { label: "Cot. Hecha", color: "text-green-400", bg: "bg-green-500/20", icon: <CheckCircle2 className="h-4 w-4" /> },
   cot_enviada: { label: "Cot. Enviada", color: "text-blue-400", bg: "bg-blue-500/20", icon: <CheckCircle2 className="h-4 w-4" /> },
-  convertida: { label: "Convertida", color: "text-emerald-400", bg: "bg-emerald-500/20", icon: <CheckCircle2 className="h-4 w-4" /> },
+  convertida: { label: "Convertida", color: "text-green-400", bg: "bg-green-500/20", icon: <CheckCircle2 className="h-4 w-4" /> },
 };
 
 const EVALUATION_CONFIG: Record<TechnicalEvaluation, { label: string; color: string; bg: string; icon: React.ReactNode; description: string }> = {
   viable: {
     label: "Proyecto viable",
-    color: "text-emerald-400",
-    bg: "bg-emerald-500/20 border-emerald-500/40",
+    color: "text-green-400",
+    bg: "bg-green-500/20 border-green-500/40",
     icon: <CheckCircle2 className="h-5 w-5" />,
     description: "El proyecto puede proceder sin problemas técnicos",
   },
@@ -262,7 +263,7 @@ function SignaturePad({ onSave, onCancel }: { onSave: (signature: string) => voi
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    ctx.strokeStyle = "#1DB5A8";
+    ctx.strokeStyle = "var(--primary)";
     ctx.lineWidth = 2;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
@@ -331,7 +332,7 @@ function SignaturePad({ onSave, onCancel }: { onSave: (signature: string) => voi
 
   return (
     <div className="space-y-3">
-      <div className="border-2 border-[#1DB5A8]/40 rounded-lg overflow-hidden bg-white" style={{ touchAction: "none" }}>
+      <div className="border-2 border-primary/40 rounded-lg overflow-hidden bg-white" style={{ touchAction: "none" }}>
         <canvas
           ref={canvasRef}
           onMouseDown={startDrawing}
@@ -345,11 +346,11 @@ function SignaturePad({ onSave, onCancel }: { onSave: (signature: string) => voi
         />
       </div>
       <div className="flex gap-2">
-        <Button type="button" onClick={clearSignature} variant="outline" className="flex-1 border-[#1DB5A8]/40 text-[#1DB5A8]">
+        <Button type="button" onClick={clearSignature} variant="outline" className="flex-1 border-primary/40 text-primary">
           <Trash2 className="h-4 w-4 mr-2" />
           Limpiar
         </Button>
-        <Button type="button" onClick={saveSignature} className="flex-1 bg-[#1DB5A8] hover:bg-[#17a396] text-white">
+        <Button type="button" onClick={saveSignature} className="flex-1 bg-primary hover:bg-primary text-white">
           <CheckCircle2 className="h-4 w-4 mr-2" />
           Guardar firma
         </Button>
@@ -754,7 +755,7 @@ export default function Medidor() {
   };
 
   const handleDeletePdf = async (pdfId: string) => {
-    if (!confirm("¿Eliminar este PDF?")) return;
+    if (!(await confirmAction("¿Eliminar este PDF?"))) return;
     try {
       await deletePdf.mutateAsync({ pdfId: Number(pdfId) });
       toast.success("PDF eliminado");
@@ -931,18 +932,18 @@ export default function Medidor() {
       const wtLabels: Record<string, string> = { cocina: "Cocina Integral", closet: "Closet", puertas: "Puertas", centro_tv: "Centro de TV" };
       const workTypeText = apt.workTypes?.map((wt: string) => wtLabels[wt] || wt).join(", ") || "";
       return (
-        <div className="bg-teal-900/25 border border-[#1DB5A8]/50 rounded-xl p-4 space-y-3">
+        <div className="bg-teal-900/25 border border-primary/50 rounded-xl p-4 space-y-3">
           {/* Fecha y hora — primera línea visible */}
           <div className="flex items-center gap-2">
             {aptDate ? (
               <>
-                <span className="bg-[#1DB5A8] text-black font-bold text-base px-3 py-0.5 rounded-lg tabular-nums">
+                <span className="bg-primary text-black font-bold text-base px-3 py-0.5 rounded-lg tabular-nums">
                   {aptTimeStr}
                 </span>
-                <span className="text-xs text-slate-300 capitalize">{aptDateStr}</span>
+                <span className="text-xs text-gray-300 capitalize">{aptDateStr}</span>
               </>
             ) : (
-              <span className="bg-slate-600 text-slate-300 text-xs font-medium px-3 py-0.5 rounded-lg">
+              <span className="bg-gray-600 text-gray-300 text-xs font-medium px-3 py-0.5 rounded-lg">
                 Sin hora asignada
               </span>
             )}
@@ -950,15 +951,15 @@ export default function Medidor() {
           <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0">
               <h3 className="font-bold text-white text-lg truncate">{apt.client?.name || "Cliente"}</h3>
-              {workTypeText && <p className="text-sm text-[#1DB5A8] font-medium">{workTypeText}</p>}
+              {workTypeText && <p className="text-sm text-primary font-medium">{workTypeText}</p>}
               {apt.client?.address && (
-                <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
+                <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
                   <MapPin className="h-3 w-3 flex-shrink-0" />
                   <span className="truncate">{apt.client.address}</span>
                 </p>
               )}
               {apt.client?.whatsappPhone && (
-                <p className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
+                <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
                   <Phone className="h-3 w-3 flex-shrink-0" />
                   {apt.client.whatsappPhone}
                 </p>
@@ -987,7 +988,7 @@ export default function Medidor() {
                   toast.error("Error al iniciar visita");
                 }
               }}
-              className="flex-1 h-11 bg-[#1DB5A8] hover:bg-[#17a396] text-white font-semibold"
+              className="flex-1 h-11 bg-primary hover:bg-primary text-white font-semibold"
             >
               <ClipboardList className="h-4 w-4 mr-2" />
               Abrir cuestionario
@@ -996,7 +997,7 @@ export default function Medidor() {
               variant="outline"
               onClick={async (e) => {
                 e.stopPropagation();
-                if (!confirm("¿Eliminar esta cita? Esta acción no se puede deshacer.")) return;
+                if (!(await confirmAction("¿Eliminar esta cita? Esta acción no se puede deshacer."))) return;
                 try {
                   await deleteAppointmentMutation.mutateAsync({ id: apt.id });
                   refetchVisits();
@@ -1016,16 +1017,16 @@ export default function Medidor() {
     };
 
     return (
-      <div className="min-h-screen bg-[#0C1A1A] pb-24">
+      <div className="min-h-screen bg-background pb-24">
         <div className="max-w-lg mx-auto p-4">
           {/* Header */}
           <div className="flex items-center justify-between mb-5">
             <div>
-            <p className="text-xs font-semibold text-[#1DB5A8] uppercase tracking-widest mb-0.5">Portal de Medidor</p>
+            <p className="text-xs font-semibold text-primary uppercase tracking-widest mb-0.5">Portal de Medidor</p>
             <h1 className="text-2xl font-bold text-white">Visitas</h1>
           </div>
             {user?.role !== "disenador" && (
-              <Button onClick={() => setView("new")} className="bg-[#1DB5A8] hover:bg-[#17a396] text-white">
+              <Button onClick={() => setView("new")} className="bg-primary hover:bg-primary text-white">
                 <Plus className="h-4 w-4 mr-2" />
                 Nueva visita
               </Button>
@@ -1033,7 +1034,7 @@ export default function Medidor() {
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1 bg-[#162828] rounded-xl p-1 mb-5">
+          <div className="flex gap-1 bg-card rounded-xl p-1 mb-5">
             {([
               { key: "hoy", label: "Visitas", count: todayApts.length + borradorVisits.length },
               { key: "proximas", label: "Próximas", count: proximasApts.length },
@@ -1044,14 +1045,14 @@ export default function Medidor() {
                 onClick={() => setTab(key)}
                 className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1.5 ${
                   tab === key
-                    ? "bg-[#1DB5A8] text-white"
-                    : "text-slate-400 hover:text-white"
+                    ? "bg-primary text-white"
+                    : "text-gray-400 hover:text-white"
                 }`}
               >
                 {label}
                 {count > 0 && (
                   <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                    tab === key ? "bg-white/20" : "bg-[#1DB5A8]/20 text-[#1DB5A8]"
+                    tab === key ? "bg-white/20" : "bg-primary/20 text-primary"
                   }`}>{count}</span>
                 )}
               </button>
@@ -1062,7 +1063,7 @@ export default function Medidor() {
           {tab === "hoy" && (
             <div className="space-y-4">
               {todayApts.length === 0 && borradorVisits.length === 0 && (
-                <div className="text-center py-12 text-slate-500">
+                <div className="text-center py-12 text-gray-500">
                   <Calendar className="h-12 w-12 mx-auto mb-3 opacity-30" />
                   <p className="font-medium">Sin visitas para hoy</p>
                   <p className="text-sm mt-1">Las citas asignadas aparecerán aquí</p>
@@ -1072,7 +1073,7 @@ export default function Medidor() {
               {/* Citas de hoy */}
               {todayApts.length > 0 && (
                 <>
-                  <p className="text-xs font-semibold text-[#1DB5A8] uppercase tracking-wide">
+                  <p className="text-xs font-semibold text-primary uppercase tracking-wide">
                     Citas del día ({todayApts.length})
                   </p>
                   {todayApts.map((apt: any) => <AptCard key={apt.id} apt={apt} />)}
@@ -1089,7 +1090,7 @@ export default function Medidor() {
                     {borradorVisits.map((visit: Visit) => (
                       <div
                         key={visit.id}
-                        className="bg-[#162828] border border-amber-500/30 rounded-lg p-3 hover:border-amber-500/60 transition-colors flex items-center justify-between"
+                        className="bg-card border border-amber-500/30 rounded-lg p-3 hover:border-amber-500/60 transition-colors flex items-center justify-between"
                       >
                         <div
                           className="flex-1 min-w-0 cursor-pointer"
@@ -1103,7 +1104,7 @@ export default function Medidor() {
                           <button
                             onClick={async (e) => {
                               e.stopPropagation();
-                              if (!confirm("¿Eliminar esta visita? Esta acción no se puede deshacer.")) return;
+                              if (!(await confirmAction("¿Eliminar esta visita? Esta acción no se puede deshacer."))) return;
                               try {
                                 await deleteVisitMutation.mutateAsync({ id: visit.id });
                                 refetchVisits();
@@ -1129,14 +1130,14 @@ export default function Medidor() {
           {tab === "proximas" && (
             <div className="space-y-5">
               {proximasApts.length === 0 ? (
-                <div className="text-center py-12 text-slate-500">
+                <div className="text-center py-12 text-gray-500">
                   <Calendar className="h-12 w-12 mx-auto mb-3 opacity-30" />
                   <p className="font-medium">Sin visitas próximas</p>
                 </div>
               ) : (
                 Object.entries(proximasByDate).map(([fecha, apts]) => (
                   <div key={fecha}>
-                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2 capitalize">{fecha}</p>
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 capitalize">{fecha}</p>
                     <div className="space-y-3">
                       {apts.map((apt: any) => <AptCard key={apt.id} apt={apt} />)}
                     </div>
@@ -1152,7 +1153,7 @@ export default function Medidor() {
               {/* Botón nueva tarea */}
               <Button
                 onClick={() => { setShowNewTask(true); setNewTaskTitle(""); setNewTaskDesc(""); setNewTaskPriority("media"); setNewTaskAssignedTo(null); }}
-                className="w-full h-10 bg-[#162828] border border-[#1DB5A8]/30 hover:border-[#1DB5A8] text-[#1DB5A8] hover:text-white hover:bg-[#1DB5A8]/20 transition-colors"
+                className="w-full h-10 bg-card border border-primary/30 hover:border-primary text-primary hover:text-white hover:bg-primary/20 transition-colors"
                 variant="outline"
               >
                 <Plus className="h-4 w-4 mr-2" />
@@ -1161,26 +1162,26 @@ export default function Medidor() {
 
               {/* Formulario nueva tarea */}
               {showNewTask && (
-                <div className="bg-[#162828] border border-[#1DB5A8]/40 rounded-xl p-4 space-y-3">
+                <div className="bg-card border border-primary/40 rounded-xl p-4 space-y-3">
                   <p className="text-sm font-semibold text-white">Nueva tarea</p>
                   <Input
                     placeholder="Título de la tarea *"
                     value={newTaskTitle}
                     onChange={(e) => setNewTaskTitle(e.target.value)}
-                    className="bg-[#0C1A1A] border-[#1DB5A8]/30 text-white placeholder:text-slate-500"
+                    className="bg-background border-primary/30 text-white placeholder:text-gray-500"
                   />
                   <Textarea
                     placeholder="Descripción o contexto (opcional)"
                     value={newTaskDesc}
                     onChange={(e) => setNewTaskDesc(e.target.value)}
                     rows={2}
-                    className="bg-[#0C1A1A] border-[#1DB5A8]/30 text-white placeholder:text-slate-500 resize-none"
+                    className="bg-background border-primary/30 text-white placeholder:text-gray-500 resize-none"
                   />
                   <div className="grid grid-cols-2 gap-2">
                     <select
                       value={newTaskPriority}
                       onChange={(e) => setNewTaskPriority(e.target.value as any)}
-                      className="bg-[#0C1A1A] border border-[#1DB5A8]/30 text-white rounded-md px-3 py-2 text-sm"
+                      className="bg-background border border-primary/30 text-white rounded-md px-3 py-2 text-sm"
                     >
                       <option value="alta">🔴 Alta</option>
                       <option value="media">🟡 Media</option>
@@ -1189,7 +1190,7 @@ export default function Medidor() {
                     <select
                       value={newTaskAssignedTo ?? ""}
                       onChange={(e) => setNewTaskAssignedTo(e.target.value ? Number(e.target.value) : null)}
-                      className="bg-[#0C1A1A] border border-[#1DB5A8]/30 text-white rounded-md px-3 py-2 text-sm"
+                      className="bg-background border border-primary/30 text-white rounded-md px-3 py-2 text-sm"
                     >
                       <option value="">Asignar a…</option>
                       {(assignableUsers as any[]).map((u: any) => (
@@ -1201,7 +1202,7 @@ export default function Medidor() {
                     <Button
                       onClick={() => setShowNewTask(false)}
                       variant="outline"
-                      className="flex-1 border-slate-600 text-slate-400"
+                      className="flex-1 border-gray-600 text-gray-400"
                     >
                       Cancelar
                     </Button>
@@ -1214,7 +1215,7 @@ export default function Medidor() {
                           { onSuccess: () => { setShowNewTask(false); toast.success("Tarea asignada"); refetchTasks(); } }
                         );
                       }}
-                      className="flex-1 bg-[#1DB5A8] hover:bg-[#17a396] text-white"
+                      className="flex-1 bg-primary hover:bg-primary text-white"
                     >
                       {createTask.isPending ? "Enviando…" : "Asignar"}
                     </Button>
@@ -1223,7 +1224,7 @@ export default function Medidor() {
               )}
 
               {(myTasks as any[]).length === 0 && !showNewTask ? (
-                <div className="text-center py-12 text-slate-500">
+                <div className="text-center py-12 text-gray-500">
                   <CheckSquare className="h-12 w-12 mx-auto mb-3 opacity-30" />
                   <p className="font-medium">Sin tareas asignadas</p>
                   <p className="text-sm mt-1">Las tareas que te asignen aparecerán aquí</p>
@@ -1241,12 +1242,12 @@ export default function Medidor() {
                   return (
                     <div
                       key={task.id}
-                      className={`bg-[#162828] border rounded-lg p-4 transition-colors ${
+                      className={`bg-card border rounded-lg p-4 transition-colors ${
                         isCompleted
-                          ? "border-[#1DB5A8]/10 opacity-60"
+                          ? "border-primary/10 opacity-60"
                           : overdue
                           ? "border-red-500/30"
-                          : "border-[#1DB5A8]/20"
+                          : "border-primary/20"
                       }`}
                     >
                       <div className="flex items-start gap-3">
@@ -1258,21 +1259,21 @@ export default function Medidor() {
                           className="mt-0.5 flex-shrink-0"
                         >
                           {isCompleted
-                            ? <CheckSquare className="h-5 w-5 text-[#1DB5A8]" />
-                            : <Square className="h-5 w-5 text-slate-500 hover:text-slate-300" />
+                            ? <CheckSquare className="h-5 w-5 text-primary" />
+                            : <Square className="h-5 w-5 text-gray-500 hover:text-gray-300" />
                           }
                         </button>
                         <div className="flex-1 min-w-0">
-                          <p className={`font-medium text-sm ${isCompleted ? "line-through text-slate-500" : "text-white"}`}>
+                          <p className={`font-medium text-sm ${isCompleted ? "line-through text-gray-500" : "text-white"}`}>
                             {task.title}
                           </p>
                           {task.description && (
-                            <p className="text-xs text-slate-400 mt-0.5 line-clamp-2">{task.description}</p>
+                            <p className="text-xs text-gray-400 mt-0.5 line-clamp-2">{task.description}</p>
                           )}
                           <div className="flex items-center gap-3 mt-2 text-xs">
                             <span className={pc.color}>{pc.label}</span>
                             {task.dueDate && (
-                              <span className={`flex items-center gap-1 ${overdue ? "text-red-400" : "text-slate-500"}`}>
+                              <span className={`flex items-center gap-1 ${overdue ? "text-red-400" : "text-gray-500"}`}>
                                 <Clock className="h-3 w-3" />
                                 {new Date(task.dueDate).toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })}
                               </span>
@@ -1296,36 +1297,36 @@ export default function Medidor() {
 
   if (view === "new") {
     return (
-      <div className="min-h-screen bg-[#0C1A1A] pb-24">
+      <div className="min-h-screen bg-background pb-24">
         <div className="max-w-lg mx-auto p-4">
           <div className="flex items-center gap-3 mb-6">
-            <Button onClick={() => { setView("list"); setManualPrefill(null); }} variant="outline" size="icon" className="border-[#1DB5A8]/40 text-[#1DB5A8]">
+            <Button onClick={() => { setView("list"); setManualPrefill(null); }} variant="outline" size="icon" className="border-primary/40 text-primary">
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <h1 className="text-2xl font-bold text-white">Nueva Visita Técnica</h1>
           </div>
 
           {effectivePrefill && (
-            <div className="bg-teal-900/30 border border-teal-500/40 rounded-lg p-3 mb-4 text-sm text-teal-300">
+            <div className="bg-teal-900/30 border border-primary/40 rounded-lg p-3 mb-4 text-sm text-teal-300">
               Datos pre-llenados desde cita agendada #{effectivePrefill.appointmentId}
             </div>
           )}
 
           <form onSubmit={handleCreateVisit} className="space-y-4">
-            <div className="bg-[#162828] border border-[#1DB5A8]/20 rounded-lg p-4 space-y-4">
+            <div className="bg-card border border-primary/20 rounded-lg p-4 space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-[#1DB5A8] mb-2">Buscar cliente existente</label>
+                <label className="block text-sm font-semibold text-primary mb-2">Buscar cliente existente</label>
                 <Input
                   value={clientSearch}
                   onChange={(e) => { setClientSearch(e.target.value); setPickedClientId(null); }}
                   placeholder="Escribe nombre o teléfono..."
-                  className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white placeholder:text-slate-500"
+                  className="bg-background border-primary/20 text-white placeholder:text-gray-500"
                 />
                 {pickedClientId !== null && (
                   <p className="text-xs text-green-400 mt-1">✓ Cliente existente seleccionado</p>
                 )}
                 {pickedClientId === null && clientSearch.trim().length >= 2 && (clientResults as any[] | undefined)?.length ? (
-                  <div className="mt-2 border border-[#1DB5A8]/30 rounded-lg overflow-hidden">
+                  <div className="mt-2 border border-primary/30 rounded-lg overflow-hidden">
                     {(clientResults as any[]).map((c) => (
                       <button
                         key={c.id}
@@ -1339,54 +1340,54 @@ export default function Medidor() {
                           fillFormField("clientEmail", c.email || "");
                           fillFormField("identificationNumber", c.identificationNumber || "");
                         }}
-                        className="w-full text-left px-3 py-2 bg-[#0C1A1A] hover:bg-[#1DB5A8]/10 border-b border-[#1DB5A8]/10 last:border-b-0"
+                        className="w-full text-left px-3 py-2 bg-background hover:bg-primary/10 border-b border-primary/10 last:border-b-0"
                       >
                         <div className="text-sm text-white">{c.name}</div>
-                        <div className="text-xs text-slate-400">{c.whatsappPhone}</div>
+                        <div className="text-xs text-gray-400">{c.whatsappPhone}</div>
                       </button>
                     ))}
                   </div>
                 ) : null}
-                <p className="text-xs text-slate-500 mt-1">Si el cliente ya existe, selecciónalo para no duplicarlo.</p>
+                <p className="text-xs text-gray-500 mt-1">Si el cliente ya existe, selecciónalo para no duplicarlo.</p>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-[#1DB5A8] mb-2">Nombre del cliente *</label>
-                <Input name="clientName" required defaultValue={effectivePrefill?.name || ""} className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white" />
+                <label className="block text-sm font-semibold text-primary mb-2">Nombre del cliente *</label>
+                <Input name="clientName" required defaultValue={effectivePrefill?.name || ""} className="bg-background border-primary/20 text-white" />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-[#1DB5A8] mb-2">Cédula / Identificación</label>
-                <Input name="identificationNumber" placeholder="Ej: 1234567890" className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white placeholder:text-slate-500" />
+                <label className="block text-sm font-semibold text-primary mb-2">Cédula / Identificación</label>
+                <Input name="identificationNumber" placeholder="Ej: 1234567890" className="bg-background border-primary/20 text-white placeholder:text-gray-500" />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-[#1DB5A8] mb-2">Correo electrónico</label>
-                <Input name="clientEmail" type="email" placeholder="Ej: cliente@gmail.com" className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white placeholder:text-slate-500" />
+                <label className="block text-sm font-semibold text-primary mb-2">Correo electrónico</label>
+                <Input name="clientEmail" type="email" placeholder="Ej: cliente@gmail.com" className="bg-background border-primary/20 text-white placeholder:text-gray-500" />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-[#1DB5A8] mb-2">Teléfono WhatsApp *</label>
-                <Input name="clientPhone" required defaultValue={effectivePrefill?.phone || ""} className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white" />
+                <label className="block text-sm font-semibold text-primary mb-2">Teléfono WhatsApp *</label>
+                <Input name="clientPhone" required defaultValue={effectivePrefill?.phone || ""} className="bg-background border-primary/20 text-white" />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-[#1DB5A8] mb-2">Dirección *</label>
-                <Input name="clientAddress" required defaultValue={effectivePrefill?.address || ""} className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white" />
+                <label className="block text-sm font-semibold text-primary mb-2">Dirección *</label>
+                <Input name="clientAddress" required defaultValue={effectivePrefill?.address || ""} className="bg-background border-primary/20 text-white" />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-[#1DB5A8] mb-2">Ciudad</label>
-                <Input name="visitCity" placeholder="Ej: Pereira, Dosquebradas..." className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white placeholder:text-slate-500" />
+                <label className="block text-sm font-semibold text-primary mb-2">Ciudad</label>
+                <Input name="visitCity" placeholder="Ej: Pereira, Dosquebradas..." className="bg-background border-primary/20 text-white placeholder:text-gray-500" />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-[#1DB5A8] mb-2">Notas iniciales</label>
-                <Textarea name="initialNotes" rows={3} placeholder="Observaciones previas a la visita..." className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white placeholder:text-slate-500 resize-none" />
+                <label className="block text-sm font-semibold text-primary mb-2">Notas iniciales</label>
+                <Textarea name="initialNotes" rows={3} placeholder="Observaciones previas a la visita..." className="bg-background border-primary/20 text-white placeholder:text-gray-500 resize-none" />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-[#1DB5A8] mb-2">Tipo de trabajo * <span className="text-xs text-slate-400 font-normal">(selecciona uno o más)</span></label>
+                <label className="block text-sm font-semibold text-primary mb-2">Tipo de trabajo * <span className="text-xs text-gray-400 font-normal">(selecciona uno o más)</span></label>
                 <div className="grid grid-cols-2 gap-3">
                   {(Object.keys(WORK_TYPE_LABELS) as WorkType[]).map((type) => (
                     <label key={type} className="relative flex items-center gap-2 cursor-pointer">
@@ -1397,8 +1398,8 @@ export default function Medidor() {
                         defaultChecked={effectivePrefill?.workType === type}
                         className="peer sr-only"
                       />
-                      <div className="w-full border border-[#1DB5A8]/20 rounded-lg p-3 cursor-pointer peer-checked:bg-[#1DB5A8]/20 peer-checked:border-[#1DB5A8] transition-colors flex items-center gap-2">
-                        <div className="w-4 h-4 rounded border border-[#1DB5A8]/40 peer-checked:bg-[#1DB5A8] flex-shrink-0 flex items-center justify-center">
+                      <div className="w-full border border-primary/20 rounded-lg p-3 cursor-pointer peer-checked:bg-primary/20 peer-checked:border-primary transition-colors flex items-center gap-2">
+                        <div className="w-4 h-4 rounded border border-primary/40 peer-checked:bg-primary flex-shrink-0 flex items-center justify-center">
                         </div>
                         <p className="text-sm font-medium text-white">{WORK_TYPE_LABELS[type]}</p>
                       </div>
@@ -1408,7 +1409,7 @@ export default function Medidor() {
               </div>
             </div>
 
-            <Button type="submit" className="w-full h-12 bg-[#1DB5A8] hover:bg-[#17a396] text-white font-semibold">
+            <Button type="submit" className="w-full h-12 bg-primary hover:bg-primary text-white font-semibold">
               <Plus className="h-5 w-5 mr-2" />
               Crear visita
             </Button>
@@ -1421,16 +1422,16 @@ export default function Medidor() {
   // Vista: Detalle
   if (view === "detail" && visit) {
     return (
-      <div className="min-h-screen bg-[#0C1A1A] pb-24">
+      <div className="min-h-screen bg-background pb-24">
         <div className="max-w-lg mx-auto p-4 space-y-6">
           {/* Header */}
           <div className="flex items-center gap-3 mb-6">
-            <Button onClick={() => setView("list")} variant="outline" size="icon" className="border-[#1DB5A8]/40 text-[#1DB5A8]">
+            <Button onClick={() => setView("list")} variant="outline" size="icon" className="border-primary/40 text-primary">
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div className="flex-1">
               <h1 className="text-xl font-bold text-white">{visit.clientName}</h1>
-              <p className="text-sm text-[#1DB5A8]">{WORK_TYPE_LABELS[visit.workType]}</p>
+              <p className="text-sm text-primary">{WORK_TYPE_LABELS[visit.workType]}</p>
             </div>
             <div className={`px-2 py-1 rounded-full text-xs font-medium ${(STATUS_CONFIG[visit.status as VisitStatus] ?? STATUS_CONFIG.enviada).bg} ${(STATUS_CONFIG[visit.status as VisitStatus] ?? STATUS_CONFIG.enviada).color}`}>
               {(STATUS_CONFIG[visit.status as VisitStatus] ?? STATUS_CONFIG.enviada).label}
@@ -1439,27 +1440,27 @@ export default function Medidor() {
 
           {/* Barra de completitud */}
           {isEditable && (
-            <div className="bg-[#162828] border border-[#1DB5A8]/20 rounded-lg p-4">
+            <div className="bg-card border border-primary/20 rounded-lg p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold text-[#1DB5A8]">Completitud del levantamiento</span>
+                <span className="text-sm font-semibold text-primary">Completitud del levantamiento</span>
                 <span className="text-sm font-bold text-white">{completion}%</span>
               </div>
-              <div className="w-full bg-[#0C1A1A] rounded-full h-2">
-                <div className="bg-[#1DB5A8] h-2 rounded-full transition-all" style={{ width: `${completion}%` }} />
+              <div className="w-full bg-background rounded-full h-2">
+                <div className="bg-primary h-2 rounded-full transition-all" style={{ width: `${completion}%` }} />
               </div>
             </div>
           )}
 
           {/* Geolocalización */}
           {visit.geoLocation && (
-            <div className="bg-[#162828] border border-[#1DB5A8]/20 rounded-lg p-4 flex items-center gap-3">
-              <Navigation className="h-5 w-5 text-[#1DB5A8]" />
+            <div className="bg-card border border-primary/20 rounded-lg p-4 flex items-center gap-3">
+              <Navigation className="h-5 w-5 text-primary" />
               <div>
                 <p className="text-sm font-semibold text-white">Ubicación registrada</p>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-gray-400">
                   {visit.geoLocation.latitude.toFixed(6)}, {visit.geoLocation.longitude.toFixed(6)}
                 </p>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-gray-400">
                   {new Date(visit.geoLocation.timestamp).toLocaleString()}
                 </p>
               </div>
@@ -1468,65 +1469,65 @@ export default function Medidor() {
 
           {/* Datos del cliente */}
           {isEditable && (
-            <div className="bg-[#162828] border border-[#1DB5A8]/20 rounded-lg p-4 space-y-4">
+            <div className="bg-card border border-primary/20 rounded-lg p-4 space-y-4">
               <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-                <User className="h-5 w-5 text-[#1DB5A8]" />
+                <User className="h-5 w-5 text-primary" />
                 Datos del cliente
               </h2>
               <div className="grid grid-cols-1 gap-3">
                 <div>
-                  <label className="block text-xs text-[#1DB5A8]/70 mb-1">Nombre completo *</label>
+                  <label className="block text-xs text-primary/70 mb-1">Nombre completo *</label>
                   <Input
                     value={visit.clientName}
                     onChange={(e) => updateVisit.mutateAsync({ visitId: visit.id, clientName: e.target.value })}
                     placeholder="Nombre"
-                    className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white"
+                    className="bg-background border-primary/20 text-white"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-[#1DB5A8]/70 mb-1">Cédula / Identificación</label>
+                  <label className="block text-xs text-primary/70 mb-1">Cédula / Identificación</label>
                   <Input
                     value={(visit as any).clientIdentificationNumber || ""}
                     onChange={(e) => updateVisit.mutateAsync({ visitId: visit.id, clientIdentificationNumber: e.target.value } as any)}
                     placeholder="Ej: CC 1234567890"
-                    className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white placeholder:text-slate-500"
+                    className="bg-background border-primary/20 text-white placeholder:text-gray-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-[#1DB5A8]/70 mb-1">Correo electrónico</label>
+                  <label className="block text-xs text-primary/70 mb-1">Correo electrónico</label>
                   <Input
                     type="email"
                     value={(visit as any).clientEmail || ""}
                     onChange={(e) => updateVisit.mutateAsync({ visitId: visit.id, clientEmail: e.target.value } as any)}
                     placeholder="cliente@gmail.com"
-                    className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white placeholder:text-slate-500"
+                    className="bg-background border-primary/20 text-white placeholder:text-gray-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-[#1DB5A8]/70 mb-1">Teléfono WhatsApp *</label>
+                  <label className="block text-xs text-primary/70 mb-1">Teléfono WhatsApp *</label>
                   <Input
                     value={visit.clientPhone || ""}
                     onChange={(e) => updateVisit.mutateAsync({ visitId: visit.id, clientPhone: e.target.value })}
                     placeholder="Ej: 3001234567"
-                    className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white"
+                    className="bg-background border-primary/20 text-white"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-[#1DB5A8]/70 mb-1">Dirección</label>
+                  <label className="block text-xs text-primary/70 mb-1">Dirección</label>
                   <Input
                     value={visit.clientAddress || ""}
                     onChange={(e) => updateVisit.mutateAsync({ visitId: visit.id, clientAddress: e.target.value })}
                     placeholder="Dirección"
-                    className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white"
+                    className="bg-background border-primary/20 text-white"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-[#1DB5A8]/70 mb-1">Ciudad</label>
+                  <label className="block text-xs text-primary/70 mb-1">Ciudad</label>
                   <Input
                     value={visit.visitCity || ""}
                     onChange={(e) => updateVisit.mutateAsync({ visitId: visit.id, visitCity: e.target.value })}
                     placeholder="Ej: Pereira, Dosquebradas..."
-                    className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white placeholder:text-slate-500"
+                    className="bg-background border-primary/20 text-white placeholder:text-gray-500"
                   />
                 </div>
               </div>
@@ -1535,9 +1536,9 @@ export default function Medidor() {
 
           {/* Medidas */}
           {isEditable && (
-            <div className="bg-[#162828] border border-[#1DB5A8]/20 rounded-lg p-4 space-y-4">
+            <div className="bg-card border border-primary/20 rounded-lg p-4 space-y-4">
               <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-                <Ruler className="h-5 w-5 text-[#1DB5A8]" />
+                <Ruler className="h-5 w-5 text-primary" />
                 Tipos de trabajo y medidas
               </h2>
 
@@ -1545,7 +1546,7 @@ export default function Medidor() {
               {(Object.keys(WORK_TYPE_LABELS) as WorkType[]).map((wt) => {
                 const isChecked = !!(localMeasurements as any)[`_tipo_${wt}`];
                 return (
-                  <div key={wt} className="border border-[#1DB5A8]/15 rounded-lg overflow-hidden">
+                  <div key={wt} className="border border-primary/15 rounded-lg overflow-hidden">
                     {/* Cabecera tipo de trabajo */}
                     <button
                       type="button"
@@ -1553,9 +1554,9 @@ export default function Medidor() {
                         const key = `_tipo_${wt}`;
                         setLocalMeasurements({ ...localMeasurements, [key]: isChecked ? undefined : true });
                       }}
-                      className={`w-full flex items-center gap-3 p-3 text-left transition-colors ${isChecked ? "bg-[#1DB5A8]/15" : "bg-[#0C1A1A]/60"}`}
+                      className={`w-full flex items-center gap-3 p-3 text-left transition-colors ${isChecked ? "bg-primary/15" : "bg-background/60"}`}
                     >
-                      <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${isChecked ? "bg-[#1DB5A8] border-[#1DB5A8]" : "border-[#1DB5A8]/40"}`}>
+                      <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${isChecked ? "bg-primary border-primary" : "border-primary/40"}`}>
                         {isChecked && <CheckCircle2 className="h-3 w-3 text-white" />}
                       </div>
                       <span className="text-sm font-semibold text-white">{WORK_TYPE_LABELS[wt]}</span>
@@ -1563,12 +1564,12 @@ export default function Medidor() {
 
                     {/* Campos de medidas cuando está seleccionado */}
                     {isChecked && (
-                      <div className="p-3 space-y-3 bg-[#162828]/50">
+                      <div className="p-3 space-y-3 bg-card/50">
                         {wt === "cocina" ? (
                           /* ── Cocina: forma + una sola medida ── */
                           <>
                             <div>
-                              <label className="block text-xs font-semibold text-[#1DB5A8] mb-2">Forma de la cocina *</label>
+                              <label className="block text-xs font-semibold text-primary mb-2">Forma de la cocina *</label>
                               <div className="flex gap-2">
                                 {(["L", "Lineal", "U"] as const).map((forma) => (
                                   <button
@@ -1577,8 +1578,8 @@ export default function Medidor() {
                                     onClick={() => setLocalMeasurements((prev: any) => ({ ...prev, _cocina_forma: forma }))}
                                     className={`flex-1 py-2 rounded-lg border text-sm font-bold transition-colors ${
                                       (localMeasurements as any)._cocina_forma === forma
-                                        ? "bg-[#1DB5A8] border-[#1DB5A8] text-white"
-                                        : "border-[#1DB5A8]/30 text-slate-300 hover:border-[#1DB5A8]/60"
+                                        ? "bg-primary border-primary text-white"
+                                        : "border-primary/30 text-gray-300 hover:border-primary/60"
                                     }`}
                                   >
                                     {forma}
@@ -1589,8 +1590,8 @@ export default function Medidor() {
                             <div className="grid grid-cols-3 gap-2">
                               {[{ key: "_cocina_ancho", label: "Ancho" }, { key: "_cocina_alto", label: "Alto" }, { key: "_cocina_profundo", label: "Profundo" }].map(({ key, label }) => (
                                 <div key={key}>
-                                  <label className="block text-xs font-semibold text-[#1DB5A8] mb-1">{label} (cm)</label>
-                                  <Input type="number" value={(localMeasurements as any)[key] || ""} onChange={(e) => setLocalMeasurements((prev: any) => ({ ...prev, [key]: e.target.value ? parseFloat(e.target.value) : undefined }))} placeholder="0" className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white h-9 text-sm" />
+                                  <label className="block text-xs font-semibold text-primary mb-1">{label} (cm)</label>
+                                  <Input type="number" value={(localMeasurements as any)[key] || ""} onChange={(e) => setLocalMeasurements((prev: any) => ({ ...prev, [key]: e.target.value ? parseFloat(e.target.value) : undefined }))} placeholder="0" className="bg-background border-primary/20 text-white h-9 text-sm" />
                                 </div>
                               ))}
                             </div>
@@ -1599,9 +1600,9 @@ export default function Medidor() {
                           /* ── Otros tipos: una o varias unidades con medidas independientes ── */
                           <>
                             {getUnidades(wt).map((unit, uIdx) => (
-                              <div key={uIdx} className="border border-[#1DB5A8]/20 rounded-lg p-3 space-y-2">
+                              <div key={uIdx} className="border border-primary/20 rounded-lg p-3 space-y-2">
                                 <div className="flex items-center justify-between">
-                                  <span className="text-xs font-semibold text-[#1DB5A8]">
+                                  <span className="text-xs font-semibold text-primary">
                                     {getUnidades(wt).length > 1 ? `${WORK_TYPE_LABELS[wt]} #${uIdx + 1}` : WORK_TYPE_LABELS[wt]}
                                   </span>
                                   {getUnidades(wt).length > 1 && (
@@ -1613,20 +1614,20 @@ export default function Medidor() {
                                 <div className="grid grid-cols-3 gap-2">
                                   {[{ dim: "ancho", label: "Ancho" }, { dim: "alto", label: "Alto" }, { dim: "profundo", label: "Profundo" }].map(({ dim, label }) => (
                                     <div key={dim}>
-                                      <label className="block text-xs font-semibold text-[#1DB5A8] mb-1">{label} (cm)</label>
-                                      <Input type="number" value={(unit as any)[dim] ?? ""} onChange={(e) => updateUnidad(wt, uIdx, dim, e.target.value)} placeholder="0" className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white h-9 text-sm" />
+                                      <label className="block text-xs font-semibold text-primary mb-1">{label} (cm)</label>
+                                      <Input type="number" value={(unit as any)[dim] ?? ""} onChange={(e) => updateUnidad(wt, uIdx, dim, e.target.value)} placeholder="0" className="bg-background border-primary/20 text-white h-9 text-sm" />
                                     </div>
                                   ))}
                                 </div>
                                 <div>
-                                  <label className="block text-xs font-semibold text-[#1DB5A8] mb-1">
+                                  <label className="block text-xs font-semibold text-primary mb-1">
                                     {wt === "otro" ? "¿Qué tipo de mueble? *" : "Descripción (opcional)"}
                                   </label>
                                   <Input
                                     value={(unit as any).descripcion || ""}
                                     onChange={(e) => updateUnidad(wt, uIdx, "descripcion", e.target.value)}
                                     placeholder={wt === "otro" ? "Ej: cómoda, mueble de sala, zapatera..." : "Ej: habitación principal, sala..."}
-                                    className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white placeholder:text-slate-500 text-sm h-9"
+                                    className="bg-background border-primary/20 text-white placeholder:text-gray-500 text-sm h-9"
                                   />
                                 </div>
                               </div>
@@ -1634,23 +1635,23 @@ export default function Medidor() {
                             <button
                               type="button"
                               onClick={() => addUnidad(wt)}
-                              className="w-full py-2 border border-dashed border-[#1DB5A8]/40 rounded-lg text-xs text-[#1DB5A8] hover:bg-[#1DB5A8]/10 transition-colors flex items-center justify-center gap-1"
+                              className="w-full py-2 border border-dashed border-primary/40 rounded-lg text-xs text-primary hover:bg-primary/10 transition-colors flex items-center justify-center gap-1"
                             >
                               <span className="text-base leading-none">+</span> Agregar otra unidad ({WORK_TYPE_LABELS[wt]})
                             </button>
                           </>
                         )}
                         {wt === "cocina" && (
-                          <div className="space-y-2 border-t border-[#1DB5A8]/15 pt-3">
-                            <p className="text-xs font-semibold text-[#1DB5A8]">Electrodomésticos que llevará la cocina</p>
+                          <div className="space-y-2 border-t border-primary/15 pt-3">
+                            <p className="text-xs font-semibold text-primary">Electrodomésticos que llevará la cocina</p>
                             <div className="grid grid-cols-2 gap-2">
                               {COCINA_ELECTRO.map((item) => (
-                                <label key={item.key} className="flex items-center gap-3 p-2 rounded hover:bg-[#0C1A1A] cursor-pointer">
+                                <label key={item.key} className="flex items-center gap-3 p-2 rounded hover:bg-background cursor-pointer">
                                   <input
                                     type="checkbox"
                                     checked={!!localChecklist[item.key]}
                                     onChange={(e) => setLocalChecklist((prev) => ({ ...prev, [item.key]: e.target.checked }))}
-                                    className="h-4 w-4 rounded border-[#1DB5A8]/40 text-[#1DB5A8] focus:ring-[#1DB5A8]"
+                                    className="h-4 w-4 rounded border-primary/40 text-primary focus:ring-primary"
                                   />
                                   <span className="text-sm text-white">{item.label}</span>
                                 </label>
@@ -1662,22 +1663,22 @@ export default function Medidor() {
                                 placeholder="¿Cuál?"
                                 value={(localChecklist["elec_otroDescripcion"] as string) || ""}
                                 onChange={(e) => setLocalChecklist((prev) => ({ ...prev, elec_otroDescripcion: e.target.value }))}
-                                className="w-full px-3 py-1.5 rounded bg-[#0C1A1A] border border-[#1DB5A8]/30 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#1DB5A8]"
+                                className="w-full px-3 py-1.5 rounded bg-background border border-primary/30 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-primary"
                               />
                             )}
                           </div>
                         )}
                         {wt === "closet" && (
-                          <div className="space-y-2 border-t border-[#1DB5A8]/15 pt-3">
-                            <p className="text-xs font-semibold text-[#1DB5A8]">Accesorios del closet</p>
+                          <div className="space-y-2 border-t border-primary/15 pt-3">
+                            <p className="text-xs font-semibold text-primary">Accesorios del closet</p>
                             <div className="grid grid-cols-2 gap-2">
                               {CLOSET_ACCESORIOS.map((item) => (
-                                <label key={item.key} className="flex items-center gap-3 p-2 rounded hover:bg-[#0C1A1A] cursor-pointer">
+                                <label key={item.key} className="flex items-center gap-3 p-2 rounded hover:bg-background cursor-pointer">
                                   <input
                                     type="checkbox"
                                     checked={!!localChecklist[item.key]}
                                     onChange={(e) => setLocalChecklist((prev) => ({ ...prev, [item.key]: e.target.checked }))}
-                                    className="h-4 w-4 rounded border-[#1DB5A8]/40 text-[#1DB5A8] focus:ring-[#1DB5A8]"
+                                    className="h-4 w-4 rounded border-primary/40 text-primary focus:ring-primary"
                                   />
                                   <span className="text-sm text-white">{item.label}</span>
                                 </label>
@@ -1689,7 +1690,7 @@ export default function Medidor() {
                                 placeholder="¿Cuál?"
                                 value={(localChecklist["closet_otroDescripcion"] as string) || ""}
                                 onChange={(e) => setLocalChecklist((prev) => ({ ...prev, closet_otroDescripcion: e.target.value }))}
-                                className="w-full px-3 py-1.5 rounded bg-[#0C1A1A] border border-[#1DB5A8]/30 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#1DB5A8]"
+                                className="w-full px-3 py-1.5 rounded bg-background border border-primary/30 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-primary"
                               />
                             )}
                           </div>
@@ -1703,9 +1704,9 @@ export default function Medidor() {
                 value={localNotes}
                 onChange={(e) => setLocalNotes(e.target.value)}
                 placeholder="Notas adicionales..."
-                className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white min-h-[100px]"
+                className="bg-background border-primary/20 text-white min-h-[100px]"
               />
-              <Button onClick={handleSaveMeasurements} className="w-full bg-[#1DB5A8] hover:bg-[#17a396] text-white">
+              <Button onClick={handleSaveMeasurements} className="w-full bg-primary hover:bg-primary text-white">
                 <Save className="h-4 w-4 mr-2" />
                 Guardar medidas
               </Button>
@@ -1714,20 +1715,20 @@ export default function Medidor() {
 
           {/* Checklist técnico */}
           {isEditable && (
-            <div className="bg-[#162828] border border-[#1DB5A8]/20 rounded-lg p-4 space-y-4">
+            <div className="bg-card border border-primary/20 rounded-lg p-4 space-y-4">
               <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-                <CheckSquare className="h-5 w-5 text-[#1DB5A8]" />
+                <CheckSquare className="h-5 w-5 text-primary" />
                 Checklist técnico
               </h2>
               <div className="grid grid-cols-1 gap-2">
                 {(TECHNICAL_CHECKLIST[visit.workType] ?? []).map((item) => (
                   <div key={item.key}>
-                    <label className="flex items-center gap-3 p-2 rounded hover:bg-[#0C1A1A] cursor-pointer">
+                    <label className="flex items-center gap-3 p-2 rounded hover:bg-background cursor-pointer">
                       <input
                         type="checkbox"
                         checked={!!localChecklist[item.key]}
                         onChange={(e) => setLocalChecklist({ ...localChecklist, [item.key]: e.target.checked })}
-                        className="h-4 w-4 rounded border-[#1DB5A8]/40 text-[#1DB5A8] focus:ring-[#1DB5A8]"
+                        className="h-4 w-4 rounded border-primary/40 text-primary focus:ring-primary"
                       />
                       <span className="text-sm text-white">{item.label}</span>
                     </label>
@@ -1737,19 +1738,19 @@ export default function Medidor() {
                         placeholder="Describe qué es..."
                         value={(localChecklist["otroDescripcion"] as string) || ""}
                         onChange={(e) => setLocalChecklist({ ...localChecklist, otroDescripcion: e.target.value })}
-                        className="mt-1 ml-9 w-[calc(100%-2.25rem)] px-3 py-1.5 rounded bg-[#0C1A1A] border border-[#1DB5A8]/30 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#1DB5A8]"
+                        className="mt-1 ml-9 w-[calc(100%-2.25rem)] px-3 py-1.5 rounded bg-background border border-primary/30 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-primary"
                       />
                     )}
                   </div>
                 ))}
               </div>
-              <div className="space-y-1 border-t border-[#1DB5A8]/15 pt-3">
-                <label className="block text-xs font-semibold text-[#1DB5A8]">Nota especial (opcional)</label>
+              <div className="space-y-1 border-t border-primary/15 pt-3">
+                <label className="block text-xs font-semibold text-primary">Nota especial (opcional)</label>
                 <Textarea
                   value={(localChecklist["notaEspecial"] as string) || ""}
                   onChange={(e) => setLocalChecklist((prev) => ({ ...prev, notaEspecial: e.target.value }))}
                   placeholder="Algo especial para dejar registro: acceso difícil, pared inclinada, pedido particular del cliente..."
-                  className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white min-h-[80px]"
+                  className="bg-background border-primary/20 text-white min-h-[80px]"
                 />
               </div>
             </div>
@@ -1757,9 +1758,9 @@ export default function Medidor() {
 
           {/* Evaluación técnica */}
           {isEditable && (
-            <div className="bg-[#162828] border border-[#1DB5A8]/20 rounded-lg p-4 space-y-4">
+            <div className="bg-card border border-primary/20 rounded-lg p-4 space-y-4">
               <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-                <FileCheck className="h-5 w-5 text-[#1DB5A8]" />
+                <FileCheck className="h-5 w-5 text-primary" />
                 Evaluación técnica
               </h2>
               <div className="space-y-2">
@@ -1767,7 +1768,7 @@ export default function Medidor() {
                   <label
                     key={evalType}
                     className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
-                      localEvaluation === evalType ? EVALUATION_CONFIG[evalType].bg : "border-[#1DB5A8]/20"
+                      localEvaluation === evalType ? EVALUATION_CONFIG[evalType].bg : "border-primary/20"
                     }`}
                   >
                     <input
@@ -1776,7 +1777,7 @@ export default function Medidor() {
                       value={evalType}
                       checked={localEvaluation === evalType}
                       onChange={(e) => setLocalEvaluation(e.target.value as TechnicalEvaluation)}
-                      className="mt-1 h-4 w-4 text-[#1DB5A8] focus:ring-[#1DB5A8]"
+                      className="mt-1 h-4 w-4 text-primary focus:ring-primary"
                     />
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
@@ -1785,7 +1786,7 @@ export default function Medidor() {
                           {EVALUATION_CONFIG[evalType].label}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-400 mt-1">{EVALUATION_CONFIG[evalType].description}</p>
+                      <p className="text-xs text-gray-400 mt-1">{EVALUATION_CONFIG[evalType].description}</p>
                     </div>
                   </label>
                 ))}
@@ -1794,24 +1795,24 @@ export default function Medidor() {
                 value={localCriticalObservations}
                 onChange={(e) => setLocalCriticalObservations(e.target.value)}
                 placeholder="Observaciones críticas (tuberías, columnas, redes eléctricas, etc.)..."
-                className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white min-h-[80px]"
+                className="bg-background border-primary/20 text-white min-h-[80px]"
               />
             </div>
           )}
 
           {/* Fotos */}
-          <div className="bg-[#162828] border border-[#1DB5A8]/20 rounded-lg p-4 space-y-4">
+          <div className="bg-card border border-primary/20 rounded-lg p-4 space-y-4">
             <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-              <Camera className="h-5 w-5 text-[#1DB5A8]" />
+              <Camera className="h-5 w-5 text-primary" />
               Fotos del espacio
             </h2>
             {canAddMaterial && (
               <div className="space-y-2">
-                <label className="block text-xs font-semibold text-[#1DB5A8]">Categoría de la foto</label>
+                <label className="block text-xs font-semibold text-primary">Categoría de la foto</label>
                 <select
                   value={selectedPhotoCategory}
                   onChange={(e) => setSelectedPhotoCategory(e.target.value as PhotoCategory)}
-                  className="w-full bg-[#0C1A1A] border border-[#1DB5A8]/20 rounded-lg px-3 py-2 text-white text-sm"
+                  className="w-full bg-background border border-primary/20 rounded-lg px-3 py-2 text-white text-sm"
                 >
                   {PHOTO_CATEGORIES.map((cat) => (
                     <option key={cat.value} value={cat.value}>{cat.label}</option>
@@ -1839,11 +1840,11 @@ export default function Medidor() {
                 <button
                   type="button"
                   onClick={() => photoInputRef.current?.click()}
-                  className="w-full rounded-lg border-2 border-dashed border-[#1DB5A8]/40 hover:border-[#1DB5A8] transition-colors cursor-pointer bg-transparent"
+                  className="w-full rounded-lg border-2 border-dashed border-primary/40 hover:border-primary transition-colors cursor-pointer bg-transparent"
                 >
                   <div className="flex flex-col items-center justify-center py-8">
-                    <Camera className="h-8 w-8 text-[#1DB5A8] mb-2" />
-                    <span className="text-sm text-[#1DB5A8] font-medium">
+                    <Camera className="h-8 w-8 text-primary mb-2" />
+                    <span className="text-sm text-primary font-medium">
                       {addPhoto.isPending ? "Subiendo..." : "Subir fotos"}
                     </span>
                   </div>
@@ -1861,20 +1862,20 @@ export default function Medidor() {
           </div>
 
           {/* PDFs */}
-          <div className="bg-[#162828] border border-[#1DB5A8]/20 rounded-lg p-4 space-y-4">
+          <div className="bg-card border border-primary/20 rounded-lg p-4 space-y-4">
             <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-              <FileText className="h-5 w-5 text-[#1DB5A8]" />
+              <FileText className="h-5 w-5 text-primary" />
               Planos y documentos
             </h2>
             <div className="space-y-2">
               {(visitDetail?.pdfs ?? visit.pdfs)?.map((pdf) => (
-                <div key={pdf.id} className="flex items-center justify-between bg-[#0C1A1A] rounded-lg p-3">
+                <div key={pdf.id} className="flex items-center justify-between bg-background rounded-lg p-3">
                   <div className="flex items-center gap-2">
-                    <File className="h-4 w-4 text-[#1DB5A8]" />
+                    <File className="h-4 w-4 text-primary" />
                     <span className="text-sm text-white truncate">{pdf.fileName}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <a href={`${pdf.url}${pdf.url.includes("?") ? "&" : "?"}v=${encodeURIComponent(pdf.id)}`} target="_blank" rel="noopener noreferrer" className="text-[#1DB5A8] hover:underline text-sm">
+                    <a href={`${pdf.url}${pdf.url.includes("?") ? "&" : "?"}v=${encodeURIComponent(pdf.id)}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-sm">
                       Ver PDF
                     </a>
                     {isEditable && (
@@ -1897,11 +1898,11 @@ export default function Medidor() {
                 <button
                   type="button"
                   onClick={() => pdfInputRef.current?.click()}
-                  className="w-full rounded-lg border-2 border-dashed border-[#1DB5A8]/40 hover:border-[#1DB5A8] transition-colors cursor-pointer bg-transparent"
+                  className="w-full rounded-lg border-2 border-dashed border-primary/40 hover:border-primary transition-colors cursor-pointer bg-transparent"
                 >
                   <div className="flex flex-col items-center justify-center py-6">
-                    <FileText className="h-8 w-8 text-[#1DB5A8] mb-2" />
-                    <span className="text-sm text-[#1DB5A8] font-medium">
+                    <FileText className="h-8 w-8 text-primary mb-2" />
+                    <span className="text-sm text-primary font-medium">
                       {compressPdf.isPending ? "Subiendo PDF..." : "Subir PDF (GoodNotes, planos, etc.)"}
                     </span>
                   </div>
@@ -1919,24 +1920,24 @@ export default function Medidor() {
 
           {/* Pizarra del medidor — fullscreen CSS, no nativo (evita gestos iOS) */}
           {canComplement && (
-            <div className="bg-[#162828] border border-amber-500/30 rounded-lg p-4 space-y-3">
+            <div className="bg-card border border-amber-500/30 rounded-lg p-4 space-y-3">
               <h2 className="text-lg font-semibold text-white">Información complementaria</h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-gray-400">
                 Este levantamiento ya tiene cotización. Aquí puedes agregar notas, fotos y PDF para el diseñador; las medidas y datos cotizados no se modifican.
               </p>
               {(visit as any).notes && (
-                <p className="text-sm text-slate-300 whitespace-pre-wrap bg-[#0C1A1A] rounded-lg p-3">{(visit as any).notes}</p>
+                <p className="text-sm text-gray-300 whitespace-pre-wrap bg-background rounded-lg p-3">{(visit as any).notes}</p>
               )}
               <Textarea
                 value={complementNote}
                 onChange={(e) => setComplementNote(e.target.value)}
                 placeholder="Nueva nota para el diseñador..."
-                className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white min-h-[80px]"
+                className="bg-background border-primary/20 text-white min-h-[80px]"
               />
               <Button
                 onClick={handleAddComplementNote}
                 disabled={!complementNote.trim() || updateVisit.isPending}
-                className="w-full bg-[#1DB5A8] hover:bg-[#17a396] text-white"
+                className="w-full bg-primary hover:bg-primary text-white"
               >
                 Guardar nota
               </Button>
@@ -1944,22 +1945,22 @@ export default function Medidor() {
           )}
 
           {canComplement && (
-            <div className="bg-[#162828] border border-amber-500/30 rounded-lg p-4 space-y-3">
+            <div className="bg-card border border-amber-500/30 rounded-lg p-4 space-y-3">
               <h2 className="text-lg font-semibold text-white">Checklist complementario</h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-gray-400">
                 Marca o agrega datos para ayudar al diseñador. Lo que ya estaba en el levantamiento no se modifica.
               </p>
               {((visit as any).workType === "cocina" || !!(localMeasurements as any)._tipo_cocina) && (
-                <div className="space-y-2 border-t border-[#1DB5A8]/15 pt-3">
-                  <p className="text-sm font-semibold text-[#1DB5A8]">Electrodomésticos que llevará la cocina</p>
+                <div className="space-y-2 border-t border-primary/15 pt-3">
+                  <p className="text-sm font-semibold text-primary">Electrodomésticos que llevará la cocina</p>
                   <div className="grid grid-cols-2 gap-2">
                     {COCINA_ELECTRO.map((item) => (
-                      <label key={item.key} className="flex items-center gap-3 p-2 rounded hover:bg-[#0C1A1A] cursor-pointer">
+                      <label key={item.key} className="flex items-center gap-3 p-2 rounded hover:bg-background cursor-pointer">
                         <input
                           type="checkbox"
                           checked={!!localChecklist[item.key]}
                           onChange={(e) => setLocalChecklist((prev) => ({ ...prev, [item.key]: e.target.checked }))}
-                          className="h-4 w-4 rounded border-[#1DB5A8]/40 text-[#1DB5A8] focus:ring-[#1DB5A8]"
+                          className="h-4 w-4 rounded border-primary/40 text-primary focus:ring-primary"
                         />
                         <span className="text-sm text-white">{item.label}</span>
                       </label>
@@ -1971,22 +1972,22 @@ export default function Medidor() {
                       placeholder="¿Cuál?"
                       value={(localChecklist["elec_otroDescripcion"] as string) || ""}
                       onChange={(e) => setLocalChecklist((prev) => ({ ...prev, elec_otroDescripcion: e.target.value }))}
-                      className="w-full px-3 py-1.5 rounded bg-[#0C1A1A] border border-[#1DB5A8]/30 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#1DB5A8]"
+                      className="w-full px-3 py-1.5 rounded bg-background border border-primary/30 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-primary"
                     />
                   )}
                 </div>
               )}
               {((visit as any).workType === "closet" || !!(localMeasurements as any)._tipo_closet) && (
-                <div className="space-y-2 border-t border-[#1DB5A8]/15 pt-3">
-                  <p className="text-sm font-semibold text-[#1DB5A8]">Accesorios del closet</p>
+                <div className="space-y-2 border-t border-primary/15 pt-3">
+                  <p className="text-sm font-semibold text-primary">Accesorios del closet</p>
                   <div className="grid grid-cols-2 gap-2">
                     {CLOSET_ACCESORIOS.map((item) => (
-                      <label key={item.key} className="flex items-center gap-3 p-2 rounded hover:bg-[#0C1A1A] cursor-pointer">
+                      <label key={item.key} className="flex items-center gap-3 p-2 rounded hover:bg-background cursor-pointer">
                         <input
                           type="checkbox"
                           checked={!!localChecklist[item.key]}
                           onChange={(e) => setLocalChecklist((prev) => ({ ...prev, [item.key]: e.target.checked }))}
-                          className="h-4 w-4 rounded border-[#1DB5A8]/40 text-[#1DB5A8] focus:ring-[#1DB5A8]"
+                          className="h-4 w-4 rounded border-primary/40 text-primary focus:ring-primary"
                         />
                         <span className="text-sm text-white">{item.label}</span>
                       </label>
@@ -1998,24 +1999,24 @@ export default function Medidor() {
                       placeholder="¿Cuál?"
                       value={(localChecklist["closet_otroDescripcion"] as string) || ""}
                       onChange={(e) => setLocalChecklist((prev) => ({ ...prev, closet_otroDescripcion: e.target.value }))}
-                      className="w-full px-3 py-1.5 rounded bg-[#0C1A1A] border border-[#1DB5A8]/30 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#1DB5A8]"
+                      className="w-full px-3 py-1.5 rounded bg-background border border-primary/30 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-primary"
                     />
                   )}
                 </div>
               )}
-              <div className="space-y-1 border-t border-[#1DB5A8]/15 pt-3">
-                <label className="block text-xs font-semibold text-[#1DB5A8]">Nota especial</label>
+              <div className="space-y-1 border-t border-primary/15 pt-3">
+                <label className="block text-xs font-semibold text-primary">Nota especial</label>
                 <Textarea
                   value={(localChecklist["notaEspecial"] as string) || ""}
                   onChange={(e) => setLocalChecklist((prev) => ({ ...prev, notaEspecial: e.target.value }))}
                   placeholder="Algo especial para dejar registro..."
-                  className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white min-h-[80px]"
+                  className="bg-background border-primary/20 text-white min-h-[80px]"
                 />
               </div>
               <Button
                 onClick={handleSaveComplementChecklist}
                 disabled={updateVisit.isPending}
-                className="w-full bg-[#1DB5A8] hover:bg-[#17a396] text-white"
+                className="w-full bg-primary hover:bg-primary text-white"
               >
                 Guardar checklist
               </Button>
@@ -2025,21 +2026,21 @@ export default function Medidor() {
           {canUsePizarra && (
             <div className={pizarraFullscreen
               ? "fixed inset-0 z-50 flex flex-col bg-white"
-              : "bg-[#162828] border border-[#1DB5A8]/20 rounded-lg overflow-hidden"
+              : "bg-card border border-primary/20 rounded-lg overflow-hidden"
             }>
               <div className={pizarraFullscreen
-                ? "flex items-center justify-between px-4 py-2 bg-[#162828] border-b border-[#1DB5A8]/20 shrink-0"
-                : "flex items-center justify-between px-4 py-3 border-b border-[#1DB5A8]/20"
+                ? "flex items-center justify-between px-4 py-2 bg-card border-b border-primary/20 shrink-0"
+                : "flex items-center justify-between px-4 py-3 border-b border-primary/20"
               }>
                 <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-                  <PenLine className="h-5 w-5 text-[#1DB5A8]" />
+                  <PenLine className="h-5 w-5 text-primary" />
                   Pizarra del medidor
                 </h2>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => setPizarraFullscreen(f => !f)}
-                    className="text-sm font-medium px-3 py-1.5 rounded-lg border border-[#1DB5A8]/40 text-[#1DB5A8] hover:bg-[#1DB5A8]/10 flex items-center gap-1.5"
+                    className="text-sm font-medium px-3 py-1.5 rounded-lg border border-primary/40 text-primary hover:bg-primary/10 flex items-center gap-1.5"
                     title={pizarraFullscreen ? "Salir de pantalla completa" : "Abrir en pantalla completa"}
                   >
                     {pizarraFullscreen ? (
@@ -2053,7 +2054,7 @@ export default function Medidor() {
                     onClick={handleExportPizarra}
                     disabled={pizarraUploading || pizarraHasContent === false}
                     title={pizarraHasContent === false ? "La pizarra está vacía" : undefined}
-                    className="text-sm font-medium px-3 py-1.5 rounded-lg bg-[#1DB5A8] hover:bg-[#17a396] disabled:opacity-50 text-white flex items-center gap-1.5"
+                    className="text-sm font-medium px-3 py-1.5 rounded-lg bg-primary hover:bg-primary disabled:opacity-50 text-white flex items-center gap-1.5"
                   >
                     <FileText className="h-4 w-4" />
                     {pizarraUploading ? "Exportando..." : "Guardar como PDF"}
@@ -2074,22 +2075,22 @@ export default function Medidor() {
 
           {/* Firma digital */}
           {isEditable && (
-            <div className="bg-[#162828] border border-[#1DB5A8]/20 rounded-lg p-4 space-y-4">
+            <div className="bg-card border border-primary/20 rounded-lg p-4 space-y-4">
               <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-                <Signature className="h-5 w-5 text-[#1DB5A8]" />
+                <Signature className="h-5 w-5 text-primary" />
                 Firma del cliente
               </h2>
               {visit.clientSignature ? (
                 <div className="space-y-3">
-                  <img src={visit.clientSignature} alt="Firma del cliente" className="w-full border border-[#1DB5A8]/20 rounded-lg bg-white" />
-                  <p className="text-xs text-slate-400 text-center">El cliente confirmó la visita y las medidas tomadas</p>
-                  <Button onClick={() => setShowSignature(true)} variant="outline" className="w-full border-[#1DB5A8]/40 text-[#1DB5A8]">
+                  <img src={visit.clientSignature} alt="Firma del cliente" className="w-full border border-primary/20 rounded-lg bg-white" />
+                  <p className="text-xs text-gray-400 text-center">El cliente confirmó la visita y las medidas tomadas</p>
+                  <Button onClick={() => setShowSignature(true)} variant="outline" className="w-full border-primary/40 text-primary">
                     <Signature className="h-4 w-4 mr-2" />
                     Volver a firmar
                   </Button>
                 </div>
               ) : (
-                <Button onClick={() => setShowSignature(true)} className="w-full bg-[#1DB5A8] hover:bg-[#17a396] text-white">
+                <Button onClick={() => setShowSignature(true)} className="w-full bg-primary hover:bg-primary text-white">
                   <Signature className="h-4 w-4 mr-2" />
                   Capturar firma del cliente
                 </Button>
@@ -2100,9 +2101,9 @@ export default function Medidor() {
           {/* Modal de firma */}
           {showSignature && (
             <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-              <div className="bg-[#162828] border border-[#1DB5A8]/40 rounded-xl p-6 w-full max-w-md">
+              <div className="bg-card border border-primary/40 rounded-xl p-6 w-full max-w-md">
                 <h3 className="text-lg font-bold text-white mb-4">Firma del cliente</h3>
-                <p className="text-sm text-slate-400 mb-4">El técnico realizó la visita y tomó las medidas.</p>
+                <p className="text-sm text-gray-400 mb-4">El técnico realizó la visita y tomó las medidas.</p>
                 <SignaturePad onSave={handleSaveSignature} onCancel={() => setShowSignature(false)} />
               </div>
             </div>
@@ -2111,45 +2112,45 @@ export default function Medidor() {
           {/* Resumen antes de enviar */}
           {isEditable && showSummary && (
             <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-              <div className="bg-[#162828] border border-[#1DB5A8]/40 rounded-xl p-6 w-full max-w-md space-y-4">
+              <div className="bg-card border border-primary/40 rounded-xl p-6 w-full max-w-md space-y-4">
                 <h3 className="text-lg font-bold text-white mb-4">Resumen del levantamiento</h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Cliente:</span>
+                    <span className="text-gray-400">Cliente:</span>
                     <span className="text-white font-medium">{visit.clientName}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Tipo de trabajo:</span>
+                    <span className="text-gray-400">Tipo de trabajo:</span>
                     <span className="text-white font-medium">{WORK_TYPE_LABELS[visit.workType]}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Fotos:</span>
+                    <span className="text-gray-400">Fotos:</span>
                     <span className="text-white font-medium">{visit.photos?.length || 0}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">PDFs:</span>
+                    <span className="text-gray-400">PDFs:</span>
                     <span className="text-white font-medium">{visit.pdfs?.length || 0}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Medidas:</span>
+                    <span className="text-gray-400">Medidas:</span>
                     <span className="text-white font-medium">{Object.keys(localMeasurements).length} campos</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Evaluación:</span>
-                    <span className={`font-medium ${localEvaluation ? EVALUATION_CONFIG[localEvaluation].color : "text-slate-400"}`}>
+                    <span className="text-gray-400">Evaluación:</span>
+                    <span className={`font-medium ${localEvaluation ? EVALUATION_CONFIG[localEvaluation].color : "text-gray-400"}`}>
                       {localEvaluation ? EVALUATION_CONFIG[localEvaluation].label : "No definida"}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Firma:</span>
+                    <span className="text-gray-400">Firma:</span>
                     <span className="text-white font-medium">{visit.clientSignature ? "✓ Capturada" : "✗ Pendiente"}</span>
                   </div>
                 </div>
                 <div className="flex gap-2 pt-4">
-                  <Button onClick={() => setShowSummary(false)} variant="outline" className="flex-1 border-[#1DB5A8]/40 text-[#1DB5A8]">
+                  <Button onClick={() => setShowSummary(false)} variant="outline" className="flex-1 border-primary/40 text-primary">
                     Volver
                   </Button>
-                  <Button onClick={handleSubmitVisit} className="flex-1 bg-[#1DB5A8] hover:bg-[#17a396] text-white">
+                  <Button onClick={handleSubmitVisit} className="flex-1 bg-primary hover:bg-primary text-white">
                     <Send className="h-4 w-4 mr-2" />
                     Finalizar levantamiento
                   </Button>
@@ -2170,21 +2171,21 @@ export default function Medidor() {
           )}
 
           {visit.status === "cot_hecha" || visit.status === "cot_enviada" || visit.status === "convertida" && (
-            <div className="bg-emerald-500/20 border border-emerald-500/40 rounded-lg p-4 flex items-center gap-3">
-              <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+            <div className="bg-green-500/20 border border-green-500/40 rounded-lg p-4 flex items-center gap-3">
+              <CheckCircle2 className="h-5 w-5 text-green-400" />
               <div>
-                <p className="text-sm font-semibold text-emerald-400">Proyecto aprobado</p>
-                <p className="text-xs text-emerald-300">El levantamiento fue convertido en proyecto</p>
+                <p className="text-sm font-semibold text-green-400">Proyecto aprobado</p>
+                <p className="text-xs text-green-300">El levantamiento fue convertido en proyecto</p>
               </div>
             </div>
           )}
 
           {/* Botón de acción según estado */}
           {isEditable && (
-            <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#0C1A1A]/95 backdrop-blur border-t border-[#1DB5A8]/20">
+            <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur border-t border-primary/20">
               <div className="max-w-lg mx-auto flex gap-3">
                 {visit.status === "borrador" ? (
-                  <Button onClick={() => setShowSummary(true)} className="flex-1 h-14 bg-[#1DB5A8] hover:bg-[#17a396] text-white font-semibold text-lg">
+                  <Button onClick={() => setShowSummary(true)} className="flex-1 h-14 bg-primary hover:bg-primary text-white font-semibold text-lg">
                     <Send className="h-5 w-5 mr-2" />
                     Finalizar levantamiento técnico
                   </Button>
@@ -2192,7 +2193,7 @@ export default function Medidor() {
                   <Button
                     onClick={handleSaveMeasurements}
                     disabled={updateVisit.isPending}
-                    className="flex-1 h-14 bg-[#1DB5A8] hover:bg-[#17a396] text-white font-semibold text-lg"
+                    className="flex-1 h-14 bg-primary hover:bg-primary text-white font-semibold text-lg"
                   >
                     <CheckCircle2 className="h-5 w-5 mr-2" />
                     {updateVisit.isPending ? "Guardando..." : "Guardar cambios"}

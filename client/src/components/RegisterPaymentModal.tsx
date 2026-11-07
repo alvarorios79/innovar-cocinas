@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
+import { toast } from "sonner";
 interface RegisterPaymentModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -35,12 +36,12 @@ export function RegisterPaymentModal({
 
   const handleSubmit = async () => {
     if (!amount || parseFloat(amount) <= 0) {
-      alert("El monto debe ser mayor a 0");
+      toast.error("El monto debe ser mayor a 0");
       return;
     }
 
     if (!type) {
-      alert("Debe seleccionar un tipo de pago");
+      toast.error("Debe seleccionar un tipo de pago");
       return;
     }
 

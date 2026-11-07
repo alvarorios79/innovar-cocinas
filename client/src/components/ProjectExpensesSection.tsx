@@ -176,7 +176,7 @@ export function ProjectExpensesSection({ projectId, isAdmin, onTotalChange }: Pr
           ))}
         </div>
       ) : expenses.length === 0 ? (
-        <div className="text-center py-8 text-slate-400 text-sm">
+        <div className="text-center py-8 text-gray-400 text-sm">
           <Package className="h-8 w-8 mx-auto mb-2 opacity-30" />
           Sin gastos registrados
         </div>
@@ -200,7 +200,7 @@ export function ProjectExpensesSection({ projectId, isAdmin, onTotalChange }: Pr
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-muted-foreground truncate">{exp.description}</p>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-gray-400">
                     {meta.label} · {date}
                     {exp.subcategory && ` · ${exp.subcategory}`}
                   </p>
@@ -212,7 +212,7 @@ export function ProjectExpensesSection({ projectId, isAdmin, onTotalChange }: Pr
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-7 w-7 p-0 text-slate-400 hover:text-red-500 shrink-0"
+                    className="h-7 w-7 p-0 text-gray-400 hover:text-red-500 shrink-0"
                     onClick={() => setDeleteConfirmId(exp.id)}
                     disabled={deleteExpense.isPending}
                   >
@@ -285,7 +285,7 @@ export function ProjectExpensesSection({ projectId, isAdmin, onTotalChange }: Pr
             </div>
 
             <div className="space-y-1">
-              <Label className="text-xs">Subcategoría <span className="text-slate-400">(opcional)</span></Label>
+              <Label className="text-xs">Subcategoría <span className="text-gray-400">(opcional)</span></Label>
               <Input
                 placeholder="Ej: MDF, herrajes, bisagras…"
                 value={form.subcategory}

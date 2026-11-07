@@ -142,7 +142,7 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle }: Prop
   };
 
   const enabled = !!config?.modulePlan?.enabled;
-  const box = "bg-[#162828] rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)] space-y-3";
+  const box = "bg-card rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)] space-y-3";
 
   // ── Dibujo de la cocina de frente (solo iconos) ──────────────────────────
   const renderElevation = (t: number) => {
@@ -169,11 +169,11 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle }: Prop
       const isSel = !!sel && "id" in sel && sel.t === t && sel.row === row && sel.id === mod.id;
       const painted = isPainted(plan, mod, row);
       const out = (!!cat.min && mod.width < cat.min - 1e-9) || (!!cat.max && mod.width > cat.max + 1e-9);
-      const color = cat.key === "ventana" ? "bg-sky-500/25 border-sky-300/80 text-sky-100"
+      const color = cat.key === "ventana" ? "bg-blue-500/25 border-blue-300/80 text-blue-100"
         : out ? "bg-red-900/40 border-red-500/60 text-red-100"
-        : it.fromPrev ? "bg-teal-900/20 border-teal-500/20 text-teal-200/60"
+        : it.fromPrev ? "bg-teal-900/20 border-primary/20 text-teal-200/60"
         : row === "upper" ? (mod.autoOf ? "bg-purple-900/30 border-purple-400/30 text-purple-100" : "bg-purple-900/50 border-purple-400/50 text-purple-100")
-        : "bg-teal-900/50 border-teal-400/50 text-teal-100";
+        : "bg-teal-900/50 border-primary/50 text-teal-100";
       return (
         <div key={`${row}-${mod.id}${it.fromPrev ? "p" : ""}`} className="absolute p-[2px]" style={{ left: it.start * PX, top: 0, width: w, height: LANE_H }}>
           <div
@@ -210,7 +210,7 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle }: Prop
             </div>
           )}
           {!tr.isIsland && (
-            <div className="absolute left-0 flex items-center justify-center rounded-full bg-gradient-to-r from-purple-500/60 via-white/30 to-teal-500/60 text-[9px] font-bold tracking-widest text-white/80"
+            <div className="absolute left-0 flex items-center justify-center rounded-full bg-gradient-to-r from-purple-500/60 via-white/30 to-primary/60 text-[9px] font-bold tracking-widest text-white/80"
               style={{ top: LANE_H + 1, height: DIV_H - 2, width: widthPx }}>
               ▲ SUPERIORES · INFERIORES ▼
             </div>
@@ -223,7 +223,7 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle }: Prop
           {!tr.isIsland && allCuts.map(x => {
             const both = near(upCuts, x) && near(loCuts, x);
             return (
-              <div key={`g${x}`} className={`absolute pointer-events-none ${both ? "border-l border-emerald-400/50" : "border-l border-dashed border-amber-400/60"}`}
+              <div key={`g${x}`} className={`absolute pointer-events-none ${both ? "border-l border-green-400/50" : "border-l border-dashed border-amber-400/60"}`}
                 style={{ left: x * PX, top: both ? 0 : (near(upCuts, x) ? 0 : LANE_H + DIV_H), height: both ? heightPx : LANE_H }} />
             );
           })}
@@ -275,7 +275,7 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle }: Prop
             const sp = plan.paintKeys?.[s.key] !== false;
             return (
               <button type="button"
-                className={`h-9 px-3 rounded border font-semibold ${sp ? "bg-red-900/30 border-red-400/50 text-red-100 hover:bg-red-900/50" : "bg-pink-600/80 border-pink-300/60 text-white hover:bg-pink-600"}`}
+                className={`h-9 px-3 rounded border font-semibold ${sp ? "bg-red-900/30 border-red-400/50 text-red-100 hover:bg-red-900/50" : "bg-purple-600/80 border-purple-300/60 text-white hover:bg-purple-600"}`}
                 onClick={() => edit(p => { p.paintKeys = { ...(p.paintKeys || {}), [s.key]: !sp }; })}>
                 🎨 {sp ? "Quitar pintura" : "Pintar"}
               </button>
@@ -297,10 +297,10 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle }: Prop
     const adjustable = !cat.locked && mod.autoBase === undefined;
     const painted = isPainted(plan, mod, sel.row);
     return (
-      <div className={`flex flex-wrap items-center gap-3 rounded border p-2 text-xs ${sel.row === "upper" ? "border-purple-400/40 bg-purple-900/20 text-purple-100" : "border-teal-400/40 bg-teal-900/20 text-teal-100"}`}>
+      <div className={`flex flex-wrap items-center gap-3 rounded border p-2 text-xs ${sel.row === "upper" ? "border-purple-400/40 bg-purple-900/20 text-purple-100" : "border-primary/40 bg-teal-900/20 text-teal-100"}`}>
         <ModuleIcon k={mod.key} size={26} />
         <span className="font-semibold">{cat.label}</span>
-        {!cat.noPieces && <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${painted ? "bg-pink-600/70 text-white" : "bg-white/10 text-white/60"}`}>{painted ? "VA PINTADO" : "SIN PINTAR"}</span>}
+        {!cat.noPieces && <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${painted ? "bg-purple-600/70 text-white" : "bg-white/10 text-white/60"}`}>{painted ? "VA PINTADO" : "SIN PINTAR"}</span>}
         <label className="flex items-center gap-1">
           {adjustable ? (
             <input type="number" step="0.05" min="0" value={mod.width}
@@ -332,12 +332,12 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle }: Prop
                 desde el borde izquierdo
                 <input type="number" step="0.05" min="0" value={round2(st)}
                   onChange={(e) => edit(p => setModuleLock(p, sel.t, sel.row, mod.id, parseFloat(e.target.value) || 0, config))}
-                  className="w-16 bg-black/20 border-b border-sky-300/60 text-right font-mono text-sm focus:outline-none" />
+                  className="w-16 bg-black/20 border-b border-blue-300/60 text-right font-mono text-sm focus:outline-none" />
                 m
               </label>
               <span className="text-white/50">termina en {m2(st + mod.width)} m{tr0.length > 0 ? ` · a la derecha quedan ${m2(tr0.length - st - mod.width)} m` : ""}</span>
               <label className="flex items-center gap-1 cursor-pointer">
-                <input type="checkbox" className="accent-sky-400" checked={locked}
+                <input type="checkbox" className="accent-blue-400" checked={locked}
                   onChange={(e) => edit(p => setModuleLock(p, sel.t, sel.row, mod.id, e.target.checked ? st : null, config))} />
                 🔒 ubicación bloqueada
               </label>
@@ -351,12 +351,12 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle }: Prop
             onClick={() => edit(p => moveModule(p, sel.t, sel.row, mod.id, idx + 1))} title="Mover a la derecha">▶</button>
         </span>
         {adjustable && (
-          <button type="button" className="h-9 px-2 rounded bg-emerald-700/40 hover:bg-emerald-700/70" title="Ajusta la medida para que el final coincida con el corte de la otra línea"
+          <button type="button" className="h-9 px-2 rounded bg-green-700/40 hover:bg-green-700/70" title="Ajusta la medida para que el final coincida con el corte de la otra línea"
             onClick={() => edit(p => alignEnd(p, sel.t, sel.row, mod.id, config))}>Alinear con la otra línea</button>
         )}
         {!cat.noPieces && (
           <button type="button"
-            className={`h-9 px-3 rounded border font-semibold ${painted ? "bg-red-900/30 border-red-400/50 text-red-100 hover:bg-red-900/50" : "bg-pink-600/80 border-pink-300/60 text-white hover:bg-pink-600"}`}
+            className={`h-9 px-3 rounded border font-semibold ${painted ? "bg-red-900/30 border-red-400/50 text-red-100 hover:bg-red-900/50" : "bg-purple-600/80 border-purple-300/60 text-white hover:bg-purple-600"}`}
             title={painted ? "Este módulo va pintado. Toca para quitarle la pintura." : "Este módulo NO va pintado. Toca para pintarlo."}
             onClick={() => edit(p => { const m = p.tramos[sel.t][sel.row].find(x => x.id === mod.id); if (m) { m.paint = !painted; m.unpainted = undefined; } })}>
             🎨 {painted ? "Quitar pintura" : "Pintar"}
@@ -384,13 +384,13 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle }: Prop
     const fillOpts = FILL_KEYS.lower.map(k => CATALOG_BY_KEY[k]);
     return (
       <div className="space-y-2">
-        <div className={`flex flex-wrap items-center gap-2 text-xs rounded px-3 py-1.5 ${row === "upper" ? "bg-purple-900/50 border border-purple-400/40" : "bg-teal-900/50 border border-teal-400/40"}`}>
+        <div className={`flex flex-wrap items-center gap-2 text-xs rounded px-3 py-1.5 ${row === "upper" ? "bg-purple-900/50 border border-purple-400/40" : "bg-teal-900/50 border border-primary/40"}`}>
           <span className={`font-bold uppercase tracking-widest ${row === "upper" ? "text-purple-200" : "text-teal-200"}`}>{row === "upper" ? "▲ Módulos superiores" : "▼ Módulos inferiores"}</span>
           <span className={over ? "text-red-400 font-semibold" : "text-white/60"}>
             llevas {m2(used)} de {m2(tr.length)} m{tr.length > 0 && (over ? ` · te pasas ${m2(-rem)}` : ` · faltan ${m2(rem)}`)}
           </span>
           {row === "lower" && rem > 0.01 && (
-            <select className="h-8 rounded bg-[#0C1A1A] border border-teal-500/40 text-xs text-teal-200 px-2 ml-auto" value=""
+            <select className="h-8 rounded bg-background border border-primary/40 text-xs text-teal-200 px-2 ml-auto" value=""
               onChange={(e) => { if (e.target.value) fillRemaining(t, e.target.value); }}>
               <option value="">Completar {m2(rem)} m con…</option>
               {fillOpts.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
@@ -403,7 +403,7 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle }: Prop
             const count = mods.length;
             const curW = count > 0 ? mods[0].width : ((!o.locked && plan.defaultWidth?.[o.key]) || o.width);
             return (
-              <div key={o.key} className={`rounded border p-2 flex flex-col gap-1.5 ${count > 0 ? (row === "upper" ? "bg-purple-900/30 border-purple-400/50" : "bg-teal-900/40 border-teal-400/50") : "bg-white/[0.03] border-white/10"}`}>
+              <div key={o.key} className={`rounded border p-2 flex flex-col gap-1.5 ${count > 0 ? (row === "upper" ? "bg-purple-900/30 border-purple-400/50" : "bg-teal-900/40 border-primary/50") : "bg-white/[0.03] border-white/10"}`}>
                 <button type="button" className="flex items-center gap-2 text-left" title="Tocar para agregar uno"
                   onClick={() => edit(p => { addModuleToPlan(p, t, row, o.key, config); })}>
                   <ModuleIcon k={o.key} size={34} className="shrink-0 text-white/80" />
@@ -472,7 +472,7 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle }: Prop
           <input
             type="checkbox"
             id="modulePlanEnabled"
-            className="h-4 w-4 accent-teal-500"
+            className="h-4 w-4 accent-primary"
             checked={enabled}
             onChange={(e) => edit(p => { p.enabled = e.target.checked; })}
           />
@@ -493,12 +493,12 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle }: Prop
 
       {enabled && (
         <div className="space-y-4">
-          <p className="text-xs text-teal-400/70">
+          <p className="text-xs text-primary/70">
             Forma de la cocina: <b>{config?.layout || "sin definir"}</b>. Pon el largo de cada pared, agrega módulos con las tarjetas y acomódalos en el dibujo.
             Líneas verdes = el corte coincide arriba y abajo; ámbar = solo en una línea.
           </p>
           <label className="flex items-center gap-2 text-xs text-white/70 cursor-pointer">
-            <input type="checkbox" className="h-4 w-4 accent-sky-500" checked={plan.autoUpper !== false}
+            <input type="checkbox" className="h-4 w-4 accent-blue-500" checked={plan.autoUpper !== false}
               onChange={(e) => edit(p => { p.autoUpper = e.target.checked; })} />
             El diseño lo marcan los inferiores: los superiores se arman solos
             <span className="text-white/35">(lavaplatos→platero, estufa→extractor, cajoneros→almacenamiento; botellero/basurero/especiero pegados al esquinero agrandan el de arriba)</span>
@@ -584,7 +584,7 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle }: Prop
                         {plan.tramos.length > 1 && (
                           <label className="flex items-center gap-1">
                             en
-                            <select className="h-6 rounded bg-[#0C1A1A] border border-white/15 px-1"
+                            <select className="h-6 rounded bg-background border border-white/15 px-1"
                               value={act.tramo}
                               onChange={(e) => edit(p => { p.specialTramo = { ...(p.specialTramo || {}), [o.key]: parseInt(e.target.value) || 0 }; })}>
                               {plan.tramos.map((tt, i) => <option key={i} value={i}>{tt.name}</option>)}
@@ -601,13 +601,13 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle }: Prop
           </div>
 
           {result.warnings.length > 0 && (
-            <div className="rounded-lg border border-yellow-500/40 bg-yellow-900/10 p-3 text-xs text-yellow-200 space-y-1">
+            <div className="rounded-lg border border-amber-500/40 bg-amber-900/10 p-3 text-xs text-amber-200 space-y-1">
               {result.warnings.map((w, i) => <p key={i}>⚠️ {w}</p>)}
             </div>
           )}
 
-          <div className="rounded-lg border border-pink-500/30 bg-pink-900/10 p-3 space-y-3">
-            <p className="text-sm font-semibold text-pink-200">Piezas a pintar (alto brillo)</p>
+          <div className="rounded-lg border border-purple-500/30 bg-purple-900/10 p-3 space-y-3">
+            <p className="text-sm font-semibold text-purple-200">Piezas a pintar (alto brillo)</p>
             {/* Atajos: el control fino es tocar el módulo en el dibujo (Pintar / Quitar pintura) */}
             <div className="flex flex-wrap gap-2 text-xs">
               {(["upper", "lower"] as PlanRow[]).map(r => {
@@ -616,7 +616,7 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle }: Prop
                 const all = ps.state === "all";
                 return (
                   <button key={r} type="button"
-                    className={`h-8 px-3 rounded border ${all ? "bg-red-900/30 border-red-400/50 text-red-100 hover:bg-red-900/50" : "bg-pink-600/70 border-pink-300/60 text-white hover:bg-pink-600"}`}
+                    className={`h-8 px-3 rounded border ${all ? "bg-red-900/30 border-red-400/50 text-red-100 hover:bg-red-900/50" : "bg-purple-600/70 border-purple-300/60 text-white hover:bg-purple-600"}`}
                     onClick={() => edit(p => {
                       p.paintRows = { ...(p.paintRows || {}), [r]: !all };
                       const keys = new Set(CATALOG.filter(cc => cc.row === r).map(cc => cc.key));
@@ -631,7 +631,7 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle }: Prop
                 const allOn = specials.every(s => plan.paintKeys?.[s.key] !== false);
                 return (
                   <button type="button"
-                    className={`h-8 px-3 rounded border ${allOn ? "bg-red-900/30 border-red-400/50 text-red-100 hover:bg-red-900/50" : "bg-pink-600/70 border-pink-300/60 text-white hover:bg-pink-600"}`}
+                    className={`h-8 px-3 rounded border ${allOn ? "bg-red-900/30 border-red-400/50 text-red-100 hover:bg-red-900/50" : "bg-purple-600/70 border-purple-300/60 text-white hover:bg-purple-600"}`}
                     onClick={() => edit(p => { p.paintKeys = { ...(p.paintKeys || {}), ...Object.fromEntries(specials.map(s => [s.key, !allOn])) }; })}>
                     🎨 {allOn ? "Quitar pintura a los" : "Pintar los"} de piso a techo
                   </button>
@@ -653,9 +653,9 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle }: Prop
                   <p className="text-xs font-semibold text-white/60">Módulos que se pintan</p>
                   <div className="flex flex-wrap gap-1.5">
                     {Array.from(groups.values()).map(g => (
-                      <span key={`${g.key}${g.w}`} className="flex items-center gap-1.5 rounded border border-pink-500/40 bg-pink-900/30 px-2 py-1 text-xs text-pink-100">
+                      <span key={`${g.key}${g.w}`} className="flex items-center gap-1.5 rounded border border-purple-500/40 bg-purple-900/30 px-2 py-1 text-xs text-purple-100">
                         <ModuleIcon k={g.key} size={16} />
-                        {g.n > 1 ? `${g.n} × ` : ""}{g.label} <span className="text-pink-100/50">{m2(g.w)} m</span>
+                        {g.n > 1 ? `${g.n} × ` : ""}{g.label} <span className="text-purple-100/50">{m2(g.w)} m</span>
                       </span>
                     ))}
                   </div>
@@ -666,7 +666,7 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle }: Prop
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {pieceRows.filter(([, n]) => n > 0).map(([label, n]) => (
                 <div key={label} className="rounded bg-black/25 px-2 py-1.5 text-center">
-                  <div className="text-lg font-bold text-pink-200 font-mono">{n}</div>
+                  <div className="text-lg font-bold text-purple-200 font-mono">{n}</div>
                   <div className="text-[11px] text-white/50 leading-tight">{label}</div>
                 </div>
               ))}
@@ -686,9 +686,9 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle }: Prop
                   {shown.length > 0 && <p className="text-xs font-semibold text-white/50 uppercase tracking-wide">Extras por diseño</p>}
                   {shown.map(([label, k]) => stepper(label, k))}
                   <button type="button" onClick={() => setShowExtras(v => !v)}
-                    className="w-full text-left rounded-lg border border-dashed border-pink-400/60 bg-pink-900/20 hover:bg-pink-900/35 px-3 py-2 transition-colors">
-                    <span className="block text-sm font-bold tracking-wide text-pink-100">{showExtras ? "− Ocultar piezas extra" : "+ Agregar pieza extra"}</span>
-                    <span className="block text-[11px] text-pink-200/60">Laterales de mueble, puerta de módulo alto o piezas de diseño especial</span>
+                    className="w-full text-left rounded-lg border border-dashed border-purple-400/60 bg-purple-900/20 hover:bg-purple-900/35 px-3 py-2 transition-colors">
+                    <span className="block text-sm font-bold tracking-wide text-purple-100">{showExtras ? "− Ocultar piezas extra" : "+ Agregar pieza extra"}</span>
+                    <span className="block text-[11px] text-purple-200/60">Laterales de mueble, puerta de módulo alto o piezas de diseño especial</span>
                   </button>
                 </div>
               );

@@ -23,6 +23,7 @@ import {
 import { CheckCircle2, Calendar, DollarSign, TrendingUp, Loader2, Download, FileText } from "lucide-react";
 import { toast } from "sonner";
 
+import { formatCurrency } from "@/lib/format";
 function formatDate(date: any) {
   if (!date) return "-";
   return new Date(date).toLocaleDateString("es-CO", {
@@ -30,14 +31,6 @@ function formatDate(date: any) {
     month: "short",
     day: "numeric",
   });
-}
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("es-CO", {
-    style: "currency",
-    currency: "COP",
-    minimumFractionDigits: 0,
-  }).format(value);
 }
 
 // Descarga el PDF o Word de un cierre (mismo archivo que en "Cierre Contable")
@@ -84,7 +77,7 @@ export function ConfirmedClosuresTab() {
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-teal-400" />
+            <Calendar className="h-5 w-5 text-primary" />
             Filtrar Cierres Confirmados
           </CardTitle>
           <CardDescription>Busca cierres por período de fechas</CardDescription>
@@ -153,7 +146,7 @@ export function ConfirmedClosuresTab() {
         <CardContent>
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-6 w-6 animate-spin text-teal-400" />
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
               <span className="ml-2 text-muted-foreground">Cargando cierres...</span>
             </div>
           ) : sortedClosures.length === 0 ? (
@@ -216,7 +209,7 @@ export function ConfirmedClosuresTab() {
                         </div>
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge className="bg-teal-500/15 text-teal-300">
+                        <Badge className="bg-primary/15 text-teal-300">
                           {closure.projectCount || 0}
                         </Badge>
                       </TableCell>
@@ -235,7 +228,7 @@ export function ConfirmedClosuresTab() {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="border-teal-500 text-teal-400 hover:bg-teal-500/10 w-24"
+                            className="border-primary text-primary hover:bg-primary/10 w-24"
                             onClick={() => downloadClosure(utils.accountingClosures.downloadPDF.fetch, closure.id, "PDF")}
                           >
                             <Download className="h-4 w-4 mr-1" />

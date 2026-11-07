@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useState } from "react";
 
+import { formatCurrency } from "@/lib/format";
 interface Payment {
   id: number;
   projectId: number;
@@ -61,15 +62,6 @@ const movementTypeDarkColors: Record<string, { bg: string; text: string }> = {
   discount: { bg: "", text: "" },
   surcharge: { bg: "", text: "" },
 };
-
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat("es-CO", {
-    style: "currency",
-    currency: "COP",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-}
 
 function formatDate(date: Date): string {
   return new Date(date).toLocaleDateString("es-CO", {
@@ -166,7 +158,7 @@ export function PaymentsTable({
   return (
     <>
       <Card>
-        <CardHeader className="py-3 bg-emerald-500/10 flex flex-row items-center justify-between">
+        <CardHeader className="py-3 bg-green-500/10 flex flex-row items-center justify-between">
           <CardTitle className="text-sm">Historial de Movimientos</CardTitle>
           {projectId != null && (
             <Button
@@ -174,7 +166,7 @@ export function PaymentsTable({
               size="sm"
               onClick={handleDownloadStatement}
               disabled={downloadingStatement}
-              className="h-7 px-2 text-xs border-teal-500/40 text-teal-400 hover:bg-teal-500/10"
+              className="h-7 px-2 text-xs border-primary/40 text-primary hover:bg-primary/10"
             >
               <FileText className="h-3.5 w-3.5 mr-1" />
               {downloadingStatement ? "Generando..." : "Estado de Cuenta"}
@@ -233,7 +225,7 @@ export function PaymentsTable({
                       >
                         {downloadingId === payment.id
                           ? <span className="text-xs text-white/40">...</span>
-                          : <FileDown className="h-4 w-4 text-teal-400" />
+                          : <FileDown className="h-4 w-4 text-primary" />
                         }
                       </Button>
                     </td>

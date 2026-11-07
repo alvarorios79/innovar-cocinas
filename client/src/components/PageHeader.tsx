@@ -13,84 +13,40 @@ interface PageHeaderProps {
 }
 
 /**
- * Componente reutilizable para headers de páginas.
- * Diseño premium con barra de acento turquesa INNOVAR.
+ * Encabezado ÚNICO de las pantallas del CRM: barra de marca + ícono + título + subtítulo + acciones.
+ * El título nunca se aplasta: si no caben, los botones bajan a una segunda línea.
  */
-export function PageHeader({
-  title,
-  subtitle,
-  showBack = false,
-  actions,
-  className = "",
-  icon,
-}: PageHeaderProps) {
-  const handleBack = () => {
-    window.history.back();
-  };
-
+export function PageHeader({ title, subtitle, showBack = false, actions, className = "", icon }: PageHeaderProps) {
   return (
-    <div className={`mb-7 ${className}`}>
-      {/* Botón atrás */}
+    <div className={`mb-6 ${className}`}>
       {showBack && (
         <Button
           variant="ghost"
           size="sm"
-          onClick={handleBack}
-          className="mb-4 -ml-1 gap-1.5 text-muted-foreground hover:text-foreground"
+          onClick={() => window.history.back()}
+          className="mb-3 -ml-2 gap-1.5 text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
           Atrás
         </Button>
       )}
 
-      {/* Título + acciones */}
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-        {/* Barra de acento + texto */}
-        <div className="flex items-start gap-3 min-w-0">
-          {/* Barra vertical turquesa */}
-          <div
-            style={{
-              width: 4,
-              minHeight: subtitle ? 44 : 34,
-              borderRadius: 2,
-              background: "linear-gradient(180deg, #1DB5A8 0%, #0D9B8F 100%)",
-              flexShrink: 0,
-              marginTop: 2,
-            }}
-          />
-          {/* Icono opcional */}
+      <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
+        {/* Título: ocupa todo el ancho que necesite (mínimo 16rem) */}
+        <div className="flex items-start gap-3 min-w-0 flex-1 basis-64">
+          <div className="w-1 self-stretch min-h-9 rounded-full shrink-0" style={{ background: "var(--brand-gradient)" }} />
           {icon && (
-            <div
-              className="flex items-center justify-center rounded-lg shrink-0"
-              style={{
-                width: 38,
-                height: 38,
-                background: "linear-gradient(135deg, rgba(29,181,168,0.12) 0%, rgba(13,155,143,0.18) 100%)",
-                border: "1px solid rgba(29,181,168,0.2)",
-                color: "#0D9B8F",
-              }}
-            >
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg shrink-0 bg-primary/12 border border-primary/25 text-primary">
               {icon}
             </div>
           )}
-          {/* Texto */}
           <div className="min-w-0">
-            <h1
-              className="font-bold tracking-tight text-foreground leading-tight"
-              style={{ fontSize: "1.5rem" }}
-            >
-              {title}
-            </h1>
-            {subtitle && (
-              <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{subtitle}</p>
-            )}
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground leading-tight break-words">{title}</h1>
+            {subtitle && <p className="text-sm text-muted-foreground mt-1 leading-snug">{subtitle}</p>}
           </div>
         </div>
 
-        {/* Acciones */}
-        {actions && (
-          <div className="flex gap-2 flex-wrap shrink-0">{actions}</div>
-        )}
+        {actions && <div className="flex flex-wrap items-center gap-2 sm:justify-end">{actions}</div>}
       </div>
     </div>
   );

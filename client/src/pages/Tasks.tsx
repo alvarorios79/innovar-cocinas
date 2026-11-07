@@ -38,9 +38,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageHeader } from "@/components/PageHeader";
 
+import { confirmAction } from "@/lib/confirm";
 const PRIORITY_CONFIG = {
   alta: { label: "Alta", color: "bg-red-500", icon: AlertTriangle },
-  media: { label: "Media", color: "bg-yellow-500", icon: Clock },
+  media: { label: "Media", color: "bg-amber-500", icon: Clock },
   baja: { label: "Baja", color: "bg-green-500", icon: CheckCircle2 },
 };
 
@@ -222,7 +223,7 @@ export default function Tasks() {
     }
   };
 
-  const handleBulkDelete = (tasks: any[]) => {
+  const handleBulkDelete = async (tasks: any[]) => {
     const count = selectedTasks.length;
     if (count === 0) return;
 
@@ -243,7 +244,7 @@ export default function Tasks() {
       confirmMessage += `\n\n(${skippedCount} ${skippedCount === 1 ? 'tarea no puede ser eliminada' : 'tareas no pueden ser eliminadas'} por falta de permisos)`;
     }
 
-    if (confirm(confirmMessage)) {
+    if ((await confirmAction(confirmMessage))) {
       // Eliminar cada tarea individualmente
       deletableTasks.forEach(id => {
         deleteTask.mutate({ id });
@@ -690,7 +691,7 @@ export default function Tasks() {
             </span>
           </SelectItem>
           <SelectItem value="proximas">
-            <span className="flex items-center gap-2 text-yellow-400">
+            <span className="flex items-center gap-2 text-amber-400">
               Próximas (3 días)
             </span>
           </SelectItem>
@@ -975,7 +976,7 @@ export default function Tasks() {
             assignableUsers.length > 0 ? (
               <Button
                 onClick={() => setShowCreateDialog(true)}
-                style={{ background: "linear-gradient(135deg, #1DB5A8, #0D9B8F)" }}
+                style={{ background: "var(--brand-gradient)" }}
                 className="text-white font-medium shadow-sm hover:opacity-90"
               >
                 <Plus className="h-4 w-4 mr-1.5" /> Nueva Tarea
@@ -1012,47 +1013,28 @@ export default function Tasks() {
                   label="Pendientes"
                   value={myPendingCount}
                   icon={<Clock className="h-4 w-4" />}
-                  accent="#F59E0B"
+                  accent="var(--warning)"
                   onClick={() => setStatusFilter("pendiente")}
                 />
                 <KpiCard
                   label="En Progreso"
                   value={myInProgressCount}
                   icon={<Play className="h-4 w-4" />}
-                  accent="#3B82F6"
+                  accent="var(--info)"
                   onClick={() => setStatusFilter("en_progreso")}
                 />
                 <KpiCard
                   label="Completadas"
                   value={myCompletedCount}
                   icon={<CheckCircle2 className="h-4 w-4" />}
-                  accent="#22C55E"
+                  accent="var(--success)"
                   onClick={() => setStatusFilter("completada")}
                 />
               </KpiGrid>
 
-              {/* Botón atrás */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => window.history.back()}
-                className="w-fit gap-2 mb-4"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Atrás
-              </Button>
-
-              {/* Header con filtros */}
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                  <h1 className="text-2xl font-bold flex items-center gap-2">
-                    <ListTodo className="h-6 w-6" />
-                    Mis Tareas
-                  </h1>
-                  <p className="text-muted-foreground">
-                    Tareas asignadas a ti
-                  </p>
-                </div>
+              {/* Filtros (el título de la pantalla ya está arriba) */}
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-base font-semibold text-foreground">Tareas asignadas a ti</h2>
                 {renderFilters(false)}
               </div>
 
@@ -1069,7 +1051,7 @@ export default function Tasks() {
                   value={allPendingCount}
                   helper="Total del equipo"
                   icon={<Clock className="h-4 w-4" />}
-                  accent="#F59E0B"
+                  accent="var(--warning)"
                   onClick={() => setStatusFilter("pendiente")}
                 />
                 <KpiCard
@@ -1077,7 +1059,7 @@ export default function Tasks() {
                   value={allInProgressCount}
                   helper="Total del equipo"
                   icon={<Play className="h-4 w-4" />}
-                  accent="#3B82F6"
+                  accent="var(--info)"
                   onClick={() => setStatusFilter("en_progreso")}
                 />
                 <KpiCard
@@ -1085,7 +1067,7 @@ export default function Tasks() {
                   value={allCompletedCount}
                   helper="Total del equipo"
                   icon={<CheckCircle2 className="h-4 w-4" />}
-                  accent="#22C55E"
+                  accent="var(--success)"
                   onClick={() => setStatusFilter("completada")}
                 />
               </KpiGrid>
@@ -1136,16 +1118,8 @@ export default function Tasks() {
               )}
 
               {/* Header con filtros */}
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                  <h1 className="text-2xl font-bold flex items-center gap-2">
-                    <Users className="h-6 w-6" />
-                    Todas las Tareas
-                  </h1>
-                  <p className="text-muted-foreground">
-                    Vista de supervisión del equipo
-                  </p>
-                </div>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-base font-semibold text-foreground">Todas las tareas del equipo</h2>
                 {renderFilters(true)}
               </div>
 
@@ -1156,50 +1130,16 @@ export default function Tasks() {
         ) : (
           /* Vista normal para usuarios sin permisos de supervisión */
           <>
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-2 md:gap-4 mb-4 md:mb-6">
-              <Card className="cursor-pointer hover:shadow-md" onClick={() => setStatusFilter("pendiente")}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Pendientes</CardTitle>
-                  <Clock className="h-4 w-4 text-gray-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{myPendingCount}</div>
-                </CardContent>
-              </Card>
-
-              <Card className="cursor-pointer hover:shadow-md" onClick={() => setStatusFilter("en_progreso")}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">En Progreso</CardTitle>
-                  <Play className="h-4 w-4 text-blue-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{myInProgressCount}</div>
-                </CardContent>
-              </Card>
-
-              <Card className="cursor-pointer hover:shadow-md" onClick={() => setStatusFilter("completada")}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Completadas</CardTitle>
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{myCompletedCount}</div>
-                </CardContent>
-              </Card>
-            </div>
+            {/* Números (mismo estilo que la vista de supervisión) */}
+            <KpiGrid cols={3}>
+              <KpiCard label="Pendientes" value={myPendingCount} icon={<Clock className="h-4 w-4" />} accent="var(--warning)" onClick={() => setStatusFilter("pendiente")} />
+              <KpiCard label="En Progreso" value={myInProgressCount} icon={<Play className="h-4 w-4" />} accent="var(--info)" onClick={() => setStatusFilter("en_progreso")} />
+              <KpiCard label="Completadas" value={myCompletedCount} icon={<CheckCircle2 className="h-4 w-4" />} accent="var(--success)" onClick={() => setStatusFilter("completada")} />
+            </KpiGrid>
 
             {/* Header con filtros y botón crear */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-              <div>
-                <h1 className="text-2xl font-bold flex items-center gap-2">
-                  <ListTodo className="h-6 w-6" />
-                  Mis Tareas
-                </h1>
-                <p className="text-muted-foreground">
-                  Gestiona tus tareas asignadas
-                </p>
-              </div>
+            <div className="flex flex-wrap items-center justify-between gap-3 my-4">
+              <h2 className="text-base font-semibold text-foreground">Tus tareas asignadas</h2>
               {renderFilters(false)}
             </div>
 

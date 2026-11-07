@@ -16,19 +16,21 @@ import {
   ChevronRight, Download, Trash2, RefreshCw, CalendarCheck, Receipt,
 } from "lucide-react";
 
+import { getProjectStatusLabel, PROJECT_STATUS } from "@/lib/projectStatus";
+import { confirmAction } from "@/lib/confirm";
 const CURRENT_YEAR = new Date().getFullYear();
 
 const OBL_LABELS: Record<string, { label: string; color: string; bg: string }> = {
   seguridad_social: { label: "Seguridad Social", color: "text-blue-300",    bg: "bg-blue-500/15" },
-  retencion:        { label: "Retención",         color: "text-yellow-300",  bg: "bg-yellow-500/15" },
+  retencion:        { label: "Retención",         color: "text-amber-300",  bg: "bg-amber-500/15" },
   ica:              { label: "ICA",               color: "text-purple-300",  bg: "bg-purple-500/15" },
-  iva:              { label: "IVA",               color: "text-teal-300",    bg: "bg-teal-500/15" },
+  iva:              { label: "IVA",               color: "text-teal-300",    bg: "bg-primary/15" },
 };
 
 const STATUS_CFG = {
   pendiente: { icon: Clock,          label: "Pendiente",  badge: "bg-red-500/15 text-red-300 border-red-500/30" },
   pagado:    { icon: CheckCircle2,   label: "Pagado",     badge: "bg-green-500/15 text-green-300 border-green-500/30" },
-  declarado: { icon: CalendarCheck,  label: "Declarado",  badge: "bg-teal-500/15 text-teal-300 border-teal-500/30" },
+  declarado: { icon: CalendarCheck,  label: "Declarado",  badge: "bg-primary/15 text-teal-300 border-primary/30" },
 };
 
 const DOC_TYPES = [
@@ -53,15 +55,6 @@ const MONTHS = [
   "Enero","Febrero","Marzo","Abril","Mayo","Junio",
   "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"
 ];
-
-const PROJECT_STATUSES: Record<string, string> = {
-  pendiente: "Pendiente",
-  en_diseno: "En Diseño",
-  en_produccion: "En Producción",
-  instalacion: "Instalación",
-  entregado: "Entregado",
-  cancelado: "Cancelado",
-};
 
 // ── Derrotero ────────────────────────────────────────────────────────────────
 function Derrotero() {
@@ -229,7 +222,7 @@ function Derrotero() {
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setDialog(null)}>Cancelar</Button>
-            <Button onClick={handleMark} disabled={markMut.isPending} className="bg-teal-600 hover:bg-teal-500">
+            <Button onClick={handleMark} disabled={markMut.isPending} className="bg-teal-600 hover:bg-primary">
               Guardar
             </Button>
           </DialogFooter>
@@ -323,7 +316,7 @@ function Documentos() {
             </SelectContent>
           </Select>
         </div>
-        <Button onClick={() => setUploadDialog(true)} className="bg-teal-600 hover:bg-teal-500 gap-2">
+        <Button onClick={() => setUploadDialog(true)} className="bg-teal-600 hover:bg-primary gap-2">
           <Upload className="h-4 w-4" />
           Subir documento
         </Button>
@@ -363,7 +356,7 @@ function Documentos() {
                   <Button
                     variant="ghost" size="icon"
                     className="h-8 w-8 text-white/30 hover:text-red-400"
-                    onClick={() => { if (confirm("¿Eliminar este documento?")) delMut.mutate({ id: doc.id }); }}
+                    onClick={async () => { if ((await confirmAction("¿Eliminar este documento?"))) delMut.mutate({ id: doc.id }); }}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -426,7 +419,7 @@ function Documentos() {
             <div>
               <Label>Archivo PDF</Label>
               <div
-                className="mt-1 border border-dashed border-white/20 rounded-md p-4 text-center cursor-pointer hover:border-teal-500/50 transition-colors"
+                className="mt-1 border border-dashed border-white/20 rounded-md p-4 text-center cursor-pointer hover:border-primary/50 transition-colors"
                 onClick={() => fileRef.current?.click()}
               >
                 {uploadForm.file ? (
@@ -452,7 +445,7 @@ function Documentos() {
             <Button
               onClick={handleUpload}
               disabled={uploading || addMut.isPending || !uploadForm.file}
-              className="bg-teal-600 hover:bg-teal-500"
+              className="bg-teal-600 hover:bg-primary"
             >
               {uploading || addMut.isPending ? "Subiendo..." : "Subir"}
             </Button>
@@ -479,8 +472,8 @@ function ProyectosDIAN() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="todos">Todos los estados</SelectItem>
-            {Object.entries(PROJECT_STATUSES).map(([v, l]) => (
-              <SelectItem key={v} value={v}>{l}</SelectItem>
+            {Object.entries(PROJECT_STATUS).map(([v, info]) => (
+              <SelectItem key={v} value={v}>{info.label}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -521,7 +514,7 @@ function ProyectosDIAN() {
                   </td>
                   <td className="px-4 py-3">
                     <span className="text-[10px] px-2 py-0.5 rounded bg-white/10 text-white/60">
-                      {PROJECT_STATUSES[row.projectStatus] ?? row.projectStatus ?? "—"}
+                      {getProjectStatusLabel(row.projectStatus) ?? row.projectStatus ?? "—"}
                     </span>
                   </td>
                 </tr>
@@ -563,15 +556,15 @@ export default function Contador() {
 
       <Tabs defaultValue="derrotero" className="space-y-5">
         <TabsList className="bg-white/[0.06] border border-white/10 p-1 gap-1">
-          <TabsTrigger value="derrotero" className="data-[state=active]:bg-teal-600/80 data-[state=active]:text-white text-white/60 gap-2">
+          <TabsTrigger value="derrotero" className="gap-2">
             <CalendarCheck className="h-4 w-4" />
             Derrotero
           </TabsTrigger>
-          <TabsTrigger value="documentos" className="data-[state=active]:bg-teal-600/80 data-[state=active]:text-white text-white/60 gap-2">
+          <TabsTrigger value="documentos" className="gap-2">
             <Receipt className="h-4 w-4" />
             Documentos
           </TabsTrigger>
-          <TabsTrigger value="dian" className="data-[state=active]:bg-teal-600/80 data-[state=active]:text-white text-white/60 gap-2">
+          <TabsTrigger value="dian" className="gap-2">
             <Building2 className="h-4 w-4" />
             Proyectos DIAN
           </TabsTrigger>

@@ -54,41 +54,9 @@ import { ProjectInlineDetail } from "@/components/ProjectInlineDetail";
 import { PageHeader } from "@/components/PageHeader";
 import { ReportExportButtons } from "@/components/ReportExportButtons";
 import { buildProjectsListReport } from "@shared/businessReports";
+import { PROJECT_STATUS as PROJECT_STATUSES, getProjectStatusLabel as getStatusLabel } from "@/lib/projectStatus";
+import { confirmAction } from "@/lib/confirm";
 // Usar tRPC mutations en lugar de fetch directo
-
-// Estados del proyecto según Ruta INNOVAR (14 estados simplificados)
-const PROJECT_STATUSES: Record<string, { label: string; color: string; icon: any }> = {
-  contacto: { label: "Contacto", color: "bg-slate-400", icon: Clock },
-  cotizacion_enviada: { label: "Cotización Enviada", color: "bg-gray-500", icon: Clock },
-  cotizacion_aprobada: { label: "Cotización Aprobada", color: "bg-blue-400", icon: CheckCircle2 },
-  adelanto_recibido: { label: "Adelanto Recibido", color: "bg-blue-500", icon: CheckCircle2 },
-  en_diseno: { label: "En Diseño", color: "bg-purple-500", icon: Paintbrush },
-  pendiente_modelado: { label: "Pendiente Modelado 3D", color: "bg-violet-500", icon: AlertCircle },
-  pendiente_render: { label: "Pendiente Renders", color: "bg-amber-500", icon: AlertCircle },
-  aprobacion_final: { label: "Diseño Aprobado", color: "bg-green-400", icon: CheckCircle2 },
-  despiece: { label: "Despiece", color: "bg-indigo-500", icon: FileText },
-  corte: { label: "En Corte", color: "bg-orange-500", icon: Hammer },
-  enchape: { label: "En Enchape", color: "bg-orange-600", icon: Paintbrush },
-  ensamble: { label: "En Ensamble", color: "bg-orange-700", icon: Package },
-  listo_instalacion: { label: "Listo para Instalación", color: "bg-teal-500", icon: Truck },
-  trabajando_instalacion: { label: "Instalando", color: "bg-cyan-600", icon: Truck },
-  entregado: { label: "Entregado", color: "bg-green-700", icon: CheckCircle2 },
-};
-
-// Función para obtener la etiqueta dinámica del estado
-const getStatusLabel = (status: string, modeladoRevisionNumber?: number | null, renderRevisionNumber?: number | null): string => {
-  if (status === "pendiente_modelado" && modeladoRevisionNumber && modeladoRevisionNumber > 0) {
-    return `Pendiente Aprobación Modelado ${modeladoRevisionNumber}`;
-  }
-  if (status === "pendiente_render" && renderRevisionNumber && renderRevisionNumber > 0) {
-    return `Pendiente Aprobación Render ${renderRevisionNumber}`;
-  }
-  // El cliente aprobó los renders: mostrar con qué versión quedó aprobado el diseño
-  if (status === "aprobacion_final" && renderRevisionNumber && renderRevisionNumber > 0) {
-    return `Diseño Aprobado V${renderRevisionNumber}`;
-  }
-  return PROJECT_STATUSES[status]?.label || status;
-};
 
 const WORK_TYPES = {
   cocina: "Cocina Integral",
@@ -466,9 +434,9 @@ export default function Projects() {
   });
 
   const handleRevert = async (projectId: number, currentStatus: string) => {
-    const confirmed = window.confirm(
+    const confirmed = (await confirmAction(
       `Retroceder proyecto desde "${currentStatus}" al estado anterior?`
-    );
+    ));
 
     if (!confirmed) return;
 
@@ -659,7 +627,7 @@ export default function Projects() {
                 )}
                 <Button
                   onClick={() => setShowCreateDialog(true)}
-                  style={{ background: "linear-gradient(135deg, #1DB5A8, #0D9B8F)" }}
+                  style={{ background: "var(--brand-gradient)" }}
                   className="text-white font-medium shadow-sm hover:opacity-90"
                 >
                   <Plus className="h-4 w-4 mr-1.5" />
@@ -678,7 +646,7 @@ export default function Projects() {
             onClick={() => setArchiveTab('active')}
             className={`text-sm font-medium transition-colors ${
               archiveTab === 'active'
-                ? 'bg-[#162828] shadow-sm text-foreground'
+                ? 'bg-card shadow-sm text-foreground'
                 : 'text-muted-foreground hover:text-foreground hover:bg-accent'
             }`}
           >
@@ -696,7 +664,7 @@ export default function Projects() {
             onClick={() => setArchiveTab('archived')}
             className={`text-sm font-medium transition-colors ${
               archiveTab === 'archived'
-                ? 'bg-[#162828] shadow-sm text-foreground'
+                ? 'bg-card shadow-sm text-foreground'
                 : 'text-muted-foreground hover:text-foreground hover:bg-accent'
             }`}
           >
@@ -715,7 +683,7 @@ export default function Projects() {
             onClick={() => setArchiveTab('closed')}
             className={`text-sm font-medium transition-colors ${
               archiveTab === 'closed'
-                ? 'bg-[#162828] shadow-sm text-foreground'
+                ? 'bg-card shadow-sm text-foreground'
                 : 'text-muted-foreground hover:text-foreground hover:bg-accent'
             }`}
           >
@@ -850,7 +818,7 @@ export default function Projects() {
 
               return (
                 <div className="mt-6 rounded-xl"
-                  style={{ background: "#162828", border: "1px solid rgba(255,255,255,0.06)", borderTop: "3px solid #10b981" }}>
+                  style={{ background: "var(--card)", border: "1px solid rgba(255,255,255,0.06)", borderTop: "3px solid #10b981" }}>
                   <div className="px-5 pt-4 pb-1">
                     <h3 className="text-sm font-semibold" style={{ color: "rgba(255,255,255,0.85)" }}>
                       Distribución de Rentabilidad
@@ -1036,7 +1004,7 @@ export default function Projects() {
                            (project as any).rendersApprovedAt && 
                            ((Date.now() - new Date((project as any).rendersApprovedAt).getTime()) / (1000 * 60 * 60)) <= 48 && (
                             <Badge 
-                              className="bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs animate-pulse"
+                              className="bg-gradient-to-r from-green-500 to-green-500 text-white text-xs animate-pulse"
                             >
                               <Sparkles className="h-3 w-3 mr-1" />
                               Nuevo
@@ -1077,7 +1045,7 @@ export default function Projects() {
                                 if (rent > 20) {
                                   colorClass = "text-green-400 font-semibold";
                                 } else if (rent >= 10) {
-                                  colorClass = "text-yellow-400 font-semibold";
+                                  colorClass = "text-amber-400 font-semibold";
                                 } else {
                                   colorClass = "text-red-400 font-semibold";
                                 }
@@ -1289,12 +1257,12 @@ export default function Projects() {
             {/* Acciones según estado y rol */}
             {projectDetail && projectDetail.status === "pendiente_render" && 
               (user?.role === "admin" || user?.role === "super_admin") && (
-              <div className="bg-yellow-500/10 border border-yellow-200 rounded-lg p-4 mb-4">
-                <h4 className="font-medium text-yellow-300 mb-2 flex items-center gap-2">
+              <div className="bg-amber-500/10 border border-amber-200 rounded-lg p-4 mb-4">
+                <h4 className="font-medium text-amber-300 mb-2 flex items-center gap-2">
                   <AlertCircle className="h-4 w-4" />
                   Pendiente de Aprobación del Cliente
                 </h4>
-                <p className="text-sm text-yellow-300 mb-4">
+                <p className="text-sm text-amber-300 mb-4">
                   Puedes aprobar el diseño en nombre del cliente si este no usa la aplicación.
                 </p>
                 <div className="flex gap-2">
@@ -1326,12 +1294,12 @@ export default function Projects() {
             {projectDetail && (
               <Tabs defaultValue="info" className="mt-4">
                 <TabsList className="flex flex-wrap sm:grid sm:grid-cols-5 w-full gap-1 h-auto p-1">
-                  <TabsTrigger value="info" className="text-xs sm:text-sm px-2 sm:px-3 data-[state=active]:bg-blue-500 data-[state=active]:text-white">Información</TabsTrigger>
-                  <TabsTrigger value="materials" className="text-xs sm:text-sm px-2 sm:px-3 data-[state=active]:bg-purple-500 data-[state=active]:text-white">Materiales</TabsTrigger>
-                  <TabsTrigger value="photos" className="text-xs sm:text-sm px-2 sm:px-3 data-[state=active]:bg-green-500 data-[state=active]:text-white">Fotos</TabsTrigger>
-                  <TabsTrigger value="details" className="text-xs sm:text-sm px-2 sm:px-3 data-[state=active]:bg-orange-500 data-[state=active]:text-white">Detalles</TabsTrigger>
+                  <TabsTrigger value="info" className="text-xs sm:text-sm px-2 sm:px-3">Información</TabsTrigger>
+                  <TabsTrigger value="materials" className="text-xs sm:text-sm px-2 sm:px-3">Materiales</TabsTrigger>
+                  <TabsTrigger value="photos" className="text-xs sm:text-sm px-2 sm:px-3">Fotos</TabsTrigger>
+                  <TabsTrigger value="details" className="text-xs sm:text-sm px-2 sm:px-3">Detalles</TabsTrigger>
                   {user?.role !== "jefe_taller" && user?.role !== "operario" && (
-                    <TabsTrigger value="history" className="text-xs sm:text-sm px-2 sm:px-3 data-[state=active]:bg-gray-600 data-[state=active]:text-white">Historial</TabsTrigger>
+                    <TabsTrigger value="history" className="text-xs sm:text-sm px-2 sm:px-3">Historial</TabsTrigger>
                   )}
                 </TabsList>
 
@@ -1450,7 +1418,7 @@ export default function Projects() {
                           new Date(projectDetail.estimatedInstallDate) < new Date() 
                             ? "text-red-400" 
                             : new Date(projectDetail.estimatedInstallDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-                              ? "text-yellow-400"
+                              ? "text-amber-400"
                               : "text-green-400"
                         }`}>
                           <strong>🟩 Fecha oficial:</strong> {new Date(projectDetail.estimatedInstallDate).toLocaleDateString("es-CO")}
@@ -1463,7 +1431,7 @@ export default function Projects() {
                           new Date(projectDetail.estimatedInstallDate) < new Date() 
                             ? "text-red-400" 
                             : new Date(projectDetail.estimatedInstallDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-                              ? "text-yellow-400"
+                              ? "text-amber-400"
                               : "text-green-400"
                         }`}>
                           <strong>Entrega estimada:</strong> {new Date(projectDetail.estimatedInstallDate).toLocaleDateString("es-CO")}
@@ -1855,7 +1823,7 @@ export default function Projects() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="text-emerald-400 border-emerald-600 hover:bg-emerald-500/10"
+                                className="text-green-400 border-green-600 hover:bg-green-500/10"
                                 onClick={() => {
                                   // Mapear folder a stage para el formulario
                                   const folderToStageMap: Record<string, string> = {
@@ -1948,9 +1916,9 @@ export default function Projects() {
                                       {(["admin", "super_admin", "comercial"].includes(user?.role || "") || 
                                         (["jefe_taller", "operario", "disenador"].includes(user?.role || "") && photo.uploadedBy === user?.id)) && (
                                         <button
-                                          onClick={(e) => {
+                                          onClick={async (e) => {
                                             e.stopPropagation();
-                                            if (confirm("¿Estás seguro de eliminar esta foto?")) {
+                                            if ((await confirmAction("¿Estás seguro de eliminar esta foto?"))) {
                                               deletePhoto.mutate({ id: photo.id });
                                             }
                                           }}

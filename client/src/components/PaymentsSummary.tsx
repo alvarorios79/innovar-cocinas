@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DollarSign, CheckCircle2, AlertCircle } from "lucide-react";
 
+import { formatCurrency } from "@/lib/format";
 interface PaymentsSummaryProps {
   totalAmount: number;
   totalPaid: number;
@@ -8,15 +9,6 @@ interface PaymentsSummaryProps {
   discounts?: number;
   surcharges?: number;
   totalCobrado?: number;
-}
-
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat("es-CO", {
-    style: "currency",
-    currency: "COP",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
 }
 
 function getBalanceColor(balance: number): { bg: string; text: string; icon: any } {

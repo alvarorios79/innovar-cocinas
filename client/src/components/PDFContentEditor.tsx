@@ -253,7 +253,7 @@ export function PDFContentEditor({
           {/* Lista de productos */}
           <div className="space-y-4">
             <h3 className="font-semibold text-lg flex items-center gap-2">
-              <Package className="h-5 w-5 text-emerald-400" />
+              <Package className="h-5 w-5 text-green-400" />
               Productos de la Cotización
             </h3>
             
@@ -262,12 +262,12 @@ export function PDFContentEditor({
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base flex justify-between items-center">
                     <span className="flex items-center gap-2">
-                      <span className="w-6 h-6 rounded-full bg-emerald-500/15 text-emerald-300 flex items-center justify-center text-sm font-bold">
+                      <span className="w-6 h-6 rounded-full bg-green-500/15 text-green-300 flex items-center justify-center text-sm font-bold">
                         {index + 1}
                       </span>
                       {getItemTypeName(item.itemType)}
                     </span>
-                    <span className="text-emerald-400 font-bold">
+                    <span className="text-green-400 font-bold">
                       {formatPrice(item.totalPrice)}
                     </span>
                   </CardTitle>
@@ -334,7 +334,7 @@ export function PDFContentEditor({
               type="button"
               onClick={handleSave}
               disabled={isSaving}
-              className="bg-emerald-600 hover:bg-emerald-700"
+              className="bg-green-600 hover:bg-green-700"
             >
               {isSaving ? (
                 <>

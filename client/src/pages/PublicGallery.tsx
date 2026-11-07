@@ -146,7 +146,7 @@ export default function PublicGallery() {
     return (
       <div className="min-h-screen bg-white/[0.02] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Cargando galería...</p>
         </div>
       </div>
@@ -160,7 +160,7 @@ export default function PublicGallery() {
           <ImageIcon className="h-16 w-16 mx-auto text-gray-400 mb-4" />
           <h1 className="text-xl font-semibold text-muted-foreground mb-2">Enlace no disponible</h1>
           <p className="text-gray-500 mb-3">Este enlace ha expirado o el proyecto ya no está disponible.</p>
-          <p className="text-gray-500 text-sm">Contacta a <strong>INNOVAR Cocinas de Diseño</strong> al <a href="https://wa.me/573136802025" className="text-teal-500 underline">313 680 2025</a> para más información.</p>
+          <p className="text-gray-500 text-sm">Contacta a <strong>INNOVAR Cocinas de Diseño</strong> al <a href="https://wa.me/573136802025" className="text-primary underline">313 680 2025</a> para más información.</p>
         </Card>
       </div>
     );
@@ -268,7 +268,7 @@ export default function PublicGallery() {
             </div>
             <div>
               <p className="font-bold text-white text-base md:text-lg leading-tight">INNOVAR Cocinas de Diseño</p>
-              <p className="text-xs mt-0.5" style={{ color: "#00BCD4" }}>
+              <p className="text-xs mt-0.5" style={{ color: "var(--primary)" }}>
                 📍 Km 9 vía Cerritos · Pereira, Colombia
               </p>
             </div>
@@ -279,7 +279,7 @@ export default function PublicGallery() {
         <div style={{ background: "linear-gradient(to bottom, rgba(0,188,212,0.13) 0%, #0a0a0a 100%)", borderBottom: "1px solid #1a1a1a" }}>
           <div className="max-w-3xl mx-auto px-4 py-10 text-center">
             {client?.name && (
-              <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "#00BCD4" }}>
+              <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "var(--primary)" }}>
                 Proyecto de {client.name}
               </p>
             )}
@@ -289,9 +289,9 @@ export default function PublicGallery() {
             {statusLabel && (
               <span
                 className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-semibold"
-                style={{ background: "rgba(0,188,212,0.15)", color: "#00BCD4", border: "1px solid rgba(0,188,212,0.3)" }}
+                style={{ background: "rgba(0,188,212,0.15)", color: "var(--primary)", border: "1px solid rgba(0,188,212,0.3)" }}
               >
-                <span className="w-2 h-2 rounded-full animate-pulse flex-shrink-0" style={{ background: "#00BCD4" }} />
+                <span className="w-2 h-2 rounded-full animate-pulse flex-shrink-0" style={{ background: "var(--primary)" }} />
                 {statusLabel}
               </span>
             )}
@@ -412,7 +412,7 @@ export default function PublicGallery() {
             <h3 className="text-white font-bold text-xl mb-6">{isDelivered ? "Pide tu visita o escríbenos" : "Contáctanos por WhatsApp"}</h3>
             {isDelivered && (
               <a href="/visita?origen=referido" className="inline-flex items-center gap-2 px-6 py-3 mb-4 rounded-2xl font-bold transition-opacity hover:opacity-90"
-                style={{ background: "#00BCD4", color: "#0a0a0a" }}>
+                style={{ background: "var(--primary)", color: "#0a0a0a" }}>
                 📅 Pedir una visita
               </a>
             )}
@@ -431,7 +431,7 @@ export default function PublicGallery() {
             </a>
             <p className="text-xs mt-4" style={{ color: "#555" }}>
               También puedes escribirnos a{" "}
-              <a href="mailto:innovarcocinasarte@gmail.com" style={{ color: "#00BCD4" }}>
+              <a href="mailto:innovarcocinasarte@gmail.com" style={{ color: "var(--primary)" }}>
                 innovarcocinasarte@gmail.com
               </a>
             </p>
@@ -453,7 +453,7 @@ export default function PublicGallery() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-xs hover:underline"
-                  style={{ color: "#00BCD4" }}
+                  style={{ color: "var(--primary)" }}
                 >
                   cocinasintegralespereira.co
                 </a>
@@ -618,7 +618,7 @@ export default function PublicGallery() {
   return (
     <div className="min-h-screen bg-white/[0.02] flex flex-col">
       {/* Header con logo prominente y branding INNOVAR */}
-      <header className="bg-gradient-to-r from-teal-600 via-teal-500 to-emerald-500 shadow-lg">
+      <header className="bg-gradient-to-r from-teal-600 via-primary to-green-500 shadow-lg">
         <div className="max-w-6xl mx-auto px-4 py-6">
           <div className="flex flex-col items-center justify-center">
             {/* Logo grande y prominente */}
@@ -641,7 +641,7 @@ export default function PublicGallery() {
       <main className="max-w-6xl mx-auto px-4 py-8">
         {/* Info del proyecto */}
         <div className="text-center mb-8">
-          <Badge className="mb-3 bg-teal-500/15 text-teal-300 hover:bg-teal-500/15">
+          <Badge className="mb-3 bg-primary/15 text-teal-300 hover:bg-primary/15">
             {WORK_TYPES[project.workType] || project.workType}
           </Badge>
           <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
@@ -853,7 +853,7 @@ export default function PublicGallery() {
 
         {/* Sección de aprobación - Solo mostrar si hay fotos, no se ha completado una acción y no está ya aprobado */}
         {filteredPhotos.length > 0 && !actionCompleted && !isAlreadyApproved && notPendingApproval && (
-          <Card className="mt-8 p-6 border-sky-500/30 bg-sky-500/10">
+          <Card className="mt-8 p-6 border-blue-500/30 bg-blue-500/10">
             <div className="text-center">
               <h3 className="text-lg font-semibold text-foreground mb-2">Estamos trabajando en tu diseño</h3>
               <p className="text-muted-foreground">
@@ -901,7 +901,7 @@ export default function PublicGallery() {
 
         {/* Mensaje de contacto */}
         <div className="mt-12 text-center">
-          <Card className="inline-block p-6 bg-gradient-to-r from-teal-950/30 to-emerald-950/30 border-teal-500/25">
+          <Card className="inline-block p-6 bg-gradient-to-r from-teal-950/30 to-green-950/30 border-primary/25">
             <p className="text-muted-foreground mb-2">
               ¿Tienes alguna pregunta?
             </p>
@@ -933,7 +933,7 @@ export default function PublicGallery() {
             
             {/* Información de contacto */}
             <div className="text-center md:text-right">
-              <p className="text-teal-400 font-medium">313 680 2025</p>
+              <p className="text-primary font-medium">313 680 2025</p>
               <p className="text-gray-400 text-sm">K9 vía Cerritos a Pereira</p>
               <p className="text-gray-500 text-xs mt-1">
                 © {new Date().getFullYear()} Todos los derechos reservados

@@ -18,7 +18,7 @@ const DESIGN_STAGES = [
     label: "Por Iniciar",
     icon: Sparkles,
     color: "#6366F1",
-    gradient: "from-indigo-600 to-violet-600",
+    gradient: "from-indigo-600 to-purple-600",
     bg: "rgba(99,102,241,0.08)",
     border: "rgba(99,102,241,0.25)",
     description: "Adelanto recibido, esperando inicio",
@@ -28,7 +28,7 @@ const DESIGN_STAGES = [
     label: "En Diseño",
     icon: Paintbrush,
     color: "#8B5CF6",
-    gradient: "from-purple-600 to-fuchsia-600",
+    gradient: "from-purple-600 to-purple-600",
     bg: "rgba(139,92,246,0.08)",
     border: "rgba(139,92,246,0.25)",
     description: "Modelado 3D en progreso",
@@ -49,7 +49,7 @@ const DESIGN_STAGES = [
     label: "Aprobado",
     icon: CheckCircle,
     color: "#10B981",
-    gradient: "from-emerald-500 to-teal-500",
+    gradient: "from-green-500 to-primary",
     bg: "rgba(16,185,129,0.08)",
     border: "rgba(16,185,129,0.25)",
     description: "Listo para producción",
@@ -190,7 +190,7 @@ export default function Design() {
           style={{
             background: "rgba(29,181,168,0.08)",
             border: "1px solid rgba(29,181,168,0.2)",
-            color: "#1DB5A8",
+            color: "var(--primary)",
           }}
         >
           <Calendar className="h-3.5 w-3.5" />
@@ -211,7 +211,7 @@ export default function Design() {
             className="h-16 w-16 rounded-2xl flex items-center justify-center mb-4"
             style={{ background: "rgba(29,181,168,0.08)", border: "1px solid rgba(29,181,168,0.15)" }}
           >
-            <Paintbrush className="h-8 w-8 text-teal-400 opacity-50" />
+            <Paintbrush className="h-8 w-8 text-primary opacity-50" />
           </div>
           <p className="text-white/40 text-sm">No hay proyectos en fase de diseño</p>
           <p className="text-white/25 text-xs mt-1">Los proyectos aparecen aquí cuando reciben adelanto</p>
@@ -299,7 +299,7 @@ function DesignCard({
     <div
       className="rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center gap-3 cursor-pointer transition-all hover:translate-x-0.5"
       style={{
-        background: "#162828",
+        background: "var(--card)",
         border: `1px solid ${stage.border}`,
         borderLeft: `3px solid ${stage.color}`,
       }}
@@ -364,7 +364,7 @@ function DesignCard({
             onClick={onStart}
             disabled={isPending}
             className="h-7 px-3 text-xs text-white gap-1 border-0"
-            style={{ background: "linear-gradient(135deg, #1DB5A8, #0D9B8F)" }}
+            style={{ background: "var(--brand-gradient)" }}
           >
             <Play className="h-3 w-3" />
             Iniciar
@@ -389,7 +389,7 @@ function DesignCard({
                 size="sm"
                 onClick={onApprove}
                 disabled={isPending}
-                className="h-7 px-3 text-xs text-white gap-1 bg-emerald-600 hover:bg-emerald-500 border-0"
+                className="h-7 px-3 text-xs text-white gap-1 bg-green-600 hover:bg-green-500 border-0"
                 title="Aprobar diseño"
               >
                 <ThumbsUp className="h-3.5 w-3.5" />

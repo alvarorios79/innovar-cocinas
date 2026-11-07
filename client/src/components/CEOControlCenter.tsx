@@ -2,23 +2,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { TrendingUp, TrendingDown, DollarSign, Target, AlertTriangle } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 
-const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-};
-
+import { formatCurrency } from "@/lib/format";
 export function CEOControlCenter() {
   // Query para obtener métricas del Panel CEO
   const { data: ceoMetrics, isLoading, error } = trpc.dashboard.getCEOMetrics.useQuery();
 
   if (isLoading) {
     return (
-      <Card className="border-2 border-slate-800 bg-gradient-to-br from-slate-900 to-slate-800 shadow-2xl">
-        <CardContent className="p-6 text-center text-slate-300">
+      <Card className="border-2 border-gray-800 bg-gradient-to-br from-gray-900 to-gray-800 shadow-2xl">
+        <CardContent className="p-6 text-center text-gray-300">
           Cargando Centro de Control...
         </CardContent>
       </Card>
@@ -38,8 +30,8 @@ export function CEOControlCenter() {
 
   if (!ceoMetrics) {
     return (
-      <Card className="border-2 border-yellow-800 bg-gradient-to-br from-yellow-900 to-yellow-800 shadow-2xl">
-        <CardContent className="p-6 text-center text-yellow-300">
+      <Card className="border-2 border-amber-800 bg-gradient-to-br from-amber-900 to-amber-800 shadow-2xl">
+        <CardContent className="p-6 text-center text-amber-300">
           Sin datos disponibles
         </CardContent>
       </Card>
@@ -55,16 +47,16 @@ export function CEOControlCenter() {
   const rentabilidad = Number(ceoMetrics?.rentabilidad) || 0;
 
   return (
-    <Card className="border-2 border-slate-800 bg-gradient-to-br from-slate-900 to-slate-800 shadow-2xl overflow-hidden">
+    <Card className="border-2 border-gray-800 bg-gradient-to-br from-gray-900 to-gray-800 shadow-2xl overflow-hidden">
       {/* Header */}
-      <CardHeader className="bg-gradient-to-r from-slate-800 to-slate-700 border-b-2 border-slate-600 pb-4">
+      <CardHeader className="bg-gradient-to-r from-gray-800 to-gray-700 border-b-2 border-gray-600 pb-4">
         <div className="flex items-center gap-3">
-          <div className="bg-slate-700 p-2 rounded-lg">
+          <div className="bg-gray-700 p-2 rounded-lg">
             <Target className="h-6 w-6 text-amber-400" />
           </div>
           <div>
             <CardTitle className="text-white text-xl">CEO – Centro de Control</CardTitle>
-            <CardDescription className="text-slate-300">Panel ejecutivo de gestión financiera</CardDescription>
+            <CardDescription className="text-gray-300">Panel ejecutivo de gestión financiera</CardDescription>
           </div>
         </div>
       </CardHeader>
@@ -144,9 +136,9 @@ export function CEOControlCenter() {
         </div>
 
         {/* RESUMEN */}
-        <div className="bg-slate-700/30 rounded-lg p-4 border border-slate-600">
-          <h3 className="text-sm font-bold text-slate-200 mb-3">Resumen Financiero</h3>
-          <div className="space-y-2 text-sm text-slate-300">
+        <div className="bg-gray-700/30 rounded-lg p-4 border border-gray-600">
+          <h3 className="text-sm font-bold text-gray-200 mb-3">Resumen Financiero</h3>
+          <div className="space-y-2 text-sm text-gray-300">
             <div className="flex justify-between">
               <span>Ingresos Recibidos:</span>
               <span className="font-semibold text-green-400">{formatCurrency(ingresosRecibidos)}</span>
@@ -163,7 +155,7 @@ export function CEOControlCenter() {
               <span>Gastos Totales:</span>
               <span className="font-semibold text-red-400">{formatCurrency(gastos)}</span>
             </div>
-            <div className="border-t border-slate-600 pt-2 mt-2 flex justify-between">
+            <div className="border-t border-gray-600 pt-2 mt-2 flex justify-between">
               <span>Margen Neto:</span>
               <span className="font-semibold text-purple-400">{formatCurrency(margen)}</span>
             </div>
@@ -191,8 +183,8 @@ export function CEOControlCenter() {
             </div>
           )}
           {gastos > ingresosRecibidos * 0.5 && ingresosRecibidos > 0 && (
-            <div className="bg-yellow-900/40 border border-yellow-600/50 rounded-lg p-3">
-              <p className="text-xs text-yellow-300 font-semibold">
+            <div className="bg-amber-900/40 border border-amber-600/50 rounded-lg p-3">
+              <p className="text-xs text-amber-300 font-semibold">
                 ⚠️ Alerta: Gastos representan {((gastos / ingresosRecibidos) * 100).toFixed(0)}% de ingresos
               </p>
             </div>

@@ -48,7 +48,7 @@ export default function ForgotPassword() {
       <div className="min-h-screen flex items-center justify-center p-3 md:p-4" style={{ background: "linear-gradient(135deg, #f8fafc 0%, #f0fdfa 100%)" }}>
         <Card className="w-full max-w-md shadow-xl">
           <CardHeader className="text-center space-y-2 p-4 md:p-6">
-            <div className="mx-auto w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mb-2">
+            <div className="mx-auto w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mb-2">
               <Mail className="text-white h-8 w-8 md:h-10 md:w-10" />
             </div>
             <CardTitle className="text-xl md:text-2xl font-bold text-foreground">Revisa tu WhatsApp</CardTitle>
@@ -77,14 +77,14 @@ export default function ForgotPassword() {
                   setSubmitted(false);
                   setWhatsappLink(null);
                 }}
-                className="text-teal-400 hover:text-teal-300"
+                className="text-primary hover:text-teal-300"
               >
                 Intentar de nuevo
               </Button>
             </div>
 
             <div className="text-center pt-4 border-t">
-              <Link href="/login" className="text-sm text-gray-500 hover:text-teal-400 transition-colors inline-flex items-center gap-1">
+              <Link href="/login" className="text-sm text-gray-500 hover:text-primary transition-colors inline-flex items-center gap-1">
                 <ArrowLeft className="h-4 w-4" />
                 Volver a iniciar sesión
               </Link>
@@ -99,7 +99,7 @@ export default function ForgotPassword() {
     <div className="min-h-screen flex items-center justify-center p-3 md:p-4" style={{ background: "linear-gradient(135deg, #f8fafc 0%, #f0fdfa 100%)" }}>
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="text-center space-y-2 p-4 md:p-6">
-          <div className="mx-auto w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-teal-600 to-teal-500 rounded-2xl flex items-center justify-center mb-2">
+          <div className="mx-auto w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-teal-600 to-primary rounded-2xl flex items-center justify-center mb-2">
             <Mail className="text-white h-8 w-8 md:h-10 md:w-10" />
           </div>
           <CardTitle className="text-xl md:text-2xl font-bold text-foreground">¿Olvidaste tu contraseña?</CardTitle>
@@ -124,7 +124,7 @@ export default function ForgotPassword() {
 
             <Button
               type="submit"
-              className="w-full h-11 bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 text-white font-semibold"
+              className="w-full h-11 bg-gradient-to-r from-teal-600 to-primary hover:from-teal-700 hover:to-teal-600 text-white font-semibold"
               disabled={resetMutation.isPending}
             >
               {resetMutation.isPending ? (
@@ -144,13 +144,13 @@ export default function ForgotPassword() {
           <div className="mt-6 text-center space-y-2">
             <p className="text-sm text-muted-foreground">
               ¿Recordaste tu contraseña?{" "}
-              <Link href="/login" className="text-teal-400 hover:text-teal-300 font-medium">
+              <Link href="/login" className="text-primary hover:text-teal-300 font-medium">
                 Inicia sesión
               </Link>
             </p>
             <button
               onClick={() => window.history.back()}
-              className="text-sm text-gray-500 hover:text-teal-400 transition-colors"
+              className="text-sm text-gray-500 hover:text-primary transition-colors"
             >
               ← Volver a la página principal
             </button>

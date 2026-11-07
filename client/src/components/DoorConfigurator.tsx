@@ -157,7 +157,7 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
                 <div>
                   <Label className="text-sm font-medium text-white/85 block mb-2">Tipo</Label>
                   <Select value={door.type} onValueChange={(v) => updateDoor(door.id, { type: v as "batiente" | "corrediza" })}>
-                    <SelectTrigger className="h-10 bg-[#162828]"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="h-10 bg-card"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="batiente">Batiente</SelectItem>
                       <SelectItem value="corrediza">Corrediza</SelectItem>
@@ -172,7 +172,7 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
                     max="110" 
                     value={door.width || ""} 
                     onChange={(e) => updateDoor(door.id, { width: parseFloat(e.target.value) || 0 })} 
-                    className="h-10 bg-[#162828]"
+                    className="h-10 bg-card"
                     placeholder="50-110"
                   />
                 </div>
@@ -185,7 +185,7 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
                     max="2.60" 
                     value={door.height || ""} 
                     onChange={(e) => updateDoor(door.id, { height: parseFloat(e.target.value) || 0 })} 
-                    className="h-10 bg-[#162828]"
+                    className="h-10 bg-card"
                     placeholder="máx 2.60"
                   />
                 </div>
@@ -196,7 +196,7 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
                     min="1" 
                     value={door.quantity || 1} 
                     onChange={(e) => updateDoor(door.id, { quantity: parseInt(e.target.value) || 1 })} 
-                    className="h-10 bg-[#162828]"
+                    className="h-10 bg-card"
                   />
                 </div>
                 <div>
@@ -206,7 +206,7 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
                     value={door.location || ""} 
                     onChange={(e) => updateDoor(door.id, { location: e.target.value })} 
                     placeholder="Ej: Baño"
-                    className="h-10 bg-[#162828]"
+                    className="h-10 bg-card"
                   />
                 </div>
               </div>
@@ -216,7 +216,7 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
                 <div>
                   <Label className="text-sm font-medium text-white/85 block mb-2">Color Accesorios</Label>
                   <Select value={door.hardwareColor} onValueChange={(v) => updateDoor(door.id, { hardwareColor: v as "negro" | "plata" })}>
-                    <SelectTrigger className="h-10 bg-[#162828]"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="h-10 bg-card"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="negro">Negro</SelectItem>
                       <SelectItem value="plata">Plata</SelectItem>
@@ -224,7 +224,7 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
                   </Select>
                 </div>
                 <div className="flex items-end">
-                  <div className="flex items-center gap-3 h-10 px-3 bg-[#162828] rounded-md border w-full">
+                  <div className="flex items-center gap-3 h-10 px-3 bg-card rounded-md border w-full">
                     <Checkbox 
                       id={`lintel-${door.id}`} 
                       checked={door.hasLintel} 
@@ -240,7 +240,7 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
                     value={door.notes || ""} 
                     onChange={(e) => updateDoor(door.id, { notes: e.target.value })} 
                     placeholder="Observaciones..."
-                    className="h-10 bg-[#162828]"
+                    className="h-10 bg-card"
                   />
                 </div>
               </div>
@@ -307,13 +307,13 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
               value={notes} 
               onChange={(e) => setNotes(e.target.value)} 
               placeholder="Observaciones generales para todas las puertas..."
-              className="bg-[#162828]"
+              className="bg-card"
               rows={2}
             />
           </div>
 
           {/* Resumen Total */}
-          <div className="bg-[#162828] p-4 rounded-lg border border-orange-500/30">
+          <div className="bg-card p-4 rounded-lg border border-orange-500/30">
             <h5 className="font-semibold text-foreground mb-3">Resumen del Precio</h5>
             <div className="space-y-1 text-sm">
               <div className="flex justify-between">

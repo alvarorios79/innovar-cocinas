@@ -101,8 +101,8 @@ export function VisualCalendar({
       {
         "bg-transparent border-transparent text-white/20 cursor-not-allowed": !isAllowed,
         "bg-white/[0.07] border-white/[0.08] text-white/80 hover:bg-white/[0.12] hover:border-white/[0.18]": isAllowed && !isSelected,
-        "bg-teal-500/20 border-teal-500/50 text-teal-300 font-semibold": isSelected,
-        "ring-2 ring-teal-500": isToday && !isSelected,
+        "bg-primary/20 border-primary/50 text-teal-300 font-semibold": isSelected,
+        "ring-2 ring-primary": isToday && !isSelected,
       }
     );
   };

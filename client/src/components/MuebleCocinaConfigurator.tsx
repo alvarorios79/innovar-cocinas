@@ -480,7 +480,7 @@ export function MuebleCocinaConfigurator({ config, onChange }: Props) {
 
       {/* Header */}
       <div className="flex items-center gap-2 pb-3" style={{ borderBottom: "1px solid rgba(29,181,168,0.2)" }}>
-        <Hammer className="h-5 w-5" style={{ color: "#1DB5A8" }} />
+        <Hammer className="h-5 w-5" style={{ color: "var(--primary)" }} />
         <h3 className="font-semibold text-white">Piezas de Cocina</h3>
       </div>
 
@@ -498,7 +498,7 @@ export function MuebleCocinaConfigurator({ config, onChange }: Props) {
                   onClick={() => update("tipoPieza", t)}
                   className="py-2 px-3 rounded-lg text-sm font-medium transition-all text-left"
                   style={config.tipoPieza === t
-                    ? { background: "#1DB5A8", color: "#0C1A1A" }
+                    ? { background: "var(--primary)", color: "var(--background)" }
                     : { background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.65)" }}
                 >
                   {LABELS_PIEZA[t]}
@@ -523,7 +523,7 @@ export function MuebleCocinaConfigurator({ config, onChange }: Props) {
             <div className="flex-1">
               <p className="font-semibold text-white">{LABELS_PIEZA[config.tipoPieza]}</p>
               <p className="text-sm text-white/60 mt-0.5">{piezaInfo.desc}</p>
-              <p className="text-lg font-bold mt-2" style={{ color: "#1DB5A8" }}>
+              <p className="text-lg font-bold mt-2" style={{ color: "var(--primary)" }}>
                 {formatPrice(PRECIO_PIEZA_FIJA[config.tipoPieza] ?? 0)}
               </p>
             </div>
@@ -896,7 +896,7 @@ export function MuebleCocinaConfigurator({ config, onChange }: Props) {
                       <button type="button"
                         onClick={() => update("mesonEsImportado", false)}
                         className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${
-                          !config.mesonEsImportado ? 'bg-emerald-600 text-white' : 'bg-white/10 text-white/50 hover:text-white/80'
+                          !config.mesonEsImportado ? 'bg-green-600 text-white' : 'bg-white/10 text-white/50 hover:text-white/80'
                         }`}>Standard</button>
                       <button type="button"
                         onClick={() => {
@@ -1053,54 +1053,54 @@ export function MuebleCocinaConfigurator({ config, onChange }: Props) {
       </div>
 
       {/* ── RESUMEN TOTAL ── */}
-      <div className="rounded-xl p-4 space-y-2" style={{ background: "#1DB5A8" }}>
+      <div className="rounded-xl p-4 space-y-2" style={{ background: "var(--primary)" }}>
         <div className="flex items-center gap-2 mb-1">
-          <Calculator className="h-4 w-4 text-[#0C1A1A]" />
-          <span className="font-semibold text-[#0C1A1A] text-sm">Resumen</span>
+          <Calculator className="h-4 w-4 text-background" />
+          <span className="font-semibold text-background text-sm">Resumen</span>
         </div>
         {config.subtotalMadera > 0 && (
-          <div className="flex justify-between text-sm text-[#0C1A1A]/80">
+          <div className="flex justify-between text-sm text-background/80">
             <span>{esIsla ? "Madera isla" : esFrenteCocina ? "Puertas y tapas" : LABELS_PIEZA[config.tipoPieza]}{!esFrenteCocina && ` (${config.madreraML} ml)`}:</span>
             <span>{formatPrice(config.subtotalMadera)}</span>
           </div>
         )}
         {config.subtotalLed > 0 && (
-          <div className="flex justify-between text-sm text-[#0C1A1A]/80">
+          <div className="flex justify-between text-sm text-background/80">
             <span>LED ({config.ledML} ml):</span>
             <span>{formatPrice(config.subtotalLed)}</span>
           </div>
         )}
         {config.subtotalMeson > 0 && (
-          <div className="flex justify-between text-sm text-[#0C1A1A]/80">
+          <div className="flex justify-between text-sm text-background/80">
             <span>Mesón {config.mesonMaterial} ({config.mesonML} ml):</span>
             <span>{formatPrice(config.subtotalMeson)}</span>
           </div>
         )}
         {config.subtotalLavaplatos > 0 && (
-          <div className="flex justify-between text-sm text-[#0C1A1A]/80">
+          <div className="flex justify-between text-sm text-background/80">
             <span>Lavaplatos + pegado:</span>
             <span>{formatPrice(config.subtotalLavaplatos)}</span>
           </div>
         )}
         {config.subtotalPedestal > 0 && (
-          <div className="flex justify-between text-sm text-[#0C1A1A]/80">
+          <div className="flex justify-between text-sm text-background/80">
             <span>Pedestal:</span>
             <span>{formatPrice(config.subtotalPedestal)}</span>
           </div>
         )}
         {config.subtotalHerraje > 0 && (
-          <div className="flex justify-between text-sm text-[#0C1A1A]/80">
+          <div className="flex justify-between text-sm text-background/80">
             <span>Herraje barra:</span>
             <span>{formatPrice(config.subtotalHerraje)}</span>
           </div>
         )}
         {config.subtotalPintado > 0 && (
-          <div className="flex justify-between text-sm text-[#0C1A1A]/80">
+          <div className="flex justify-between text-sm text-background/80">
             <span>Pintado alto brillo:</span>
             <span>{formatPrice(config.subtotalPintado)}</span>
           </div>
         )}
-        <div className="flex justify-between pt-2 font-bold text-[#0C1A1A] text-base"
+        <div className="flex justify-between pt-2 font-bold text-background text-base"
           style={{ borderTop: "1px solid rgba(12,26,26,0.25)" }}>
           <span>TOTAL:</span>
           <span>{formatPrice(config.total)}</span>

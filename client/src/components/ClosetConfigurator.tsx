@@ -154,7 +154,7 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
           <div className="bg-blue-500/10 p-4 rounded-lg border border-blue-500/25">
             <h5 className="font-semibold text-blue-300 mb-3">Tipo de Closet</h5>
             <Select value={type} onValueChange={(value) => setType(value as ClosetConfig["type"])}>
-              <SelectTrigger className="h-10 bg-[#162828]">
+              <SelectTrigger className="h-10 bg-card">
                 <SelectValue placeholder="Selecciona el tipo" />
               </SelectTrigger>
               <SelectContent>
@@ -188,7 +188,7 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
                   value={width}
                   onChange={(e) => setWidth(e.target.value)}
                   placeholder="Ej: 2.50"
-                  className="h-10 bg-[#162828]"
+                  className="h-10 bg-card"
                 />
               </div>
               <div>
@@ -200,7 +200,7 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
                   value={height}
                   onChange={(e) => setHeight(e.target.value)}
                   placeholder="Ej: 2.40"
-                  className="h-10 bg-[#162828]"
+                  className="h-10 bg-card"
                 />
               </div>
             </div>
@@ -219,7 +219,7 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
               <h5 className="font-semibold text-white/85">Tipo de Puertas</h5>
             </div>
             <Select value={doorType} onValueChange={(value) => setDoorType(value as ClosetConfig["doorType"])}>
-              <SelectTrigger className="h-10 bg-[#162828]">
+              <SelectTrigger className="h-10 bg-card">
                 <SelectValue placeholder="Selecciona el tipo" />
               </SelectTrigger>
               <SelectContent>
@@ -243,7 +243,7 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
                 { state: accDobleColgadero, setState: setAccDobleColgadero, label: "Doble colgadero" },
                 { state: accEspejo,         setState: setAccEspejo,         label: "Espejo en puertas" },
               ]).map(({ state, setState, label }) => (
-                <div key={label} className="flex items-center gap-2 p-2 bg-[#162828] rounded border border-blue-100 hover:border-blue-300 transition-colors">
+                <div key={label} className="flex items-center gap-2 p-2 bg-card rounded border border-blue-100 hover:border-blue-300 transition-colors">
                   <Checkbox
                     id={`acc-${label}`}
                     checked={state}
@@ -307,7 +307,7 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Sin zapatero, con espejo en puertas, acabado especial, etc."
-              className="bg-[#162828]"
+              className="bg-card"
               rows={2}
             />
           </div>

@@ -156,35 +156,35 @@ export default function ProfitabilityDashboard() {
           value={formatPrice(currentMonthMetrics.ingresos)}
           helper={`${currentMonthMetrics.totalProyectos} proyectos`}
           icon={<DollarSign className="h-4 w-4" />}
-          accent="#22C55E"
+          accent="var(--success)"
         />
         <KpiCard
           label="Gastos del Mes"
           value={formatPrice(currentMonthMetrics.gastos)}
           helper={`${Math.round((currentMonthMetrics.gastos / currentMonthMetrics.ingresos) * 100 || 0)}% de ingresos`}
           icon={<Zap className="h-4 w-4" />}
-          accent="#EF4444"
+          accent="var(--destructive)"
         />
         <KpiCard
           label="Margen del Mes"
           value={formatPrice(currentMonthMetrics.margen)}
           helper={`${Math.round((currentMonthMetrics.margen / currentMonthMetrics.ingresos) * 100 || 0)}% margen`}
           icon={<TrendingUp className="h-4 w-4" />}
-          accent="#3B82F6"
+          accent="var(--info)"
         />
         <KpiCard
           label="Rentabilidad Prom."
           value={`${currentMonthMetrics.rentabilidadPromedio.toFixed(1)}%`}
           helper="Promedio de proyectos"
           icon={<Target className="h-4 w-4" />}
-          accent="#F59E0B"
+          accent="var(--warning)"
         />
         <KpiCard
           label="Proyectos del Mes"
           value={currentMonthMetrics.totalProyectos}
           helper="Proyectos creados"
           icon={<Calendar className="h-4 w-4" />}
-          accent="#A78BFA"
+          accent="var(--design)"
         />
         <KpiCard
           label="Ingreso Promedio"
@@ -203,7 +203,7 @@ export default function ProfitabilityDashboard() {
       </KpiGrid>
 
       {/* Gráfico de Ingresos vs Gastos */}
-      <Card className="border-0 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 bg-[#162828] mb-8">
+      <Card className="border-0 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 bg-card mb-8">
         <CardHeader>
           <CardTitle className="text-2xl font-semibold tracking-tight">Ingresos vs Gastos - Últimos 6 Meses</CardTitle>
           <CardDescription>
@@ -274,7 +274,7 @@ export default function ProfitabilityDashboard() {
         </Card>
 
       {/* Tabla de Rentabilidad por Mes */}
-      <Card className="border-0 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 bg-[#162828]">
+      <Card className="border-0 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 bg-card">
         <CardHeader>
           <CardTitle className="text-2xl font-semibold tracking-tight">Resumen Mensual</CardTitle>
           <CardDescription>

@@ -43,35 +43,9 @@ import { PhotoUploader } from "@/components/PhotoUploader";
 import { LazyImage } from "@/components/LazyImage";
 import { toast } from "sonner";
 
-const PROJECT_STATUSES: Record<string, { label: string; color: string; icon: any }> = {
-  contacto: { label: "Contacto", color: "bg-slate-400", icon: Clock },
-  cotizacion_enviada: { label: "Cotización Enviada", color: "bg-gray-500", icon: Clock },
-  cotizacion_aprobada: { label: "Cotización Aprobada", color: "bg-blue-400", icon: CheckCircle2 },
-  adelanto_recibido: { label: "Cliente Confirmado - Iniciar Diseño", color: "bg-blue-500", icon: CheckCircle2 },
-  en_diseno: { label: "En Diseño", color: "bg-purple-500", icon: AlertCircle },
-  pendiente_modelado: { label: "Pendiente Modelado 3D", color: "bg-violet-500", icon: AlertCircle },
-  pendiente_render: { label: "Pendiente Renders", color: "bg-amber-500", icon: AlertCircle },
-  aprobacion_final: { label: "Diseño Aprobado", color: "bg-green-400", icon: CheckCircle2 },
-  despiece: { label: "Despiece", color: "bg-indigo-500", icon: AlertCircle },
-  corte: { label: "En Corte", color: "bg-orange-500", icon: AlertCircle },
-  enchape: { label: "En Enchape", color: "bg-orange-600", icon: AlertCircle },
-  ensamble: { label: "En Ensamble", color: "bg-orange-700", icon: AlertCircle },
-  listo_instalacion: { label: "Listo para Instalación", color: "bg-teal-500", icon: AlertCircle },
-  trabajando_instalacion: { label: "Instalando", color: "bg-cyan-600", icon: AlertCircle },
-  entregado: { label: "Entregado", color: "bg-green-700", icon: CheckCircle2 },
-};
-
-// Función para obtener la etiqueta dinámica del estado
-const getStatusLabel = (status: string, modeladoRevisionNumber?: number | null, renderRevisionNumber?: number | null): string => {
-  if (status === "pendiente_modelado" && modeladoRevisionNumber && modeladoRevisionNumber > 0) {
-    return `Pendiente Aprobación Modelado ${modeladoRevisionNumber}`;
-  }
-  if (status === "pendiente_render" && renderRevisionNumber && renderRevisionNumber > 0) {
-    return `Pendiente Aprobación Render ${renderRevisionNumber}`;
-  }
-  return PROJECT_STATUSES[status]?.label || status;
-};
-
+import { formatCurrency } from "@/lib/format";
+import { PROJECT_STATUS as PROJECT_STATUSES, getProjectStatusLabel as getStatusLabel } from "@/lib/projectStatus";
+import { confirmAction } from "@/lib/confirm";
 // Estados que ya pagaron el adelanto del 60%
 const PAID_ADVANCE_STATUSES = [
   "adelanto_recibido",
@@ -386,15 +360,11 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
   // Helper function to get margin color
   const getMarginColor = (rentabilidad: number) => {
     if (rentabilidad >= 20) return { bg: "bg-green-500/15", text: "text-green-400", border: "border-green-300" };
-    if (rentabilidad >= 10) return { bg: "bg-yellow-500/15", text: "text-yellow-400", border: "border-yellow-300" };
+    if (rentabilidad >= 10) return { bg: "bg-amber-500/15", text: "text-amber-400", border: "border-amber-300" };
     return { bg: "bg-red-500/15/50", text: "text-red-300", border: "border-red-300" };
   };
 
   // Helper function to format currency
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value);
-  };
-
   if (isLoading || isLoadingFinancial || !projectDetail) {
     return (
       <div className="p-4 bg-muted/30 rounded-lg mt-2">
@@ -802,7 +772,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
             </Button>
             <Button
               size="sm"
-              className="bg-emerald-700 hover:bg-emerald-800"
+              className="bg-green-700 hover:bg-green-800"
               onClick={() => notifyStageAdvance.mutate({ projectId: projectDetail.id, stageName: "corte" })}
               disabled={notifyStageAdvance.isPending}
               title="Abre WhatsApp con mensaje listo para enviar al cliente"
@@ -837,7 +807,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
             </Button>
             <Button
               size="sm"
-              className="bg-emerald-700 hover:bg-emerald-800"
+              className="bg-green-700 hover:bg-green-800"
               onClick={() => notifyStageAdvance.mutate({ projectId: projectDetail.id, stageName: "enchape" })}
               disabled={notifyStageAdvance.isPending}
               title="Abre WhatsApp con mensaje listo para enviar al cliente"
@@ -852,7 +822,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
       {/* Ensamble -> En Instalación */}
       {projectDetail.status === "ensamble" && 
         (user?.role === "jefe_taller" || user?.role === "operario" || user?.role === "admin" || user?.role === "super_admin") && (
-        <div className="bg-teal-500/10 border border-teal-500/25 rounded-lg p-4 mb-4">
+        <div className="bg-primary/10 border border-primary/25 rounded-lg p-4 mb-4">
           <h4 className="font-medium text-teal-300 mb-2 flex items-center gap-2">
             <AlertCircle className="h-4 w-4" />
             Proyecto en Ensamble
@@ -872,7 +842,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
             </Button>
             <Button
               size="sm"
-              className="bg-emerald-700 hover:bg-emerald-800"
+              className="bg-green-700 hover:bg-green-800"
               onClick={() => notifyStageAdvance.mutate({ projectId: projectDetail.id, stageName: "ensamble" })}
               disabled={notifyStageAdvance.isPending}
               title="Abre WhatsApp con mensaje listo para enviar al cliente"
@@ -887,7 +857,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
       {/* Listo para Instalación -> Trabajando en Instalación */}
       {projectDetail.status === "listo_instalacion" && 
         (user?.role === "jefe_taller" || user?.role === "admin" || user?.role === "super_admin") && (
-        <div className="bg-teal-500/10 border border-teal-500/25 rounded-lg p-4 mb-4">
+        <div className="bg-primary/10 border border-primary/25 rounded-lg p-4 mb-4">
           <h4 className="font-medium text-teal-300 mb-2 flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4" />
             Listo para Instalación
@@ -907,7 +877,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
             </Button>
             <Button
               size="sm"
-              className="bg-emerald-700 hover:bg-emerald-800"
+              className="bg-green-700 hover:bg-green-800"
               onClick={() => notifyStageAdvance.mutate({ projectId: projectDetail.id, stageName: "listo_instalacion" })}
               disabled={notifyStageAdvance.isPending}
               title="Abre WhatsApp con mensaje listo para enviar al cliente"
@@ -922,12 +892,12 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
       {/* Trabajando en Instalación -> Entregado */}
       {projectDetail.status === "trabajando_instalacion" && 
         (user?.role === "jefe_taller" || user?.role === "admin" || user?.role === "super_admin") && (
-        <div className="bg-cyan-500/10 border border-cyan-500/25 rounded-lg p-4 mb-4">
-          <h4 className="font-medium text-cyan-300 mb-2 flex items-center gap-2">
+        <div className="bg-primary/10 border border-primary/25 rounded-lg p-4 mb-4">
+          <h4 className="font-medium text-teal-300 mb-2 flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4" />
             Instalación en Curso
           </h4>
-          <p className="text-sm text-cyan-300 mb-4">
+          <p className="text-sm text-teal-300 mb-4">
             Estamos instalando tu espacio. Cuando se complete, marca el proyecto como entregado.
           </p>
           <div className="flex flex-wrap gap-2">
@@ -942,7 +912,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
             </Button>
             <Button
               size="sm"
-              className="bg-emerald-700 hover:bg-emerald-800"
+              className="bg-green-700 hover:bg-green-800"
               onClick={() => notifyStageAdvance.mutate({ projectId: projectDetail.id, stageName: "trabajando_instalacion" })}
               disabled={notifyStageAdvance.isPending}
               title="Abre WhatsApp con mensaje listo para enviar al cliente"
@@ -958,7 +928,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
       {(user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial") && (
         <div className="mb-4 rounded-xl overflow-hidden shadow-lg border border-white/[0.10]">
           {/* Header del Panel */}
-          <div className="bg-gradient-to-r from-teal-600 to-teal-500 px-4 py-3">
+          <div className="bg-gradient-to-r from-teal-600 to-primary px-4 py-3">
             <h3 className="text-base font-bold text-white flex items-center gap-2">
               <Palette className="h-4 w-4" />
               Centro de Control de Diseño
@@ -966,7 +936,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
             <p className="text-teal-100 text-xs mt-1">Gestiona el envío y aprobación de diseños del cliente</p>
           </div>
           
-          <div className="bg-[#162828] p-4">
+          <div className="bg-card p-4">
             {/* Grid de Tarjetas de Acción */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
 
@@ -1006,9 +976,9 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
               </div>
               
               {/* Tarjeta Renders */}
-              <div className={`relative rounded-lg p-4 transition-all duration-300 ${projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 ? 'bg-emerald-500/15 border-2 border-emerald-500/25 hover:shadow-md' : 'bg-white/[0.03] border-2 border-dashed border-white/[0.15]'}`}>
+              <div className={`relative rounded-lg p-4 transition-all duration-300 ${projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 ? 'bg-green-500/15 border-2 border-green-500/25 hover:shadow-md' : 'bg-white/[0.03] border-2 border-dashed border-white/[0.15]'}`}>
                 <div className="flex items-start gap-3">
-                  <div className={`p-2 rounded-lg ${projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 ? 'bg-emerald-500 text-white' : 'bg-white/[0.10] text-muted-foreground'}`}>
+                  <div className={`p-2 rounded-lg ${projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 ? 'bg-green-500 text-white' : 'bg-white/[0.10] text-muted-foreground'}`}>
                     <ImageIcon className="h-5 w-5" />
                   </div>
                   <div className="flex-1">
@@ -1029,7 +999,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                 {projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 && (
                   <Button
                     size="sm"
-                    className={`w-full mt-3 shadow-sm text-xs ${(projectDetail.renderRevisionNumber || 0) >= 1 ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-emerald-600 hover:bg-emerald-700'} text-white`}
+                    className={`w-full mt-3 shadow-sm text-xs ${(projectDetail.renderRevisionNumber || 0) >= 1 ? 'bg-green-500 hover:bg-green-600' : 'bg-green-600 hover:bg-green-700'} text-white`}
                     onClick={() => sendRendersToClient.mutate({ projectId: projectDetail.id })}
                     disabled={sendRendersToClient.isPending}
                     title={(projectDetail.renderRevisionNumber || 0) >= 1 ? 'Reenviar enlace de aprobación al cliente (incrementará la revisión)' : 'Enviar renders al cliente para aprobación'}
@@ -1191,13 +1161,13 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                       </Button>
                     </div>
                     {/* Renders */}
-                    <div className={`p-3 rounded-lg ${projectDetail.rendersApprovedAt ? 'bg-emerald-500/15' : hasRenders ? 'bg-amber-500/10 border border-amber-500/25' : 'bg-white/[0.06]'}`}>
+                    <div className={`p-3 rounded-lg ${projectDetail.rendersApprovedAt ? 'bg-green-500/15' : hasRenders ? 'bg-amber-500/10 border border-amber-500/25' : 'bg-white/[0.06]'}`}>
                       <div className="flex items-center justify-between mb-1">
-                        <span className={`text-xs font-medium ${projectDetail.rendersApprovedAt ? 'text-emerald-300' : hasRenders ? 'text-amber-300' : 'text-muted-foreground'}`}>Renders</span>
+                        <span className={`text-xs font-medium ${projectDetail.rendersApprovedAt ? 'text-green-300' : hasRenders ? 'text-amber-300' : 'text-muted-foreground'}`}>Renders</span>
                         {projectDetail.rendersApprovedAt && <CheckCircle2 className="h-3 w-3 text-green-500" />}
                         {hasRenders && !projectDetail.rendersApprovedAt && <AlertCircle className="h-3 w-3 text-amber-500" />}
                       </div>
-                      <p className={`text-xs mb-2 ${projectDetail.rendersApprovedAt ? 'text-emerald-400' : hasRenders ? 'text-amber-400 font-medium' : 'text-muted-foreground'}`}>
+                      <p className={`text-xs mb-2 ${projectDetail.rendersApprovedAt ? 'text-green-400' : hasRenders ? 'text-amber-400 font-medium' : 'text-muted-foreground'}`}>
                         {projectDetail.rendersApprovedAt 
                           ? `Aprobado el ${new Date(projectDetail.rendersApprovedAt).toLocaleDateString('es-CO')}`
                           : hasRenders
@@ -1235,7 +1205,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
             <p className="text-purple-100 text-xs mt-1">Modelado 3D y Renders aprobados por el cliente</p>
           </div>
           
-          <div className="bg-[#162828] p-4">
+          <div className="bg-card p-4">
             {/* Grid de Fotos de Modelado y Renders */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Sección Modelado */}
@@ -1373,28 +1343,28 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
         <TabsList className="flex flex-wrap w-full gap-1 h-auto p-1 bg-muted/50">
           <TabsTrigger 
             value="info" 
-            className="flex-1 min-w-[80px] text-xs sm:text-sm px-2 sm:px-3 py-2 bg-blue-500/15 text-blue-300 data-[state=active]:bg-blue-500 data-[state=active]:text-white hover:bg-blue-500/20 transition-colors"
+            className="flex-1 min-w-[80px] text-xs sm:text-sm px-2 sm:px-3 py-2 transition-colors"
           >
             <Info className="h-4 w-4 mr-1 hidden sm:inline" />
             Información
           </TabsTrigger>
           <TabsTrigger 
             value="materials" 
-            className="flex-1 min-w-[80px] text-xs sm:text-sm px-2 sm:px-3 py-2 bg-purple-500/15 text-purple-300 data-[state=active]:bg-purple-500 data-[state=active]:text-white hover:bg-purple-500/20 transition-colors"
+            className="flex-1 min-w-[80px] text-xs sm:text-sm px-2 sm:px-3 py-2 transition-colors"
           >
             <Palette className="h-4 w-4 mr-1 hidden sm:inline" />
             Materiales
           </TabsTrigger>
           <TabsTrigger 
             value="photos" 
-            className="flex-1 min-w-[80px] text-xs sm:text-sm px-2 sm:px-3 py-2 bg-green-500/15 text-green-300 data-[state=active]:bg-green-500 data-[state=active]:text-white hover:bg-green-500/20 transition-colors"
+            className="flex-1 min-w-[80px] text-xs sm:text-sm px-2 sm:px-3 py-2 transition-colors"
           >
             <Camera className="h-4 w-4 mr-1 hidden sm:inline" />
             Fotos
           </TabsTrigger>
           <TabsTrigger 
             value="details" 
-            className="flex-1 min-w-[80px] text-xs sm:text-sm px-2 sm:px-3 py-2 bg-orange-500/15 text-orange-300 data-[state=active]:bg-orange-500 data-[state=active]:text-white hover:bg-orange-500/20 transition-colors"
+            className="flex-1 min-w-[80px] text-xs sm:text-sm px-2 sm:px-3 py-2 transition-colors"
           >
             <ListTodo className="h-4 w-4 mr-1 hidden sm:inline" />
             Detalles
@@ -1402,7 +1372,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
           {user?.role !== "jefe_taller" && user?.role !== "operario" && (
             <TabsTrigger 
               value="history" 
-              className="flex-1 min-w-[80px] text-xs sm:text-sm px-2 sm:px-3 py-2 bg-white/[0.10] text-muted-foreground data-[state=active]:bg-gray-600 data-[state=active]:text-white hover:bg-gray-300 transition-colors"
+              className="flex-1 min-w-[80px] text-xs sm:text-sm px-2 sm:px-3 py-2 text-muted-foreground transition-colors"
             >
               <History className="h-4 w-4 mr-1 hidden sm:inline" />
               Historial
@@ -1509,15 +1479,15 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                           <div className={`flex justify-between p-2 rounded ${
                             remainingAmount <= 0 
                               ? 'bg-green-500/15' 
-                              : 'bg-yellow-500/15'
+                              : 'bg-amber-500/15'
                           }`}>
-                            <span className={remainingAmount <= 0 ? 'text-green-400' : 'text-yellow-300'}>
+                            <span className={remainingAmount <= 0 ? 'text-green-400' : 'text-amber-300'}>
                               {remainingAmount <= 0 ? 'Estado' : 'Saldo Pendiente'}
                             </span>
                             <span className={`font-bold ${
                               remainingAmount <= 0 
                                 ? 'text-green-400' 
-                                : 'text-yellow-300'
+                                : 'text-amber-300'
                             }`}>
                               {remainingAmount <= 0 
                                 ? '✅ Cancelado 100%' 
@@ -1659,7 +1629,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
               <CardContent>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   {/* Total del Proyecto */}
-                  <div className="text-center p-3 bg-[#162828]/50 rounded-lg">
+                  <div className="text-center p-3 bg-card/50 rounded-lg">
                     <p className="text-xs text-muted-foreground mb-1">Total del Proyecto</p>
                     <p className="text-xl font-bold text-foreground">
                       {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format((projectDetail as any).financialInfo.totalAmount)}
@@ -1717,7 +1687,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                    }`}>
                      <p className={`text-xs mb-1 font-semibold ${
                        (projectDetail as any).financialInfo.remainingAmount > 0
-                         ? "text-yellow-400"
+                         ? "text-amber-400"
                          : "text-green-400"
                      }`}>
                        {(projectDetail as any).financialInfo.remainingAmount > 0 
@@ -1766,7 +1736,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                     <h4 className="text-sm font-medium mb-2">Historial de Pagos</h4>
                     <div className="space-y-2">
                       {(projectDetail as any).payments.map((payment: any) => (
-                        <div key={payment.id} className="flex justify-between items-center text-sm p-2 bg-[#162828]/50 rounded">
+                        <div key={payment.id} className="flex justify-between items-center text-sm p-2 bg-card/50 rounded">
                           <div>
                             <span className={`font-medium ${
                               payment.type === 'adelanto' ? 'text-blue-400' :
@@ -1841,7 +1811,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
               
               {/* Alerta de Margen Moderado (10-15%) */}
               {!isAlertClosed("moderate-margin") && financialSummary.rentabilidad >= 10 && financialSummary.rentabilidad < 15 && (
-                <div className="flex items-center justify-between p-4 bg-yellow-500 text-foreground rounded-lg border border-yellow-600 shadow-md">
+                <div className="flex items-center justify-between p-4 bg-amber-500 text-foreground rounded-lg border border-amber-600 shadow-md">
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">⚠</span>
                     <div>
@@ -1853,7 +1823,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                     variant="ghost"
                     size="sm"
                     onClick={() => closeAlert("moderate-margin")}
-                    className="text-foreground hover:bg-yellow-600"
+                    className="text-foreground hover:bg-amber-600"
                   >
                     ✕
                   </Button>
@@ -1897,13 +1867,13 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
               financialSummary.margen < 0
                 ? "border-red-500/30 bg-red-500/10"
                 : financialSummary.rentabilidad < 10
-                ? "border-yellow-500/30 bg-yellow-500/10"
+                ? "border-amber-500/30 bg-amber-500/10"
                 : "border-green-500/30 bg-green-500/10"
             }`}>
               <div className="flex items-center gap-4 flex-wrap">
                 <div>
                   <p className="text-xs text-white/45 mb-0.5">Saldo pendiente</p>
-                  <p className={`text-base font-bold ${financialSummary.saldoPendiente > 0 ? "text-yellow-300" : "text-green-300"}`}>
+                  <p className={`text-base font-bold ${financialSummary.saldoPendiente > 0 ? "text-amber-300" : "text-green-300"}`}>
                     {financialSummary.saldoPendiente > 0 ? formatCurrency(financialSummary.saldoPendiente) : "✓ Pagado"}
                   </p>
                 </div>
@@ -2044,7 +2014,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                       <Button
                         size="sm"
                         variant="outline"
-                        className="text-emerald-400 border-emerald-600 hover:bg-emerald-500/10"
+                        className="text-green-400 border-green-600 hover:bg-green-500/10"
                         onClick={() => {
                           const folderToStageMap: Record<string, string> = {
                             documento_cotizacion: "inicial",
@@ -2168,9 +2138,9 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                               ((user?.role === "jefe_taller" || user?.role === "operario" || user?.role === "disenador") && photo.uploadedBy === user?.id)) && (
                               <button
                                 className="absolute bottom-1 right-1 opacity-100 xl:opacity-0 xl:group-hover:opacity-100 transition-opacity bg-red-500 hover:bg-red-600 text-white rounded-full p-2 shadow-lg z-10"
-                                onClick={(e) => {
+                                onClick={async (e) => {
                                   e.stopPropagation();
-                                  if (confirm("¿Estás seguro de eliminar esta foto?")) {
+                                  if ((await confirmAction("¿Estás seguro de eliminar esta foto?"))) {
                                     deletePhoto.mutate({ id: photo.id });
                                   }
                                 }}

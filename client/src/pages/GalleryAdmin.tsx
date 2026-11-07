@@ -126,7 +126,7 @@ export default function GalleryAdmin() {
       {/* Filtros */}
       <div className="flex flex-col sm:flex-row gap-2 mb-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
             placeholder="Buscar proyecto o cliente…"
             value={search}
@@ -155,7 +155,7 @@ export default function GalleryAdmin() {
           {[1, 2, 3].map(i => <div key={i} className="h-24 rounded-xl bg-white/[0.06] animate-pulse" />)}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-16 text-slate-400">
+        <div className="text-center py-16 text-gray-400">
           <Images className="h-12 w-12 mx-auto mb-3 opacity-30" />
           <p className="text-sm">{search ? "Sin coincidencias" : "No hay proyectos en fase de diseño"}</p>
         </div>
@@ -225,16 +225,16 @@ function ProjectGalleryCard({
                 </Badge>
               )}
             </div>
-            <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
+            <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
               {project.client && (
                 <span className="flex items-center gap-1">
                   <User className="h-3 w-3" />{project.client.name}
                 </span>
               )}
-              <span className="text-slate-400">{STATUS_LABEL[project.status] ?? project.status}</span>
+              <span className="text-gray-400">{STATUS_LABEL[project.status] ?? project.status}</span>
             </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={onOpenProject} className="h-7 px-2 text-slate-400 shrink-0">
+          <Button variant="ghost" size="sm" onClick={onOpenProject} className="h-7 px-2 text-gray-400 shrink-0">
             <ExternalLink className="h-3.5 w-3.5" />
           </Button>
         </div>
@@ -289,17 +289,17 @@ function GalleryRow({
   return (
     <div className={`flex items-center gap-2 rounded-lg px-3 py-2 ${highlight ? "bg-amber-500/10 border border-amber-500/25" : "bg-white/[0.03]"}`}>
       {/* Ícono + label */}
-      <span className="text-slate-400 shrink-0">{icon}</span>
+      <span className="text-gray-400 shrink-0">{icon}</span>
       <span className="text-xs font-medium text-muted-foreground w-24 shrink-0">{label}</span>
 
       {/* Estado */}
       {approved ? (
-        <span className="flex items-center gap-1 text-[11px] text-emerald-400 font-medium shrink-0">
+        <span className="flex items-center gap-1 text-[11px] text-green-400 font-medium shrink-0">
           <CheckCircle2 className="h-3 w-3" />
           {approvedBy ? `Aprobado por ${approvedBy}` : "Aprobado"}
         </span>
       ) : (
-        <span className="flex items-center gap-1 text-[11px] text-slate-400 shrink-0">
+        <span className="flex items-center gap-1 text-[11px] text-gray-400 shrink-0">
           <Clock className="h-3 w-3" />
           Sin aprobar
         </span>
@@ -313,7 +313,7 @@ function GalleryRow({
         <Button
           variant="ghost" size="sm"
           onClick={onOpen}
-          className="h-7 px-2 text-slate-500 hover:text-teal-400"
+          className="h-7 px-2 text-gray-500 hover:text-primary"
           title="Ver galería del cliente"
         >
           <ExternalLink className="h-3.5 w-3.5" />
@@ -321,7 +321,7 @@ function GalleryRow({
         <Button
           variant="ghost" size="sm"
           onClick={onCopy}
-          className="h-7 px-2 text-slate-500 hover:text-teal-400"
+          className="h-7 px-2 text-gray-500 hover:text-primary"
           title="Copiar link"
         >
           <Copy className="h-3.5 w-3.5" />
@@ -330,7 +330,7 @@ function GalleryRow({
           <Button
             variant="ghost" size="sm"
             onClick={() => window.open(waUrl, "_blank")}
-            className="h-7 px-2 text-slate-500 hover:text-green-400"
+            className="h-7 px-2 text-gray-500 hover:text-green-400"
             title="Enviar por WhatsApp"
           >
             <MessageCircle className="h-3.5 w-3.5" />

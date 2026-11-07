@@ -23,6 +23,7 @@ import {
   type LeadSource, type LeadWorkType,
 } from "@shared/leads";
 
+import { confirmAction } from "@/lib/confirm";
 type View = "pendientes" | "agendados" | "descartados" | "todos";
 type Lead = {
   id: number; name: string; whatsappPhone: string; workTypes: string | null; location: string | null; message: string | null;
@@ -61,8 +62,8 @@ function whatsappUrl(l: Lead) {
 
 const STATUS_STYLE: Record<string, string> = {
   nuevo: "bg-amber-500/20 text-amber-300 border-amber-500/40",
-  contactado: "bg-sky-500/15 text-sky-300 border-sky-500/30",
-  cita_agendada: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
+  contactado: "bg-blue-500/15 text-blue-300 border-blue-500/30",
+  cita_agendada: "bg-green-500/15 text-green-300 border-green-500/30",
   descartado: "bg-white/5 text-gray-400 border-white/10",
 };
 
@@ -111,7 +112,7 @@ export default function Interesados() {
         icon={<Inbox className="h-5 w-5" />}
         showBack={false}
         actions={
-          <Button onClick={() => setShowNew(true)} className="gap-1.5 text-white" style={{ background: "linear-gradient(135deg, #1DB5A8, #0D9B8F)" }}>
+          <Button onClick={() => setShowNew(true)} className="gap-1.5 text-white" style={{ background: "var(--brand-gradient)" }}>
             <UserPlus className="h-4 w-4" /> Nuevo interesado
           </Button>
         }
@@ -124,9 +125,9 @@ export default function Interesados() {
             <div className="text-xs uppercase tracking-wide text-amber-300/80 font-semibold">Sin contestar</div>
             <div className="text-3xl font-bold text-amber-300">{counts?.nuevos ?? 0}</div>
           </div>
-          <div className="rounded-xl p-4 border border-sky-500/30 bg-sky-500/10">
-            <div className="text-xs uppercase tracking-wide text-sky-300/80 font-semibold">Seguimientos para hoy</div>
-            <div className="text-3xl font-bold text-sky-300">{counts?.seguimientosHoy ?? 0}</div>
+          <div className="rounded-xl p-4 border border-blue-500/30 bg-blue-500/10">
+            <div className="text-xs uppercase tracking-wide text-blue-300/80 font-semibold">Seguimientos para hoy</div>
+            <div className="text-3xl font-bold text-blue-300">{counts?.seguimientosHoy ?? 0}</div>
           </div>
         </div>
 
@@ -134,7 +135,7 @@ export default function Interesados() {
         <div className="flex gap-2 overflow-x-auto pb-1">
           {VIEWS.map(v => (
             <button key={v.value} onClick={() => setView(v.value)}
-              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap border ${view === v.value ? "bg-teal-500/20 border-teal-400 text-teal-200" : "border-white/10 text-gray-400 hover:text-gray-200"}`}>
+              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap border ${view === v.value ? "bg-primary/20 border-primary text-teal-200" : "border-white/10 text-gray-400 hover:text-gray-200"}`}>
               {v.label}
             </button>
           ))}
@@ -176,7 +177,7 @@ export default function Interesados() {
                         {l.status === "descartado" && <DropdownMenuItem onClick={() => update.mutate({ id: l.id, status: "contactado" })}>Volver a pendientes</DropdownMenuItem>}
                         <DropdownMenuItem onClick={() => { setNoteFor(l); setNoteText(l.notes || ""); }}>Escribir nota</DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-red-400" onClick={() => { if (confirm(`¿Eliminar a ${l.name} de la lista?`)) remove.mutate({ id: l.id }); }}>Eliminar</DropdownMenuItem>
+                        <DropdownMenuItem className="text-red-400" onClick={async () => { if ((await confirmAction(`¿Eliminar a ${l.name} de la lista?`))) remove.mutate({ id: l.id }); }}>Eliminar</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -187,7 +188,7 @@ export default function Interesados() {
                     {l.message && <p className="text-gray-300 italic whitespace-pre-line">“{l.message}”</p>}
                     {l.notes && <p className="text-gray-400 whitespace-pre-line">📝 {l.notes}</p>}
                     {l.followUpDate && l.status !== "cita_agendada" && l.status !== "descartado" && (
-                      <div className={`flex items-center gap-1.5 ${due ? "text-sky-300 font-semibold" : "text-gray-400"}`}>
+                      <div className={`flex items-center gap-1.5 ${due ? "text-blue-300 font-semibold" : "text-gray-400"}`}>
                         <CalendarClock className="h-3.5 w-3.5" /> Volver a escribir: {fmtDate(l.followUpDate)}{due ? " (hoy)" : ""}
                       </div>
                     )}
@@ -209,7 +210,7 @@ export default function Interesados() {
                     </div>
                   )}
                   {l.status === "cita_agendada" && (
-                    <Button variant="link" className="px-0 mt-1 text-emerald-300" onClick={() => setLocation("/appointments-calendar")}>Ver en el calendario de citas →</Button>
+                    <Button variant="link" className="px-0 mt-1 text-green-300" onClick={() => setLocation("/appointments-calendar")}>Ver en el calendario de citas →</Button>
                   )}
                 </div>
               );
@@ -292,7 +293,7 @@ function NewLeadDialog({ open, onClose, onCreated }: { open: boolean; onClose: (
             <div className="flex flex-wrap gap-2">
               {LEAD_WORK_TYPES.map(w => (
                 <button key={w.value} type="button" onClick={() => toggle(w.value)}
-                  className={`px-3 py-1.5 rounded-full text-sm border ${types.includes(w.value) ? "bg-teal-500/20 border-teal-400 text-teal-200" : "border-white/15 text-gray-300"}`}>
+                  className={`px-3 py-1.5 rounded-full text-sm border ${types.includes(w.value) ? "bg-primary/20 border-primary text-teal-200" : "border-white/15 text-gray-300"}`}>
                   {w.label}
                 </button>
               ))}
@@ -303,7 +304,7 @@ function NewLeadDialog({ open, onClose, onCreated }: { open: boolean; onClose: (
             <div className="flex flex-wrap gap-2">
               {LEAD_SOURCES.filter(s => s.value !== "web").map(s => (
                 <button key={s.value} type="button" onClick={() => setF({ ...f, source: s.value })}
-                  className={`px-3 py-1.5 rounded-full text-sm border ${f.source === s.value ? "bg-teal-500/20 border-teal-400 text-teal-200" : "border-white/15 text-gray-300"}`}>
+                  className={`px-3 py-1.5 rounded-full text-sm border ${f.source === s.value ? "bg-primary/20 border-primary text-teal-200" : "border-white/15 text-gray-300"}`}>
                   {s.label}
                 </button>
               ))}
@@ -324,7 +325,7 @@ function NewLeadDialog({ open, onClose, onCreated }: { open: boolean; onClose: (
                 const v = addDays(o.d);
                 return (
                   <button key={o.d} type="button" onClick={() => setF({ ...f, followUp: f.followUp === v ? "" : v })}
-                    className={`px-3 py-1.5 rounded-full text-sm border ${f.followUp === v ? "bg-sky-500/20 border-sky-400 text-sky-200" : "border-white/15 text-gray-300"}`}>
+                    className={`px-3 py-1.5 rounded-full text-sm border ${f.followUp === v ? "bg-blue-500/20 border-blue-400 text-blue-200" : "border-white/15 text-gray-300"}`}>
                     {o.l}
                   </button>
                 );

@@ -7,7 +7,7 @@
  *     value={12}
  *     helper="En fabricación o diseño"
  *     icon={<Briefcase className="h-4 w-4" />}
- *     accent="#1DB5A8"
+ *     accent="var(--primary)"
  *   />
  *
  * Colores de acento estándar INNOVAR:
@@ -43,19 +43,19 @@ export function KpiCard({
   value,
   helper,
   icon,
-  accent = "#1DB5A8",
+  accent = "var(--primary)",
   href,
   onClick,
   className = "",
 }: KpiCardProps) {
   const inner = (
     <div
-      className={`relative bg-[#162828] rounded-xl overflow-hidden transition-all duration-200 ${
+      className={`relative bg-card rounded-xl overflow-hidden transition-all duration-200 ${
         href || onClick ? "cursor-pointer hover:shadow-lg hover:scale-[1.02]" : ""
       } ${className}`}
       style={{
         borderLeft: `3px solid ${accent}`,
-        border: `1px solid rgba(255,255,255,0.06)`,
+        border: `1px solid var(--border)`,
         borderLeftWidth: "3px",
         borderLeftColor: accent,
       }}
@@ -63,13 +63,13 @@ export function KpiCard({
     >
       <div className="p-3 sm:p-4">
         <div className="flex items-start justify-between mb-2">
-          <p className="text-[11px] font-medium text-white/45 leading-tight pr-2">{label}</p>
+          <p className="text-xs font-medium text-muted-foreground leading-tight pr-2">{label}</p>
           <div
             className="flex items-center justify-center rounded-lg shrink-0"
             style={{
               width: 30,
               height: 30,
-              background: `${accent}1A`,
+              background: `color-mix(in srgb, ${accent} 14%, transparent)`,
               color: accent,
             }}
           >
@@ -77,13 +77,13 @@ export function KpiCard({
           </div>
         </div>
         <p
-          className="text-xl font-bold tracking-tight leading-none"
+          className="text-2xl font-bold tracking-tight leading-none tabular-nums"
           style={{ color: accent }}
         >
           {value}
         </p>
         {helper && (
-          <p className="text-[10px] text-white/30 mt-1 leading-tight">{helper}</p>
+          <p className="text-[11px] text-muted-foreground mt-1 leading-tight">{helper}</p>
         )}
       </div>
     </div>

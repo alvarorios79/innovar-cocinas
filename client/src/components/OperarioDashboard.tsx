@@ -40,6 +40,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 
+import { getProjectStatusLabel } from "@/lib/projectStatus";
+// Estados: nombre y color únicos (lib/projectStatus)
+const getStatusLabel = (status: string) => getProjectStatusLabel(status);
+
 // Componente de botón de cerrar sesión
 function LogoutButton() {
   const logout = trpc.auth.logout.useMutation({
@@ -69,7 +73,7 @@ function LogoutButton() {
 
 const PRIORITY_CONFIG = {
   alta: { label: "Urgente", color: "bg-red-500", icon: AlertTriangle, emoji: "🔥" },
-  media: { label: "Media", color: "bg-yellow-500", icon: Clock, emoji: "⚡" },
+  media: { label: "Media", color: "bg-amber-500", icon: Clock, emoji: "⚡" },
   baja: { label: "Baja", color: "bg-green-500", icon: CheckCircle2, emoji: "✅" },
 };
 
@@ -141,19 +145,6 @@ export function OperarioDashboard() {
       return dateB - dateA;
     })
     .slice(0, 10); // Solo las últimas 10
-
-  const getStatusLabel = (status: string) => {
-    const statusLabels: Record<string, string> = {
-      aprobacion_final: "Diseño Aprobado",
-      despiece: "En Despiece",
-      corte: "En Corte",
-      enchape: "En Enchape",
-      ensamble: "En Ensamble",
-      listo_instalacion: "En Instalación",
-      entregado: "Entregado",
-    };
-    return statusLabels[status] || status;
-  };
 
   const handleViewPhoto = (url: string, photos: any[]) => {
     setViewingPhoto(url);
@@ -259,7 +250,7 @@ export function OperarioDashboard() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header Simplificado */}
-      <header className="border-b bg-[#162828]/95 backdrop-blur-md sticky top-0 z-50 shadow-sm">
+      <header className="border-b bg-card/95 backdrop-blur-md sticky top-0 z-50 shadow-sm">
         <div className="container">
           <div className="flex h-14 md:h-16 items-center justify-between">
             <Link href="/" className="flex items-center gap-2">
@@ -273,7 +264,7 @@ export function OperarioDashboard() {
             <div className="flex items-center gap-2 md:gap-4">
               <NotificationBell />
               <div className="hidden md:flex items-center gap-2 text-sm">
-                <Badge variant="outline" className="bg-teal-500/15 text-teal-400 border-teal-500/25">
+                <Badge variant="outline" className="bg-primary/15 text-primary border-primary/25">
                   Operario
                 </Badge>
                 <span className="font-medium text-white/85">{user?.name}</span>
@@ -295,9 +286,9 @@ export function OperarioDashboard() {
                 style={{ height: 80, width: 80, objectFit: "contain" }} />
             </div>
             
-            <div className="bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl p-4 md:p-6 text-white shadow-xl">
+            <div className="bg-gradient-to-r from-blue-600 to-teal-600 rounded-2xl p-4 md:p-6 text-white shadow-xl">
               <div className="flex items-center gap-3">
-                <div className="bg-[#162828]/20 p-3 rounded-xl">
+                <div className="bg-card/20 p-3 rounded-xl">
                   <Package className="h-8 w-8" />
                 </div>
                 <div>
@@ -320,8 +311,8 @@ export function OperarioDashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <Card className="border border-white/[0.08] shadow-md bg-card">
                 <CardContent className="p-4 text-center">
-                  <div className="p-2 rounded-xl bg-teal-500/15 w-fit mx-auto mb-2">
-                    <ClipboardList className="h-5 w-5 text-teal-400" />
+                  <div className="p-2 rounded-xl bg-primary/15 w-fit mx-auto mb-2">
+                    <ClipboardList className="h-5 w-5 text-primary" />
                   </div>
                   <p className="text-2xl font-bold text-foreground">{pendingTasks.length}</p>
                   <p className="text-xs text-muted-foreground">Tareas</p>
@@ -350,19 +341,19 @@ export function OperarioDashboard() {
             {/* Botón Ver Todos los Proyectos - Tarjeta Grande */}
             <div className="mt-4">
               <Link href="/projects">
-                <Card className="border border-[rgba(106,207,199,0.25)] shadow-lg bg-[#162828] cursor-pointer hover:shadow-xl hover:border-[rgba(106,207,199,0.45)] transition-all duration-300 overflow-hidden">
+                <Card className="border border-[rgba(106,207,199,0.25)] shadow-lg bg-card cursor-pointer hover:shadow-xl hover:border-[rgba(106,207,199,0.45)] transition-all duration-300 overflow-hidden">
                   <CardContent className="p-6 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <div className="p-3 bg-teal-500/15 rounded-xl">
-                        <Package className="h-8 w-8 text-teal-400" />
+                      <div className="p-3 bg-primary/15 rounded-xl">
+                        <Package className="h-8 w-8 text-primary" />
                       </div>
                       <div>
                         <h3 className="text-xl font-bold text-foreground">Ver Todos los Proyectos</h3>
                         <p className="text-sm text-muted-foreground">Accede a la lista completa de proyectos</p>
                       </div>
                     </div>
-                    <div className="p-2 bg-teal-500/15 rounded-full">
-                      <ArrowRight className="h-6 w-6 text-teal-400" />
+                    <div className="p-2 bg-primary/15 rounded-full">
+                      <ArrowRight className="h-6 w-6 text-primary" />
                     </div>
                   </CardContent>
                 </Card>
@@ -560,11 +551,11 @@ export function OperarioDashboard() {
                   size="sm"
                   onClick={() => navigatePhoto('prev')}
                   disabled={currentPhotoIndex === 0}
-                  className="bg-[#162828]/80"
+                  className="bg-card/80"
                 >
                   ← Anterior
                 </Button>
-                <span className="bg-[#162828]/80 px-3 py-1 rounded text-sm">
+                <span className="bg-card/80 px-3 py-1 rounded text-sm">
                   {currentPhotoIndex + 1} / {allPhotos.length}
                 </span>
                 <Button
@@ -572,7 +563,7 @@ export function OperarioDashboard() {
                   size="sm"
                   onClick={() => navigatePhoto('next')}
                   disabled={currentPhotoIndex === allPhotos.length - 1}
-                  className="bg-[#162828]/80"
+                  className="bg-card/80"
                 >
                   Siguiente →
                 </Button>
@@ -769,7 +760,7 @@ function ProjectPhotoCard({
       <CardContent className="p-0">
         {/* Header del proyecto */}
         <div
-          className="p-4 bg-[#162828] border-b border-teal-500/25 cursor-pointer"
+          className="p-4 bg-card border-b border-primary/25 cursor-pointer"
           onClick={onToggle}
         >
           <div className="flex items-center justify-between">
@@ -781,10 +772,10 @@ function ProjectPhotoCard({
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className="bg-teal-500/15 text-teal-400 border-teal-500/25 text-xs">
+              <Badge variant="outline" className="bg-primary/15 text-primary border-primary/25 text-xs">
                 {getStatusLabel(project.status)}
               </Badge>
-              {isExpanded ? <ChevronUp className="h-5 w-5 text-teal-400" /> : <ChevronDown className="h-5 w-5 text-teal-400" />}
+              {isExpanded ? <ChevronUp className="h-5 w-5 text-primary" /> : <ChevronDown className="h-5 w-5 text-primary" />}
             </div>
           </div>
         </div>
@@ -794,7 +785,7 @@ function ProjectPhotoCard({
           <div className="p-4 bg-white/[0.03]">
             {/* Info básica del proyecto */}
             {projectDetail?.client && (
-              <div className="mb-4 p-3 bg-[#162828] rounded-lg">
+              <div className="mb-4 p-3 bg-card rounded-lg">
                 <p className="text-sm"><strong>Cliente:</strong> {projectDetail.client.name}</p>
                 {projectDetail.client.address && (
                   <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
@@ -807,7 +798,7 @@ function ProjectPhotoCard({
                     href={`https://www.google.com/maps/dir//${(technicalVisit as any).geoLocation.latitude},${(technicalVisit as any).geoLocation.longitude}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-2 flex items-center gap-2 px-3 py-2 bg-emerald-700/80 hover:bg-emerald-600 text-white text-sm font-semibold rounded-lg transition-colors w-full justify-center"
+                    className="mt-2 flex items-center gap-2 px-3 py-2 bg-green-700/80 hover:bg-green-600 text-white text-sm font-semibold rounded-lg transition-colors w-full justify-center"
                   >
                     📍 Navegar al domicilio
                   </a>
@@ -818,7 +809,7 @@ function ProjectPhotoCard({
             {/* Subir foto: siempre visible (antes solo aparecía junto a etapas que ya tenían fotos) */}
             <button
               onClick={(e) => { e.stopPropagation(); onUploadPhoto(project.id); }}
-              className="mb-4 w-full flex items-center justify-center gap-2 py-3 rounded-lg font-semibold text-white bg-teal-600 hover:bg-teal-500 transition-colors"
+              className="mb-4 w-full flex items-center justify-center gap-2 py-3 rounded-lg font-semibold text-white bg-teal-600 hover:bg-primary transition-colors"
             >
               <Camera className="h-5 w-5" /> Subir foto de mi trabajo
             </button>

@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { useLocation } from "wouter";
 
+import { confirmAction } from "@/lib/confirm";
 // ── Tipos ────────────────────────────────────────────────────────────────────
 
 type WorkType = "cocina" | "closet" | "puertas" | "centro_tv";
@@ -231,7 +232,7 @@ export default function VisitasTecnicas() {
     const activeWorkTypes = ALL_WORK_TYPES.filter(wt => !!(measurements as any)[`_tipo_${wt}`]);
 
     return (
-      <div className="min-h-screen bg-[#0C1A1A] text-white">
+      <div className="min-h-screen bg-background text-white">
         {/* Lightbox */}
         {lightboxUrl && (
           <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
@@ -244,7 +245,7 @@ export default function VisitasTecnicas() {
         )}
 
         {/* Header detalle */}
-        <div className="bg-[#162828] border-b border-[#1DB5A8]/20 px-6 py-4 sticky top-0 z-10">
+        <div className="bg-card border-b border-primary/20 px-6 py-4 sticky top-0 z-10">
           <div className="flex items-center gap-4 max-w-4xl mx-auto">
             <button onClick={() => { if (backTo) navigate(backTo); else setSelectedVisitId(null); }} className="text-gray-400 hover:text-white" title={backTo ? "Volver al proyecto" : "Volver a la lista"}>
               <ArrowLeft className="h-5 w-5" />
@@ -259,7 +260,7 @@ export default function VisitasTecnicas() {
             {isManager && visit?.status === "enviada" && (
               <Button
                 onClick={() => visit && handleCreateQuotation(visit)}
-                className="bg-[#1DB5A8] hover:bg-[#17a396] text-white"
+                className="bg-primary hover:bg-primary text-white"
               >
                 <FileSpreadsheet className="h-4 w-4 mr-2" /> Crear cotización
               </Button>
@@ -268,7 +269,7 @@ export default function VisitasTecnicas() {
               <Button
                 variant="outline"
                 onClick={() => navigate(`/medidor?visitId=${visit?.id}`)}
-                className="border-[#1DB5A8]/40 text-[#1DB5A8] hover:bg-[#1DB5A8]/10"
+                className="border-primary/40 text-primary hover:bg-primary/10"
               >
                 <Plus className="h-4 w-4 mr-2" /> Agregar información
               </Button>
@@ -281,14 +282,14 @@ export default function VisitasTecnicas() {
 
         {loadingDetail ? (
           <div className="flex justify-center py-16">
-            <Loader2 className="h-8 w-8 animate-spin text-[#1DB5A8]" />
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : (
           <div className="max-w-4xl mx-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
 
             {/* Datos del cliente */}
-            <div className="bg-[#162828] rounded-xl p-5 border border-[#1DB5A8]/10">
-              <h2 className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide mb-4 flex items-center gap-2">
+            <div className="bg-card rounded-xl p-5 border border-primary/10">
+              <h2 className="text-sm font-semibold text-primary uppercase tracking-wide mb-4 flex items-center gap-2">
                 <User className="h-4 w-4" /> Datos del cliente
               </h2>
               <div className="space-y-2 text-sm">
@@ -308,8 +309,8 @@ export default function VisitasTecnicas() {
 
                 {(visit as any)?.assignedToUser?.name && (
                   <div className="flex items-center gap-2 text-gray-300">
-                    <UserCheck className="h-4 w-4 text-[#1DB5A8]" />
-                    <span>Medidor: <span className="text-[#1DB5A8] font-medium">{(visit as any).assignedToUser.name}</span></span>
+                    <UserCheck className="h-4 w-4 text-primary" />
+                    <span>Medidor: <span className="text-primary font-medium">{(visit as any).assignedToUser.name}</span></span>
                   </div>
                 )}
                 {(visit as any)?.scheduledDate && (
@@ -331,8 +332,8 @@ export default function VisitasTecnicas() {
 
             {/* GPS */}
             {geo && (
-              <div className="bg-[#162828] rounded-xl p-5 border border-[#1DB5A8]/20 md:col-span-2">
-                <h2 className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide mb-3 flex items-center gap-2">
+              <div className="bg-card rounded-xl p-5 border border-primary/20 md:col-span-2">
+                <h2 className="text-sm font-semibold text-primary uppercase tracking-wide mb-3 flex items-center gap-2">
                   <MapPin className="h-4 w-4" /> Ubicación GPS
                 </h2>
                 <div className="flex items-center gap-3">
@@ -340,7 +341,7 @@ export default function VisitasTecnicas() {
                     href={`https://maps.google.com/?q=${geo.lat},${geo.lng}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="bg-[#1DB5A8] hover:bg-[#17a396] text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+                    className="bg-primary hover:bg-primary text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
                   >
                     Ver en Google Maps
                   </a>
@@ -350,8 +351,8 @@ export default function VisitasTecnicas() {
             )}
 
             {/* Medidas */}
-            <div className="bg-[#162828] rounded-xl p-5 border border-[#1DB5A8]/10">
-              <h2 className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide mb-4 flex items-center gap-2">
+            <div className="bg-card rounded-xl p-5 border border-primary/10">
+              <h2 className="text-sm font-semibold text-primary uppercase tracking-wide mb-4 flex items-center gap-2">
                 <Ruler className="h-4 w-4" /> Medidas registradas
               </h2>
               {activeWorkTypes.length > 0 ? (
@@ -365,7 +366,7 @@ export default function VisitasTecnicas() {
                       const prof  = (measurements as any)._cocina_profundo;
                       return (
                         <div key={wt}>
-                          <p className="text-xs font-bold text-[#1DB5A8] mb-2">{wtLabel}</p>
+                          <p className="text-xs font-bold text-primary mb-2">{wtLabel}</p>
                           <div className="space-y-1 text-sm">
                             {forma && <div className="flex justify-between"><span className="text-gray-400">Forma</span><span className="text-white font-medium">{forma}</span></div>}
                             {ancho && <div className="flex justify-between"><span className="text-gray-400">Ancho</span><span className="text-white font-medium">{ancho} cm</span></div>}
@@ -379,11 +380,11 @@ export default function VisitasTecnicas() {
                     const unidades: Array<Record<string, any>> = (measurements as any)[`_${wt}_unidades`] ?? [{}];
                     return (
                       <div key={wt}>
-                        <p className="text-xs font-bold text-[#1DB5A8] mb-2">{wtLabel}</p>
+                        <p className="text-xs font-bold text-primary mb-2">{wtLabel}</p>
                         <div className="space-y-2">
                           {unidades.map((unit: any, idx: number) => (
-                            <div key={idx} className="bg-[#0C1A1A] rounded-lg px-3 py-2 text-sm space-y-1">
-                              {unidades.length > 1 && <p className="text-[#1DB5A8]/70 text-xs font-semibold">#{idx + 1}{unit.descripcion ? ` — ${unit.descripcion}` : ""}</p>}
+                            <div key={idx} className="bg-background rounded-lg px-3 py-2 text-sm space-y-1">
+                              {unidades.length > 1 && <p className="text-primary/70 text-xs font-semibold">#{idx + 1}{unit.descripcion ? ` — ${unit.descripcion}` : ""}</p>}
                               {unidades.length === 1 && unit.descripcion && <p className="text-gray-400 text-xs">{unit.descripcion}</p>}
                               <div className="flex gap-4 flex-wrap">
                                 {unit.ancho   && <span className="text-gray-300">Ancho: <span className="text-white font-medium">{unit.ancho} cm</span></span>}
@@ -404,8 +405,8 @@ export default function VisitasTecnicas() {
 
             {/* Evaluación técnica */}
             {(technicalEval || criticalObs) && (
-              <div className="bg-[#162828] rounded-xl p-5 border border-[#1DB5A8]/10 md:col-span-2">
-                <h2 className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide mb-4 flex items-center gap-2">
+              <div className="bg-card rounded-xl p-5 border border-primary/10 md:col-span-2">
+                <h2 className="text-sm font-semibold text-primary uppercase tracking-wide mb-4 flex items-center gap-2">
                   <ClipboardList className="h-4 w-4" /> Evaluación técnica
                 </h2>
                 {technicalEval && (
@@ -435,8 +436,8 @@ export default function VisitasTecnicas() {
             {Object.keys(checklist).length > 0 && (() => {
               const view = getChecklistView(checklist as Record<string, unknown>, CHECKLIST_LABELS);
               return (
-                <div className="bg-[#162828] rounded-xl p-5 border border-[#1DB5A8]/10">
-                  <h2 className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide mb-4 flex items-center gap-2">
+                <div className="bg-card rounded-xl p-5 border border-primary/10">
+                  <h2 className="text-sm font-semibold text-primary uppercase tracking-wide mb-4 flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4" /> Checklist del medidor
                   </h2>
                   {view.general.length > 0 && (
@@ -444,7 +445,7 @@ export default function VisitasTecnicas() {
                       {view.general.map(({ key, label, done }) => (
                         <div key={key} className="flex items-center gap-2 text-sm">
                           {done
-                            ? <CheckCircle2 className="h-4 w-4 text-[#1DB5A8] flex-shrink-0" />
+                            ? <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
                             : <Square className="h-4 w-4 text-gray-600 flex-shrink-0" />}
                           <span className={done ? "text-gray-300" : "text-gray-600 line-through"}>{label}</span>
                         </div>
@@ -453,20 +454,20 @@ export default function VisitasTecnicas() {
                   )}
                   {view.electro.length > 0 && (
                     <div className="mt-4">
-                      <p className="text-xs font-semibold text-[#1DB5A8] mb-2">Electrodomésticos que llevará la cocina</p>
+                      <p className="text-xs font-semibold text-primary mb-2">Electrodomésticos que llevará la cocina</p>
                       <div className="flex flex-wrap gap-2">
                         {view.electro.map((l) => (
-                          <span key={l} className="text-xs px-2 py-1 rounded-full bg-[#1DB5A8]/15 text-[#1DB5A8]">{l}</span>
+                          <span key={l} className="text-xs px-2 py-1 rounded-full bg-primary/15 text-primary">{l}</span>
                         ))}
                       </div>
                     </div>
                   )}
                   {view.closet.length > 0 && (
                     <div className="mt-4">
-                      <p className="text-xs font-semibold text-[#1DB5A8] mb-2">Accesorios del closet</p>
+                      <p className="text-xs font-semibold text-primary mb-2">Accesorios del closet</p>
                       <div className="flex flex-wrap gap-2">
                         {view.closet.map((l) => (
-                          <span key={l} className="text-xs px-2 py-1 rounded-full bg-[#1DB5A8]/15 text-[#1DB5A8]">{l}</span>
+                          <span key={l} className="text-xs px-2 py-1 rounded-full bg-primary/15 text-primary">{l}</span>
                         ))}
                       </div>
                     </div>
@@ -483,8 +484,8 @@ export default function VisitasTecnicas() {
 
             {/* Notas */}
             {visit?.notes && (
-              <div className="bg-[#162828] rounded-xl p-5 border border-[#1DB5A8]/10">
-                <h2 className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide mb-3 flex items-center gap-2">
+              <div className="bg-card rounded-xl p-5 border border-primary/10">
+                <h2 className="text-sm font-semibold text-primary uppercase tracking-wide mb-3 flex items-center gap-2">
                   <FileText className="h-4 w-4" /> Notas del técnico
                 </h2>
                 <p className="text-gray-300 text-sm whitespace-pre-wrap leading-relaxed">{visit.notes}</p>
@@ -493,8 +494,8 @@ export default function VisitasTecnicas() {
 
             {/* Firma */}
             {(firmas.length > 0 || visit?.clientSignature) && (
-              <div className="bg-[#162828] rounded-xl p-5 border border-[#1DB5A8]/10">
-                <h2 className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide mb-3 flex items-center gap-2">
+              <div className="bg-card rounded-xl p-5 border border-primary/10">
+                <h2 className="text-sm font-semibold text-primary uppercase tracking-wide mb-3 flex items-center gap-2">
                   <PenLine className="h-4 w-4" /> Firma del cliente
                 </h2>
                 {firmas.map(f => (
@@ -512,8 +513,8 @@ export default function VisitasTecnicas() {
 
             {/* Fotos */}
             {fotos.length > 0 && (
-              <div className="bg-[#162828] rounded-xl p-5 border border-[#1DB5A8]/10 md:col-span-2">
-                <h2 className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide mb-4 flex items-center gap-2">
+              <div className="bg-card rounded-xl p-5 border border-primary/10 md:col-span-2">
+                <h2 className="text-sm font-semibold text-primary uppercase tracking-wide mb-4 flex items-center gap-2">
                   <Camera className="h-4 w-4" /> Fotos del espacio ({fotos.length})
                 </h2>
                 <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
@@ -544,13 +545,13 @@ export default function VisitasTecnicas() {
 
             {/* PDFs */}
             {visiblePdfs.length > 0 && (
-              <div className="bg-[#162828] rounded-xl p-5 border border-[#1DB5A8]/10 md:col-span-2">
-                <h2 className="text-sm font-semibold text-[#1DB5A8] uppercase tracking-wide mb-4 flex items-center gap-2">
+              <div className="bg-card rounded-xl p-5 border border-primary/10 md:col-span-2">
+                <h2 className="text-sm font-semibold text-primary uppercase tracking-wide mb-4 flex items-center gap-2">
                   <FileText className="h-4 w-4" /> Planos GoodNotes ({visiblePdfs.length})
                 </h2>
                 <div className="space-y-2">
                   {visiblePdfs.map(pdf => (
-                    <div key={pdf.id} className="flex items-center gap-3 bg-[#0C1A1A] rounded-lg px-4 py-3">
+                    <div key={pdf.id} className="flex items-center gap-3 bg-background rounded-lg px-4 py-3">
                       <FileText className="h-5 w-5 text-red-400 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-white truncate">{pdf.originalFileName ?? "Plano"}</p>
@@ -559,7 +560,7 @@ export default function VisitasTecnicas() {
                         href={pdf.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-[#1DB5A8] hover:text-[#17a396] flex items-center gap-1 text-sm"
+                        className="text-primary hover:text-primary flex items-center gap-1 text-sm"
                       >
                         <Eye className="h-4 w-4" /> Ver PDF
                       </a>
@@ -574,7 +575,7 @@ export default function VisitasTecnicas() {
               <div className="md:col-span-2">
                 <Button
                   onClick={() => visit && handleCreateQuotation(visit)}
-                  className="w-full bg-[#1DB5A8] hover:bg-[#17a396] text-white h-12 text-base font-semibold"
+                  className="w-full bg-primary hover:bg-primary text-white h-12 text-base font-semibold"
                 >
                   <FileSpreadsheet className="h-5 w-5 mr-2" />
                   Crear cotización para {visit.clientName}
@@ -591,13 +592,13 @@ export default function VisitasTecnicas() {
   // ── Vista lista ──────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-[#0C1A1A] text-white">
+    <div className="min-h-screen bg-background text-white">
       {/* Header */}
-      <div className="bg-[#162828] border-b border-[#1DB5A8]/20 px-6 py-4 sticky top-0 z-10">
+      <div className="bg-card border-b border-primary/20 px-6 py-4 sticky top-0 z-10">
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-xs font-semibold text-[#1DB5A8] uppercase tracking-widest mb-0.5">Portal de Medidor</p>
+              <p className="text-xs font-semibold text-primary uppercase tracking-widest mb-0.5">Portal de Medidor</p>
               <h1 className="text-xl font-bold text-white">Levantamientos</h1>
             </div>
           </div>
@@ -611,8 +612,8 @@ export default function VisitasTecnicas() {
                   onClick={() => setStatusFilter(s)}
                   className={`text-sm px-3 py-1.5 rounded-full border transition-colors ${
                     statusFilter === s
-                      ? "border-[#1DB5A8] bg-[#1DB5A8]/10 text-[#1DB5A8]"
-                      : "border-[#1DB5A8]/20 text-gray-400 hover:border-[#1DB5A8]/40"
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-primary/20 text-gray-400 hover:border-primary/40"
                   }`}
                 >
                   {s === "todas" ? "Todas" : s === "enviada" ? "Listas para cotizar" : s === "cot_hecha" ? "Cot. Hecha" : "Cot. Enviada"}
@@ -626,7 +627,7 @@ export default function VisitasTecnicas() {
       <div className="max-w-5xl mx-auto p-6">
         {isLoading && (
           <div className="flex justify-center py-16">
-            <Loader2 className="h-8 w-8 animate-spin text-[#1DB5A8]" />
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         )}
 
@@ -654,7 +655,7 @@ export default function VisitasTecnicas() {
                     setSelectedVisitId(visit.id);
                   }
                 }}
-                className="w-full bg-[#162828] border border-[#1DB5A8]/10 rounded-xl p-5 text-left hover:border-[#1DB5A8]/40 transition-colors"
+                className="w-full bg-card border border-primary/10 rounded-xl p-5 text-left hover:border-primary/40 transition-colors"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
@@ -682,7 +683,7 @@ export default function VisitasTecnicas() {
                     </div>
                     <div className="flex items-center gap-3 mt-1 flex-wrap">
                       {(visit as any).assignedToUser ? (
-                        <span className="text-xs text-[#1DB5A8] flex items-center gap-1">
+                        <span className="text-xs text-primary flex items-center gap-1">
                           <UserCheck className="h-3.5 w-3.5" /> {(visit as any).assignedToUser.name}
                         </span>
                       ) : (
@@ -702,7 +703,7 @@ export default function VisitasTecnicas() {
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     {visit.status === "enviada" && (
-                      <span className="text-xs bg-[#1DB5A8]/10 text-[#1DB5A8] border border-[#1DB5A8]/30 px-2 py-1 rounded-full">
+                      <span className="text-xs bg-primary/10 text-primary border border-primary/30 px-2 py-1 rounded-full">
                         Lista para cotizar
                       </span>
                     )}
@@ -720,7 +721,7 @@ export default function VisitasTecnicas() {
                             setQuotedToDelete({ id: visit.id, clientName: visit.clientName });
                             return;
                           }
-                          if (!confirm("¿Eliminar este levantamiento? Esta acción no se puede deshacer.")) return;
+                          if (!(await confirmAction("¿Eliminar este levantamiento? Esta acción no se puede deshacer."))) return;
                           try {
                             await deleteVisitMutation.mutateAsync({ id: visit.id });
                           } catch (err: any) {
@@ -744,7 +745,7 @@ export default function VisitasTecnicas() {
 
       {/* ── Pregunta de seguridad: borrar levantamiento con cotización (solo super_admin) ── */}
       <Dialog open={!!quotedToDelete} onOpenChange={open => { if (!open) setQuotedToDelete(null); }}>
-        <DialogContent className="bg-[#162828] border border-red-500/30 text-white max-w-md">
+        <DialogContent className="bg-card border border-red-500/30 text-white max-w-md">
           <DialogHeader>
             <DialogTitle className="text-red-400 flex items-center gap-2">
               <Trash2 className="h-5 w-5" /> Eliminar levantamiento con cotización
@@ -764,7 +765,7 @@ export default function VisitasTecnicas() {
               value={deleteConfirmText}
               onChange={e => setDeleteConfirmText(e.target.value)}
               placeholder="ELIMINAR"
-              className="bg-[#0C1A1A] border-red-500/30 text-white"
+              className="bg-background border-red-500/30 text-white"
             />
           </div>
           <DialogFooter>

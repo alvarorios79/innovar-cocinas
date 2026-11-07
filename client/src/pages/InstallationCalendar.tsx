@@ -195,7 +195,7 @@ export default function InstallationCalendar() {
       <div className="min-h-screen bg-white/[0.03] flex items-center justify-center p-4">
         <Card className="max-w-md">
           <CardContent className="pt-6 text-center">
-            <AlertTriangle className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
+            <AlertTriangle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
             <h2 className="text-xl font-semibold mb-2">Acceso Restringido</h2>
             <p className="text-muted-foreground mb-4">
               Solo administradores y jefes de taller pueden ver el calendario de instalaciones.
@@ -297,15 +297,15 @@ export default function InstallationCalendar() {
                         onClick={() => setSelectedDate(date)}
                         className={`
                           relative min-h-[80px] p-1 rounded-lg border transition-all text-left
-                          ${!isCurrentMonth ? "bg-white/[0.06] text-gray-400" : availability === "none" ? "bg-red-400 text-white" : availability === "half" ? "bg-amber-400 text-amber-300" : "bg-[#162828]"}
-                          ${isToday ? "ring-4 ring-teal-500 ring-offset-2" : ""}
-                          ${isSelected ? "bg-teal-500 text-white border-teal-600" : "border-white/[0.10] hover:border-teal-300"}
+                          ${!isCurrentMonth ? "bg-white/[0.06] text-gray-400" : availability === "none" ? "bg-red-400 text-white" : availability === "half" ? "bg-amber-400 text-amber-300" : "bg-card"}
+                          ${isToday ? "ring-4 ring-primary ring-offset-2" : ""}
+                          ${isSelected ? "bg-primary text-white border-teal-600" : "border-white/[0.10] hover:border-teal-300"}
                           ${isPast && !isToday ? "opacity-60" : ""}
                         `}
                       >
                         <div className={`
                           text-sm font-medium mb-1
-                          ${isToday ? "text-teal-400" : ""}
+                          ${isToday ? "text-primary" : ""}
                           ${date.getDay() === 0 ? "text-red-500" : ""}
                           ${isHoliday(date) ? "text-red-500" : ""}
                         `}>
@@ -366,7 +366,7 @@ export default function InstallationCalendar() {
                 {/* Leyenda */}
                 <div className="flex flex-wrap gap-4 mt-4 pt-4 border-t text-sm">
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-[#162828] border rounded"></div>
+                    <div className="w-4 h-4 bg-card border rounded"></div>
                     <span>Disponible (L-V)</span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -584,7 +584,7 @@ export default function InstallationCalendar() {
                       href={`https://www.google.com/maps/dir//${siteLocation.latitude},${siteLocation.longitude}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-2 flex items-center gap-2 px-3 py-2 bg-emerald-700/80 hover:bg-emerald-600 text-white text-sm font-semibold rounded-lg transition-colors w-full justify-center"
+                      className="mt-2 flex items-center gap-2 px-3 py-2 bg-green-700/80 hover:bg-green-600 text-white text-sm font-semibold rounded-lg transition-colors w-full justify-center"
                     >
                       📍 Cómo llegar
                     </a>

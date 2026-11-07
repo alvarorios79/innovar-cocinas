@@ -151,7 +151,7 @@ export default function Clients() {
           <Button
             onClick={() => { setForm(EMPTY_FORM); setNewOpen(true); }}
             className="text-white gap-2"
-            style={{ background: "linear-gradient(135deg, #1DB5A8, #0D9B8F)" }}
+            style={{ background: "var(--brand-gradient)" }}
           >
             <Plus className="h-4 w-4" />
             Nuevo Cliente
@@ -162,7 +162,7 @@ export default function Clients() {
       {/* ── Stats ── */}
       <div className="grid grid-cols-3 gap-3 mb-6">
         {[
-          { label: "Total", value: total, accent: "#1DB5A8" },
+          { label: "Total", value: total, accent: "var(--primary)" },
           { label: "Con cuenta", value: withAccount, accent: "#0D9B8F" },
           { label: "Este mes", value: newThisMonth, accent: "#0F766E" },
         ].map((s) => (
@@ -175,7 +175,7 @@ export default function Clients() {
 
       {/* ── Búsqueda ── */}
       <div className="relative mb-5">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
         <Input
           placeholder="Buscar por nombre, teléfono o email…"
           value={search}
@@ -185,7 +185,7 @@ export default function Clients() {
         {search && (
           <button
             onClick={() => setSearch("")}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-muted-foreground"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-muted-foreground"
           >
             <X className="h-4 w-4" />
           </button>
@@ -200,7 +200,7 @@ export default function Clients() {
           ))}
         </div>
       ) : clients.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-3">
+        <div className="flex flex-col items-center justify-center py-20 text-gray-400 gap-3">
           <Users className="h-14 w-14 opacity-20" />
           <p className="font-medium text-base">
             {search ? "Sin resultados para esa búsqueda" : "Todavía no hay clientes registrados"}
@@ -230,7 +230,7 @@ export default function Clients() {
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
             className="p-2 rounded-lg disabled:opacity-30 hover:bg-white/10 transition-colors"
-            style={{ color: "#1DB5A8" }}
+            style={{ color: "var(--primary)" }}
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
@@ -242,7 +242,7 @@ export default function Clients() {
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
             className="p-2 rounded-lg disabled:opacity-30 hover:bg-white/10 transition-colors"
-            style={{ color: "#1DB5A8" }}
+            style={{ color: "var(--primary)" }}
           >
             <ChevronRight className="h-5 w-5" />
           </button>
@@ -262,7 +262,7 @@ export default function Clients() {
               onClick={() => createMutation.mutate({ ...form, email: form.email || undefined, whatsappPhone: ((p) => p.length > 10 ? p : `${form.countryCode}${p}`)(form.whatsappPhone.replace(/\D/g, "")), identificationNumber: form.identificationNumber || undefined })}
               disabled={createMutation.isPending || !form.name.trim() || !form.whatsappPhone.trim()}
               className="text-white"
-              style={{ background: "linear-gradient(135deg, #1DB5A8, #0D9B8F)" }}
+              style={{ background: "var(--brand-gradient)" }}
             >
               {createMutation.isPending ? "Guardando…" : "Crear Cliente"}
             </Button>
@@ -292,7 +292,7 @@ export default function Clients() {
               }
               disabled={updateMutation.isPending || !form.name.trim() || !form.whatsappPhone.trim()}
               className="text-white"
-              style={{ background: "linear-gradient(135deg, #1DB5A8, #0D9B8F)" }}
+              style={{ background: "var(--brand-gradient)" }}
             >
               {updateMutation.isPending ? "Guardando…" : "Guardar Cambios"}
             </Button>
@@ -338,7 +338,7 @@ export default function Clients() {
             <CredRow label="Contraseña temporal" value={createdCreds?.password ?? ""} />
           </div>
           <DialogFooter>
-            <Button onClick={() => setCreatedCreds(null)} style={{ background: "linear-gradient(135deg, #1DB5A8, #0D9B8F)" }} className="text-white w-full">
+            <Button onClick={() => setCreatedCreds(null)} style={{ background: "var(--brand-gradient)" }} className="text-white w-full">
               Entendido
             </Button>
           </DialogFooter>
@@ -375,7 +375,7 @@ function ClientCard({
           {/* Avatar */}
           <div
             className="h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
-            style={{ background: "linear-gradient(135deg, #6ACFC7, #4ABDB5)", color: "#0C1A1A" }}
+            style={{ background: "var(--brand-gradient)", color: "var(--background)" }}
           >
             {initials}
           </div>
@@ -415,7 +415,7 @@ function ClientCard({
                 </p>
               )}
               {client.identificationNumber && (
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-gray-400">
                   📋 {client.identificationNumber}
                 </p>
               )}
@@ -518,7 +518,7 @@ function ClientForm({
           placeholder="correo@ejemplo.com"
           type="email"
         />
-        <p className="text-[11px] text-slate-400">
+        <p className="text-[11px] text-gray-400">
           Si se ingresa email se creará una cuenta de acceso al portal del cliente.
         </p>
       </div>
@@ -537,7 +537,7 @@ function ClientForm({
           onChange={(e) => update("identificationNumber", e.target.value)}
           placeholder="Ej: CC 1234567890"
         />
-        <p className="text-[11px] text-slate-400">Cédula, NIT u otro documento. Opcional.</p>
+        <p className="text-[11px] text-gray-400">Cédula, NIT u otro documento. Opcional.</p>
       </div>
       <div className="flex items-center gap-2 pt-1">
         <Checkbox
@@ -569,8 +569,8 @@ function CredRow({ label, value }: { label: string; value: string }) {
         <p className="text-[10px] text-white/35 uppercase tracking-wide">{label}</p>
         <p className="text-sm font-mono font-medium text-white/80 truncate">{value}</p>
       </div>
-      <button onClick={copy} className="text-white/35 hover:text-teal-400 shrink-0 transition-colors">
-        {copied ? <Check className="h-4 w-4 text-teal-400" /> : <Copy className="h-4 w-4" />}
+      <button onClick={copy} className="text-white/35 hover:text-primary shrink-0 transition-colors">
+        {copied ? <Check className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
       </button>
     </div>
   );

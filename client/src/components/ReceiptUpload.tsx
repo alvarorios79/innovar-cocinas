@@ -104,7 +104,7 @@ export function ReceiptUpload({
                 href={previewUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-teal-400 hover:underline"
+                className="text-xs text-primary hover:underline"
               >
                 Ver archivo
               </a>

@@ -104,7 +104,7 @@ export function ClosureReportTab() {
 
   const getStatusBadge = (status: "draft" | "confirmed") => {
     if (status === "draft") {
-      return <Badge variant="outline" className="bg-yellow-500/10 text-yellow-300">Borrador</Badge>;
+      return <Badge variant="outline" className="bg-amber-500/10 text-amber-300">Borrador</Badge>;
     }
     return <Badge className="bg-green-500/15 text-green-300">Confirmado</Badge>;
   };
@@ -128,12 +128,12 @@ export function ClosureReportTab() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-teal-400" />
+              <TrendingUp className="h-4 w-4 text-primary" />
               Total Ventas
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-teal-400">
+            <div className="text-2xl font-bold text-primary">
               ${Number(summary?.totalSales || 0).toLocaleString("es-CO", { maximumFractionDigits: 0 })}
             </div>
             <p className="text-xs text-gray-500 mt-1">De todos los cierres</p>
@@ -226,7 +226,7 @@ export function ClosureReportTab() {
                 id="status"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as any)}
-                className="mt-2 w-full px-3 py-2 border border-white/[0.15] rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="mt-2 w-full px-3 py-2 border border-white/[0.15] rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="all">Todos</option>
                 <option value="draft">Borrador</option>
@@ -270,7 +270,7 @@ export function ClosureReportTab() {
                   <div className="grid grid-cols-3 gap-4 mb-3">
                     <div>
                       <p className="text-xs text-muted-foreground">Ventas</p>
-                      <p className="text-lg font-semibold text-teal-400">
+                      <p className="text-lg font-semibold text-primary">
                         ${Number(closure.totalSales).toLocaleString("es-CO", { maximumFractionDigits: 0 })}
                       </p>
                     </div>
@@ -299,7 +299,7 @@ export function ClosureReportTab() {
                         variant="outline"
                         onClick={() => handleDownloadPDF(closure.id)}
                         disabled={downloadingId === closure.id}
-                        className="text-teal-400 hover:text-teal-300 hover:bg-teal-500/10 border-teal-500/25"
+                        className="text-primary hover:text-teal-300 hover:bg-primary/10 border-primary/25"
                       >
                         <Download className="h-4 w-4 mr-1" />
                         {downloadingId === closure.id ? "Generando..." : "PDF"}

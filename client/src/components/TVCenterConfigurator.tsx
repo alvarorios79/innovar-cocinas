@@ -152,7 +152,7 @@ function LegacyTVCenterConfigurator({ config, onChange }: TVCenterConfiguratorPr
               <div>
                 <Label className="text-sm font-medium text-white/85 block mb-2">Ancho del Mueble</Label>
                 <Select value={width.toString()} onValueChange={(v) => setWidth(parseFloat(v))}>
-                  <SelectTrigger className="h-10 bg-[#162828]">
+                  <SelectTrigger className="h-10 bg-card">
                     <SelectValue placeholder="Seleccionar ancho" />
                   </SelectTrigger>
                   <SelectContent>
@@ -167,7 +167,7 @@ function LegacyTVCenterConfigurator({ config, onChange }: TVCenterConfiguratorPr
               <div>
                 <Label className="text-sm font-medium text-white/85 block mb-2">Repisas Flotantes</Label>
                 <Select value={floatingShelves.toString()} onValueChange={(v) => setFloatingShelves(parseInt(v))}>
-                  <SelectTrigger className="h-10 bg-[#162828]">
+                  <SelectTrigger className="h-10 bg-card">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -181,7 +181,7 @@ function LegacyTVCenterConfigurator({ config, onChange }: TVCenterConfiguratorPr
                 </Select>
               </div>
             </div>
-            <div className="mt-3 p-3 bg-[#162828] rounded">
+            <div className="mt-3 p-3 bg-card rounded">
               <p className="text-sm text-purple-300">
                 <strong>Incluye:</strong> Mueble flotante, panel para TV con alistonado, {floatingShelves} repisas flotantes
               </p>
@@ -197,7 +197,7 @@ function LegacyTVCenterConfigurator({ config, onChange }: TVCenterConfiguratorPr
             
             <div className="space-y-4">
               {/* Alto Brillo */}
-              <div className="flex items-center justify-between p-3 bg-[#162828] rounded border">
+              <div className="flex items-center justify-between p-3 bg-card rounded border">
                 <div className="flex items-center gap-3">
                   <Checkbox 
                     id="high-gloss" 
@@ -205,7 +205,7 @@ function LegacyTVCenterConfigurator({ config, onChange }: TVCenterConfiguratorPr
                     onCheckedChange={(c) => setHasHighGloss(c === true)} 
                   />
                   <div className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-yellow-500" />
+                    <Sparkles className="h-4 w-4 text-amber-500" />
                     <Label htmlFor="high-gloss" className="cursor-pointer font-medium">
                       Acabado Alto Brillo
                     </Label>
@@ -217,7 +217,7 @@ function LegacyTVCenterConfigurator({ config, onChange }: TVCenterConfiguratorPr
               </div>
 
               {/* Luces LED */}
-              <div className="flex items-center justify-between p-3 bg-[#162828] rounded border">
+              <div className="flex items-center justify-between p-3 bg-card rounded border">
                 <div className="flex items-center gap-3">
                   <Checkbox 
                     id="led-lights" 
@@ -256,7 +256,7 @@ function LegacyTVCenterConfigurator({ config, onChange }: TVCenterConfiguratorPr
               )}
 
               {/* Espacios para equipos */}
-              <div className="flex items-center justify-between p-3 bg-[#162828] rounded border">
+              <div className="flex items-center justify-between p-3 bg-card rounded border">
                 <div className="flex items-center gap-3">
                   <Box className="h-4 w-4 text-blue-500" />
                   <div>
@@ -319,13 +319,13 @@ function LegacyTVCenterConfigurator({ config, onChange }: TVCenterConfiguratorPr
               value={notes} 
               onChange={(e) => setNotes(e.target.value)} 
               placeholder="Especificaciones adicionales, colores, ubicación de equipos, etc."
-              className="bg-[#162828]"
+              className="bg-card"
               rows={2}
             />
           </div>
 
           {/* Resumen de Precio */}
-          <div className="bg-[#162828] p-4 rounded-lg border border-purple-500/30">
+          <div className="bg-card p-4 rounded-lg border border-purple-500/30">
             <h5 className="font-semibold text-foreground mb-3">Resumen del Precio</h5>
             <div className="space-y-1 text-sm">
               <div className="flex justify-between">
@@ -464,8 +464,8 @@ function TVCenterConfiguratorV2({ config, onChange }: TVCenterConfiguratorProps)
     const diff = priceForWidth(w) - base160;
     return `${w.toFixed(2)} m ${diff === 0 ? "(base)" : diff > 0 ? `(+${fmt(diff)})` : `(-${fmt(-diff)})`}`;
   };
-  const sel = "h-9 rounded bg-[#0C1A1A] border border-white/15 text-sm text-white px-2";
-  const row = "flex items-center justify-between p-3 bg-[#162828] rounded border gap-3";
+  const sel = "h-9 rounded bg-background border border-white/15 text-sm text-white px-2";
+  const row = "flex items-center justify-between p-3 bg-card rounded border gap-3";
   const count = (v: number, set: (n: number) => void, max = 8) => (
     <select className={sel} value={v} onChange={(e) => set(parseInt(e.target.value))}>
       {Array.from({ length: max + 1 }, (_, i) => <option key={i} value={i}>{i}</option>)}
@@ -571,7 +571,7 @@ function TVCenterConfiguratorV2({ config, onChange }: TVCenterConfiguratorProps)
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <Checkbox id="tv2-paint" className="size-6 border-2 border-white/70 bg-white/10 data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-300 data-[state=checked]:text-white [&_svg]:size-5" checked={hasPainting} onCheckedChange={(c) => { const on = c === true; setHasPainting(on); if (!on) { setDoors(0); setDrawerFronts(0); } }} />
-              <Sparkles className="h-4 w-4 text-yellow-500" />
+              <Sparkles className="h-4 w-4 text-amber-500" />
               <Label htmlFor="tv2-paint" className="cursor-pointer font-medium">Pintura poliuretano</Label>
             </div>
             <span className={`font-semibold ${hasPainting ? "text-purple-400" : "text-muted-foreground"}`}>{fmt(paintPrice)}</span>
@@ -642,11 +642,11 @@ function TVCenterConfiguratorV2({ config, onChange }: TVCenterConfiguratorProps)
 
         <div>
           <Label className="text-sm font-medium text-white/85 block mb-1">Notas adicionales</Label>
-          <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Especificaciones adicionales, colores, etc." className="bg-[#162828]" rows={2} />
+          <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Especificaciones adicionales, colores, etc." className="bg-card" rows={2} />
         </div>
 
         {/* Resumen */}
-        <div className="bg-[#162828] p-4 rounded-lg border border-purple-500/30 text-sm space-y-1">
+        <div className="bg-card p-4 rounded-lg border border-purple-500/30 text-sm space-y-1">
           <h5 className="font-semibold text-foreground mb-2">Resumen del precio</h5>
           <div className="flex justify-between"><span>Mueble flotante {width.toFixed(2)} m + panel + 2 repisas:</span><span>{fmt(basePrice)}</span></div>
           {alistonadoSides > 0 && <div className="flex justify-between text-purple-400"><span>+ Alistonado ({alistonadoSides} lado{alistonadoSides > 1 ? "s" : ""}):</span><span>{fmt(alistonadoPrice)}</span></div>}

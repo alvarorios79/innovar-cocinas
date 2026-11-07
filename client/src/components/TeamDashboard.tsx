@@ -42,6 +42,11 @@ import { ProductionCalendar } from "@/components/ProductionCalendar";
 import { OperatorDailyProjects } from "@/components/OperatorDailyProjects";
 import { DailyMotivation } from "@/components/DailyMotivation";
 
+import { getProjectStatusLabel, getProjectStatusColor } from "@/lib/projectStatus";
+// Estados: nombre y color únicos (lib/projectStatus)
+const getStatusLabel = (status: string) => getProjectStatusLabel(status);
+const getStatusColor = (status: string) => `${getProjectStatusColor(status)} text-white border-transparent`;
+
 // Componente de botón de cerrar sesión
 function LogoutButton() {
   const logout = trpc.auth.logout.useMutation({
@@ -87,8 +92,8 @@ const roleConfig: Record<string, {
   comercial: {
     title: "Portal Comercial",
     subtitle: "Conecta clientes con sus sueños",
-    color: "from-pink-500 to-rose-600",
-    bgGradient: "bg-gradient-to-br from-pink-950/30 via-transparent to-rose-950/30",
+    color: "from-purple-500 to-red-600",
+    bgGradient: "bg-gradient-to-br from-purple-950/30 via-transparent to-red-950/30",
     icon: <Briefcase className="h-8 w-8" />,
   },
   jefe_taller: {
@@ -101,36 +106,36 @@ const roleConfig: Record<string, {
   operario: {
     title: "Portal del Operario",
     subtitle: "Construye calidad en cada detalle",
-    color: "from-blue-500 to-cyan-600",
-    bgGradient: "bg-gradient-to-br from-blue-950/30 via-transparent to-cyan-950/30",
+    color: "from-blue-500 to-teal-600",
+    bgGradient: "bg-gradient-to-br from-blue-950/30 via-transparent to-teal-950/30",
     icon: <Package className="h-8 w-8" />,
   },
   admin: {
     title: "Panel Administrativo",
     subtitle: "Gestiona clientes, citas y cotizaciones",
-    color: "from-teal-500 to-emerald-600",
-    bgGradient: "bg-gradient-to-br from-teal-950/30 via-transparent to-emerald-950/30",
+    color: "from-primary to-green-600",
+    bgGradient: "bg-gradient-to-br from-teal-950/30 via-transparent to-green-950/30",
     icon: <LayoutDashboard className="h-8 w-8" />,
   },
   super_admin: {
     title: "Panel CEO",
     subtitle: "Control total del negocio",
-    color: "from-gray-700 to-slate-900",
-    bgGradient: "bg-gradient-to-br from-slate-950/30 via-transparent to-gray-900/30",
+    color: "from-gray-700 to-gray-900",
+    bgGradient: "bg-gradient-to-br from-gray-950/30 via-transparent to-gray-900/30",
     icon: <Settings className="h-8 w-8" />,
   },
   medidor: {
     title: "Portal del Medidor",
     subtitle: "Precisión en cada visita",
-    color: "from-amber-500 to-yellow-600",
-    bgGradient: "bg-gradient-to-br from-amber-950/30 via-transparent to-yellow-950/30",
+    color: "from-amber-500 to-amber-600",
+    bgGradient: "bg-gradient-to-br from-amber-950/30 via-transparent to-amber-950/30",
     icon: <MapPin className="h-8 w-8" />,
   },
   contador: {
     title: "Portal del Contador",
     subtitle: "Orden y control financiero",
-    color: "from-violet-500 to-fuchsia-600",
-    bgGradient: "bg-gradient-to-br from-violet-950/30 via-transparent to-fuchsia-950/30",
+    color: "from-purple-500 to-purple-600",
+    bgGradient: "bg-gradient-to-br from-purple-950/30 via-transparent to-purple-950/30",
     icon: <BookOpen className="h-8 w-8" />,
   },
 };
@@ -241,7 +246,7 @@ export function TeamDashboard() {
             label: "✨ Nuevos para Diseñar",
             value: myProjects.filter(p => p.status === "adelanto_recibido").length,
             icon: <Target className="h-6 w-6" />,
-            color: "bg-gradient-to-br from-green-500 to-emerald-500",
+            color: "bg-gradient-to-br from-green-500 to-green-500",
             link: "/projects",
             highlight: myProjects.filter(p => p.status === "adelanto_recibido").length > 0
           },
@@ -253,28 +258,28 @@ export function TeamDashboard() {
             label: "Citas Pendientes", 
             value: pendingAppointments.length,
             icon: <Calendar className="h-6 w-6" />,
-            color: "bg-gradient-to-br from-pink-500 to-rose-500",
+            color: "bg-gradient-to-br from-purple-500 to-red-500",
             link: "/appointments-calendar"
           },
           { 
             label: "Cotizaciones Borrador", 
             value: draftQuotations.length,
             icon: <FileText className="h-6 w-6" />,
-            color: "bg-gradient-to-br from-rose-500 to-pink-500",
+            color: "bg-gradient-to-br from-red-500 to-purple-500",
             link: "/quotations"
           },
           { 
             label: "Esperando Respuesta", 
             value: sentQuotations.length,
             icon: <Clock className="h-6 w-6" />,
-            color: "bg-gradient-to-br from-fuchsia-500 to-purple-500",
+            color: "bg-gradient-to-br from-purple-500 to-purple-500",
             link: "/quotations"
           },
           { 
             label: "Mis Tareas", 
             value: myTasks.length,
             icon: <ClipboardList className="h-6 w-6" />,
-            color: "bg-gradient-to-br from-purple-500 to-fuchsia-500",
+            color: "bg-gradient-to-br from-purple-500 to-purple-500",
             link: "/tasks"
           },
         ];
@@ -284,21 +289,21 @@ export function TeamDashboard() {
             label: "Citas Pendientes", 
             value: pendingAppointments.length,
             icon: <Calendar className="h-6 w-6" />,
-            color: "bg-gradient-to-br from-emerald-500 to-teal-500",
+            color: "bg-gradient-to-br from-green-500 to-primary",
             link: "/appointments-calendar"
           },
           { 
             label: "Cotizaciones Borrador", 
             value: draftQuotations.length,
             icon: <FileText className="h-6 w-6" />,
-            color: "bg-gradient-to-br from-teal-500 to-cyan-500",
+            color: "bg-gradient-to-br from-primary to-primary",
             link: "/quotations"
           },
           { 
             label: "Esperando Respuesta", 
             value: sentQuotations.length,
             icon: <Clock className="h-6 w-6" />,
-            color: "bg-gradient-to-br from-yellow-500 to-amber-500",
+            color: "bg-gradient-to-br from-amber-500 to-amber-500",
             link: "/quotations"
           },
           { 
@@ -332,7 +337,7 @@ export function TeamDashboard() {
             label: "✨ Nuevos para Producción", 
             value: newForProduction.length,
             icon: <Sparkles className="h-6 w-6" />,
-            color: "bg-gradient-to-br from-green-500 to-emerald-600",
+            color: "bg-gradient-to-br from-green-500 to-green-600",
             link: "/projects?new_production=true",
             highlight: true
           }] : []),
@@ -361,35 +366,35 @@ export function TeamDashboard() {
             label: "Enchape", 
             value: myProjects.filter(p => p.status === "enchape").length,
             icon: <Package className="h-6 w-6" />,
-            color: "bg-gradient-to-br from-amber-500 to-yellow-500",
+            color: "bg-gradient-to-br from-amber-500 to-amber-500",
             link: "/projects?status=enchape"
           },
           { 
             label: "Ensamble", 
             value: myProjects.filter(p => p.status === "ensamble").length,
             icon: <Wrench className="h-6 w-6" />,
-            color: "bg-gradient-to-br from-teal-500 to-cyan-500",
+            color: "bg-gradient-to-br from-primary to-primary",
             link: "/projects?status=ensamble"
           },
           { 
             label: "Listos Instalar", 
             value: myProjects.filter(p => p.status === "listo_instalacion").length,
             icon: <Truck className="h-6 w-6" />,
-            color: "bg-gradient-to-br from-green-500 to-emerald-500",
+            color: "bg-gradient-to-br from-green-500 to-green-500",
             link: "/projects?status=listo_instalacion"
           },
           { 
             label: "Instalaciones", 
             value: myProjects.filter(p => p.status === "listo_instalacion").length,
             icon: <Calendar className="h-6 w-6" />,
-            color: "bg-gradient-to-br from-blue-500 to-cyan-500",
+            color: "bg-gradient-to-br from-blue-500 to-primary",
             link: "/calendar"
           },
           ...(overdueProjects.length > 0 ? [{ 
             label: "⚠️ Atrasados (+5 días)", 
             value: overdueProjects.length,
             icon: <AlertTriangle className="h-6 w-6" />,
-            color: "bg-gradient-to-br from-red-500 to-rose-600",
+            color: "bg-gradient-to-br from-red-500 to-red-600",
             link: "/projects?overdue=true",
             highlight: true
           }] : []),
@@ -397,7 +402,7 @@ export function TeamDashboard() {
             label: "Mis Tareas", 
             value: myTasks.length,
             icon: <ClipboardList className="h-6 w-6" />,
-            color: "bg-gradient-to-br from-purple-500 to-fuchsia-500",
+            color: "bg-gradient-to-br from-purple-500 to-purple-500",
             link: "/tasks"
           },
         ];
@@ -422,21 +427,21 @@ export function TeamDashboard() {
             label: "🚚 Listos/Instalación", 
             value: listosInstalar.length,
             icon: <Truck className="h-6 w-6" />,
-            color: "bg-gradient-to-br from-green-500 to-emerald-500",
+            color: "bg-gradient-to-br from-green-500 to-green-500",
             link: "/projects"
           },
           { 
             label: "Mis Tareas", 
             value: myTasks.length,
             icon: <ClipboardList className="h-6 w-6" />,
-            color: "bg-gradient-to-br from-cyan-500 to-teal-500",
+            color: "bg-gradient-to-br from-primary to-primary",
             link: "/tasks"
           },
           { 
             label: "⚠️ Urgentes", 
             value: myTasks.filter(t => t.priority === "alta").length,
             icon: <AlertTriangle className="h-6 w-6" />,
-            color: "bg-gradient-to-br from-red-500 to-rose-500",
+            color: "bg-gradient-to-br from-red-500 to-red-500",
             link: "/tasks",
             highlight: myTasks.filter(t => t.priority === "alta").length > 0
           },
@@ -445,13 +450,13 @@ export function TeamDashboard() {
       case "medidor":
         return [
           { label: "Visitas Pendientes", value: pendingAppointments.length, icon: <CalendarCheck className="h-6 w-6" />, color: "bg-gradient-to-br from-amber-500 to-orange-500", link: "/appointments-calendar" },
-          { label: "Levantamientos", value: (myVisits as any[]).length, icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-teal-500 to-emerald-500", link: "/medidor" },
-          { label: "Mis Tareas", value: myTasks.length, icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-amber-600 to-yellow-600", link: "/tasks" },
+          { label: "Levantamientos", value: (myVisits as any[]).length, icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-primary to-green-500", link: "/medidor" },
+          { label: "Mis Tareas", value: myTasks.length, icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-amber-600 to-amber-600", link: "/tasks" },
         ];
       case "contador":
         return [
-          { label: "Contabilidad", value: 0, icon: <BookOpen className="h-6 w-6" />, color: "bg-gradient-to-br from-violet-500 to-fuchsia-500", link: "/contador" },
-          { label: "Mis Tareas", value: myTasks.length, icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-fuchsia-500 to-violet-600", link: "/tasks" },
+          { label: "Contabilidad", value: 0, icon: <BookOpen className="h-6 w-6" />, color: "bg-gradient-to-br from-purple-500 to-purple-500", link: "/contador" },
+          { label: "Mis Tareas", value: myTasks.length, icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-purple-500 to-purple-600", link: "/tasks" },
         ];
       default: // super_admin
         return [
@@ -459,21 +464,21 @@ export function TeamDashboard() {
             label: "Proyectos Activos",
             value: projects.filter(p => !["entregado", "cancelado"].includes(p.status)).length,
             icon: <Briefcase className="h-6 w-6" />,
-            color: "bg-gradient-to-br from-slate-600 to-gray-700",
+            color: "bg-gradient-to-br from-gray-600 to-gray-700",
             link: "/projects"
           },
           {
             label: "Citas Hoy",
             value: todayAppointments.length,
             icon: <Calendar className="h-6 w-6" />,
-            color: "bg-gradient-to-br from-teal-500 to-emerald-500",
+            color: "bg-gradient-to-br from-primary to-green-500",
             link: "/appointments-calendar"
           },
           { 
             label: "Cotizaciones", 
             value: quotations.length,
             icon: <DollarSign className="h-6 w-6" />,
-            color: "bg-gradient-to-br from-green-500 to-emerald-500",
+            color: "bg-gradient-to-br from-green-500 to-green-500",
             link: "/quotations"
           },
           { 
@@ -493,56 +498,56 @@ export function TeamDashboard() {
       case "disenador":
         return [
           { label: "Mis Proyectos", href: "/projects", icon: <Palette className="h-6 w-6" />, color: "bg-gradient-to-br from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700" },
-          { label: "Mis Tareas", href: "/tasks", icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700" },
-          { label: "Calendario", href: "/calendar", icon: <Calendar className="h-6 w-6" />, color: "bg-gradient-to-br from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700" },
+          { label: "Mis Tareas", href: "/tasks", icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700" },
+          { label: "Calendario", href: "/calendar", icon: <Calendar className="h-6 w-6" />, color: "bg-gradient-to-br from-purple-600 to-purple-600 hover:from-purple-700 hover:to-purple-700" },
         ];
       case "comercial":
         return [
-          { label: "Calendario", href: "/calendar", icon: <Calendar className="h-6 w-6" />, color: "bg-gradient-to-br from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700" },
-          { label: "Cotizaciones", href: "/quotations", icon: <FileText className="h-6 w-6" />, color: "bg-gradient-to-br from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700" },
-          { label: "Clientes", href: "/clients", icon: <Users className="h-6 w-6" />, color: "bg-gradient-to-br from-fuchsia-600 to-pink-600 hover:from-fuchsia-700 hover:to-pink-700" },
-          { label: "Mis Tareas", href: "/tasks", icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-purple-600 to-fuchsia-600 hover:from-purple-700 hover:to-fuchsia-700" },
+          { label: "Calendario", href: "/calendar", icon: <Calendar className="h-6 w-6" />, color: "bg-gradient-to-br from-purple-600 to-red-600 hover:from-purple-700 hover:to-red-700" },
+          { label: "Cotizaciones", href: "/quotations", icon: <FileText className="h-6 w-6" />, color: "bg-gradient-to-br from-red-600 to-purple-600 hover:from-red-700 hover:to-purple-700" },
+          { label: "Clientes", href: "/clients", icon: <Users className="h-6 w-6" />, color: "bg-gradient-to-br from-purple-600 to-purple-600 hover:from-purple-700 hover:to-purple-700" },
+          { label: "Mis Tareas", href: "/tasks", icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-purple-600 to-purple-600 hover:from-purple-700 hover:to-purple-700" },
         ];
       case "admin":
         return [
-          { label: "Panel Admin", href: "/admin", icon: <LayoutDashboard className="h-6 w-6" />, color: "bg-gradient-to-br from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700" },
-          { label: "Proyectos", href: "/projects", icon: <Briefcase className="h-6 w-6" />, color: "bg-gradient-to-br from-slate-700 to-gray-800 hover:from-slate-800 hover:to-gray-900" },
-          { label: "Calendario", href: "#calendar-selector", icon: <Calendar className="h-6 w-6" />, color: "bg-gradient-to-br from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700", isCalendarSelector: true },
-          { label: "Cotizaciones", href: "/quotations", icon: <FileText className="h-6 w-6" />, color: "bg-gradient-to-br from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700" },
-          { label: "Clientes", href: "/clients", icon: <Users className="h-6 w-6" />, color: "bg-gradient-to-br from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700" },
+          { label: "Panel Admin", href: "/admin", icon: <LayoutDashboard className="h-6 w-6" />, color: "bg-gradient-to-br from-teal-600 to-green-600 hover:from-teal-700 hover:to-green-700" },
+          { label: "Proyectos", href: "/projects", icon: <Briefcase className="h-6 w-6" />, color: "bg-gradient-to-br from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900" },
+          { label: "Calendario", href: "#calendar-selector", icon: <Calendar className="h-6 w-6" />, color: "bg-gradient-to-br from-green-600 to-green-600 hover:from-green-700 hover:to-green-700", isCalendarSelector: true },
+          { label: "Cotizaciones", href: "/quotations", icon: <FileText className="h-6 w-6" />, color: "bg-gradient-to-br from-teal-600 to-teal-600 hover:from-teal-700 hover:to-teal-700" },
+          { label: "Clientes", href: "/clients", icon: <Users className="h-6 w-6" />, color: "bg-gradient-to-br from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700" },
           { label: "Tareas", href: "/tasks", icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700" },
-          { label: "Contabilidad", href: "/accounting", icon: <DollarSign className="h-6 w-6" />, color: "bg-gradient-to-br from-green-600 to-lime-600 hover:from-green-700 hover:to-lime-700" },
+          { label: "Contabilidad", href: "/accounting", icon: <DollarSign className="h-6 w-6" />, color: "bg-gradient-to-br from-green-600 to-green-600 hover:from-green-700 hover:to-green-700" },
         ];
       case "jefe_taller":
         return [
           { label: "Producción", href: "/projects", icon: <Wrench className="h-6 w-6" />, color: "bg-gradient-to-br from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700" },
-          { label: "Calendario", href: "/calendar", icon: <Calendar className="h-6 w-6" />, color: "bg-gradient-to-br from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700" },
-          { label: "Mis Tareas", href: "/tasks", icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700" },
+          { label: "Calendario", href: "/calendar", icon: <Calendar className="h-6 w-6" />, color: "bg-gradient-to-br from-amber-600 to-amber-600 hover:from-amber-700 hover:to-amber-700" },
+          { label: "Mis Tareas", href: "/tasks", icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700" },
         ];
       case "operario":
         return [
           { label: "Producción", href: "/projects", icon: <Wrench className="h-6 w-6" />, color: "bg-gradient-to-br from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700" },
-          { label: "Mis Tareas", href: "/tasks", icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700" },
+          { label: "Mis Tareas", href: "/tasks", icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-teal-600 to-teal-600 hover:from-teal-700 hover:to-teal-700" },
           { label: "Calendario", href: "/calendar", icon: <Calendar className="h-6 w-6" />, color: "bg-gradient-to-br from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" },
         ];
       case "medidor":
         return [
-          { label: "Levantamientos", href: "/medidor", icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700" },
+          { label: "Levantamientos", href: "/medidor", icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-teal-600 to-green-600 hover:from-teal-700 hover:to-green-700" },
           { label: "Visitas Técnicas", href: "/appointments-calendar", icon: <CalendarCheck className="h-6 w-6" />, color: "bg-gradient-to-br from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700" },
-          { label: "Mis Tareas", href: "/tasks", icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700" },
+          { label: "Mis Tareas", href: "/tasks", icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-amber-600 to-amber-600 hover:from-amber-700 hover:to-amber-700" },
         ];
       case "contador":
         return [
-          { label: "Contabilidad", href: "/contador", icon: <BookOpen className="h-6 w-6" />, color: "bg-gradient-to-br from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700" },
-          { label: "Proyectos", href: "/projects", icon: <Briefcase className="h-6 w-6" />, color: "bg-gradient-to-br from-fuchsia-600 to-violet-600 hover:from-fuchsia-700 hover:to-violet-700" },
+          { label: "Contabilidad", href: "/contador", icon: <BookOpen className="h-6 w-6" />, color: "bg-gradient-to-br from-purple-600 to-purple-600 hover:from-purple-700 hover:to-purple-700" },
+          { label: "Proyectos", href: "/projects", icon: <Briefcase className="h-6 w-6" />, color: "bg-gradient-to-br from-purple-600 to-purple-600 hover:from-purple-700 hover:to-purple-700" },
         ];
       default: // super_admin
         return [
-          { label: "Panel Admin", href: "/admin", icon: <LayoutDashboard className="h-6 w-6" />, color: "bg-gradient-to-br from-slate-700 to-gray-800 hover:from-slate-800 hover:to-gray-900" },
-          { label: "Proyectos", href: "/projects", icon: <Briefcase className="h-6 w-6" />, color: "bg-gradient-to-br from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700" },
-          { label: "Calendario", href: "#calendar-selector", icon: <Calendar className="h-6 w-6" />, color: "bg-gradient-to-br from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700", isCalendarSelector: true },
+          { label: "Panel Admin", href: "/admin", icon: <LayoutDashboard className="h-6 w-6" />, color: "bg-gradient-to-br from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900" },
+          { label: "Proyectos", href: "/projects", icon: <Briefcase className="h-6 w-6" />, color: "bg-gradient-to-br from-teal-600 to-green-600 hover:from-teal-700 hover:to-green-700" },
+          { label: "Calendario", href: "#calendar-selector", icon: <Calendar className="h-6 w-6" />, color: "bg-gradient-to-br from-green-600 to-green-600 hover:from-green-700 hover:to-green-700", isCalendarSelector: true },
           { label: "Tareas", href: "/tasks", icon: <ClipboardList className="h-6 w-6" />, color: "bg-gradient-to-br from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700" },
-          { label: "Contabilidad", href: "/accounting", icon: <DollarSign className="h-6 w-6" />, color: "bg-gradient-to-br from-green-600 to-lime-600 hover:from-green-700 hover:to-lime-700" },
+          { label: "Contabilidad", href: "/accounting", icon: <DollarSign className="h-6 w-6" />, color: "bg-gradient-to-br from-green-600 to-green-600 hover:from-green-700 hover:to-green-700" },
         ];
     }
   };
@@ -550,63 +555,21 @@ export function TeamDashboard() {
   const stats = getStats();
   const quickActions = getQuickActions();
 
-  // Función para obtener el nombre del estado en español
-  const getStatusLabel = (status: string) => {
-    const statusLabels: Record<string, string> = {
-      contacto: "Contacto",
-      cotizacion_enviada: "Cotización Enviada",
-      cotizacion_aprobada: "Cotización Aprobada",
-      adelanto_recibido: "Cliente Confirmado - Iniciar Diseño",
-      en_diseno: "En Diseño",
-      pendiente_modelado: "Pendiente Modelado 3D",
-      pendiente_render: "Pendiente Renders",
-      aprobacion_final: "Diseño Aprobado",
-      despiece: "En Despiece",
-      corte: "En Corte",
-      enchape: "En Enchape",
-      ensamble: "En Ensamble",
-      listo_instalacion: "En Instalación",
-      entregado: "Entregado",
-    };
-    return statusLabels[status] || status;
-  };
-
-  // Función para obtener el color del estado
-  const getStatusColor = (status: string) => {
-    const statusColors: Record<string, string> = {
-      contacto: "bg-[#0F2222] text-white/85 border-[rgba(106,207,199,0.12)]",
-      cotizacion_enviada: "bg-blue-500/15 text-blue-300 border-blue-500/25",
-      cotizacion_aprobada: "bg-emerald-500/15 text-emerald-300 border-emerald-200",
-      adelanto_recibido: "bg-green-500/15 text-green-300 border-green-500/25",
-      en_diseno: "bg-purple-500/15 text-purple-300 border-purple-500/25",
-      pendiente_modelado: "bg-violet-100 text-violet-300 border-violet-200",
-      pendiente_render: "bg-amber-500/15 text-amber-300 border-amber-500/25",
-      aprobacion_final: "bg-indigo-500/15 text-indigo-300 border-indigo-200",
-      despiece: "bg-orange-500/15 text-orange-300 border-orange-500/25",
-      corte: "bg-amber-500/15 text-amber-300 border-amber-500/25",
-      enchape: "bg-rose-500/15 text-rose-300 border-rose-500/25",
-      ensamble: "bg-pink-500/15 text-pink-300 border-pink-200",
-      listo_instalacion: "bg-cyan-100 text-cyan-300 border-cyan-200",
-      entregado: "bg-white/[0.06] text-white/85 border-[rgba(106,207,199,0.12)]",
-    };
-    return statusColors[status] || "bg-white/[0.06] text-white/85 border-[rgba(106,207,199,0.12)]";
-  };
-
   return (
     <div>
       {/* Banner de bienvenida — reemplaza header + hero con logo */}
       <div
-        className={`rounded-xl p-4 md:p-5 mb-4 md:mb-6 bg-gradient-to-r ${config.color} text-white shadow-sm`}
+        className="rounded-xl p-4 md:p-5 mb-4 md:mb-6 bg-card border border-border text-foreground"
       >
         <div className="flex items-start gap-4">
-          <div className="bg-[#162828]/20 p-2.5 rounded-xl shrink-0">
+          <div className="bg-primary/15 text-primary p-2.5 rounded-xl shrink-0">
             {config.icon}
           </div>
           <div className="min-w-0">
             <h2 className="text-xl font-bold leading-tight">{config.title}</h2>
-            <p className="text-white/85 text-sm mt-0.5">{config.subtitle}</p>
-            <p className="text-white/70 text-xs mt-1">
-              ¡Hola, <span className="font-semibold text-white">{user?.name || "Usuario"}</span>! 👋
+            <p className="text-muted-foreground text-sm mt-0.5">{config.subtitle}</p>
+            <p className="text-muted-foreground text-xs mt-1">
+              ¡Hola, <span className="font-semibold text-foreground">{user?.name || "Usuario"}</span>! 👋
             </p>
           </div>
         </div>
@@ -625,19 +588,19 @@ export function TeamDashboard() {
         <div>
           <div>
             <h2 className="text-sm font-semibold text-white/45 uppercase tracking-wider mb-3 flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-teal-400" />
+              <TrendingUp className="h-4 w-4 text-primary" />
               Resumen del Día
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
               {stats.map((stat, index) => (
                 <Link key={index} href={stat.link}>
-                  <Card className={`hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-[1.02] overflow-hidden bg-[#162828] ${(stat as any).highlight ? 'border border-green-400/60 shadow-lg shadow-green-400/15' : 'border border-[rgba(106,207,199,0.12)] hover:border-[rgba(106,207,199,0.35)]'}`}>
+                  <Card className={`hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-[1.02] overflow-hidden bg-card ${(stat as any).highlight ? 'border border-green-400/60 shadow-lg shadow-green-400/15' : 'border border-[rgba(106,207,199,0.12)] hover:border-[rgba(106,207,199,0.35)]'}`}>
                     <CardContent className="p-3 md:p-4">
                       <div className="flex items-center justify-between mb-2 md:mb-3">
-                        <div className={`${stat.color} p-2 md:p-2.5 rounded-lg`}>
+                        <div className="bg-primary/15 text-primary p-2 md:p-2.5 rounded-lg">
                           {stat.icon}
                         </div>
-                        <span className="text-2xl md:text-3xl lg:text-4xl font-bold text-white">{stat.value}</span>
+                        <span className="text-2xl md:text-3xl font-bold text-foreground tabular-nums">{stat.value}</span>
                       </div>
                       <p className="text-[10px] md:text-xs font-semibold text-white/55 uppercase tracking-wide">{stat.label}</p>
                     </CardContent>
@@ -654,18 +617,18 @@ export function TeamDashboard() {
         <div>
           <div>
             <h2 className="text-sm font-semibold text-white/45 uppercase tracking-wider mb-3 flex items-center gap-2">
-              <Target className="h-4 w-4 text-teal-400" />
+              <Target className="h-4 w-4 text-primary" />
               Acciones Rápidas
             </h2>
-            <div className={`grid ${quickActions.length <= 3 ? 'grid-cols-1 sm:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-4'} gap-3`}>
+            <div className={`grid ${quickActions.length <= 3 ? 'grid-cols-3' : 'grid-cols-2 md:grid-cols-4'} gap-2 md:gap-3`}>
               {quickActions.map((action, index) => (
                 (action as any).isCalendarSelector ? (
                   <Dialog key={index}>
                     <DialogTrigger asChild>
                       <Button 
-                        className={`w-full h-auto py-3 md:py-5 lg:py-6 flex flex-col items-center gap-2 ${action.color} text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-0`}
+                        className={`w-full h-auto py-3 md:py-4 flex flex-col items-center gap-1.5 bg-card text-foreground border border-border hover:border-primary/50 hover:bg-accent transition-colors`}
                       >
-                        <div className="bg-[#162828]/20 p-2 rounded-lg">
+                        <div className="bg-card/20 p-2 rounded-lg">
                           {action.icon}
                         </div>
                         <span className="font-bold text-sm md:text-base">{action.label}</span>
@@ -677,20 +640,20 @@ export function TeamDashboard() {
                       </DialogHeader>
                       <div className="grid grid-cols-1 gap-4 py-4">
                         <Link href="/appointments-calendar">
-                          <Button className="w-full h-auto py-6 flex flex-col items-center gap-3 bg-gradient-to-br from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white shadow-lg">
+                          <Button className="w-full h-auto py-6 flex flex-col items-center gap-3 bg-card text-foreground border border-border hover:border-primary/50 hover:bg-accent">
                             <Calendar className="h-8 w-8" />
                             <div className="text-center">
                               <span className="font-bold text-base block">Calendario de Citas</span>
-                              <span className="text-xs text-white/80">Toma de medidas programadas</span>
+                              <span className="text-xs text-muted-foreground">Toma de medidas programadas</span>
                             </div>
                           </Button>
                         </Link>
                         <Link href="/calendar">
-                          <Button className="w-full h-auto py-6 flex flex-col items-center gap-3 bg-gradient-to-br from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-lg">
+                          <Button className="w-full h-auto py-6 flex flex-col items-center gap-3 bg-card text-foreground border border-border hover:border-primary/50 hover:bg-accent">
                             <Truck className="h-8 w-8" />
                             <div className="text-center">
                               <span className="font-bold text-base block">Calendario de Instalaciones</span>
-                              <span className="text-xs text-white/80">Fechas de entrega de proyectos</span>
+                              <span className="text-xs text-muted-foreground">Fechas de entrega de proyectos</span>
                             </div>
                           </Button>
                         </Link>
@@ -700,9 +663,9 @@ export function TeamDashboard() {
                 ) : (
                   <Link key={index} href={action.href}>
                     <Button 
-                      className={`w-full h-auto py-5 md:py-6 flex flex-col items-center gap-2 ${action.color} text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-0`}
+                      className={`w-full h-auto py-3 md:py-4 flex flex-col items-center gap-1.5 bg-card text-foreground border border-border hover:border-primary/50 hover:bg-accent transition-colors`}
                     >
-                      <div className="bg-[#162828]/20 p-2 rounded-lg">
+                      <div className="bg-primary/15 text-primary p-2 rounded-lg">
                         {action.icon}
                       </div>
                       <span className="font-bold text-sm md:text-base">{action.label}</span>
@@ -722,29 +685,24 @@ export function TeamDashboard() {
           <div>
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-base md:text-lg font-bold text-foreground flex items-center gap-2">
-                  <Briefcase className="h-5 w-5 text-teal-400" />
+                  <Briefcase className="h-5 w-5 text-primary" />
                   Proyectos Recientes
                 </h2>
                 <Link href="/projects">
-                  <Button variant="ghost" size="sm" className="text-teal-400 font-semibold">
+                  <Button variant="ghost" size="sm" className="text-primary font-semibold">
                     Ver todos <ArrowRight className="h-4 w-4 ml-1" />
                   </Button>
                 </Link>
               </div>
 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {myProjects.slice(0, 4).map((project, index) => {
-                  const projectColors = [
-                    "bg-gradient-to-br from-teal-500 to-emerald-600",
-                    "bg-gradient-to-br from-purple-500 to-indigo-600",
-                    "bg-gradient-to-br from-orange-500 to-amber-600",
-                    "bg-gradient-to-br from-pink-500 to-rose-600",
-                  ];
+                  const projectColors = ["bg-primary/15 text-primary"];
                   return (
                     <Link key={project.id} href="/projects">
-                      <Card className="bg-[#162828] border border-[rgba(106,207,199,0.12)] hover:border-[rgba(106,207,199,0.35)] hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-[1.02] overflow-hidden">
+                      <Card className="bg-card border border-[rgba(106,207,199,0.12)] hover:border-[rgba(106,207,199,0.35)] hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-[1.02] overflow-hidden">
                         <CardContent className="p-4">
                           <div className="flex items-center justify-between gap-2 mb-2">
-                            <div className={`${projectColors[index % 4]} p-2 rounded-lg`}>
+                            <div className={`${projectColors[0]} p-2 rounded-lg`}>
                               {project.workType === "cocina" && <span className="text-xl">🍳</span>}
                               {project.workType === "closet" && <span className="text-xl">👔</span>}
                               {project.workType === "puertas" && <span className="text-xl">🛏</span>}
@@ -781,23 +739,18 @@ export function TeamDashboard() {
           <div>
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-base md:text-lg font-bold text-foreground flex items-center gap-2">
-                  <ClipboardList className="h-5 w-5 text-teal-400" />
+                  <ClipboardList className="h-5 w-5 text-primary" />
                   Tareas Pendientes
                 </h2>
                 <Link href="/tasks">
-                  <Button variant="ghost" size="sm" className="text-teal-400 font-semibold">
+                  <Button variant="ghost" size="sm" className="text-primary font-semibold">
                     Ver todas <ArrowRight className="h-4 w-4 ml-1" />
                   </Button>
                 </Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {myTasks.slice(0, 4).map((task, index) => {
-                  const taskColors = [
-                    "bg-gradient-to-br from-blue-500 to-cyan-600",
-                    "bg-gradient-to-br from-violet-500 to-purple-600",
-                    "bg-gradient-to-br from-rose-500 to-pink-600",
-                    "bg-gradient-to-br from-amber-500 to-orange-600",
-                  ];
+                  const taskColors = ["bg-primary/15 text-primary"];
                   const priorityColors: Record<string, string> = {
                     alta: "bg-red-500/20 text-red-300 border-red-400/30",
                     media: "bg-amber-500/20 text-amber-300 border-amber-400/30",
@@ -810,10 +763,10 @@ export function TeamDashboard() {
                   };
                   return (
                     <Link key={task.id} href="/tasks">
-                      <Card className="bg-[#162828] border border-[rgba(106,207,199,0.12)] hover:border-[rgba(106,207,199,0.35)] hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-[1.02] overflow-hidden">
+                      <Card className="bg-card border border-[rgba(106,207,199,0.12)] hover:border-[rgba(106,207,199,0.35)] hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-[1.02] overflow-hidden">
                         <CardContent className="p-4">
                           <div className="flex items-center justify-between gap-2 mb-2">
-                            <div className={`${taskColors[index % 4]} p-2 rounded-lg`}>
+                            <div className={`${taskColors[0]} p-2 rounded-lg`}>
                               <ClipboardList className="h-5 w-5 text-white" />
                             </div>
                             <Badge
@@ -894,7 +847,7 @@ export function TeamDashboard() {
                                 📅 Solicitado: {changesDate.toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                               </p>
                             )}
-                            <div className="mt-2 p-3 bg-[#162828] rounded-lg border border-orange-500/25">
+                            <div className="mt-2 p-3 bg-card rounded-lg border border-orange-500/25">
                               <p className="text-sm text-white/85 font-medium mb-1">📝 Cambios solicitados:</p>
                               <p className="text-sm text-white/60">{project.clientApprovalNotes || "Sin detalles especificados"}</p>
                             </div>
@@ -957,7 +910,7 @@ export function TeamDashboard() {
         <section className="py-8 pb-24">
           <div className="container">
             <div className="max-w-4xl mx-auto text-center">
-              <div className="bg-[#162828] rounded-2xl shadow-md p-8">
+              <div className="bg-card rounded-2xl shadow-md p-8">
                 <div className="text-6xl mb-4">🎉</div>
                 <h3 className="text-xl font-bold text-foreground mb-2">¡Todo al día!</h3>
                 <p className="text-muted-foreground">No tienes proyectos ni tareas pendientes en este momento.</p>

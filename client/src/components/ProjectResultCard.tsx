@@ -2,18 +2,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, AlertCircle, CheckCircle2, AlertTriangle } from "lucide-react";
 
+import { formatCurrency } from "@/lib/format";
 interface ProjectResultCardProps {
   totalAmount: number;
   materialExpenses: number;
   status?: string;
-}
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("es-CO", {
-    style: "currency",
-    currency: "COP",
-    minimumFractionDigits: 0,
-  }).format(value);
 }
 
 function getMarginStatus(margin: number) {
@@ -30,7 +23,7 @@ export function ProjectResultCard({ totalAmount, materialExpenses, status }: Pro
   const IconComponent = marginStatus.icon;
 
   return (
-    <Card style={{ background: "#162828", border: "1px solid rgba(255,255,255,0.08)" }}>
+    <Card style={{ background: "var(--card)", border: "1px solid rgba(255,255,255,0.08)" }}>
       <CardHeader className="py-3 bg-blue-500/10">
         <CardTitle className="text-sm flex items-center gap-2">
           <TrendingUp className="h-4 w-4 text-blue-400" />

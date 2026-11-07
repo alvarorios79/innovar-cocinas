@@ -173,7 +173,7 @@ export function QuotationVersionComparator({ open, onClose, quotationId, quotati
                 </SelectContent>
               </Select>
 
-              <ArrowRight className="h-4 w-4 text-slate-400 shrink-0" />
+              <ArrowRight className="h-4 w-4 text-gray-400 shrink-0" />
 
               <Select
                 value={String(defaultTo ?? "")}
@@ -203,7 +203,7 @@ export function QuotationVersionComparator({ open, onClose, quotationId, quotati
                 </Badge>
               )}
               {addedCount > 0 && (
-                <Badge className="bg-emerald-500/15 text-emerald-300 border-emerald-200 border gap-1">
+                <Badge className="bg-green-500/15 text-green-300 border-green-200 border gap-1">
                   <Plus className="h-3 w-3" />
                   {addedCount} agregado{addedCount > 1 ? "s" : ""}
                 </Badge>
@@ -217,7 +217,7 @@ export function QuotationVersionComparator({ open, onClose, quotationId, quotati
               {sameCount > 0 && (
                 <button
                   onClick={() => setShowSame(s => !s)}
-                  className="flex items-center gap-1 text-xs text-slate-400 hover:text-muted-foreground transition-colors"
+                  className="flex items-center gap-1 text-xs text-gray-400 hover:text-muted-foreground transition-colors"
                 >
                   {showSame ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
                   {sameCount} sin cambio{sameCount > 1 ? "s" : ""}
@@ -234,7 +234,7 @@ export function QuotationVersionComparator({ open, onClose, quotationId, quotati
               ))}
             </div>
           ) : diff.length === 0 ? (
-            <p className="text-sm text-slate-400 text-center py-8">
+            <p className="text-sm text-gray-400 text-center py-8">
               {versions.length < 2
                 ? "Esta cotización solo tiene una versión"
                 : "Selecciona dos versiones para comparar"}
@@ -249,16 +249,16 @@ export function QuotationVersionComparator({ open, onClose, quotationId, quotati
           {!loading && fromData && toData && (
             <div className="border-t pt-3 space-y-1">
               <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Total V{fromVersion?.versionNumber}</span>
+                <span className="text-gray-500">Total V{fromVersion?.versionNumber}</span>
                 <span className="font-medium">{fmt(fromTotal)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Total V{toVersion?.versionNumber} <span className="text-indigo-500">(vigente)</span></span>
+                <span className="text-gray-500">Total V{toVersion?.versionNumber} <span className="text-indigo-500">(vigente)</span></span>
                 <span className="font-semibold">{fmt(toTotal)}</span>
               </div>
               <div className="flex justify-between text-sm font-semibold border-t pt-2 mt-1">
                 <span>Diferencia</span>
-                <span className={delta > 0 ? "text-emerald-400" : delta < 0 ? "text-red-400" : "text-slate-500"}>
+                <span className={delta > 0 ? "text-green-400" : delta < 0 ? "text-red-400" : "text-gray-500"}>
                   {delta > 0 ? "+" : ""}{fmt(delta)}
                 </span>
               </div>
@@ -280,13 +280,13 @@ export function QuotationVersionComparator({ open, onClose, quotationId, quotati
 function DiffRow({ row, fromV, toV }: { row: DiffRow; fromV: any; toV: any }) {
   if (row.kind === "added") {
     return (
-      <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-emerald-500/10 border border-emerald-100">
-        <Plus className="h-3.5 w-3.5 text-emerald-400 mt-0.5 shrink-0" />
+      <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-green-500/10 border border-green-100">
+        <Plus className="h-3.5 w-3.5 text-green-400 mt-0.5 shrink-0" />
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-medium text-emerald-300 truncate">{row.item.description}</p>
-          <p className="text-[10px] text-emerald-400">Agregado en V{toV?.versionNumber}</p>
+          <p className="text-xs font-medium text-green-300 truncate">{row.item.description}</p>
+          <p className="text-[10px] text-green-400">Agregado en V{toV?.versionNumber}</p>
         </div>
-        <span className="text-xs font-semibold text-emerald-300 shrink-0">{fmt(row.item.totalPrice)}</span>
+        <span className="text-xs font-semibold text-green-300 shrink-0">{fmt(row.item.totalPrice)}</span>
       </div>
     );
   }
@@ -313,7 +313,7 @@ function DiffRow({ row, fromV, toV }: { row: DiffRow; fromV: any; toV: any }) {
           <p className="text-xs font-medium text-amber-300 truncate">{row.new.description}</p>
           <p className="text-[10px] text-amber-400">
             {fmt(row.old.totalPrice)} → {fmt(row.new.totalPrice)}
-            <span className={`ml-1 font-semibold ${delta > 0 ? "text-emerald-400" : "text-red-400"}`}>
+            <span className={`ml-1 font-semibold ${delta > 0 ? "text-green-400" : "text-red-400"}`}>
               ({delta > 0 ? "+" : ""}{fmt(delta)})
             </span>
           </p>
@@ -328,9 +328,9 @@ function DiffRow({ row, fromV, toV }: { row: DiffRow; fromV: any; toV: any }) {
     <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.08] opacity-60">
       <div className="w-3.5 h-3.5 mt-0.5 shrink-0" />
       <div className="flex-1 min-w-0">
-        <p className="text-xs text-slate-500 truncate">{row.item.description}</p>
+        <p className="text-xs text-gray-500 truncate">{row.item.description}</p>
       </div>
-      <span className="text-xs text-slate-400 shrink-0">{fmt(row.item.totalPrice)}</span>
+      <span className="text-xs text-gray-400 shrink-0">{fmt(row.item.totalPrice)}</span>
     </div>
   );
 }

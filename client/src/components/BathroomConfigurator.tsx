@@ -111,7 +111,7 @@ export function BathroomConfigurator({ config, onChange }: BathroomConfiguratorP
     <Card className="mt-4 border-white/[0.15]">
       <CardContent className="p-4">
         <div className="flex items-center gap-2 mb-4 pb-2 border-b border-white/[0.12]">
-          <Bath className="h-5 w-5 text-cyan-400" />
+          <Bath className="h-5 w-5 text-primary" />
           <h4 className="font-bold text-foreground text-lg">Mueble de Baño</h4>
         </div>
         <div className="space-y-4">
@@ -120,7 +120,7 @@ export function BathroomConfigurator({ config, onChange }: BathroomConfiguratorP
             <div>
               <Label className="text-sm font-medium text-white/85 block mb-2">Tipo de mueble</Label>
               <Select value={cfg.furnitureType} onValueChange={(v) => update({ furnitureType: v as any })}>
-                <SelectTrigger className="h-10 bg-[#162828]"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="h-10 bg-card"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="flotante">Flotante</SelectItem>
                   <SelectItem value="piso_con_pata">De piso con pata</SelectItem>
@@ -130,7 +130,7 @@ export function BathroomConfigurator({ config, onChange }: BathroomConfiguratorP
             <div>
               <Label className="text-sm font-medium text-white/85 block mb-2">Tipo de lavabo</Label>
               <Select value={cfg.sinkType} onValueChange={(v) => update({ sinkType: v as any })}>
-                <SelectTrigger className="h-10 bg-[#162828]"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="h-10 bg-card"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="lavamanos_sobreponer">Lavamanos de sobreponer</SelectItem>
                   <SelectItem value="excavado">Excavado (integrado en piedra)</SelectItem>
@@ -144,14 +144,14 @@ export function BathroomConfigurator({ config, onChange }: BathroomConfiguratorP
               <Label className="text-sm font-medium text-white/85 block mb-2">Ancho (cm)</Label>
               <Input type="number" min="50" step="1" value={cfg.width || ""}
                 onChange={(e) => update({ width: parseFloat(e.target.value) || 0 })}
-                className="h-10 bg-[#162828]" placeholder="50-120+" />
+                className="h-10 bg-card" placeholder="50-120+" />
               <p className="text-xs text-muted-foreground mt-1">Rango: {cfg.widthRange} cm</p>
             </div>
             <div>
               <Label className="text-sm font-medium text-white/85 block mb-2">Profundidad (cm)</Label>
               <Input type="number" min="42" max="50" step="1" value={cfg.depth || ""}
                 onChange={(e) => update({ depth: parseFloat(e.target.value) || 0 })}
-                className="h-10 bg-[#162828]" placeholder="42-50" />
+                className="h-10 bg-card" placeholder="42-50" />
             </div>
             <div>
               <Label className="text-sm font-medium text-white/85 block mb-2">
@@ -161,7 +161,7 @@ export function BathroomConfigurator({ config, onChange }: BathroomConfiguratorP
                 max={cfg.furnitureType === "flotante" ? 65 : undefined} step="1"
                 value={isAuto ? (ah ?? cfg.height) : (cfg.height || "")}
                 onChange={(e) => { if (!isAuto) update({ height: parseFloat(e.target.value) || 0 }); }}
-                className="h-10 bg-[#162828]" readOnly={isAuto}
+                className="h-10 bg-card" readOnly={isAuto}
                 placeholder={cfg.furnitureType === "flotante" ? "50-65" : ""} />
               {isAuto && <p className="text-xs text-muted-foreground mt-1">{cfg.sinkType === "excavado" ? "84 cm (excavado)" : "75 cm (sobreponer)"}</p>}
             </div>
@@ -171,7 +171,7 @@ export function BathroomConfigurator({ config, onChange }: BathroomConfiguratorP
             <Label className="text-sm font-medium text-white/85 block mb-2">Cantidad</Label>
             <Input type="number" min="1" step="1" value={cfg.quantity}
               onChange={(e) => update({ quantity: parseInt(e.target.value) || 1 })}
-              className="h-10 bg-[#162828]" />
+              className="h-10 bg-card" />
           </div>
           {/* Componentes a cotizar */}
           <div className="border border-white/[0.12] rounded-lg p-3 space-y-4">
@@ -209,7 +209,7 @@ export function BathroomConfigurator({ config, onChange }: BathroomConfiguratorP
               {cfg.hasExcavado && (
                 <div className="ml-6 space-y-1">
                   <Select value={cfg.excavadoMaterial} onValueChange={(v) => update({ excavadoMaterial: v as any })}>
-                    <SelectTrigger className="h-9 bg-[#162828] w-44"><SelectValue placeholder="Material" /></SelectTrigger>
+                    <SelectTrigger className="h-9 bg-card w-44"><SelectValue placeholder="Material" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="granito">Granito</SelectItem>
                       <SelectItem value="cuarzo">Cuarzo</SelectItem>
@@ -239,7 +239,7 @@ export function BathroomConfigurator({ config, onChange }: BathroomConfiguratorP
               {cfg.hasMeson && (
                 <div className="ml-6 space-y-1">
                   <Select value={cfg.mesonMaterial} onValueChange={(v) => update({ mesonMaterial: v as any })}>
-                    <SelectTrigger className="h-9 bg-[#162828] w-44"><SelectValue placeholder="Material" /></SelectTrigger>
+                    <SelectTrigger className="h-9 bg-card w-44"><SelectValue placeholder="Material" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="granito">Granito</SelectItem>
                       <SelectItem value="cuarzo">Cuarzo</SelectItem>
@@ -260,10 +260,10 @@ export function BathroomConfigurator({ config, onChange }: BathroomConfiguratorP
             <Label className="text-sm font-medium text-white/85 block mb-2">Notas adicionales</Label>
             <Input value={cfg.notes || ""}
               onChange={(e) => update({ notes: e.target.value })}
-              className="h-10 bg-[#162828]" placeholder="Observaciones..." />
+              className="h-10 bg-card" placeholder="Observaciones..." />
           </div>
           {/* Resumen */}
-          <div className="bg-[#162828] p-4 rounded-lg border border-cyan-500/30">
+          <div className="bg-card p-4 rounded-lg border border-primary/30">
             <h5 className="font-semibold text-foreground mb-3">Resumen del Precio</h5>
             <div className="space-y-1 text-sm">
               <div className="flex justify-between text-white/60">
@@ -271,7 +271,7 @@ export function BathroomConfigurator({ config, onChange }: BathroomConfiguratorP
                 <span>× {cfg.quantity} ud</span>
               </div>
               {cfg.widthRange === "mayor-120" && (
-                <p className="text-xs text-cyan-400">Precio calculado proporcionalmente (ancho &gt; 120 cm)</p>
+                <p className="text-xs text-primary">Precio calculado proporcionalmente (ancho &gt; 120 cm)</p>
               )}
               {cfg.includeMadera !== false && (
                 <div className="flex justify-between">
@@ -295,8 +295,8 @@ export function BathroomConfigurator({ config, onChange }: BathroomConfiguratorP
                 <div>
                   <span className="font-bold text-foreground">TOTAL:</span>
                   <p className="text-xs text-muted-foreground mt-1">Madera aglomerada tipo RH de alta presión, cantos rígidos en puertas y tapas</p>
-                  {cfg.hasExcavado && cfg.excavadoMaterial && <p className="text-xs text-cyan-300 mt-0.5">Excavado incluye salpicadero 10cm — llave/grifería no incluida</p>}
-                  {cfg.hasMeson && cfg.mesonMaterial && <p className="text-xs text-cyan-300 mt-0.5">Mesón incluye salpicadero 10cm — llave/grifería y lavamanos no incluidos</p>}
+                  {cfg.hasExcavado && cfg.excavadoMaterial && <p className="text-xs text-teal-300 mt-0.5">Excavado incluye salpicadero 10cm — llave/grifería no incluida</p>}
+                  {cfg.hasMeson && cfg.mesonMaterial && <p className="text-xs text-teal-300 mt-0.5">Mesón incluye salpicadero 10cm — llave/grifería y lavamanos no incluidos</p>}
                 </div>
                 <span className="text-2xl font-bold text-primary">${cfg.subtotal.toLocaleString()}</span>
               </div>

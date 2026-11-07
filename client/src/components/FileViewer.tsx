@@ -270,7 +270,7 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
           <Button
             variant="ghost"
             size="icon"
-            className="text-white hover:bg-[#162828]/20 h-10 w-10"
+            className="text-white hover:bg-card/20 h-10 w-10"
             onClick={(e) => { e.stopPropagation(); zoomOut(); }}
             disabled={scale <= 0.5}
           >
@@ -282,7 +282,7 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
           <Button
             variant="ghost"
             size="icon"
-            className="text-white hover:bg-[#162828]/20 h-10 w-10"
+            className="text-white hover:bg-card/20 h-10 w-10"
             onClick={(e) => { e.stopPropagation(); zoomIn(); }}
             disabled={scale >= 5}
           >
@@ -292,7 +292,7 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
             <Button
               variant="ghost"
               size="icon"
-              className="text-white hover:bg-[#162828]/20 h-10 w-10"
+              className="text-white hover:bg-card/20 h-10 w-10"
               onClick={(e) => { e.stopPropagation(); rotate(); }}
             >
               <RotateCw className="h-5 w-5" />
@@ -302,7 +302,7 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
             <Button
               variant="ghost"
               size="icon"
-              className="text-white hover:bg-[#162828]/20 h-10 w-10"
+              className="text-white hover:bg-card/20 h-10 w-10"
               onClick={(e) => { e.stopPropagation(); openInNewTab(); }}
               title="Abrir en nueva pestaña"
             >
@@ -312,7 +312,7 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
           <Button
             variant="ghost"
             size="icon"
-            className="text-white hover:bg-[#162828]/20 h-10 w-10"
+            className="text-white hover:bg-card/20 h-10 w-10"
             onClick={(e) => { e.stopPropagation(); downloadFile(); }}
             title="Descargar"
           >
@@ -330,7 +330,7 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
           <Button
             variant="ghost"
             size="icon"
-            className="text-white hover:bg-[#162828]/20 h-10 w-10"
+            className="text-white hover:bg-card/20 h-10 w-10"
             onClick={(e) => { e.stopPropagation(); onClose(); }}
           >
             <X className="h-5 w-5" />
@@ -354,7 +354,7 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
               transition: 'transform 0.1s ease-out',
             }}
           >
-            <div className="bg-[#162828] rounded-lg shadow-2xl overflow-hidden" style={{ width: '90vw', maxWidth: '800px', height: '80vh' }}>
+            <div className="bg-card rounded-lg shadow-2xl overflow-hidden" style={{ width: '90vw', maxWidth: '800px', height: '80vh' }}>
               {/* Usar object tag para embeber PDF directamente */}
               <object
                 data={currentFile?.url}
@@ -411,7 +411,7 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
         <Button
           variant="ghost"
           size="icon"
-          className="text-white hover:bg-[#162828]/20 h-14 w-14 rounded-full"
+          className="text-white hover:bg-card/20 h-14 w-14 rounded-full"
           onClick={(e) => { e.stopPropagation(); zoomOut(); }}
           disabled={scale <= 0.5}
         >
@@ -423,19 +423,19 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
         <Button
           variant="ghost"
           size="icon"
-          className="text-white hover:bg-[#162828]/20 h-14 w-14 rounded-full"
+          className="text-white hover:bg-card/20 h-14 w-14 rounded-full"
           onClick={(e) => { e.stopPropagation(); zoomIn(); }}
           disabled={scale >= 5}
         >
           <ZoomIn className="h-7 w-7" />
         </Button>
-        <div className="w-px h-10 bg-[#162828]/30 mx-1" />
+        <div className="w-px h-10 bg-card/30 mx-1" />
         {isPdf ? (
           <>
             <Button
               variant="ghost"
               size="icon"
-              className="text-white hover:bg-[#162828]/20 h-14 w-14 rounded-full"
+              className="text-white hover:bg-card/20 h-14 w-14 rounded-full"
               onClick={(e) => { e.stopPropagation(); openInNewTab(); }}
               title="Abrir en nueva pestaña"
             >
@@ -444,7 +444,7 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
             <Button
               variant="ghost"
               size="icon"
-              className="text-white hover:bg-[#162828]/20 h-14 w-14 rounded-full"
+              className="text-white hover:bg-card/20 h-14 w-14 rounded-full"
               onClick={(e) => { e.stopPropagation(); downloadFile(); }}
             >
               <Download className="h-7 w-7" />
@@ -455,7 +455,7 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
             <Button
               variant="ghost"
               size="icon"
-              className="text-white hover:bg-[#162828]/20 h-14 w-14 rounded-full"
+              className="text-white hover:bg-card/20 h-14 w-14 rounded-full"
               onClick={(e) => { e.stopPropagation(); rotate(); }}
             >
               <RotateCw className="h-7 w-7" />
@@ -463,7 +463,7 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
             <Button
               variant="ghost"
               size="icon"
-              className="text-white hover:bg-[#162828]/20 h-14 w-14 rounded-full"
+              className="text-white hover:bg-card/20 h-14 w-14 rounded-full"
               onClick={(e) => { e.stopPropagation(); resetView(); }}
             >
               <RotateCcw className="h-7 w-7" />
@@ -488,7 +488,7 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
             variant="ghost"
             size="icon"
             className={cn(
-              "absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 text-white hover:bg-[#162828]/20 h-14 w-14 rounded-full transition-opacity duration-300 z-20",
+              "absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 text-white hover:bg-card/20 h-14 w-14 rounded-full transition-opacity duration-300 z-20",
               !showControls && "opacity-0 pointer-events-none"
             )}
             onClick={(e) => { e.stopPropagation(); goToPrevious(); }}
@@ -499,7 +499,7 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
             variant="ghost"
             size="icon"
             className={cn(
-              "absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 text-white hover:bg-[#162828]/20 h-14 w-14 rounded-full transition-opacity duration-300 z-20",
+              "absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 text-white hover:bg-card/20 h-14 w-14 rounded-full transition-opacity duration-300 z-20",
               !showControls && "opacity-0 pointer-events-none"
             )}
             onClick={(e) => { e.stopPropagation(); goToNext(); }}

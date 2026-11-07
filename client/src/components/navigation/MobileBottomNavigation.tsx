@@ -99,7 +99,7 @@ export function MobileBottomNavigation() {
 
       {/* Sheet del Menú */}
       <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
-        <SheetContent side="left" className="w-72 bg-[#0C1A1A] border-r border-white/10">
+        <SheetContent side="left" className="w-72 bg-background border-r border-white/10">
           <SheetHeader>
             <SheetTitle className="text-white text-left">Menú</SheetTitle>
           </SheetHeader>
@@ -110,7 +110,7 @@ export function MobileBottomNavigation() {
                 onClick={() => { setLocation(path); setMenuOpen(false); }}
                 className="w-full flex items-center gap-3 px-3 py-3 rounded-lg text-white/80 hover:bg-white/10 transition-colors text-left"
               >
-                <Icon className="h-5 w-5 text-teal-400" />
+                <Icon className="h-5 w-5 text-primary" />
                 <span className="flex-1 font-medium">{label}</span>
                 <ChevronRight className="h-4 w-4 text-white/30" />
               </button>
@@ -143,7 +143,7 @@ export function MobileBottomNavigation() {
                 variant="ghost"
                 size="sm"
                 className={`flex flex-col items-center gap-1 h-full rounded-none flex-1 transition-all duration-200 relative group ${
-                  active ? "bg-[#162828]/20 text-white font-semibold" : "text-white/70 hover:bg-[#162828]/10"
+                  active ? "bg-card/20 text-white font-semibold" : "text-white/70 hover:bg-card/10"
                 }`}
                 onClick={() => setLocation(item.path)}
               >
@@ -157,7 +157,7 @@ export function MobileBottomNavigation() {
           <Button
             variant="ghost"
             size="sm"
-            className="flex flex-col items-center gap-1 h-full rounded-none flex-1 text-white/70 hover:bg-[#162828]/10 transition-all duration-200"
+            className="flex flex-col items-center gap-1 h-full rounded-none flex-1 text-white/70 hover:bg-card/10 transition-all duration-200"
             onClick={() => setMenuOpen(true)}
           >
             <Menu className="w-5 h-5" />

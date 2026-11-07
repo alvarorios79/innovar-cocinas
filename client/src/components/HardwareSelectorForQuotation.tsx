@@ -88,7 +88,7 @@ export function HardwareSelectorForQuotation({ selectedHardware, onHardwareChang
             <h4 className="font-bold text-white/90 text-lg">Herrajes seleccionados</h4>
             <button
               type="button"
-              className="ml-auto flex items-center gap-1 rounded-lg bg-[#0F2222] hover:bg-white/[0.10] px-3 py-1.5 text-sm text-white/85"
+              className="ml-auto flex items-center gap-1 rounded-lg bg-surface hover:bg-white/[0.10] px-3 py-1.5 text-sm text-white/85"
               onClick={() => setEditing(true)}
             >
               <Pencil className="h-4 w-4" /> Agregar o quitar herrajes
@@ -96,7 +96,7 @@ export function HardwareSelectorForQuotation({ selectedHardware, onHardwareChang
           </div>
           <div className="space-y-2">
             {selectedHardware.map(s => (
-              <div key={s.hardwareId} className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-400/60 bg-[#0F2222] p-3">
+              <div key={s.hardwareId} className="flex flex-wrap items-center gap-3 rounded-lg border border-gray-400/60 bg-surface p-3">
                 <div className="flex-1 min-w-[160px]">
                   <p className="font-medium text-white/90">{s.name}</p>
                   <p className="text-xs text-white/45">${parseFloat(s.price || "0").toLocaleString("es-CO")} c/u</p>
@@ -108,7 +108,7 @@ export function HardwareSelectorForQuotation({ selectedHardware, onHardwareChang
                     min="1"
                     value={s.quantity}
                     onChange={(e) => handleQuantityChange(s.hardwareId, parseInt(e.target.value) || 1)}
-                    className="w-20 h-8 bg-[#162828]"
+                    className="w-20 h-8 bg-card"
                   />
                 </div>
                 <div className="text-sm font-semibold text-white/85 w-28 text-right">${s.subtotal.toLocaleString("es-CO")}</div>
@@ -123,7 +123,7 @@ export function HardwareSelectorForQuotation({ selectedHardware, onHardwareChang
               </div>
             ))}
           </div>
-          <div className="bg-white/[0.10] p-3 rounded-lg border border-slate-400 flex justify-between items-center">
+          <div className="bg-white/[0.10] p-3 rounded-lg border border-gray-400 flex justify-between items-center">
             <span className="text-sm">{selectedHardware.length} herraje{selectedHardware.length !== 1 ? "s" : ""} seleccionado{selectedHardware.length !== 1 ? "s" : ""}</span>
             <span className="text-xl font-bold text-foreground">${totalPrice.toLocaleString("es-CO")}</span>
           </div>
@@ -143,7 +143,7 @@ export function HardwareSelectorForQuotation({ selectedHardware, onHardwareChang
           {selectedHardware.length > 0 && (
             <button
               type="button"
-              className="ml-auto flex items-center gap-1 rounded-lg bg-slate-700 hover:bg-slate-600 px-3 py-1.5 text-sm text-white"
+              className="ml-auto flex items-center gap-1 rounded-lg bg-gray-700 hover:bg-gray-600 px-3 py-1.5 text-sm text-white"
               onClick={() => setEditing(false)}
             >
               <Check className="h-4 w-4" /> Listo
@@ -158,8 +158,8 @@ export function HardwareSelectorForQuotation({ selectedHardware, onHardwareChang
               type="button"
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 selectedCategory === "cocinas"
-                  ? "bg-slate-700 text-white"
-                  : "bg-[#0F2222] text-white/85 hover:bg-white/[0.10]"
+                  ? "bg-gray-700 text-white"
+                  : "bg-surface text-white/85 hover:bg-white/[0.10]"
               }`}
               onClick={() => setSelectedCategory("cocinas")}
             >
@@ -169,8 +169,8 @@ export function HardwareSelectorForQuotation({ selectedHardware, onHardwareChang
               type="button"
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 selectedCategory === "closets"
-                  ? "bg-slate-700 text-white"
-                  : "bg-[#0F2222] text-white/85 hover:bg-white/[0.10]"
+                  ? "bg-gray-700 text-white"
+                  : "bg-surface text-white/85 hover:bg-white/[0.10]"
               }`}
               onClick={() => setSelectedCategory("closets")}
             >
@@ -180,8 +180,8 @@ export function HardwareSelectorForQuotation({ selectedHardware, onHardwareChang
               type="button"
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 selectedCategory === "puertas"
-                  ? "bg-slate-700 text-white"
-                  : "bg-[#0F2222] text-white/85 hover:bg-white/[0.10]"
+                  ? "bg-gray-700 text-white"
+                  : "bg-surface text-white/85 hover:bg-white/[0.10]"
               }`}
               onClick={() => setSelectedCategory("puertas")}
             >
@@ -195,7 +195,7 @@ export function HardwareSelectorForQuotation({ selectedHardware, onHardwareChang
               <Loader2 className="h-6 w-6 animate-spin text-white/45" />
             </div>
           ) : catalog.length === 0 ? (
-            <div className="text-center py-8 text-white/45 bg-[#0F2222] rounded-lg">
+            <div className="text-center py-8 text-white/45 bg-surface rounded-lg">
               No hay herrajes disponibles en esta categoría
             </div>
           ) : (
@@ -209,7 +209,7 @@ export function HardwareSelectorForQuotation({ selectedHardware, onHardwareChang
                   <div
                     key={hardware.id}
                     className={`border rounded-lg p-3 transition-colors ${
-                      selected ? "bg-[#0F2222] border-slate-400" : "bg-[#162828] border-[rgba(106,207,199,0.12)] hover:border-[rgba(106,207,199,0.18)]"
+                      selected ? "bg-surface border-gray-400" : "bg-card border-[rgba(106,207,199,0.12)] hover:border-[rgba(106,207,199,0.18)]"
                     }`}
                   >
                     <div className="flex items-start gap-3">
@@ -218,11 +218,11 @@ export function HardwareSelectorForQuotation({ selectedHardware, onHardwareChang
                         type="checkbox"
                         checked={selected}
                         onChange={(e) => handleToggleHardware(hardware, e.target.checked)}
-                        className="mt-1 h-4 w-4 rounded border-[rgba(106,207,199,0.18)] text-white/60 focus:ring-slate-500"
+                        className="mt-1 h-4 w-4 rounded border-[rgba(106,207,199,0.18)] text-white/60 focus:ring-gray-500"
                       />
 
                       {/* Imagen miniatura */}
-                      <div className="w-16 h-16 flex-shrink-0 bg-[#0F2222] rounded overflow-hidden">
+                      <div className="w-16 h-16 flex-shrink-0 bg-surface rounded overflow-hidden">
                         {hardware.photoUrl ? (
                           <img
                             src={hardware.photoUrl}
@@ -264,7 +264,7 @@ export function HardwareSelectorForQuotation({ selectedHardware, onHardwareChang
                                 onChange={(e) =>
                                   handleQuantityChange(hardware.id, parseInt(e.target.value) || 1)
                                 }
-                                className="w-20 h-8 bg-[#162828]"
+                                className="w-20 h-8 bg-card"
                               />
                             </div>
                             <div className="text-sm font-semibold text-white/85">
@@ -282,14 +282,14 @@ export function HardwareSelectorForQuotation({ selectedHardware, onHardwareChang
 
           {/* Resumen Total */}
           {selectedHardware.length > 0 && (
-            <div className="bg-white/[0.10] p-4 rounded-lg border border-slate-400">
+            <div className="bg-white/[0.10] p-4 rounded-lg border border-gray-400">
               <h5 className="font-semibold text-white/90 mb-3">Resumen del Precio</h5>
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between">
                   <span>{selectedHardware.length} herraje{selectedHardware.length !== 1 ? 's' : ''} seleccionado{selectedHardware.length !== 1 ? 's' : ''}:</span>
                   <span className="font-medium">${totalPrice.toLocaleString('es-CO')}</span>
                 </div>
-                <div className="border-t border-slate-400 pt-2 mt-2 flex justify-between">
+                <div className="border-t border-gray-400 pt-2 mt-2 flex justify-between">
                   <span className="font-bold text-foreground">TOTAL:</span>
                   <span className="text-2xl font-bold text-foreground">${totalPrice.toLocaleString('es-CO')}</span>
                 </div>

@@ -68,40 +68,8 @@ import { getChecklistView } from "@/lib/visitChecklist";
 import { groupByVersion, type DesignVersionInfo } from "@shared/designVersions";
 
 
-// Estados del proyecto según Ruta INNOVAR (14 estados simplificados)
-const PROJECT_STATUSES: Record<string, { label: string; color: string; icon: any }> = {
-  contacto: { label: "Contacto", color: "bg-slate-400", icon: Clock },
-  cotizacion_enviada: { label: "Cotización Enviada", color: "bg-gray-500", icon: Clock },
-  cotizacion_aprobada: { label: "Cotización Aprobada", color: "bg-blue-400", icon: CheckCircle2 },
-  adelanto_recibido: { label: "Adelanto Recibido", color: "bg-blue-500", icon: CheckCircle2 },
-  en_diseno: { label: "En Diseño", color: "bg-purple-500", icon: AlertCircle },
-  pendiente_modelado: { label: "Pendiente Modelado 3D", color: "bg-violet-500", icon: AlertCircle },
-  pendiente_render: { label: "Pendiente Renders", color: "bg-amber-500", icon: AlertCircle },
-  aprobacion_final: { label: "Diseño Aprobado", color: "bg-green-400", icon: CheckCircle2 },
-  despiece: { label: "Despiece", color: "bg-indigo-500", icon: AlertCircle },
-  corte: { label: "En Corte", color: "bg-orange-500", icon: AlertCircle },
-  enchape: { label: "En Enchape", color: "bg-orange-600", icon: AlertCircle },
-  ensamble: { label: "En Ensamble", color: "bg-orange-700", icon: AlertCircle },
-  listo_instalacion: { label: "Listo para Instalación", color: "bg-teal-500", icon: AlertCircle },
-  trabajando_instalacion: { label: "Instalando", color: "bg-cyan-600", icon: AlertCircle },
-  entregado: { label: "Entregado", color: "bg-green-700", icon: CheckCircle2 },
-};
-
-// Función para obtener la etiqueta dinámica del estado
-const getStatusLabel = (status: string, modeladoRevisionNumber?: number | null, renderRevisionNumber?: number | null): string => {
-  if (status === "pendiente_modelado" && modeladoRevisionNumber && modeladoRevisionNumber > 0) {
-    return `Pendiente Aprobación Modelado ${modeladoRevisionNumber}`;
-  }
-  if (status === "pendiente_render" && renderRevisionNumber && renderRevisionNumber > 0) {
-    return `Pendiente Aprobación Render ${renderRevisionNumber}`;
-  }
-  // El cliente aprobó los renders: mostrar con qué versión quedó aprobado el diseño
-  if (status === "aprobacion_final" && renderRevisionNumber && renderRevisionNumber > 0) {
-    return `Diseño Aprobado V${renderRevisionNumber}`;
-  }
-  return PROJECT_STATUSES[status]?.label || status;
-};
-
+import { formatCurrency } from "@/lib/format";
+import { PROJECT_STATUS as PROJECT_STATUSES, getProjectStatusLabel as getStatusLabel } from "@/lib/projectStatus";
 const WORK_TYPES = {
   cocina: "Cocina Integral",
   closet: "Closet",
@@ -638,7 +606,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
               <>
                 <div className="text-6xl">🎨</div>
                 <h2 className="text-xl font-semibold text-white">En proceso de diseño</h2>
-                <p className="text-sm text-slate-400">
+                <p className="text-sm text-gray-400">
                   Este proyecto aún está en etapa de diseño. Estará disponible aquí cuando sea aprobado y pase a taller.
                 </p>
               </>
@@ -658,12 +626,6 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
       </div>
     );
   }
-
-  const formatCurrency = (value: number | string | null | undefined) => {
-    if (!value) return "$0";
-    const num = typeof value === "string" ? parseFloat(value) : value;
-    return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(num);
-  };
 
   const formatDate = (date: Date | string | null | undefined) => {
     if (!date) return "No definida";
@@ -730,7 +692,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
             <Button
               variant="outline"
               size="sm"
-              className="bg-yellow-400 hover:bg-yellow-500 text-yellow-100 border-yellow-500"
+              className="bg-amber-400 hover:bg-amber-500 text-amber-100 border-amber-500"
               onClick={() => {
                 setEditDateForm({
                   estimatedInstallDate: projectDetail.estimatedInstallDate 
@@ -779,7 +741,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
           <TabsList className="flex overflow-x-auto w-full gap-1 h-auto p-1 bg-muted/50 mb-4 scrollbar-hide">
             <TabsTrigger
               value="info"
-              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-blue-500/15 text-blue-300 data-[state=active]:bg-blue-500 data-[state=active]:text-white hover:bg-blue-500/20 transition-colors rounded-md whitespace-nowrap"
+              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 transition-colors rounded-md whitespace-nowrap"
             >
               <Info className="h-3.5 w-3.5 mr-1" />
               <span>Info</span>
@@ -787,7 +749,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
             {user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && (
               <TabsTrigger
                 value="financiero"
-                className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-emerald-500/15 text-emerald-300 data-[state=active]:bg-emerald-500 data-[state=active]:text-white hover:bg-emerald-200 transition-colors rounded-md whitespace-nowrap"
+                className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 transition-colors rounded-md whitespace-nowrap"
               >
                 <DollarSign className="h-3.5 w-3.5 mr-1" />
                 <span>Financiero</span>
@@ -795,28 +757,28 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
             )}
             <TabsTrigger
               value="diseno"
-              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-purple-500/15 text-purple-300 data-[state=active]:bg-purple-500 data-[state=active]:text-white hover:bg-purple-500/20 transition-colors rounded-md whitespace-nowrap"
+              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 transition-colors rounded-md whitespace-nowrap"
             >
               <Palette className="h-3.5 w-3.5 mr-1" />
               <span>Diseño</span>
             </TabsTrigger>
             <TabsTrigger
               value="produccion"
-              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-orange-500/15 text-orange-300 data-[state=active]:bg-orange-500 data-[state=active]:text-white hover:bg-orange-500/20 transition-colors rounded-md whitespace-nowrap"
+              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 transition-colors rounded-md whitespace-nowrap"
             >
               <Hammer className="h-3.5 w-3.5 mr-1" />
               <span>Producción</span>
             </TabsTrigger>
             <TabsTrigger
               value="instalacion"
-              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-teal-500/15 text-teal-300 data-[state=active]:bg-teal-500 data-[state=active]:text-white hover:bg-teal-200 transition-colors rounded-md whitespace-nowrap"
+              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 transition-colors rounded-md whitespace-nowrap"
             >
               <Truck className="h-3.5 w-3.5 mr-1" />
               <span>Instalación</span>
             </TabsTrigger>
             <TabsTrigger
               value="postventa"
-              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-pink-500/15 text-pink-300 data-[state=active]:bg-pink-500 data-[state=active]:text-white hover:bg-pink-200 transition-colors rounded-md whitespace-nowrap"
+              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 transition-colors rounded-md whitespace-nowrap"
             >
               <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
               <span>Postventa</span>
@@ -824,7 +786,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
             {user?.role !== "jefe_taller" && user?.role !== "operario" && (
               <TabsTrigger
                 value="history"
-                className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 bg-white/[0.10] text-muted-foreground data-[state=active]:bg-gray-600 data-[state=active]:text-white hover:bg-gray-300 transition-colors rounded-md whitespace-nowrap"
+                className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 text-muted-foreground transition-colors rounded-md whitespace-nowrap"
               >
                 <History className="h-3.5 w-3.5 mr-1" />
                 <span>Historial</span>
@@ -834,8 +796,8 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
 
           {/* Tab Información */}
           <TabsContent value="info" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card style={{ background: "#162828", border: "1px solid rgba(255,255,255,0.08)" }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+              <Card style={{ background: "var(--card)", border: "1px solid rgba(255,255,255,0.08)" }}>
                 <CardHeader className="py-3 bg-blue-500/10">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <User className="h-4 w-4 text-blue-400" />
@@ -883,7 +845,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                           href={href}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="mt-2 flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold rounded-lg transition-colors w-full"
+                          className="mt-2 flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-500 text-white text-sm font-bold rounded-lg transition-colors w-full"
                         >
                           📍 {lat != null ? "Navegar al domicilio" : "Buscar dirección en Maps"}
                         </a>
@@ -894,7 +856,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
               </Card>
 
               {user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && (
-                <Card style={{ background: "#162828", border: "1px solid rgba(255,255,255,0.08)" }}>
+                <Card style={{ background: "var(--card)", border: "1px solid rgba(255,255,255,0.08)" }}>
                   <CardHeader className="py-3 bg-green-500/10">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-sm flex items-center gap-2">
@@ -1021,7 +983,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                     </CardContent>
                   ) : (
                     <CardContent className="py-8 flex flex-col items-center justify-center">
-                      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-900/30 to-emerald-200 flex items-center justify-center mb-2">
+                      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-900/30 to-green-200 flex items-center justify-center mb-2">
                         <DollarSign className="h-10 w-10 text-green-400" />
                       </div>
                     </CardContent>
@@ -1037,7 +999,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                 />
               )}
 
-              <Card style={{ background: "#162828", border: "1px solid rgba(255,255,255,0.08)" }}>
+              <Card style={{ background: "var(--card)", border: "1px solid rgba(255,255,255,0.08)" }}>
                 <CardHeader className="py-3 bg-purple-500/10">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-purple-400" />
@@ -1081,7 +1043,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
             </div>
 
             {((projectDetail as any).file3dUrl || (projectDetail as any).fileDesgloseUrl) && (
-              <Card style={{ background: "#162828", border: "1px solid rgba(255,255,255,0.08)" }}>
+              <Card style={{ background: "var(--card)", border: "1px solid rgba(255,255,255,0.08)" }}>
                 <CardHeader className="py-3">
                   <CardTitle className="text-sm">Archivos de Diseño</CardTitle>
                 </CardHeader>
@@ -1245,7 +1207,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
             {(user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial" || user?.role === "disenador" || user?.role === "jefe_taller" || user?.role === "operario") && (
               <div className="mb-4 rounded-xl overflow-hidden shadow-lg border border-white/[0.10]">
                 {/* Header del Panel */}
-                <div className="bg-gradient-to-r from-teal-600 to-teal-500 px-6 py-4">
+                <div className="bg-gradient-to-r from-teal-600 to-primary px-6 py-4">
                   <h3 className="text-lg font-bold text-white flex items-center gap-2">
                     <Palette className="h-5 w-5" />
                     Centro de Control de Diseño
@@ -1253,7 +1215,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                   <p className="text-teal-100 text-sm mt-1">Gestiona el envío y aprobación de diseños del cliente</p>
                 </div>
                 
-                <div className="bg-[#162828] p-6">
+                <div className="bg-card p-6">
                   {/* Grid de Tarjetas de Acción */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     
@@ -1293,9 +1255,9 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                     </div>
                     
                     {/* Tarjeta Renders */}
-                    <div className={`relative rounded-xl p-5 transition-all duration-300 ${projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 ? 'bg-emerald-500/15 border-2 border-emerald-500/25 hover:shadow-md' : 'bg-white/[0.03] border-2 border-dashed border-white/[0.15]'}`}>
+                    <div className={`relative rounded-xl p-5 transition-all duration-300 ${projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 ? 'bg-green-500/15 border-2 border-green-500/25 hover:shadow-md' : 'bg-white/[0.03] border-2 border-dashed border-white/[0.15]'}`}>
                       <div className="flex items-start gap-4">
-                        <div className={`p-3 rounded-xl ${projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 ? 'bg-emerald-500 text-white' : 'bg-white/[0.10] text-muted-foreground'}`}>
+                        <div className={`p-3 rounded-xl ${projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 ? 'bg-green-500 text-white' : 'bg-white/[0.10] text-muted-foreground'}`}>
                           <ImageIcon className="h-6 w-6" />
                         </div>
                         <div className="flex-1">
@@ -1316,7 +1278,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                       {projectDetail.photos?.filter((p: any) => p.subcategory === "renders").length > 0 && (user?.role !== "jefe_taller" && user?.role !== "operario") && (
                         <Button
                           size="sm"
-                          className={`w-full mt-4 shadow-sm ${(projectDetail.renderRevisionNumber || 0) >= 1 ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-emerald-600 hover:bg-emerald-700'} text-white`}
+                          className={`w-full mt-4 shadow-sm ${(projectDetail.renderRevisionNumber || 0) >= 1 ? 'bg-green-500 hover:bg-green-600' : 'bg-green-600 hover:bg-green-700'} text-white`}
                           onClick={() => sendRendersToClient.mutate({ projectId: projectDetail.id })}
                           disabled={sendRendersToClient.isPending}
                           title={(projectDetail.renderRevisionNumber || 0) >= 1 ? 'Reenviar enlace de aprobación al cliente (incrementará la revisión)' : 'Enviar renders al cliente para aprobación'}
@@ -1462,7 +1424,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
 
             {Object.entries(disenoFolders).map(([category, subcategories]) => (
               <Card key={category}>
-                <CardHeader className="py-3 bg-gradient-to-r from-emerald-500 to-teal-500">
+                <CardHeader className="py-3 bg-gradient-to-r from-green-500 to-primary">
                   <CardTitle className="text-base font-bold text-white tracking-wide">
                     {categoryLabels[category] || category}
                   </CardTitle>
@@ -1480,10 +1442,10 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                     )}
                     {/* Levantamiento del medidor — solo en la sección Medidas */}
                     {category === "medidas" && technicalVisit && (
-                      <div className="mb-4 pb-4 border-b border-teal-500/20 space-y-3">
+                      <div className="mb-4 pb-4 border-b border-primary/20 space-y-3">
                         <h5 className="text-sm font-semibold text-teal-300 flex items-center gap-2">
                           📋 Levantamiento del Medidor
-                          <span className="text-xs font-normal bg-teal-500/20 text-teal-400 px-2 py-0.5 rounded-full">
+                          <span className="text-xs font-normal bg-primary/20 text-primary px-2 py-0.5 rounded-full">
                             {technicalVisit.clientName}
                           </span>
                         </h5>
@@ -1510,7 +1472,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                                   <>
                                     {view.general.map(({ key, label, done }) => (
                                       <div key={key} className="flex items-center gap-1 text-xs">
-                                        <span className={done ? "text-emerald-400" : "text-red-400"}>{done ? "✓" : "✗"}</span>
+                                        <span className={done ? "text-green-400" : "text-red-400"}>{done ? "✓" : "✗"}</span>
                                         <span className="text-gray-300">{label}</span>
                                       </div>
                                     ))}
@@ -1542,7 +1504,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                           <div>
                             <p className="text-xs text-gray-400 mb-1">Evaluación técnica</p>
                             <span className={`text-xs px-2 py-1 rounded-full ${
-                              technicalVisit.technicalEvaluation === 'viable' ? 'bg-emerald-500/20 text-emerald-300' :
+                              technicalVisit.technicalEvaluation === 'viable' ? 'bg-green-500/20 text-green-300' :
                               technicalVisit.technicalEvaluation === 'requiere_revision' ? 'bg-amber-500/20 text-amber-300' :
                               'bg-red-500/20 text-red-300'
                             }`}>
@@ -1587,7 +1549,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                                   <div className="flex-1 min-w-0">
                                     <p className="text-xs text-white truncate">{pdf.fileName}</p>
                                     {pdf.savedPercent > 0 && (
-                                      <p className="text-[10px] text-emerald-400">Comprimido {pdf.savedPercent}%</p>
+                                      <p className="text-[10px] text-green-400">Comprimido {pdf.savedPercent}%</p>
                                     )}
                                   </div>
                                 </a>
@@ -1599,7 +1561,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                           <div className="pt-2">
                             <button
                               onClick={() => navigate(`/levantamientos?visitId=${technicalVisit.id}&from=${encodeURIComponent(`/projects/${projectId}`)}`)}
-                              className="flex items-center gap-2 text-xs text-teal-400 hover:text-teal-300 bg-teal-500/10 hover:bg-teal-500/20 px-3 py-1.5 rounded-lg transition-colors w-full justify-center"
+                              className="flex items-center gap-2 text-xs text-primary hover:text-teal-300 bg-primary/10 hover:bg-primary/20 px-3 py-1.5 rounded-lg transition-colors w-full justify-center"
                             >
                               <ArrowRight className="h-3.5 w-3.5" />
                               Ver levantamiento completo
@@ -1626,10 +1588,10 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                       return (
                         <div key={subcategory} className="border rounded-lg p-3">
                           <div className="flex items-center justify-between mb-2">
-                            <h5 className="font-semibold text-base text-emerald-300 flex items-center gap-2">
-                              <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
+                            <h5 className="font-semibold text-base text-green-300 flex items-center gap-2">
+                              <span className="w-2 h-2 bg-green-500 rounded-full"></span>
                               {subcategoryLabels[subcategory] || subcategory}
-                              <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${photos.length > 0 ? 'bg-emerald-500/15 text-emerald-300' : 'bg-white/[0.06] text-gray-500'}`}>
+                              <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${photos.length > 0 ? 'bg-green-500/15 text-green-300' : 'bg-white/[0.06] text-gray-500'}`}>
                                 {photos.length} {photos.length === 1 ? 'foto' : 'fotos'}
                               </span>
                             </h5>
@@ -1717,11 +1679,11 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                                 })})                              </div>
                               {/* Botón de avanzar etapa - siempre visible para roles permitidos */}
                               {canShowAdvanceButton(subcategory) && (
-                                <div className="mt-3 pt-3 border-t border-dashed border-emerald-200">
+                                <div className="mt-3 pt-3 border-t border-dashed border-green-200">
                                   <Button
                                     onClick={() => openAdvanceConfirmDialog(subcategory)}
                                     disabled={updateStatus.isPending}
-                                    className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold"
+                                    className="w-full bg-gradient-to-r from-green-500 to-primary hover:from-green-600 hover:to-teal-600 text-white font-semibold"
                                   >
                                     {updateStatus.isPending ? (
                                       <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
@@ -1813,7 +1775,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                 <CardContent className="pt-4">
                   <div className="space-y-3 max-h-96 overflow-y-auto">
                     {projectDetail.clientRevisions.map((revision: any, index: number) => (
-                      <div key={revision.id || index} className="p-3 bg-[#162828] rounded-lg border border-orange-500/25">
+                      <div key={revision.id || index} className="p-3 bg-card rounded-lg border border-orange-500/25">
                         <div className="flex items-center justify-between mb-2">
                           <span className={`text-xs font-medium px-2 py-1 rounded ${revision.type === 'modelado_3d' ? 'bg-blue-500/15 text-blue-300' : 'bg-purple-500/15 text-purple-300'}`}>
                             {revision.type === 'modelado_3d' ? '📎 Modelado 3D' : '🎨 Renders'} - Rev. {revision.revisionNumber}
@@ -1851,7 +1813,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                 </CardHeader>
                 <CardContent className="pt-4">
                   <div className="space-y-3">
-                    <div className="p-3 bg-[#162828] rounded-lg border border-orange-500/25">
+                    <div className="p-3 bg-card rounded-lg border border-orange-500/25">
                       <p className="text-sm text-muted-foreground">{projectDetail.clientApprovalNotes}</p>
                       {projectDetail.changesRequestedAt && (
                         <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
@@ -1921,9 +1883,9 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
             {/* Fechas de instalación */}
             {(projectDetail.tentativeInstallDate || projectDetail.estimatedInstallDate) && (
               <Card>
-                <CardHeader className="py-3 bg-teal-500/10">
+                <CardHeader className="py-3 bg-primary/10">
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-teal-400" />
+                    <Calendar className="h-4 w-4 text-primary" />
                     Fechas de Instalación
                   </CardTitle>
                 </CardHeader>
@@ -1948,7 +1910,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
             {/* Fotos de instalación y entrega */}
             {Object.entries(instalacionFolders).map(([category, subcategories]) => (
               <Card key={category}>
-                <CardHeader className="py-3 bg-gradient-to-r from-teal-600 to-teal-500">
+                <CardHeader className="py-3 bg-gradient-to-r from-teal-600 to-primary">
                   <CardTitle className="text-base font-bold text-white">{categoryLabels[category] || category}</CardTitle>
                 </CardHeader>
                 <CardContent className="pt-4">
@@ -1961,9 +1923,9 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                         <div key={subcategory} className="border rounded-lg p-3">
                           <div className="flex items-center justify-between mb-2">
                             <h5 className="font-semibold text-sm text-teal-300 flex items-center gap-2">
-                              <span className="w-2 h-2 bg-teal-500 rounded-full"></span>
+                              <span className="w-2 h-2 bg-primary rounded-full"></span>
                               {subcategoryLabels[subcategory] || subcategory}
-                              <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${photos.length > 0 ? 'bg-teal-500/15 text-teal-300' : 'bg-white/[0.06] text-gray-500'}`}>
+                              <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${photos.length > 0 ? 'bg-primary/15 text-teal-300' : 'bg-white/[0.06] text-gray-500'}`}>
                                 {photos.length} fotos
                               </span>
                             </h5>
@@ -2002,7 +1964,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                           {canShowAdvanceButton(subcategory) && photoToCurrentStatus[subcategory]?.includes(projectDetail.status as string) && (
                             <div className="flex flex-col gap-2 mt-3">
                               <Button size="sm" onClick={() => openAdvanceConfirmDialog(subcategory)} disabled={updateStatus.isPending}
-                                className="w-full bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white font-semibold">
+                                className="w-full bg-gradient-to-r from-primary to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white font-semibold">
                                 {updateStatus.isPending ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <ArrowRight className="h-4 w-4 mr-2" />}
                                 Avanzar a entregado
                               </Button>
@@ -2046,12 +2008,12 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
           {user?.role !== "jefe_taller" && user?.role !== "operario" && (
           <TabsContent value="history" className="space-y-4">
             <Card>
-              <CardHeader className="py-3 bg-gradient-to-r from-slate-600 to-slate-700">
+              <CardHeader className="py-3 bg-gradient-to-r from-gray-600 to-gray-700">
                 <CardTitle className="text-base font-bold text-white flex items-center gap-2">
                   <History className="h-5 w-5" />
                   Historial del Proyecto
                   {projectDetail.history && projectDetail.history.length > 0 && (
-                    <span className="ml-2 px-2 py-0.5 bg-[#162828]/20 rounded-full text-xs">
+                    <span className="ml-2 px-2 py-0.5 bg-card/20 rounded-full text-xs">
                       {projectDetail.history.length} eventos
                     </span>
                   )}
@@ -2061,14 +2023,14 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                 {projectDetail.history && projectDetail.history.length > 0 ? (
                   <div className="relative">
                     {/* Línea vertical de timeline */}
-                    <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gradient-to-b from-emerald-500 via-blue-500 to-purple-500"></div>
+                    <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gradient-to-b from-green-500 via-blue-500 to-purple-500"></div>
                     <div className="space-y-4">
                       {projectDetail.history.map((entry: any, index: number) => {
                         // Determinar icono y color según tipo de evento (unificado)
                         const getEventStyle = (eventType: string, newStatus: string | null) => {
                           // Estilos por tipo de evento
                           if (eventType === 'client') {
-                            return { bg: 'bg-cyan-500', icon: <User className="h-3 w-3 text-white" />, label: 'Cliente' };
+                            return { bg: 'bg-primary', icon: <User className="h-3 w-3 text-white" />, label: 'Cliente' };
                           }
                           if (eventType === 'appointment') {
                             return { bg: 'bg-indigo-500', icon: <Calendar className="h-3 w-3 text-white" />, label: 'Cita' };
@@ -2077,23 +2039,23 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                             return { bg: 'bg-amber-500', icon: <FileText className="h-3 w-3 text-white" />, label: 'Cotización' };
                           }
                           // Tipo 'project' - usar colores según estado
-                          if (!newStatus) return { bg: 'bg-slate-500', icon: <Clock className="h-3 w-3 text-white" />, label: 'Proyecto' };
+                          if (!newStatus) return { bg: 'bg-gray-500', icon: <Clock className="h-3 w-3 text-white" />, label: 'Proyecto' };
                           const statusLower = newStatus.toLowerCase();
                           if (statusLower.includes('cotizacion_enviada') || statusLower.includes('nuevo')) 
-                            return { bg: 'bg-emerald-500', icon: <Plus className="h-3 w-3 text-white" />, label: 'Proyecto' };
+                            return { bg: 'bg-green-500', icon: <Plus className="h-3 w-3 text-white" />, label: 'Proyecto' };
                           if (statusLower.includes('aprobad') || statusLower.includes('confirm') || statusLower.includes('aprobacion')) 
                             return { bg: 'bg-green-500', icon: <CheckCircle2 className="h-3 w-3 text-white" />, label: 'Proyecto' };
                           if (statusLower.includes('adelanto') || statusLower.includes('pagado')) 
-                            return { bg: 'bg-yellow-500', icon: <DollarSign className="h-3 w-3 text-white" />, label: 'Proyecto' };
+                            return { bg: 'bg-amber-500', icon: <DollarSign className="h-3 w-3 text-white" />, label: 'Proyecto' };
                           if (statusLower.includes('pendiente_modelado') || statusLower.includes('pendiente_render')) 
-                            return { bg: 'bg-violet-500', icon: <AlertCircle className="h-3 w-3 text-white" />, label: 'Proyecto' };
+                            return { bg: 'bg-purple-500', icon: <AlertCircle className="h-3 w-3 text-white" />, label: 'Proyecto' };
                           if (statusLower.includes('diseno') || statusLower.includes('diseño') || statusLower.includes('pendiente_cliente')) 
                             return { bg: 'bg-purple-500', icon: <Palette className="h-3 w-3 text-white" />, label: 'Proyecto' };
                           if (statusLower.includes('corte') || statusLower.includes('enchape') || statusLower.includes('ensamble') || statusLower.includes('despiece')) 
                             return { bg: 'bg-orange-500', icon: <Hammer className="h-3 w-3 text-white" />, label: 'Proyecto' };
                           if (statusLower.includes('instalacion') || statusLower.includes('entregado')) 
-                            return { bg: 'bg-teal-500', icon: <Truck className="h-3 w-3 text-white" />, label: 'Proyecto' };
-                          return { bg: 'bg-slate-500', icon: <Clock className="h-3 w-3 text-white" />, label: 'Proyecto' };
+                            return { bg: 'bg-primary', icon: <Truck className="h-3 w-3 text-white" />, label: 'Proyecto' };
+                          return { bg: 'bg-gray-500', icon: <Clock className="h-3 w-3 text-white" />, label: 'Proyecto' };
                         };
                         
                         const style = getEventStyle(entry.type || 'project', entry.newStatus);
@@ -2118,7 +2080,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                               {style.icon}
                             </div>
                             {/* Contenido */}
-                            <div className="flex-1 bg-[#162828] border rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow">
+                            <div className="flex-1 bg-card border rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow">
                               <div className="flex items-start justify-between gap-2">
                                 <p className="text-sm font-semibold text-foreground">{actionText}</p>
                                 <span className="text-xs text-gray-400 whitespace-nowrap">
@@ -2162,9 +2124,9 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
           {/* Tab Postventa */}
           <TabsContent value="postventa" className="space-y-4">
             <Card>
-              <CardHeader className="py-3 bg-pink-500/10">
+              <CardHeader className="py-3 bg-purple-500/10">
                 <CardTitle className="text-sm flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-pink-400" />
+                  <CheckCircle2 className="h-4 w-4 text-purple-400" />
                   Seguimiento Postventa
                 </CardTitle>
               </CardHeader>
@@ -2522,7 +2484,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               className={advanceConfirmDialog.hasPhotos 
-                ? "bg-emerald-500 hover:bg-emerald-600" 
+                ? "bg-green-500 hover:bg-green-600" 
                 : "bg-amber-500 hover:bg-amber-600"}
               onClick={handleAdvanceFromPhoto}
               disabled={updateStatus.isPending}

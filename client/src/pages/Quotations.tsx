@@ -47,6 +47,7 @@ import { KitchenModulePlanner } from "@/components/KitchenModulePlanner";
 import { descriptiveFromPlan, computePlan, kitchenModulesFromPlan, EXTRA_PAINT } from "@shared/kitchenModulePlan";
 
 
+import { confirmAction } from "@/lib/confirm";
 interface HardwareSelection {
   hardwareId: number;
   name: string;
@@ -2292,7 +2293,7 @@ export default function Quotations() {
             </div>
             <Button
               onClick={() => setShowCreateDialog(true)}
-              style={{ background: "linear-gradient(135deg, #1DB5A8, #0D9B8F)" }}
+              style={{ background: "var(--brand-gradient)" }}
               className="text-white font-medium shadow-sm hover:opacity-90"
             >
               <Plus className="h-4 w-4 mr-1.5" />
@@ -2323,13 +2324,13 @@ export default function Quotations() {
           <Button
             variant={showFilters ? "default" : "outline"}
             size="sm"
-            className={`gap-1.5 h-9 shrink-0 ${showFilters ? "bg-[#1DB5A8] hover:bg-[#0D9B8F] text-white" : ""}`}
+            className={`gap-1.5 h-9 shrink-0 ${showFilters ? "bg-primary hover:bg-[#0D9B8F] text-white" : ""}`}
             onClick={() => setShowFilters(s => !s)}
           >
             <SlidersHorizontal className="h-4 w-4" />
             Filtros
             {hasActiveFilters && !showFilters && (
-              <span className="ml-1 bg-[#1DB5A8] text-white rounded-full w-4 h-4 text-[10px] flex items-center justify-center">
+              <span className="ml-1 bg-primary text-white rounded-full w-4 h-4 text-[10px] flex items-center justify-center">
                 {[filterStatus !== "all", !!filterDateFrom, !!filterDateTo, !!filterAmountMin, !!filterAmountMax, filterHasProject !== "all"].filter(Boolean).length}
               </span>
             )}
@@ -2344,7 +2345,7 @@ export default function Quotations() {
 
         {/* Panel de filtros avanzados */}
         {showFilters && (
-          <Card className="border-[#1DB5A8]/20">
+          <Card className="border-primary/20">
             <CardContent className="pt-4 pb-4">
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                 {/* Estado */}
@@ -2452,13 +2453,13 @@ export default function Quotations() {
               </span>
             )}
             {filterAmountMin && (
-              <span className="flex items-center gap-1 text-xs bg-emerald-500/10 text-emerald-300 border border-emerald-100 rounded-full px-2 py-0.5">
+              <span className="flex items-center gap-1 text-xs bg-green-500/10 text-green-300 border border-green-100 rounded-full px-2 py-0.5">
                 Min: ${Number(filterAmountMin).toLocaleString("es-CO")}
                 <button onClick={() => setFilterAmountMin("")}><X className="h-3 w-3" /></button>
               </span>
             )}
             {filterAmountMax && (
-              <span className="flex items-center gap-1 text-xs bg-emerald-500/10 text-emerald-300 border border-emerald-100 rounded-full px-2 py-0.5">
+              <span className="flex items-center gap-1 text-xs bg-green-500/10 text-green-300 border border-green-100 rounded-full px-2 py-0.5">
                 Max: ${Number(filterAmountMax).toLocaleString("es-CO")}
                 <button onClick={() => setFilterAmountMax("")}><X className="h-3 w-3" /></button>
               </span>
@@ -2486,7 +2487,7 @@ export default function Quotations() {
           {/* Pestañas de navegación */}
           <div className="flex gap-1 flex-wrap mb-6 bg-white/[0.04] p-1 rounded-xl w-fit">
             {([
-              { key: 'activas',       label: 'Activas',        dot: 'bg-teal-400'  },
+              { key: 'activas',       label: 'Activas',        dot: 'bg-primary'  },
               { key: 'pendientes',    label: 'Pendientes',     dot: 'bg-blue-400'  },
               { key: 'completadas',   label: 'Completadas',    dot: 'bg-green-400' },
               { key: 'rechazadas',    label: 'Rechazadas',     dot: 'bg-red-400'   },
@@ -2501,7 +2502,7 @@ export default function Quotations() {
                   onClick={() => setActiveGroup(key)}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                     isActive
-                      ? "bg-[#162828] text-foreground border border-white/[0.08] shadow-sm"
+                      ? "bg-card text-foreground border border-white/[0.08] shadow-sm"
                       : "text-muted-foreground hover:text-foreground hover:bg-white/[0.04]"
                   }`}
                 >
@@ -2532,8 +2533,8 @@ export default function Quotations() {
                   onEdit={(quotation) => handleEdit(quotation.id)}
                   onViewPDF={(quotation) => handlePreviewClick(quotation.id, `${group.quotationNumber} - ${group.client?.name || 'Cliente'}`)}
                   onSend={(quotation) => handleEmailClick(quotation.id, group.client?.email || "", group.quotationNumber, group.client?.name || "Cliente")}
-                  onCreateVersion={(quotation) => {
-                    if (window.confirm(`¿Crear nueva versión de la cotización ${group.quotationNumber}?`)) {
+                  onCreateVersion={async (quotation) => {
+                    if ((await confirmAction(`¿Crear nueva versión de la cotización ${group.quotationNumber}?`))) {
                       createVersion.mutate({ quotationId: quotation.id });
                     }
                   }}
@@ -2545,8 +2546,8 @@ export default function Quotations() {
                   onToggleLock={(quotation) => {
                     toggleLock.mutate({ id: quotation.id });
                   }}
-                  onDelete={(quotation) => {
-                    if (window.confirm(`¿Eliminar la cotización ${group.quotationNumber}?\n\nEsta acción no se puede deshacer.`)) {
+                  onDelete={async (quotation) => {
+                    if ((await confirmAction(`¿Eliminar la cotización ${group.quotationNumber}?\n\nEsta acción no se puede deshacer.`))) {
                       deleteQuotation.mutate({ id: quotation.id });
                     }
                   }}
@@ -2592,7 +2593,7 @@ export default function Quotations() {
                       value={selectedClient?.toString() || ""}
                       onValueChange={(value) => setSelectedClient(parseInt(value))}
                     >
-                      <SelectTrigger className="flex-1 bg-[#162828] border-[rgba(106,207,199,0.18)] hover:border-[oklch(0.72_0.14_180)] transition-colors">
+                      <SelectTrigger className="flex-1 bg-card border-[rgba(106,207,199,0.18)] hover:border-[oklch(0.72_0.14_180)] transition-colors">
                         <SelectValue placeholder="Seleccionar cliente" />
                       </SelectTrigger>
                       <SelectContent>
@@ -2623,7 +2624,7 @@ export default function Quotations() {
                     Vendedor
                   </Label>
                   <Select value={vendorName} onValueChange={setVendorName}>
-                    <SelectTrigger className="bg-[#162828] border-[rgba(106,207,199,0.18)] hover:border-[oklch(0.72_0.14_180)] transition-colors">
+                    <SelectTrigger className="bg-card border-[rgba(106,207,199,0.18)] hover:border-[oklch(0.72_0.14_180)] transition-colors">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -2644,7 +2645,7 @@ export default function Quotations() {
                 Fechas de la Cotización
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 md:gap-4">
-                <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)]">
+                <div className="bg-card rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)]">
                   <div className="flex items-center gap-2 mb-1 sm:mb-2">
                     <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-[rgba(106,207,199,0.15)] flex items-center justify-center">
                       <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-blue-400" />
@@ -2655,7 +2656,7 @@ export default function Quotations() {
                     {new Date().toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
                   </p>
                 </div>
-                <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)]">
+                <div className="bg-card rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)]">
                   <div className="flex items-center gap-2 mb-1 sm:mb-2">
                     <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-[rgba(106,207,199,0.15)] flex items-center justify-center">
                       <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-amber-400" />
@@ -2671,7 +2672,7 @@ export default function Quotations() {
                   </p>
                   <span className="text-xs text-amber-400">7 días</span>
                 </div>
-                <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)]">
+                <div className="bg-card rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)]">
                   <div className="flex items-center gap-2 mb-1 sm:mb-2">
                     <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-[rgba(106,207,199,0.15)] flex items-center justify-center">
                       <Truck className="h-3 w-3 sm:h-4 sm:w-4 text-red-400" />
@@ -2715,14 +2716,14 @@ export default function Quotations() {
             <div className="bg-[rgba(106,207,199,0.05)] rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 border border-[rgba(106,207,199,0.12)] shadow-sm">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0 mb-3 sm:mb-4">
                 <h3 className="text-sm sm:text-base font-semibold text-white/85 flex items-center gap-2">
-                  <Package className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-400" />
+                  <Package className="h-4 w-4 sm:h-5 sm:w-5 text-green-400" />
                   Productos a Cotizar
                 </h3>
                 <Button 
                   type="button" 
                   size="sm" 
                   onClick={addItem}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm text-xs sm:text-sm w-full sm:w-auto"
+                  className="bg-green-600 hover:bg-green-700 text-white shadow-sm text-xs sm:text-sm w-full sm:w-auto"
                 >
                   <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                   Agregar Producto
@@ -2733,11 +2734,11 @@ export default function Quotations() {
                 {items.map((item, index) => (
                   // Bug B fix: usar _id estable en lugar de index — evita que React reutilice
                   // nodos DOM incorrectos al eliminar items (causa del "selecciona 1 marca 2")
-                  <div key={item._id || `fallback_${item.itemNumber}`} className="bg-[#162828] rounded-lg sm:rounded-xl border border-[rgba(106,207,199,0.12)] shadow-sm overflow-hidden">
+                  <div key={item._id || `fallback_${item.itemNumber}`} className="bg-card rounded-lg sm:rounded-xl border border-[rgba(106,207,199,0.12)] shadow-sm overflow-hidden">
                     {/* Header del Item */}
                     <div className="bg-[rgba(106,207,199,0.07)] px-3 sm:px-4 py-2 sm:py-3 flex justify-between items-center border-b border-[rgba(106,207,199,0.12)]">
                       <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-                        <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-emerald-500/15 flex items-center justify-center text-emerald-300 font-bold text-xs sm:text-sm">
+                        <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-green-500/15 flex items-center justify-center text-green-300 font-bold text-xs sm:text-sm">
                           {item.itemNumber}
                         </div>
                         <span className="font-semibold text-white/85 text-sm sm:text-base">
@@ -2753,7 +2754,7 @@ export default function Quotations() {
                            item.itemType === 'otro' ? 'Otro' : 'Nuevo Producto'}
                         </span>
                         {item.totalPrice > 0 && (
-                          <span className="text-sm font-bold text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded">
+                          <span className="text-sm font-bold text-green-400 bg-green-500/10 px-2 py-1 rounded">
                             {formatPrice(item.totalPrice)}
                           </span>
                         )}
@@ -2784,7 +2785,7 @@ export default function Quotations() {
                               updateItem(index, "itemType", value);
                             }}
                           >
-                            <SelectTrigger className="bg-[#162828] border-[rgba(106,207,199,0.18)] hover:border-emerald-500 transition-colors">
+                            <SelectTrigger className="bg-card border-[rgba(106,207,199,0.18)] hover:border-green-500 transition-colors">
                               <SelectValue placeholder="Selecciona el tipo de producto" />
                             </SelectTrigger>
                             <SelectContent>
@@ -2804,7 +2805,7 @@ export default function Quotations() {
                                 <span className="flex items-center gap-2"><Tv className="h-4 w-4 text-blue-500" /> Centro de TV</span>
                               </SelectItem>
                               <SelectItem value="mueble_cocina">
-                                <span className="flex items-center gap-2"><ChefHat className="h-4 w-4 text-teal-400" /> Piezas de Cocina</span>
+                                <span className="flex items-center gap-2"><ChefHat className="h-4 w-4 text-primary" /> Piezas de Cocina</span>
                               </SelectItem>
                               <SelectItem value="mesones">
                                 <span className="flex items-center gap-2"><Ruler className="h-4 w-4 text-white/45" /> Mesón Solo</span>
@@ -2813,10 +2814,10 @@ export default function Quotations() {
                                 <span className="flex items-center gap-2"><Wrench className="h-4 w-4 text-gray-500" /> Herrajes</span>
                               </SelectItem>
                               <SelectItem value="acabados_especiales">
-                                <span className="flex items-center gap-2"><Sparkles className="h-4 w-4 text-cyan-500" /> Acabados Especiales</span>
+                                <span className="flex items-center gap-2"><Sparkles className="h-4 w-4 text-primary" /> Acabados Especiales</span>
                               </SelectItem>
                               <SelectItem value="otro">
-                                <span className="flex items-center gap-2"><Package className="h-4 w-4 text-teal-500" /> Otro</span>
+                                <span className="flex items-center gap-2"><Package className="h-4 w-4 text-primary" /> Otro</span>
                               </SelectItem>
                             </SelectContent>
                           </Select>
@@ -2835,7 +2836,7 @@ export default function Quotations() {
                               <input
                                 type="checkbox"
                                 id={`dismantle-${index}`}
-                                className="size-6 border-2 cursor-pointer accent-teal-500"
+                                className="size-6 border-2 cursor-pointer accent-primary"
                                 checked={!!(item.kitchenConfig as any)?.dismantle}
                                 onChange={(e) => updateKitchenConfig(index, "dismantle", e.target.checked)}
                               />
@@ -2852,7 +2853,7 @@ export default function Quotations() {
                                 value={item.kitchenConfig?.shape || ""}
                                 onValueChange={(value) => updateKitchenConfig(index, "shape", value)}
                               >
-                                <SelectTrigger className="bg-[#162828] border-[rgba(106,207,199,0.18)] hover:border-orange-500/40 transition-colors">
+                                <SelectTrigger className="bg-card border-[rgba(106,207,199,0.18)] hover:border-orange-500/40 transition-colors">
                                   <SelectValue placeholder="Selecciona el tipo" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -2876,7 +2877,7 @@ export default function Quotations() {
                                 value={item.kitchenConfig?.layout || ""}
                                 onValueChange={(value) => updateKitchenConfig(index, "layout", value)}
                               >
-                                <SelectTrigger className="bg-[#162828] border-[rgba(106,207,199,0.18)] hover:border-orange-500/40 transition-colors">
+                                <SelectTrigger className="bg-card border-[rgba(106,207,199,0.18)] hover:border-orange-500/40 transition-colors">
                                   <SelectValue placeholder="Selecciona la forma (opcional)" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -2950,7 +2951,7 @@ export default function Quotations() {
                                 value={item.kitchenConfig?.totalMeters || ""}
                                 onChange={(e) => updateKitchenConfig(index, "totalMeters", parseFloat(e.target.value) || 0)}
                                 placeholder="Ej: 5.00"
-                                className="bg-[#162828] border-[rgba(106,207,199,0.18)] hover:border-orange-500/40 transition-colors"
+                                className="bg-card border-[rgba(106,207,199,0.18)] hover:border-orange-500/40 transition-colors"
                               />
                             </div>
                             ) : (
@@ -2966,7 +2967,7 @@ export default function Quotations() {
                                   value={item.kitchenConfig?.lowerMeters ?? ""}
                                   onChange={(e) => updateKitchenConfig(index, "lowerMeters", parseFloat(e.target.value) || 0)}
                                   placeholder="Ej: 1.80"
-                                  className="bg-[#162828] border-[rgba(106,207,199,0.18)] hover:border-orange-500/40 transition-colors"
+                                  className="bg-card border-[rgba(106,207,199,0.18)] hover:border-orange-500/40 transition-colors"
                                 />
                               </div>
                               <div className="space-y-2">
@@ -2980,7 +2981,7 @@ export default function Quotations() {
                                   value={item.kitchenConfig?.upperMeters ?? ""}
                                   onChange={(e) => updateKitchenConfig(index, "upperMeters", parseFloat(e.target.value) || 0)}
                                   placeholder="Ej: 1.88"
-                                  className="bg-[#162828] border-[rgba(106,207,199,0.18)] hover:border-orange-500/40 transition-colors"
+                                  className="bg-card border-[rgba(106,207,199,0.18)] hover:border-orange-500/40 transition-colors"
                                 />
                               </div>
                             </div>
@@ -3162,7 +3163,7 @@ export default function Quotations() {
 
                             {/* 3. Muebles especiales - Para cocinas completas y puertas_tapas */}
                             {!['frente_pll', 'solo_superiores', 'solo_inferiores'].includes(item.kitchenConfig?.shape || '') && (
-                            <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)]">
+                            <div className="bg-card rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)]">
                               <Label className="mb-2 sm:mb-3 block text-xs sm:text-sm font-semibold text-white/85 flex items-center gap-2">
                                 <Package className="h-3 w-3 sm:h-4 sm:w-4 text-orange-500" />
                                 Muebles Especiales (se descuentan del metraje)
@@ -3317,19 +3318,19 @@ export default function Quotations() {
                               const present = rows.filter(([, n]) => (n || 0) > 0);
                               const tot = present.reduce((a, [, n, code]) => a + n * getPrice(code), 0);
                               return (
-                                <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-pink-500/30 space-y-2 text-xs sm:text-sm">
+                                <div className="bg-card rounded-lg p-3 sm:p-4 border border-purple-500/30 space-y-2 text-xs sm:text-sm">
                                   <div className="flex items-center gap-2 font-semibold text-white/85">
-                                    <Palette className="h-3 w-3 sm:h-4 sm:w-4 text-pink-500" />
+                                    <Palette className="h-3 w-3 sm:h-4 sm:w-4 text-purple-500" />
                                     Pintado Puertas Alto Brillo (según el plano)
                                   </div>
-                                  <p className="text-[11px] text-teal-400/80">Se cobra automáticamente lo que marcaste como pintado en el plano. Para cambiarlo, modifica el plano.</p>
+                                  <p className="text-[11px] text-primary/80">Se cobra automáticamente lo que marcaste como pintado en el plano. Para cambiarlo, modifica el plano.</p>
                                   {present.map(([label, n, code]) => (
                                     <div key={code} className="flex justify-between rounded bg-black/20 px-2 py-1">
-                                      <span className="text-pink-200">{label} <span className="text-white/40">(${getPrice(code).toLocaleString("es-CO")} c/u)</span></span>
+                                      <span className="text-purple-200">{label} <span className="text-white/40">(${getPrice(code).toLocaleString("es-CO")} c/u)</span></span>
                                       <span className="font-mono text-white">{n}</span>
                                     </div>
                                   ))}
-                                  <div className="flex justify-between px-2 pt-1 border-t border-white/10 text-pink-200"><span>Total pintura</span><span className="font-mono text-white">${tot.toLocaleString("es-CO")}</span></div>
+                                  <div className="flex justify-between px-2 pt-1 border-t border-white/10 text-purple-200"><span>Total pintura</span><span className="font-mono text-white">${tot.toLocaleString("es-CO")}</span></div>
                                   {extra > 0 && <p className="text-[11px] text-amber-300/80">{extra} pieza(s) especial(es) de diseño: se cotizan aparte, no están en este cobro.</p>}
                                 </div>
                               );
@@ -3337,7 +3338,7 @@ export default function Quotations() {
 
                             {/* 3.5 Módulos pintado de puertas y tapas (se oculta cuando el plano de módulos está activo: el plano lo reemplaza) */}
                             {!['frente_pll', 'solo_superiores', 'solo_inferiores', 'puertas_tapas', 'solo_acabados'].includes(item.kitchenConfig?.shape || '') && !(item.kitchenConfig as any)?.modulePlan?.enabled && (
-                            <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)] space-y-2 sm:space-y-3">
+                            <div className="bg-card rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)] space-y-2 sm:space-y-3">
                               <div className="flex items-center space-x-2">
                                 <input
                                   type="checkbox"
@@ -3348,16 +3349,16 @@ export default function Quotations() {
                                     if (e.target.checked) next.add(index); else next.delete(index);
                                     return next;
                                   })}
-                                  className="h-4 w-4 accent-teal-500"
+                                  className="h-4 w-4 accent-primary"
                                 />
                                 <Label htmlFor={`modulosPintado-${index}`} className="text-xs sm:text-sm font-semibold text-white/85 cursor-pointer flex items-center gap-2">
-                                  <Palette className="h-3 w-3 sm:h-4 sm:w-4 text-teal-400" />
+                                  <Palette className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
                                   Módulos pintado de puertas y tapas
                                 </Label>
                               </div>
                               {modulosOpenSet.has(index) && (
                               <div className="pl-4 sm:pl-6 space-y-3">
-                              <p className="text-xs text-teal-400/70">Indica cuántos de cada módulo. Descuenta del ML disponible y calcula piezas de pintura automáticamente.</p>
+                              <p className="text-xs text-primary/70">Indica cuántos de cada módulo. Descuenta del ML disponible y calcula piezas de pintura automáticamente.</p>
 
                               {/* Tracker ML consumido */}
                               {(() => {
@@ -3385,7 +3386,7 @@ export default function Quotations() {
                                     <span className="text-white/50">Especiales: <span className="text-amber-300">{specialML.toFixed(2)}ml</span></span>
                                     <span className="text-white/50">Sup: <span className="text-purple-300">{supML.toFixed(2)}ml</span></span>
                                     <span className="text-white/50">Inf: <span className="text-teal-300">{modulesML.toFixed(2)}ml</span></span>
-                                    <span className="text-white/50">Restante: <span className={remaining<0?"text-red-400 font-bold":"text-emerald-400"}>{remaining.toFixed(2)}ml</span></span>
+                                    <span className="text-white/50">Restante: <span className={remaining<0?"text-red-400 font-bold":"text-green-400"}>{remaining.toFixed(2)}ml</span></span>
                                   </div>
                                 );
                               })()}
@@ -3422,7 +3423,7 @@ export default function Quotations() {
                                       const qty = typeof raw==='boolean'?(raw?1:0):(raw||0);
                                       const curML = ((item.kitchenConfig as any)?.kitchenModulesML?.[key]) ?? ml;
                                       return (
-                                        <div key={key} className={`flex ${editable?'flex-col':'items-center'} gap-0.5 rounded px-1.5 py-1 transition-colors ${qty>0?'bg-teal-900/40 border border-teal-500/40':'bg-black/25 border border-transparent'}`}>
+                                        <div key={key} className={`flex ${editable?'flex-col':'items-center'} gap-0.5 rounded px-1.5 py-1 transition-colors ${qty>0?'bg-teal-900/40 border border-primary/40':'bg-black/25 border border-transparent'}`}>
                                           <div className="flex items-center gap-1">
                                             <button type="button"
                                               className="w-5 h-5 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 rounded text-sm leading-none"
@@ -3514,12 +3515,12 @@ export default function Quotations() {
 
                             {/* 3.6 Muebles que lleva la cocina — solo descriptivo (se oculta con el plano activo: sale del plano) */}
                             {!['frente_pll', 'puertas_tapas', 'solo_acabados'].includes(item.kitchenConfig?.shape || '') && !(item.kitchenConfig as any)?.modulePlan?.enabled && (
-                            <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)] space-y-2">
+                            <div className="bg-card rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)] space-y-2">
                               <p className="text-xs sm:text-sm font-semibold text-white/85">
                                 Muebles que lleva la cocina <span className="text-xs font-normal text-white/40">(para la descripción de la cotización, no cambia el precio)</span>
                               </p>
                               {(item.kitchenConfig as any)?.modulePlan?.enabled && (
-                                <p className="text-[11px] text-teal-400/80">Se arma solo desde el plano de módulos: para cambiarlo, modifica el plano.</p>
+                                <p className="text-[11px] text-primary/80">Se arma solo desde el plano de módulos: para cambiarlo, modifica el plano.</p>
                               )}
                               {([
                                 { title: "Muebles superiores", show: item.kitchenConfig?.shape !== 'solo_inferiores', list: DESCRIPTIVE_UPPER_MODULES },
@@ -3532,7 +3533,7 @@ export default function Quotations() {
                                       <label key={key} className="flex items-center gap-2 p-1.5 rounded bg-white/[0.03] text-xs text-white/70 cursor-pointer">
                                         <input
                                           type="checkbox"
-                                          className="h-4 w-4 accent-teal-500"
+                                          className="h-4 w-4 accent-primary"
                                           disabled={!!(item.kitchenConfig as any)?.modulePlan?.enabled}
                                           checked={!!((item.kitchenConfig as any)?.modulePlan?.enabled ? descriptiveFromPlan((item.kitchenConfig as any).modulePlan) : (item.kitchenConfig as any)?.descriptiveModules)?.[key]}
                                           onChange={(e) => updateKitchenConfig(index, "descriptiveModules", { ...((item.kitchenConfig as any)?.descriptiveModules || {}), [key]: e.target.checked })}
@@ -3545,7 +3546,7 @@ export default function Quotations() {
                                     <div className="flex items-center gap-2 mt-1.5">
                                       <span className="text-xs text-white/70">Cajonero:</span>
                                       <select
-                                        className="h-7 rounded bg-[#0C1A1A] border border-white/15 text-xs text-white px-2"
+                                        className="h-7 rounded bg-background border border-white/15 text-xs text-white px-2"
                                         disabled={!!(item.kitchenConfig as any)?.modulePlan?.enabled}
                                         value={(() => {
                                           const dm = ((item.kitchenConfig as any)?.modulePlan?.enabled ? descriptiveFromPlan((item.kitchenConfig as any).modulePlan) : (item.kitchenConfig as any)?.descriptiveModules) || {};
@@ -3573,7 +3574,7 @@ export default function Quotations() {
 
                             {/* 4. Mesón principal - Solo para cocinas completas y solo_inferiores */}
                             {!['solo_superiores', 'puertas_tapas'].includes(item.kitchenConfig?.shape || '') && (
-                            <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)] space-y-2 sm:space-y-3">
+                            <div className="bg-card rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)] space-y-2 sm:space-y-3">
                               <Label className="text-xs sm:text-sm font-semibold text-white/85 flex items-center gap-2">
                                 <Ruler className="h-3 w-3 sm:h-4 sm:w-4 text-orange-500" />
                                 Mesón Principal
@@ -3623,7 +3624,7 @@ export default function Quotations() {
                                         // Una sola actualización (dos seguidas se pisaban y no dejaban desmarcar)
                                         updateKitchenConfig(index, "countertop.incluyeSalpicaderoAlto", e.target.checked);
                                       }}
-                                      className="h-4 w-4 accent-emerald-500"
+                                      className="h-4 w-4 accent-green-500"
                                     />
                                     Salpicadero alto (suma el metraje del mesón otra vez)
                                   </label>
@@ -3652,12 +3653,12 @@ export default function Quotations() {
                                   <button
                                     type="button"
                                     onClick={() => updateKitchenConfig(index, "countertop.esImportado", false)}
-                                    className={`px-2 py-1 rounded text-xs font-medium transition-colors ${!item.kitchenConfig?.countertop.esImportado ? 'bg-emerald-600 text-white' : 'bg-[#0C1A1A] text-white/50 hover:text-white/70'}`}
+                                    className={`px-2 py-1 rounded text-xs font-medium transition-colors ${!item.kitchenConfig?.countertop.esImportado ? 'bg-green-600 text-white' : 'bg-background text-white/50 hover:text-white/70'}`}
                                   >Standard</button>
                                   <button
                                     type="button"
                                     onClick={() => updateKitchenConfig(index, "countertop.esImportado", true)}
-                                    className={`px-2 py-1 rounded text-xs font-medium transition-colors ${item.kitchenConfig?.countertop.esImportado ? 'bg-amber-600 text-white' : 'bg-[#0C1A1A] text-white/50 hover:text-white/70'}`}
+                                    className={`px-2 py-1 rounded text-xs font-medium transition-colors ${item.kitchenConfig?.countertop.esImportado ? 'bg-amber-600 text-white' : 'bg-background text-white/50 hover:text-white/70'}`}
                                   >Importado</button>
                                   {item.kitchenConfig?.countertop.esImportado && (
                                     <div className="flex items-center gap-1">
@@ -3680,7 +3681,7 @@ export default function Quotations() {
 
                             {/* 5. Isla - Para cocinas completas y puertas_tapas */}
                             {!['frente_pll', 'solo_superiores', 'solo_inferiores'].includes(item.kitchenConfig?.shape || '') && (
-                            <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)] space-y-2 sm:space-y-3">
+                            <div className="bg-card rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)] space-y-2 sm:space-y-3">
                               <div className="flex items-center space-x-2">
                                 <input
                                   type="checkbox"
@@ -3750,12 +3751,12 @@ export default function Quotations() {
                                       <button
                                         type="button"
                                         onClick={() => updateKitchenConfig(index, "island.esImportado", false)}
-                                        className={`px-2 py-1 rounded text-xs font-medium transition-colors ${!item.kitchenConfig?.island.esImportado ? 'bg-emerald-600 text-white' : 'bg-[#0C1A1A] text-white/50 hover:text-white/70'}`}
+                                        className={`px-2 py-1 rounded text-xs font-medium transition-colors ${!item.kitchenConfig?.island.esImportado ? 'bg-green-600 text-white' : 'bg-background text-white/50 hover:text-white/70'}`}
                                       >Standard</button>
                                       <button
                                         type="button"
                                         onClick={() => updateKitchenConfig(index, "island.esImportado", true)}
-                                        className={`px-2 py-1 rounded text-xs font-medium transition-colors ${item.kitchenConfig?.island.esImportado ? 'bg-amber-600 text-white' : 'bg-[#0C1A1A] text-white/50 hover:text-white/70'}`}
+                                        className={`px-2 py-1 rounded text-xs font-medium transition-colors ${item.kitchenConfig?.island.esImportado ? 'bg-amber-600 text-white' : 'bg-background text-white/50 hover:text-white/70'}`}
                                       >Importado</button>
                                       {item.kitchenConfig?.island.esImportado && (
                                         <div className="flex items-center gap-1">
@@ -3868,7 +3869,7 @@ export default function Quotations() {
 
                             {/* 6. Barra - Para cocinas completas y puertas_tapas */}
                             {!['frente_pll', 'solo_superiores', 'solo_inferiores'].includes(item.kitchenConfig?.shape || '') && (
-                            <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-purple-500/20 space-y-2 sm:space-y-3">
+                            <div className="bg-card rounded-lg p-3 sm:p-4 border border-purple-500/20 space-y-2 sm:space-y-3">
                               <div className="flex items-center space-x-2">
                                 <input
                                   type="checkbox"
@@ -4004,9 +4005,9 @@ export default function Quotations() {
 
                             {/* 7. Luz LED (opcional) - Solo para cocinas completas, frente_pll y solo_superiores */}
                             {!['solo_inferiores', 'puertas_tapas'].includes(item.kitchenConfig?.shape || '') && (
-                            <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)] space-y-2">
+                            <div className="bg-card rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)] space-y-2">
                               <Label className="text-xs sm:text-sm font-semibold text-white/85 flex items-center gap-2">
-                                <Lightbulb className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500" />
+                                <Lightbulb className="h-3 w-3 sm:h-4 sm:w-4 text-amber-500" />
                                 Luz LED - $180,000/ml
                               </Label>
                               <NumberField
@@ -4015,14 +4016,14 @@ export default function Quotations() {
                                 value={item.kitchenConfig?.ledLighting || ""}
                                 onChange={(e) => updateKitchenConfig(index, "ledLighting", parseFloat(e.target.value) || 0)}
                                 placeholder="Dejar en 0 si no lleva LED"
-                                className="bg-[#162828] border-[rgba(106,207,199,0.18)]"
+                                className="bg-card border-[rgba(106,207,199,0.18)]"
                               />
                             </div>
                             )}
 
                             {/* 8. Pintado Puertas Alto Brillo */}
                             {!(item.kitchenConfig as any)?.modulePlan?.enabled && (
-                            <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)] space-y-2 sm:space-y-3">
+                            <div className="bg-card rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)] space-y-2 sm:space-y-3">
                               <div className="flex items-center space-x-2">
                                 <input
                                   type="checkbox"
@@ -4080,10 +4081,10 @@ export default function Quotations() {
                                     }
                                     calculateKitchenTotal(index, ni);
                                   }}
-                                  className="h-4 w-4 accent-pink-500"
+                                  className="h-4 w-4 accent-purple-500"
                                 />
                                 <Label htmlFor={`paintedDoors-${index}`} className="text-xs sm:text-sm font-semibold text-white/85 cursor-pointer flex items-center gap-2">
-                                  <Palette className="h-3 w-3 sm:h-4 sm:w-4 text-pink-500" />
+                                  <Palette className="h-3 w-3 sm:h-4 sm:w-4 text-purple-500" />
                                   Pintado Puertas Alto Brillo
                                 </Label>
                               </div>
@@ -4099,10 +4100,10 @@ export default function Quotations() {
                                 const extra = ((item.kitchenConfig as any)?.modulePlan?.extras?.especiales) || 0;
                                 return (
                                   <div className="space-y-1.5 text-xs sm:text-sm">
-                                    <p className="text-[11px] text-teal-400/80">Las cantidades salen del plano de módulos (solo lo que va pintado). Para cambiarlas, modifica el plano.</p>
+                                    <p className="text-[11px] text-primary/80">Las cantidades salen del plano de módulos (solo lo que va pintado). Para cambiarlas, modifica el plano.</p>
                                     {rows.filter(([, n]) => (n || 0) > 0).map(([label, n, code]) => (
                                       <div key={code} className="flex justify-between rounded bg-black/20 px-2 py-1">
-                                        <span className="text-pink-200">{label} <span className="text-white/40">(${getPrice(code).toLocaleString("es-CO")} c/u)</span></span>
+                                        <span className="text-purple-200">{label} <span className="text-white/40">(${getPrice(code).toLocaleString("es-CO")} c/u)</span></span>
                                         <span className="font-mono text-white">{n}</span>
                                       </div>
                                     ))}
@@ -4114,7 +4115,7 @@ export default function Quotations() {
                               {item.kitchenConfig?.paintedDoors?.enabled && !(item.kitchenConfig as any)?.modulePlan?.enabled && (
                                 <div className="grid grid-cols-2 gap-2 sm:gap-3 text-xs sm:text-sm">
                                   <div>
-                                    <Label className="text-xs text-pink-300">Puertas Superiores ($120,000)</Label>
+                                    <Label className="text-xs text-purple-300">Puertas Superiores ($120,000)</Label>
                                     <Input
                                       type="number"
                                       min="0"
@@ -4127,7 +4128,7 @@ export default function Quotations() {
                                     />
                                   </div>
                                   <div>
-                                    <Label className="text-xs text-pink-300">Puertas Inferiores ($150,000)</Label>
+                                    <Label className="text-xs text-purple-300">Puertas Inferiores ($150,000)</Label>
                                     <Input
                                       type="number"
                                       min="0"
@@ -4140,7 +4141,7 @@ export default function Quotations() {
                                     />
                                   </div>
                                   <div>
-                                    <Label className="text-xs text-pink-300">Puertas Alacena ($250,000)</Label>
+                                    <Label className="text-xs text-purple-300">Puertas Alacena ($250,000)</Label>
                                     <Input
                                       type="number"
                                       min="0"
@@ -4153,7 +4154,7 @@ export default function Quotations() {
                                     />
                                   </div>
                                   <div>
-                                    <Label className="text-xs text-pink-300">Tapas Cajón ($80,000)</Label>
+                                    <Label className="text-xs text-purple-300">Tapas Cajón ($80,000)</Label>
                                     <Input
                                       type="number"
                                       min="0"
@@ -4166,7 +4167,7 @@ export default function Quotations() {
                                     />
                                   </div>
                                   <div>
-                                    <Label className="text-xs text-pink-300">Tapa Especiero ($100,000)</Label>
+                                    <Label className="text-xs text-purple-300">Tapa Especiero ($100,000)</Label>
                                     <Input
                                       type="number"
                                       min="0"
@@ -4179,7 +4180,7 @@ export default function Quotations() {
                                     />
                                   </div>
                                   <div>
-                                    <Label className="text-xs text-pink-300">Tapas Pequeña/Gola ($45,000)</Label>
+                                    <Label className="text-xs text-purple-300">Tapas Pequeña/Gola ($45,000)</Label>
                                     <Input
                                       type="number"
                                       min="0"
@@ -4197,7 +4198,7 @@ export default function Quotations() {
                             )}
 
                             {/* 9. Acabados Especiales - Puertas Aluminio + Vidrio y LED Alacenas */}
-                            <div className="bg-[#162828] rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)] space-y-3">
+                            <div className="bg-card rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)] space-y-3">
                               <div className="flex items-center space-x-2">
                                 <input
                                   type="checkbox"
@@ -4227,7 +4228,7 @@ export default function Quotations() {
                                     
                                     {/* Lista de puertas */}
                                     {(item.kitchenConfig?.specialFinishes?.aluminumGlassDoors || []).map((door, doorIdx) => (
-                                      <div key={door.id} className="flex items-center gap-2 bg-[#162828] p-2 rounded border">
+                                      <div key={door.id} className="flex items-center gap-2 bg-card p-2 rounded border">
                                         <span className="text-xs font-medium text-purple-400">#{doorIdx + 1}</span>
                                         <div className="flex-1 grid grid-cols-3 gap-2">
                                           <div>
@@ -4338,7 +4339,7 @@ export default function Quotations() {
                                   </div>
                                   
                                   {/* LED para Alacenas */}
-                                  <div className="bg-yellow-500/10 p-3 rounded-lg space-y-2">
+                                  <div className="bg-amber-500/10 p-3 rounded-lg space-y-2">
                                     <div className="flex items-center space-x-2">
                                       <input
                                         type="checkbox"
@@ -4347,9 +4348,9 @@ export default function Quotations() {
                                         onChange={(e) => {
                                           updateKitchenConfig(index, "specialFinishes.ledLighting.enabled", e.target.checked);
                                         }}
-                                        className="h-4 w-4 accent-yellow-500"
+                                        className="h-4 w-4 accent-amber-500"
                                       />
-                                      <Label htmlFor={`specialLed-${index}`} className="text-xs font-semibold text-yellow-300 cursor-pointer">
+                                      <Label htmlFor={`specialLed-${index}`} className="text-xs font-semibold text-amber-300 cursor-pointer">
                                         <Lightbulb className="inline h-3 w-3 mr-1" />
                                         Luz LED para Alacenas - {formatPrice(getPrice('ACABADO_LED_ML'))}/ml
                                       </Label>
@@ -4368,7 +4369,7 @@ export default function Quotations() {
                                           className="w-24 h-8"
                                           placeholder="0"
                                         />
-                                        <span className="text-xs text-yellow-400">
+                                        <span className="text-xs text-amber-400">
                                           = {formatPrice((item.kitchenConfig?.specialFinishes?.ledLighting?.meters || 0) * getPrice('ACABADO_LED_ML'))}
                                         </span>
                                       </div>
@@ -4379,7 +4380,7 @@ export default function Quotations() {
                             </div>
 
                             {/* 10. Transporte e imprevistos - Opcional y editable */}
-                            <div className={`flex flex-col gap-2 p-3 rounded ${item.includesFixedCosts ? 'bg-green-500/15 border border-green-300' : 'bg-yellow-500/10'}`}>
+                            <div className={`flex flex-col gap-2 p-3 rounded ${item.includesFixedCosts ? 'bg-green-500/15 border border-green-300' : 'bg-amber-500/10'}`}>
                               <div className="flex items-center space-x-2">
                                 <input
                                   type="checkbox"
@@ -4466,7 +4467,7 @@ export default function Quotations() {
                                 onChange={(e) => updateKitchenConfig(index, "notes", e.target.value)}
                                 placeholder="Ej: color de puertas, acabado especial, materiales adicionales..."
                                 rows={2}
-                                className="text-sm bg-[#162828] border-[rgba(106,207,199,0.18)] text-white/85"
+                                className="text-sm bg-card border-[rgba(106,207,199,0.18)] text-white/85"
                               />
                             </div>
 
@@ -4480,7 +4481,7 @@ export default function Quotations() {
                                 onChange={(e) => updateItem(index, "description", e.target.value)}
                                 placeholder="La descripción se genera automáticamente al configurar la cocina…"
                                 rows={3}
-                                className="text-sm bg-[#162828] border-[rgba(106,207,199,0.18)] text-white/85"
+                                className="text-sm bg-card border-[rgba(106,207,199,0.18)] text-white/85"
                               />
                             </div>
                           </div>
@@ -4566,14 +4567,14 @@ export default function Quotations() {
                         {item.itemType === "acabados_especiales" && (
                           <div className="space-y-4 p-4 bg-[rgba(106,207,199,0.05)] rounded-xl border border-[rgba(106,207,199,0.12)]">
                             <h3 className="font-semibold text-base text-white/85 flex items-center gap-2">
-                              <Sparkles className="h-5 w-5 text-cyan-500" />
+                              <Sparkles className="h-5 w-5 text-primary" />
                               Configuración de Acabados Especiales
                             </h3>
                             
                             {/* Puertas de Aluminio con Vidrio Ahumado */}
-                            <div className="bg-[#162828] rounded-lg p-4 border border-[rgba(106,207,199,0.12)] space-y-3">
+                            <div className="bg-card rounded-lg p-4 border border-[rgba(106,207,199,0.12)] space-y-3">
                               <Label className="text-sm font-semibold text-white/85 flex items-center gap-2">
-                                <DoorOpen className="h-4 w-4 text-cyan-500" />
+                                <DoorOpen className="h-4 w-4 text-primary" />
                                 Puertas de Aluminio con Vidrio Ahumado - {formatPrice(getPrice('ACABADO_ALUMINIO_VIDRIO_M2'))}/m²
                               </Label>
                               <p className="text-xs text-white/45">
@@ -4585,8 +4586,8 @@ export default function Quotations() {
                                 const sqm = (door.height || 0) * (door.width || 0);
                                 const extraHinges = door.height > 1.4 ? 2 : (door.height > 0.8 ? 1 : 0);
                                 return (
-                                  <div key={doorIdx} className="flex flex-wrap items-center gap-2 p-3 bg-cyan-500/10 rounded-lg">
-                                    <span className="text-sm font-medium text-cyan-300">Puerta #{doorIdx + 1}</span>
+                                  <div key={doorIdx} className="flex flex-wrap items-center gap-2 p-3 bg-primary/10 rounded-lg">
+                                    <span className="text-sm font-medium text-teal-300">Puerta #{doorIdx + 1}</span>
                                     <div className="flex items-center gap-1">
                                       <NumberField
                                         type="number"
@@ -4642,7 +4643,7 @@ export default function Quotations() {
                                     </div>
                                     <span className="text-sm text-white/60">
                                       = {r2(sqm * (door.qty || 1))} m²{(door.qty || 1) > 1 ? ` (${door.qty} und)` : ''}
-                                      {extraHinges > 0 && <span className="text-cyan-400"> + {extraHinges * (door.qty || 1)} par{extraHinges * (door.qty || 1) > 1 ? 'es' : ''} bisagras</span>}
+                                      {extraHinges > 0 && <span className="text-primary"> + {extraHinges * (door.qty || 1)} par{extraHinges * (door.qty || 1) > 1 ? 'es' : ''} bisagras</span>}
                                     </span>
                                     <Button
                                       type="button"
@@ -4668,7 +4669,7 @@ export default function Quotations() {
                                 type="button"
                                 variant="outline"
                                 size="sm"
-                                className="text-cyan-400 border-cyan-300 hover:bg-cyan-500/10"
+                                className="text-primary border-teal-300 hover:bg-primary/10"
                                 onClick={() => {
                                   const newItems = [...items];
                                   const doors = [...(newItems[index].acabadosConfig?.aluminumGlassDoors || []), { height: 0, width: 0, qty: 1 }];
@@ -4682,7 +4683,7 @@ export default function Quotations() {
                             </div>
                             
                             {/* Luz LED para Alacenas */}
-                            <div className="bg-[#162828] rounded-lg p-4 border border-[rgba(106,207,199,0.12)] space-y-3">
+                            <div className="bg-card rounded-lg p-4 border border-[rgba(106,207,199,0.12)] space-y-3">
                               <div className="flex items-center space-x-2">
                                 <input
                                   type="checkbox"
@@ -4701,10 +4702,10 @@ export default function Quotations() {
                                     newItems[index].totalPrice = calculateAcabadosTotal(newItems[index]);
                                     setItems(newItems);
                                   }}
-                                  className="h-4 w-4 accent-yellow-500"
+                                  className="h-4 w-4 accent-amber-500"
                                 />
                                 <Label htmlFor={`acabados-led-${index}`} className="text-sm font-semibold text-white/85 cursor-pointer flex items-center gap-2">
-                                  <Lightbulb className="h-4 w-4 text-yellow-500" />
+                                  <Lightbulb className="h-4 w-4 text-amber-500" />
                                   Luz LED para Alacenas - {formatPrice(getPrice('ACABADO_LED_ML'))}/ml
                                 </Label>
                               </div>
@@ -4737,7 +4738,7 @@ export default function Quotations() {
                             </div>
                             
                             {/* Notas para el cliente (salen en el PDF y en el enlace) */}
-                            <div className="bg-[#162828] rounded-lg p-4 border border-[rgba(106,207,199,0.12)] space-y-2">
+                            <div className="bg-card rounded-lg p-4 border border-[rgba(106,207,199,0.12)] space-y-2">
                               <Label className="text-sm font-semibold text-white/85">Notas adicionales (opcional)</Label>
                               <p className="text-xs text-white/45">Lo que escribas aquí aparece al cliente en el PDF y en el enlace, debajo del detalle de puertas y LED.</p>
                               <Textarea
@@ -4791,8 +4792,8 @@ export default function Quotations() {
                             </div>
                             
                             {/* Total */}
-                            <div className="p-3 bg-cyan-100 rounded-lg">
-                              <p className="text-lg font-bold text-cyan-300">
+                            <div className="p-3 bg-teal-100 rounded-lg">
+                              <p className="text-lg font-bold text-teal-300">
                                 Total Acabados: {formatPrice(item.totalPrice || 0)}
                               </p>
                             </div>
@@ -4917,7 +4918,7 @@ export default function Quotations() {
                                 onChange={(e) => updateItem(index, "description", e.target.value)}
                                 placeholder="La descripción se genera automáticamente al configurar el closet…"
                                 rows={3}
-                                className="text-sm bg-[#162828] border-[rgba(106,207,199,0.18)] text-white/85"
+                                className="text-sm bg-card border-[rgba(106,207,199,0.18)] text-white/85"
                               />
                             </div>
                           </>
@@ -5005,7 +5006,7 @@ export default function Quotations() {
                                 onChange={(e) => updateItem(index, "description", e.target.value)}
                                 placeholder="La descripción se genera automáticamente al configurar las puertas…"
                                 rows={3}
-                                className="text-sm bg-[#162828] border-[rgba(106,207,199,0.18)] text-white/85"
+                                className="text-sm bg-card border-[rgba(106,207,199,0.18)] text-white/85"
                               />
                             </div>
                           </>
@@ -5058,7 +5059,7 @@ export default function Quotations() {
                                 onChange={(e) => updateItem(index, "description", e.target.value)}
                                 placeholder="La descripción se genera automáticamente al configurar el centro de TV…"
                                 rows={3}
-                                className="text-sm bg-[#162828] border-[rgba(106,207,199,0.18)] text-white/85"
+                                className="text-sm bg-card border-[rgba(106,207,199,0.18)] text-white/85"
                               />
                             </div>
                           </>
@@ -5228,7 +5229,7 @@ export default function Quotations() {
                           step="0.5"
                           value={discountPercent}
                           onChange={(e) => setDiscountPercent(Math.min(100, Math.max(0, parseFloat(e.target.value) || 0)))}
-                          className="w-16 sm:w-20 h-8 text-center bg-[#162828]/20 border-white/30 text-white placeholder:text-white/50 text-sm"
+                          className="w-16 sm:w-20 h-8 text-center bg-card/20 border-white/30 text-white placeholder:text-white/50 text-sm"
                         />
                         <span className="text-white/90 text-sm">%</span>
                       </div>
@@ -5247,8 +5248,8 @@ export default function Quotations() {
                         onClick={() => setDiscountPercent(discountPercent === val ? 0 : val)}
                         className={`px-2 py-0.5 rounded text-xs font-semibold transition-all border ${
                           discountPercent === val
-                            ? "bg-[#162828] text-emerald-300 border-white"
-                            : "bg-[#162828]/20 text-white border-white/30 hover:bg-[#162828]/30"
+                            ? "bg-card text-green-300 border-white"
+                            : "bg-card/20 text-white border-white/30 hover:bg-card/30"
                         }`}
                       >
                         {val}%
@@ -5258,7 +5259,7 @@ export default function Quotations() {
                       <button
                         type="button"
                         onClick={() => setDiscountPercent(0)}
-                        className="px-2 py-0.5 rounded text-xs font-semibold bg-[#162828]/10 text-white/60 border border-white/20 hover:bg-[#162828]/20 transition-all"
+                        className="px-2 py-0.5 rounded text-xs font-semibold bg-card/10 text-white/60 border border-white/20 hover:bg-card/20 transition-all"
                       >
                         Quitar
                       </button>
@@ -5290,7 +5291,7 @@ export default function Quotations() {
                 {/* Total Final */}
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2 sm:gap-3">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#162828]/20 flex items-center justify-center">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-card/20 flex items-center justify-center">
                       <CircleDollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                     </div>
                     <div>
@@ -5316,7 +5317,7 @@ export default function Quotations() {
                   value={generalNotes}
                   onChange={(e) => setGeneralNotes(e.target.value)}
                   rows={5}
-                  className="text-sm bg-[#162828] border-[rgba(106,207,199,0.18)] text-white/85 font-mono"
+                  className="text-sm bg-card border-[rgba(106,207,199,0.18)] text-white/85 font-mono"
                 />
               </div>
 
@@ -5326,7 +5327,7 @@ export default function Quotations() {
                   <Input
                     value={paymentTerms}
                     onChange={(e) => setPaymentTerms(e.target.value)}
-                    className="text-sm bg-[#162828] text-white/85"
+                    className="text-sm bg-card text-white/85"
                   />
                 </div>
                 <div>
@@ -5334,7 +5335,7 @@ export default function Quotations() {
                   <Input
                     value={deliveryTime}
                     onChange={(e) => setDeliveryTime(e.target.value)}
-                    className="text-sm bg-[#162828] text-white/85"
+                    className="text-sm bg-card text-white/85"
                   />
                 </div>
               </div>
@@ -5347,7 +5348,7 @@ export default function Quotations() {
                   type="button"
                   size="sm"
                   onClick={addItem}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm text-xs sm:text-sm w-full sm:w-auto"
+                  className="bg-green-600 hover:bg-green-700 text-white shadow-sm text-xs sm:text-sm w-full sm:w-auto"
                 >
                   <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                   Agregar Producto

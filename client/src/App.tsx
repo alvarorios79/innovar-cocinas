@@ -40,6 +40,7 @@ import GalleryAdmin from "./pages/GalleryAdmin";
 import Contador from "./pages/Contador";
 import Medidor from "./pages/Medidor";
 import PideTuVisita from "./pages/PideTuVisita";
+import { ConfirmHost } from "@/lib/confirm";
 import Interesados from "./pages/Interesados";
 import VisitasTecnicas from "./pages/VisitasTecnicas";
 
@@ -134,6 +135,7 @@ function App() {
       <ThemeProvider defaultTheme="light">
         <TooltipProvider>
           <Toaster />
+          <ConfirmHost />
           <Router />
           <MobileBottomNavigation />
           <OfflineIndicator />

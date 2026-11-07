@@ -6,7 +6,7 @@
  *     title="Citas del Día"
  *     subtitle="3 pendientes"
  *     icon={<Calendar className="h-4 w-4" />}
- *     accent="#F59E0B"
+ *     accent="var(--warning)"
  *     actions={<Button size="sm">Ver todas</Button>}
  *   >
  *     ... contenido ...
@@ -35,7 +35,7 @@ export function SectionCard({
   title,
   subtitle,
   icon,
-  accent = "#1DB5A8",
+  accent = "var(--primary)",
   actions,
   children,
   bodyPadding = true,
@@ -43,7 +43,7 @@ export function SectionCard({
 }: SectionCardProps) {
   return (
     <div
-      className={`bg-[#162828] rounded-xl overflow-hidden shadow-sm ${className}`}
+      className={`bg-card rounded-xl overflow-hidden shadow-sm ${className}`}
       style={{
         border: "1px solid rgba(255,255,255,0.06)",
         borderTop: `3px solid ${accent}`,

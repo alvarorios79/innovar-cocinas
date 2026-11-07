@@ -16,7 +16,7 @@ export function ProfileAvatar({ user, size = 32 }: { user: AvatarUser; size?: nu
       )}
       <AvatarFallback
         className="font-bold"
-        style={{ background: "#6ACFC7", color: "#0C1A1A", fontSize: Math.round(size * 0.4) }}
+        style={{ background: "#6ACFC7", color: "var(--background)", fontSize: Math.round(size * 0.4) }}
       >
         {initial}
       </AvatarFallback>

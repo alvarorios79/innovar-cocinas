@@ -16,11 +16,11 @@ function parseDBDate(ds: string | Date | null | undefined): Date | null {
 }
 
 const STATUS_LABELS: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
-  pendiente:                  { label: "Pendiente de confirmación", color: "text-yellow-400", icon: <Clock className="h-5 w-5" /> },
+  pendiente:                  { label: "Pendiente de confirmación", color: "text-amber-400", icon: <Clock className="h-5 w-5" /> },
   confirmada:                 { label: "Confirmada",                color: "text-green-400",  icon: <CheckCircle2 className="h-5 w-5" /> },
   enviada:                    { label: "Confirmada",                color: "text-green-400",  icon: <CheckCircle2 className="h-5 w-5" /> },
   cancelada:                  { label: "Cancelada",                 color: "text-red-400",    icon: <XCircle className="h-5 w-5" /> },
-  completada:                 { label: "Completada",                color: "text-teal-400",   icon: <CheckCircle2 className="h-5 w-5" /> },
+  completada:                 { label: "Completada",                color: "text-primary",   icon: <CheckCircle2 className="h-5 w-5" /> },
   reagendamiento_solicitado:  { label: "Reagendamiento solicitado", color: "text-orange-400", icon: <RefreshCw className="h-5 w-5" /> },
 };
 
@@ -67,7 +67,7 @@ export default function CitaPublica() {
   if (!token) return (
     <div className="min-h-screen flex items-center justify-center" style={{ background: "linear-gradient(135deg, #0f172a 0%, #0d2d2a 60%)" }}>
       <div className="text-center p-8">
-        <AlertTriangle className="h-12 w-12 text-yellow-400 mx-auto mb-4" />
+        <AlertTriangle className="h-12 w-12 text-amber-400 mx-auto mb-4" />
         <p className="text-white text-lg">Enlace inválido. Por favor usa el link que te enviamos por WhatsApp.</p>
       </div>
     </div>
@@ -76,7 +76,7 @@ export default function CitaPublica() {
   if (isLoading) return (
     <div className="min-h-screen flex items-center justify-center" style={{ background: "linear-gradient(135deg, #0f172a 0%, #0d2d2a 60%)" }}>
       <div className="text-center">
-        <div className="h-10 w-10 border-4 border-teal-400 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <div className="h-10 w-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
         <p className="text-white/60">Cargando tu cita...</p>
       </div>
     </div>
@@ -126,14 +126,14 @@ export default function CitaPublica() {
               {parsedDate && (
                 <>
                   <div className="flex items-center gap-3 bg-white/[0.04] rounded-xl p-3">
-                    <Calendar className="h-5 w-5 text-teal-400 shrink-0" />
+                    <Calendar className="h-5 w-5 text-primary shrink-0" />
                     <div>
                       <div className="text-xs text-white/40 uppercase tracking-wide">Fecha</div>
                       <div className="text-white font-medium capitalize">{dateStr}</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 bg-white/[0.04] rounded-xl p-3">
-                    <Clock className="h-5 w-5 text-teal-400 shrink-0" />
+                    <Clock className="h-5 w-5 text-primary shrink-0" />
                     <div>
                       <div className="text-xs text-white/40 uppercase tracking-wide">Hora</div>
                       <div className="text-white font-medium">{timeStr}</div>
@@ -146,7 +146,7 @@ export default function CitaPublica() {
                   <div className="text-xs text-white/40 uppercase tracking-wide mb-1">Servicio</div>
                   <div className="flex flex-wrap gap-2">
                     {data.workTypes.map(wt => (
-                      <span key={wt} className="px-2 py-1 bg-teal-500/20 text-teal-300 rounded-lg text-sm">
+                      <span key={wt} className="px-2 py-1 bg-primary/20 text-teal-300 rounded-lg text-sm">
                         {data.workTypeLabels[wt] ?? wt}
                       </span>
                     ))}
@@ -160,7 +160,7 @@ export default function CitaPublica() {
               <div className="space-y-3">
                 <Button
                   className="w-full font-semibold text-white"
-                  style={{ background: "linear-gradient(135deg, #1DB5A8, #0D9B8F)" }}
+                  style={{ background: "var(--brand-gradient)" }}
                   onClick={() => setView("reschedule")}
                 >
                   <RefreshCw className="h-4 w-4 mr-2" /> Solicitar reagendamiento
@@ -247,7 +247,7 @@ export default function CitaPublica() {
                           onClick={() => setReqTime(slot)}
                           className={`py-2 px-3 rounded-xl text-sm font-medium transition-colors ${
                             reqTime === slot
-                              ? "bg-teal-500 text-white"
+                              ? "bg-primary text-white"
                               : "bg-white/10 text-white/70 hover:bg-white/20"
                           }`}
                         >
@@ -258,7 +258,7 @@ export default function CitaPublica() {
                   ) : slots ? (
                     <p className="text-white/40 text-sm">No hay horarios disponibles para esa fecha.</p>
                   ) : (
-                    <div className="h-6 w-6 border-2 border-teal-400 border-t-transparent rounded-full animate-spin" />
+                    <div className="h-6 w-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                   )}
                 </div>
               )}
@@ -277,7 +277,7 @@ export default function CitaPublica() {
               <div className="space-y-3 pt-2">
                 <Button
                   className="w-full font-semibold text-white"
-                  style={{ background: "linear-gradient(135deg, #1DB5A8, #0D9B8F)" }}
+                  style={{ background: "var(--brand-gradient)" }}
                   disabled={!reqDate || !reqTime || rescheduleMutation.isPending}
                   onClick={() => rescheduleMutation.mutate({ token, requestedDate: reqDate, requestedTime: reqTime, message: reqMsg || undefined })}
                 >
@@ -294,7 +294,7 @@ export default function CitaPublica() {
         {/* ── Confirmación final ── */}
         {view === "done" && (
           <div className="text-center py-4">
-            <CheckCircle2 className="h-14 w-14 text-teal-400 mx-auto mb-4" />
+            <CheckCircle2 className="h-14 w-14 text-primary mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-white mb-2">
               {cancelMutation.isSuccess ? "Cita cancelada" : "¡Solicitud enviada!"}
             </h2>

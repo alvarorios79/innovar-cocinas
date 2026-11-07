@@ -72,7 +72,7 @@ export function InitialPaymentModal({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <CreditCard className="w-5 h-5 text-emerald-400" />
+            <CreditCard className="w-5 h-5 text-green-400" />
             Registrar Pago Inicial
           </DialogTitle>
           <DialogDescription>
@@ -94,7 +94,7 @@ export function InitialPaymentModal({
                 <div className="h-px bg-white/[0.10]" />
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Anticipo Sugerido (60%):</span>
-                  <span className="text-sm text-slate-500">
+                  <span className="text-sm text-gray-500">
                     {formatPrice(suggestedAdvance)}
                   </span>
                 </div>
@@ -108,7 +108,7 @@ export function InitialPaymentModal({
               Monto Recibido
             </Label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
                 $
               </span>
               <Input
@@ -121,7 +121,7 @@ export function InitialPaymentModal({
                 disabled={isLoading}
               />
             </div>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-gray-500">
               Mínimo: {formatPrice(0)} | Máximo: {formatPrice(totalAmount)}
             </p>
           </div>
@@ -145,16 +145,16 @@ export function InitialPaymentModal({
           </div>
 
           {/* Resumen de Saldo */}
-          <Card className="border-emerald-200 bg-emerald-500/10">
+          <Card className="border-green-200 bg-green-500/10">
             <CardContent className="pt-6">
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-muted-foreground">Saldo Pendiente:</span>
-                  <span className="font-semibold text-emerald-300">
+                  <span className="font-semibold text-green-300">
                     {formatPrice(Math.max(0, remainingBalance))}
                   </span>
                 </div>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-gray-500">
                   Se registrará automáticamente como pago tipo "Adelanto"
                 </p>
               </div>
@@ -189,7 +189,7 @@ export function InitialPaymentModal({
                 parseFloat(paymentAmount) <= 0 ||
                 parseFloat(paymentAmount) > totalAmount
               }
-              className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+              className="flex-1 bg-green-600 hover:bg-green-700"
             >
               {isLoading ? "Creando..." : "Crear Proyecto"}
             </Button>

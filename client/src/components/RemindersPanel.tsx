@@ -60,8 +60,8 @@ const REMINDER_TYPE_CONFIG: Record<string, {
   instalacion_proxima: {
     label: "Instalación próxima",
     icon: Truck,
-    color: "text-teal-400",
-    bgColor: "bg-teal-500/10 border-teal-500/20"
+    color: "text-primary",
+    bgColor: "bg-primary/10 border-primary/20"
   },
 };
 
@@ -111,7 +111,7 @@ export function RemindersPanel({ userId, userRole, compact = false }: RemindersP
 
   if (activeReminders.length === 0) {
     return (
-      <Card className="bg-[#162828] border-amber-500/20" style={{ borderTop: "3px solid #F59E0B" }}>
+      <Card className="bg-card border-amber-500/20" style={{ borderTop: "3px solid #F59E0B" }}>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm flex items-center gap-2">
             <Bell className="h-4 w-4 text-amber-400" />
@@ -209,7 +209,7 @@ export function RemindersPanel({ userId, userRole, compact = false }: RemindersP
   };
 
   return (
-    <Card className="bg-[#162828] border-amber-500/20" style={{ borderTop: "3px solid #F59E0B" }}>
+    <Card className="bg-card border-amber-500/20" style={{ borderTop: "3px solid #F59E0B" }}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm flex items-center gap-2">

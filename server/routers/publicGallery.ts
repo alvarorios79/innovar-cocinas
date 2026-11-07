@@ -110,14 +110,16 @@ export const publicGalleryRouter = router({
           };
         }
 
-        // La etapa del proyecto debe coincidir con lo que se aprueba. Antes, aprobar renders con el
-        // proyecto todavía en modelado lo saltaba a "aprobacion_final".
+        // La etapa del proyecto debe coincidir con lo que se aprueba. Caso real: el cliente pidió
+        // cambios (proyecto vuelve a "en_diseno") y días después reabre el enlace viejo y aprueba:
+        // antes el proyecto saltaba a "aprobacion_final" con los renders sin ajustar.
         const status = project.status as string;
         if (input.type === "renders" && status !== "pendiente_render") {
-          if (status === "pendiente_modelado" || status === "en_diseno") {
+          // Caso típico: el cliente pidió cambios (en_diseno) y reabre el enlace viejo
+          if (status === "en_diseno") {
             throw new TRPCError({
               code: "PRECONDITION_FAILED",
-              message: "Primero debes aprobar el modelado 3D. Revisa el enlace del modelado que te enviamos o escríbenos al 313 680 2025.",
+              message: "Estamos haciendo los ajustes que pediste. Te enviaremos la nueva versión por WhatsApp para que la apruebes.",
             });
           }
           throw new TRPCError({

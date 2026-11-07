@@ -555,9 +555,12 @@ export default function PublicGallery() {
     });
   };
 
-  // Renders con el modelado todavía pendiente: no se pueden aprobar (el servidor también lo bloquea)
+  // Solo se aprueba lo que está esperando aprobación (el servidor también lo valida). Caso típico:
+  // el cliente pidió cambios (proyecto vuelve a "en_diseno") y reabre el enlace viejo de WhatsApp.
   const projStatus = (project as any).status as string | undefined;
-  const rendersBeforeModelado = photoType === "renders" && (projStatus === "pendiente_modelado" || projStatus === "en_diseno");
+  const notPendingApproval = photoType === "renders"
+    ? projStatus !== "pendiente_render"
+    : !["en_diseno", "pendiente_modelado", "pendiente_render"].includes(projStatus || "");
   const designType = photoType === "renders" ? "renders" : "modelado_3d";
   const designTypeLabel = photoType === "renders" ? "Renders" : "Modelado 3D";
 
@@ -798,25 +801,20 @@ export default function PublicGallery() {
         )}
 
         {/* Sección de aprobación - Solo mostrar si hay fotos, no se ha completado una acción y no está ya aprobado */}
-        {filteredPhotos.length > 0 && !actionCompleted && !isAlreadyApproved && rendersBeforeModelado && (
+        {filteredPhotos.length > 0 && !actionCompleted && !isAlreadyApproved && notPendingApproval && (
           <Card className="mt-8 p-6 border-sky-500/30 bg-sky-500/10">
             <div className="text-center">
-              <h3 className="text-lg font-semibold text-foreground mb-2">Primero revisa el modelado 3D</h3>
-              <p className="text-muted-foreground mb-5">
-                Estos renders son una vista previa. Para aprobarlos, primero necesitamos tu aprobación del modelado 3D.
+              <h3 className="text-lg font-semibold text-foreground mb-2">Estamos trabajando en tu diseño</h3>
+              <p className="text-muted-foreground">
+                {projStatus === "en_diseno"
+                  ? "Recibimos tus comentarios y estamos haciendo los ajustes. Cuando la nueva versión esté lista te la enviaremos por WhatsApp para que la revises y la apruebes."
+                  : "En este momento no hay nada pendiente de aprobar en este enlace. Te avisaremos por WhatsApp cuando tengamos algo nuevo para que lo revises."}
               </p>
-              <Button
-                size="lg"
-                className="bg-sky-600 hover:bg-sky-700 text-white"
-                onClick={() => { window.location.href = `/gallery?project=${projectId}&token=${encodeURIComponent(token)}&type=modelado_3d`; }}
-              >
-                Ver y aprobar el modelado 3D
-              </Button>
             </div>
           </Card>
         )}
 
-        {filteredPhotos.length > 0 && !actionCompleted && !isAlreadyApproved && !rendersBeforeModelado && (
+        {filteredPhotos.length > 0 && !actionCompleted && !isAlreadyApproved && !notPendingApproval && (
           <Card className="mt-8 p-6 bg-gradient-to-r from-amber-950/30 to-orange-950/30 border-amber-500/25">
             <div className="text-center">
               <h3 className="text-lg font-semibold text-foreground mb-2">

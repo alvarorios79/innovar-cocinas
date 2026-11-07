@@ -1,6 +1,5 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "../_core/cookies";
-import { systemRouter } from "../_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { z } from "zod";
 import * as db from "../db";
@@ -1357,7 +1356,7 @@ export const quotationsRouter = router({
           workType: quotation.productType,
           totalAmount: quotation.total,
           advanceAmount: input.advanceAmount?.toString(),
-          portalUrl: `${process.env.VITE_FRONTEND_FORGE_API_URL?.replace('/api', '') || ''}/proyectos`,
+          portalUrl: `${process.env.VITE_APP_URL || 'https://innovar-cocinas.onrender.com'}/proyectos`,
         });
         
         return { 

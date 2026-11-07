@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import * as db from "../db";
-import { storagePut, getPresignedS3Url, checkFileExistsInS3 } from "../storage";
+import { storagePut } from "../storage";
 import { generateQuotationPDF } from "../quotation-pdf-generator";
 import { readFileSync, unlinkSync, existsSync, statSync } from "fs";
 import { buildQuotationPdfData } from "../quotation-pdf-data";

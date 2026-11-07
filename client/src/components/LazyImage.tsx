@@ -10,16 +10,9 @@ interface LazyImageProps {
   aspectRatio?: 'square' | 'video' | 'auto';
 }
 
-/**
- * Convierte una URL de CloudFront a una URL del proxy local
- * Esto permite acceder a imágenes que requieren autenticación
- */
+// Antes las fotos de la época Manus (CloudFront) pasaban por /api/image-proxy, que dependía del
+// almacenamiento de Manus (ya no existe). Ahora se usa la URL tal cual.
 function getProxiedUrl(url: string): string {
-  if (!url) return url;
-  // Si la URL es de CloudFront, usar el proxy
-  if (url.includes('cloudfront.net')) {
-    return `/api/image-proxy?url=${encodeURIComponent(url)}`;
-  }
   return url;
 }
 

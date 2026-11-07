@@ -9,7 +9,6 @@ import { createServer } from "http";
 import net from "net";
 import { unlinkSync, existsSync } from "fs";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
-import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
@@ -64,10 +63,17 @@ async function startServer() {
     allowedHeaders: ['Content-Type', 'Authorization'],
   }));
   
-  // OAuth callback under /api/oauth/callback
-  registerOAuthRoutes(app);
-  // Rate limiting para endpoints de autenticación
-  app.use("/api/oauth", authRateLimiter);
+  // Límite de intentos para inicio de sesión y recuperación de contraseña (contra fuerza bruta).
+  // Antes solo estaba en la ruta vieja de OAuth de Manus y el login real no lo tenía.
+  const AUTH_PROCEDURES = ["auth.loginWithPassword", "auth.requestPasswordReset", "auth.resetPassword"];
+  app.use("/api/trpc", (req, res, next) => {
+    const procs = decodeURIComponent(req.path.replace(/^\//, "")).split(",");
+    if (req.method === "POST" && procs.some(p => AUTH_PROCEDURES.includes(p))) {
+      return authRateLimiter(req, res, next);
+    }
+    next();
+  });
+
   // tRPC API con rate limiting integrado
   app.use(
     "/api/trpc",
@@ -78,36 +84,6 @@ async function startServer() {
     })
   );
   
-  // Rate limiting para uploads (image proxy puede usarse para abuso)
-  app.use("/api/image-proxy", uploadRateLimiter);
-  // Image proxy endpoint - sirve imágenes desde S3 usando credenciales del servidor
-  app.get("/api/image-proxy", async (req, res) => {
-    try {
-      const { storageDownloadDirect, extractKeyFromUrl } = await import('../storage');
-      
-      const url = req.query.url as string;
-      if (!url) {
-        return res.status(400).json({ error: 'URL parameter required' });
-      }
-      
-      // Extraer la key de la URL de CloudFront
-      const key = extractKeyFromUrl(url);
-      if (!key) {
-        return res.status(400).json({ error: 'Invalid URL format' });
-      }
-      
-      // Descargar directamente usando la API de storage con autenticación
-      const { buffer, contentType } = await storageDownloadDirect(key);
-      
-      // Configurar headers de caché
-      res.setHeader('Content-Type', contentType);
-      res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache por 1 día
-      res.send(buffer);
-    } catch (error) {
-      console.error('[ImageProxy] Error proxying image:', error);
-      res.status(500).json({ error: 'Error proxying image', message: String(error) });
-    }
-  });
 
   // PDF preview endpoint - Envuelve PDF en HTML para evitar que WebKit iOS lo promueva a visor nativo
   app.get("/api/pdf-preview/:quotationId", async (req, res) => {

@@ -27,12 +27,13 @@ export const apiRateLimiter = rateLimit({
 });
 
 /**
- * Rate limiter para endpoints de autenticación (5 req/min por IP)
- * Protege contra fuerza bruta en login/password/OAuth
+ * Rate limiter para inicio de sesión y recuperación de contraseña (10 intentos/min por IP)
+ * Protege contra fuerza bruta. 10 y no 5: varias personas del equipo pueden entrar a la vez
+ * desde la misma red (misma IP).
  */
 export const authRateLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 5,
+  max: 10,
   standardHeaders: true,
   legacyHeaders: false,
   message: {

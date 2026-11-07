@@ -39,7 +39,8 @@ import Postventa from "./pages/Postventa";
 import GalleryAdmin from "./pages/GalleryAdmin";
 import Contador from "./pages/Contador";
 import Medidor from "./pages/Medidor";
-import Agendar from "./pages/Agendar";
+import PideTuVisita from "./pages/PideTuVisita";
+import Interesados from "./pages/Interesados";
 import VisitasTecnicas from "./pages/VisitasTecnicas";
 
 
@@ -48,9 +49,9 @@ function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
 
   // Rutas siempre públicas (nunca usan DashboardLayout)
-  const alwaysPublicRoutes = ["/login", "/register", "/forgot-password", "/reset-password", "/portal", "/gallery", "/cotizacion", "/agendar", "/cita"];
+  const alwaysPublicRoutes = ["/login", "/register", "/forgot-password", "/reset-password", "/portal", "/gallery", "/cotizacion", "/agendar", "/visita", "/cita"];
   const isAlwaysPublic = alwaysPublicRoutes.some(
-    route => location === route || location.startsWith("/portal") || location.startsWith("/gallery") || location.startsWith("/cotizacion") || location.startsWith("/agendar") || location.startsWith("/cita")
+    route => location === route || location.startsWith("/portal") || location.startsWith("/gallery") || location.startsWith("/cotizacion") || location.startsWith("/agendar") || location.startsWith("/visita") || location.startsWith("/cita")
   );
   if (isAlwaysPublic) return <>{children}</>;
 
@@ -80,7 +81,9 @@ function Router() {
         <Route path={"/forgot-password"} component={ForgotPassword} />
         <Route path={"/reset-password"} component={ResetPassword} />
         <Route path={"/gallery"}><PublicGallery /></Route>
-        <Route path={"/agendar"} component={Agendar} />
+        <Route path={"/visita"} component={PideTuVisita} />
+        <Route path={"/agendar"} component={PideTuVisita} />
+        <Route path={"/interesados"}><Interesados /></Route>
         <Route path={"/cita"}><CitaPublica /></Route>
         <Route path={"/cotizacion"}><PublicQuotation /></Route>
         <Route path={"/pricing-config"}><PricingConfig /></Route>

@@ -926,8 +926,37 @@ export const fixedExpenseConfig = pgTable("fixedExpenseConfig", {
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 });
 
+// Interesados (leads): personas que piden visita en la web o escriben por WhatsApp/redes.
+// Tabla creada con SQL manual (_archivos-negocio/scripts-sql/2026-11-07_tabla_leads_interesados.sql).
+export const leads = pgTable("leads", {
+	id: serial('id').primaryKey(),
+	name: varchar({ length: 255 }).notNull(),
+	whatsappPhone: varchar({ length: 20 }).notNull(),
+	workTypes: text(),
+	location: text(),
+	message: text(),
+	source: varchar({ length: 30 }).default('web').notNull(),
+	status: varchar({ length: 20 }).default('nuevo').notNull(),
+	followUpDate: date({ mode: 'string' }),
+	notes: text(),
+	clientId: integer().references(() => clients.id),
+	appointmentId: integer().references(() => appointments.id),
+	createdBy: integer().references(() => users.id),
+	contactedAt: timestamp({ mode: 'string' }),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+	deletedAt: timestamp({ mode: 'string' }),
+},
+(table) => [
+	index("leads_status_idx").on(table.status),
+	index("leads_whatsappPhone_idx").on(table.whatsappPhone),
+	index("leads_followUpDate_idx").on(table.followUpDate),
+]);
+
+
 // ── Tipos de inserción usados por server/db.ts (solo tipos, no afectan la BD) ──
 export type InsertUser = typeof users.$inferInsert;
+export type InsertLead = typeof leads.$inferInsert;
 export type InsertClient = typeof clients.$inferInsert;
 export type InsertAppointment = typeof appointments.$inferInsert;
 export type InsertAppointmentWorkType = typeof appointmentWorkTypes.$inferInsert;

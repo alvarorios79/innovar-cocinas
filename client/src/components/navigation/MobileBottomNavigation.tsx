@@ -59,7 +59,9 @@ export function MobileBottomNavigation() {
     if (!moved.current) window.open("https://wa.me/573136802025", "_blank", "noopener,noreferrer");
   };
 
-  if (!isMobile || !user) return null;
+  // Páginas públicas para clientes: sin la barra del CRM aunque haya sesión abierta
+  const PUBLIC_PREFIXES = ["/visita", "/agendar", "/gallery", "/cita", "/cotizacion", "/login"];
+  if (!isMobile || !user || PUBLIC_PREFIXES.some(p => location.startsWith(p))) return null;
 
   const isActive = (path: string) => location === path || (path !== "/" && location.startsWith(path));
 

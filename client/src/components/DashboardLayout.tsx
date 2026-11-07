@@ -47,12 +47,14 @@ import {
   BookOpen,
   ClipboardCheck,
   Camera,
+  Inbox,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from "./DashboardLayoutSkeleton";
 import { NotificationBell } from "./NotificationBell";
 import { Button } from "./ui/button";
+import { trpc } from "@/lib/trpc";
 
 // ── Tipos ────────────────────────────────────────────────────────────────────
 type MenuItem = {
@@ -82,6 +84,8 @@ const menuSections: MenuSection[] = [
   {
     title: "Gestión",
     items: [
+      { icon: Inbox,         label: "Interesados",   path: "/interesados",
+        roles: ["super_admin", "admin", "comercial"], iconColor: "#f59e0b" },
       { icon: CalendarCheck, label: "Citas",         path: "/appointments-calendar",
         roles: ["super_admin", "admin", "comercial"], iconColor: "#3b82f6" },
       { icon: Users,         label: "Clientes",      path: "/clients",
@@ -271,6 +275,10 @@ function DashboardLayoutContent({ children, setSidebarWidth, sidebarWidth }: Das
   const isMobile = useIsMobile();
   const userRole = (user as any)?.role ?? "user";
   const roleInfo = roleLabels[userRole] ?? roleLabels["user"];
+  // Cuántos interesados esperan respuesta (nuevos + seguimientos de hoy)
+  const canSeeLeads = ["super_admin", "admin", "comercial"].includes(userRole);
+  const { data: leadCounts } = trpc.leads.counts.useQuery(undefined, { enabled: canSeeLeads, refetchInterval: 120_000 });
+  const pendingLeads = (leadCounts?.nuevos ?? 0) + (leadCounts?.seguimientosHoy ?? 0);
 
   // Filtrar secciones y ítems según el rol del usuario
   const visibleSections = menuSections
@@ -387,6 +395,12 @@ function DashboardLayoutContent({ children, setSidebarWidth, sidebarWidth }: Das
                           <span style={{ color: isActive ? "#fff" : "rgba(255,255,255,0.72)", fontWeight: isActive ? 600 : 400 }}>
                             {item.label}
                           </span>
+                          {item.path === "/interesados" && pendingLeads > 0 && (
+                            <span className="ml-auto min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-bold flex items-center justify-center"
+                              style={{ background: "#f59e0b", color: "#111" }}>
+                              {pendingLeads}
+                            </span>
+                          )}
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                     );

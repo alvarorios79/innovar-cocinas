@@ -3,6 +3,7 @@ import { authRouter } from "./routers/auth";
 import { clientsRouter } from "./routers/clients";
 import { appointmentsRouter, availabilityRouter } from "./routers/appointments";
 import { advisoryRouter, estimatesRouter } from "./routers/advisory";
+import { leadsRouter } from "./routers/leads";
 import { quotationsRouter } from "./routers/quotations";
 import { quotationsDebugRouter } from "./routers/quotations-debug";
 import { userManagementRouter } from "./routers/userManagement";
@@ -39,6 +40,7 @@ export const appRouter = router({
   appointments: appointmentsRouter,
   availability: availabilityRouter,
   advisory: advisoryRouter,
+  leads: leadsRouter,
   estimates: estimatesRouter,
   quotations: quotationsRouter,
   quotationsDebug: quotationsDebugRouter,

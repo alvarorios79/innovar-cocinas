@@ -480,7 +480,11 @@ export function NotificationBell() {
                           }
                           // Navegar según el tipo de notificación y rol del usuario
                           const isClient = user?.role === "user";
-                          if (notification.type === "tarea") {
+                          // Avisos de interesados (tipo "cita" con referenceType "lead" / "lead_resumen")
+                          if (String((notification as any).referenceType || "").startsWith("lead")) {
+                            setOpen(false);
+                            setLocation("/interesados");
+                          } else if (notification.type === "tarea") {
                             setOpen(false);
                             setLocation("/tasks");
                           } else if (notification.type === "proyecto") {
@@ -511,7 +515,7 @@ export function NotificationBell() {
                           <div
                             className={cn(
                               "w-2 h-2 rounded-full mt-2 flex-shrink-0",
-                              getNotificationColor(notification.type)
+                              String((notification as any).referenceType || "").startsWith("lead") ? "bg-amber-500" : getNotificationColor(notification.type)
                             )}
                           />
                           <div className="flex-1 min-w-0">

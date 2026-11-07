@@ -123,8 +123,8 @@ export default function Login() {
         <div className="pt-3 text-center border-t border-white/10">
           <p className="text-sm text-gray-500">
             ¿Eres cliente?{" "}
-            <Link href="/agendar" className="text-teal-400 hover:text-teal-300 font-medium transition-colors">
-              Agenda tu visita aquí →
+            <Link href="/visita" className="text-teal-400 hover:text-teal-300 font-medium transition-colors">
+              Pide tu visita aquí →
             </Link>
           </p>
         </div>

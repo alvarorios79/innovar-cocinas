@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -85,6 +85,8 @@ const WORK_TYPE_LABELS: Record<string, string> = {
   closet: "Closet",
   puertas: "Puertas",
   centro_tv: "Centro de TV",
+  mueble_bano: "Mueble de baño",
+  otro: "Otro",
 };
 
 interface Appointment {
@@ -377,6 +379,33 @@ export default function AppointmentsCalendar() {
     },
   });
 
+  // ── Cita desde un interesado (/appointments-calendar?interesado=ID) ──
+  const [fromLeadId, setFromLeadId] = useState<number | null>(() => {
+    const id = Number(new URLSearchParams(window.location.search).get("interesado"));
+    return Number.isFinite(id) && id > 0 ? id : null;
+  });
+  const { data: leadForAppointment } = trpc.leads.get.useQuery({ id: fromLeadId ?? 0 }, { enabled: !!fromLeadId });
+  const markLeadScheduled = trpc.leads.markScheduled.useMutation();
+  const utils = trpc.useUtils();
+  useEffect(() => {
+    const l = leadForAppointment as any;
+    if (!l) return;
+    const phone: string = l.whatsappPhone || "";
+    setIsNewClient(true);
+    setNewClientId(null);
+    setNewClientName(l.name || "");
+    if (phone.startsWith("57") && phone.length === 12) { setNewCountryCode("57"); setNewClientPhone(phone.slice(2)); }
+    else setNewClientPhone(phone);
+    setNewClientAddress(l.location || "");
+    setNewWorkTypes(String(l.workTypes || "").split(",").filter((w: string) => w in WORK_TYPE_LABELS));
+    setNewNotes([l.message, l.notes].filter(Boolean).join("\n"));
+    setShowNewDialog(true);
+  }, [leadForAppointment]);
+  const clearLeadParam = () => {
+    setFromLeadId(null);
+    if (window.location.search.includes("interesado=")) window.history.replaceState(null, "", window.location.pathname);
+  };
+
   // canCreateAppointment must be declared before medidoresData (used in 'enabled')
   const canCreateAppointment = user && ["super_admin", "admin", "comercial"].includes(user.role);
 
@@ -428,6 +457,12 @@ export default function AppointmentsCalendar() {
           appointmentId: result.id,
           medidorId: newMedidorId,
         });
+      }
+      if (fromLeadId && result?.id) {
+        await markLeadScheduled.mutateAsync({ id: fromLeadId, appointmentId: result.id, clientId: clientId ?? undefined }).catch(() => {});
+        utils.leads.list.invalidate();
+        utils.leads.counts.invalidate();
+        clearLeadParam();
       }
     } catch {
       // errors handled by mutations
@@ -885,7 +920,7 @@ export default function AppointmentsCalendar() {
       </main>
 
       {/* Dialog Nueva Cita */}
-      <Dialog open={showNewDialog} onOpenChange={setShowNewDialog}>
+      <Dialog open={showNewDialog} onOpenChange={(o) => { setShowNewDialog(o); if (!o) clearLeadParam(); }}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">

@@ -409,11 +409,11 @@ export default function PublicGallery() {
             style={{ background: "#141414", border: "1px solid rgba(0,188,212,0.2)" }}
           >
             <p className="text-sm mb-1" style={{ color: "#666" }}>{isDelivered ? "¿Te gustó y quieres un proyecto así?" : "¿Tienes preguntas sobre tu proyecto?"}</p>
-            <h3 className="text-white font-bold text-xl mb-6">{isDelivered ? "Agenda tu visita o escríbenos" : "Contáctanos por WhatsApp"}</h3>
+            <h3 className="text-white font-bold text-xl mb-6">{isDelivered ? "Pide tu visita o escríbenos" : "Contáctanos por WhatsApp"}</h3>
             {isDelivered && (
-              <a href="/agendar" className="inline-flex items-center gap-2 px-6 py-3 mb-4 rounded-2xl font-bold transition-opacity hover:opacity-90"
+              <a href="/visita?origen=referido" className="inline-flex items-center gap-2 px-6 py-3 mb-4 rounded-2xl font-bold transition-opacity hover:opacity-90"
                 style={{ background: "#00BCD4", color: "#0a0a0a" }}>
-                📅 Agendar visita de medidas
+                📅 Pedir una visita
               </a>
             )}
             {isDelivered && <br />}

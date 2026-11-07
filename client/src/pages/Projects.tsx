@@ -140,6 +140,15 @@ export default function Projects() {
     photoUrl: "",
     description: "",
   });
+
+  // Taller (jefe_taller / operario) solo puede subir en Avance, Instalación y Entrega:
+  // el formulario nunca debe quedar en "Medidas" (el servidor lo rechaza con "No tienes permisos")
+  useEffect(() => {
+    const isWorkshop = user?.role === "jefe_taller" || user?.role === "operario";
+    if (isWorkshop && !["avance", "instalacion", "entrega"].includes(photoForm.category)) {
+      setPhotoForm((f: any) => ({ ...f, category: "avance", subcategory: "" }));
+    }
+  }, [user?.role, photoForm.category]);
   
   // Estado para filtro de categoría y subcategoría en galería
   const [categoryFilter, setCategoryFilter] = useState<string>("all");

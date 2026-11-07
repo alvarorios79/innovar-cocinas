@@ -112,14 +112,7 @@ export function OperarioDashboard() {
   });
 
   // Mutation para subir imagen
-  const uploadImage = trpc.upload.image.useMutation({
-    onSuccess: () => {
-      toast.success("Foto subida exitosamente");
-    },
-    onError: (error) => {
-      toast.error(error.message || "Error al subir la foto");
-    },
-  });
+  const uploadImage = trpc.upload.image.useMutation();
 
   // Mutation para registrar foto en proyecto
   const uploadProjectPhoto = trpc.projectPhotos.upload.useMutation({
@@ -131,7 +124,7 @@ export function OperarioDashboard() {
 
   // Filtrar proyectos en producción (donde el operario trabaja)
   const productionProjects = projects.filter(p => 
-    ["aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "listo_instalacion"].includes(p.status)
+    ["aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "trabajando_instalacion"].includes(p.status)
   );
 
   // Tareas pendientes (no completadas)
@@ -204,47 +197,62 @@ export function OperarioDashboard() {
     }
   };
 
+  // Etapa elegida → carpeta del proyecto (el servidor solo deja al taller subir en Avance, Instalación y Entrega)
+  const UPLOAD_TARGETS: Record<string, { stage: "corte" | "enchape" | "ensamble" | "final"; category: "avance" | "instalacion" | "entrega"; subcategory: "corte" | "enchape" | "armado" | "proceso_instalacion" | "fotos_finales" }> = {
+    corte: { stage: "corte", category: "avance", subcategory: "corte" },
+    enchape: { stage: "enchape", category: "avance", subcategory: "enchape" },
+    ensamble: { stage: "ensamble", category: "avance", subcategory: "armado" },
+    instalacion: { stage: "final", category: "instalacion", subcategory: "proceso_instalacion" },
+    final: { stage: "final", category: "entrega", subcategory: "fotos_finales" },
+  };
+
+  const readAsDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error("No se pudo leer la foto"));
+    reader.readAsDataURL(file);
+  });
+
   // Función para subir la foto
   const handleUploadPhoto = async () => {
-    if (!selectedFile || !uploadProjectId || !uploadStage) {
+    const target = UPLOAD_TARGETS[uploadStage];
+    if (!selectedFile || !uploadProjectId || !target) {
       toast.error("Selecciona una etapa y una foto");
       return;
     }
 
     setUploadingPhoto(true);
     try {
-      // Convertir archivo a base64
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64 = reader.result as string;
-        
-        // Subir imagen a S3
-        const uploadResult = await uploadImage.mutateAsync({
-          fileName: selectedFile.name,
-          fileData: base64,
-          contentType: selectedFile.type,
-          projectId: uploadProjectId,
-          stage: uploadStage as any,
-        });
+      const base64 = await readAsDataUrl(selectedFile);
 
-        // Registrar foto en el proyecto
-        await uploadProjectPhoto.mutateAsync({
-          projectId: uploadProjectId,
-          stage: uploadStage as any,
-          photoUrl: uploadResult.url,
-          description: `Foto subida por operario - ${new Date().toLocaleDateString("es-CO")}`,
-        });
+      // 1. Subir la imagen
+      const uploadResult = await uploadImage.mutateAsync({
+        fileName: selectedFile.name,
+        fileData: base64,
+        contentType: selectedFile.type,
+        projectId: uploadProjectId,
+        stage: target.stage,
+        category: target.category,
+      });
 
-        setShowUploadDialog(false);
-        setSelectedFile(null);
-        setPreviewUrl(null);
-        setUploadingPhoto(false);
-        toast.success("¡Foto subida exitosamente!");
-      };
-      reader.readAsDataURL(selectedFile);
-    } catch (error) {
+      // 2. Registrarla en la carpeta correcta del proyecto
+      await uploadProjectPhoto.mutateAsync({
+        projectId: uploadProjectId,
+        stage: target.stage,
+        category: target.category,
+        subcategory: target.subcategory,
+        photoUrl: uploadResult.url,
+        description: `Foto subida por operario - ${new Date().toLocaleDateString("es-CO")}`,
+      });
+
+      toast.success("¡Foto subida exitosamente!");
+      setShowUploadDialog(false);
+      setSelectedFile(null);
+      setPreviewUrl(null);
+    } catch (error: any) {
+      toast.error(error?.message || "Error al subir la foto");
+    } finally {
       setUploadingPhoto(false);
-      toast.error("Error al subir la foto");
     }
   };
 
@@ -596,11 +604,11 @@ export function OperarioDashboard() {
                   <SelectValue placeholder="Selecciona una etapa" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="diseno">🎨 Renders y Diseños</SelectItem>
                   <SelectItem value="corte">Corte</SelectItem>
                   <SelectItem value="enchape">Enchape</SelectItem>
                   <SelectItem value="ensamble">Ensamble / Armado</SelectItem>
-                  <SelectItem value="final">Fotos Finales</SelectItem>
+                  <SelectItem value="instalacion">Instalación</SelectItem>
+                  <SelectItem value="final">Fotos Finales (entrega)</SelectItem>
                 </SelectContent>
               </Select>
               {!uploadStage && <p className="text-xs text-red-500">Selecciona una etapa para continuar</p>}
@@ -806,6 +814,14 @@ function ProjectPhotoCard({
                 )}
               </div>
             )}
+
+            {/* Subir foto: siempre visible (antes solo aparecía junto a etapas que ya tenían fotos) */}
+            <button
+              onClick={(e) => { e.stopPropagation(); onUploadPhoto(project.id); }}
+              className="mb-4 w-full flex items-center justify-center gap-2 py-3 rounded-lg font-semibold text-white bg-teal-600 hover:bg-teal-500 transition-colors"
+            >
+              <Camera className="h-5 w-5" /> Subir foto de mi trabajo
+            </button>
 
             {/* Galería de fotos por etapa */}
             {photos.length === 0 ? (

@@ -19,7 +19,6 @@ import {
   generateClosureAnnexPDF,
   getDb,
   notifyOwnerClosureConfirmed,
-  generateClosureExcel,
   logClosureAudit,
   getClosureAuditLog,
   getClosureAuditSummary,
@@ -366,28 +365,6 @@ export const accountingClosuresRouter = router({
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Error al generar el anexo de gastos",
-        });
-      }
-    }),
-
-  /**
-   * Generate Excel for closure
-   */
-  generateExcel: adminProcedure
-    .input(z.object({ closureId: z.number() }))
-    .query(async ({ input }) => {
-      try {
-        const buffer = await generateClosureExcel(input.closureId);
-        return {
-          buffer: buffer.toString("base64"),
-          filename: `cierre-contable-${input.closureId}.xlsx`,
-          mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        };
-      } catch (error) {
-        console.error("[AccountingClosures] Error generating Excel:", error);
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Error al generar Excel del cierre",
         });
       }
     }),

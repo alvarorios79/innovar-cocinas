@@ -43,15 +43,19 @@ describe("Photo View & Delete Permissions", () => {
       expect(result).toBe(true);
     });
 
-    // Regla vigente (helpers.ts): jefe_taller y operario ven TODAS las categorías en solo lectura
-    it("permite a jefe_taller ver fotos de 'cotizacion' (solo lectura)", () => {
-      const result = validatePhotoViewPermission("jefe_taller", "cotizacion");
-      expect(result).toBe(true);
+    // Regla (Álvaro, nov 2026): el taller no ve nada comercial — sin carpeta de cotización
+    it("rechaza a jefe_taller ver fotos de 'cotizacion'", () => {
+      expect(validatePhotoViewPermission("jefe_taller", "cotizacion")).toBe(false);
     });
 
-    it("permite a operario ver fotos de 'cotizacion' (solo lectura)", () => {
-      const result = validatePhotoViewPermission("operario", "cotizacion");
-      expect(result).toBe(true);
+    it("rechaza a operario ver fotos de 'cotizacion'", () => {
+      expect(validatePhotoViewPermission("operario", "cotizacion")).toBe(false);
+    });
+    it("permite al taller ver medidas, diseños y producción", () => {
+      for (const cat of ["medidas", "disenos", "avance", "instalacion", "entrega"]) {
+        expect(validatePhotoViewPermission("jefe_taller", cat)).toBe(true);
+        expect(validatePhotoViewPermission("operario", cat)).toBe(true);
+      }
     });
 
     it("debe permitir a disenador ver todas las categorías", () => {

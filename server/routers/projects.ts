@@ -44,6 +44,16 @@ async function loadModuleSchemes(projectId: number) {
 const hideClientContact = (role: string, c: any) =>
   c && (role === "jefe_taller" || role === "operario") ? { ...c, whatsappPhone: null, email: null, identificationNumber: null } : c;
 
+// Taller (jefe de taller y operario): nada comercial — sin precios, pagos ni datos de la
+// cotización (decisión de Álvaro, nov 2026). La pantalla ya lo ocultaba; esto evita que el
+// servidor siquiera lo envíe.
+const isWorkshopRole = (role: string) => role === "jefe_taller" || role === "operario";
+const stripMoneyForWorkshop = <T extends Record<string, any>>(role: string, p: T): T => {
+  if (!p || !isWorkshopRole(role)) return p;
+  const { totalAmount, advanceAmount, advanceReceiptUrl, quotationPdfUrl, ...rest } = p as any;
+  return rest as T;
+};
+
 export const projectsRouter = router({
     // Plano de módulos de la cocina (solo lectura) para diseñador, jefe de taller y equipo
     getModulePlans: protectedProcedure
@@ -204,7 +214,7 @@ export const projectsRouter = router({
         const allClients = await db.getAllClients();
         const clientMap = new Map(allClients.map(c => [c.id, c]));
 
-        return projectsList.map(p => ({
+        return projectsList.map(p => stripMoneyForWorkshop(role, {
           ...p,
           client: hideClientContact(role, clientMap.get(p.clientId)),
         }));
@@ -277,7 +287,7 @@ export const projectsRouter = router({
                 console.error('[listPaginated] Error obteniendo ultima version:', error);
               }
             }
-            return { ...p, name: quotationNumber, client: hideClientContact(role, clientMap.get(p.clientId)) };
+            return stripMoneyForWorkshop(role, { ...p, name: quotationNumber, client: hideClientContact(role, clientMap.get(p.clientId)) });
           })
         );
         
@@ -526,6 +536,17 @@ export const projectsRouter = router({
           }
         };
         
+        if (isWorkshopRole(role)) {
+          // Sin dinero ni cotización para el taller; fotos sin la carpeta de cotización
+          const q: any = quotation;
+          return {
+            ...stripMoneyForWorkshop(role, result as any),
+            photos: (result.photos || []).filter((ph: any) => ph.category !== "cotizacion"),
+            quotation: q ? { id: q.id, quotationNumber: q.quotationNumber, versionNumber: q.versionNumber } : null,
+            payments: [],
+            financialInfo: null,
+          } as typeof result;
+        }
 
         return result;
       }),
@@ -2198,11 +2219,17 @@ export const projectPhotosRouter = router({
         projectId: z.number(),
         category: z.enum(["cotizacion", "medidas", "disenos", "avance", "instalacion", "entrega"]).optional(),
       }))
-      .query(async ({ input }) => {
+      .query(async ({ ctx, input }) => {
+        // Taller: nunca la carpeta de cotización (documento con precios)
+        const canSee = (cat: string) => validatePhotoViewPermission(ctx.user.role, cat);
         if (input.category) {
+          if (!canSee(input.category)) {
+            throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para ver fotos de esta categoría" });
+          }
           return await db.getProjectPhotosByCategory(input.projectId, input.category);
         }
-        return await db.getProjectPhotosByProjectId(input.projectId);
+        const all = await db.getProjectPhotosByProjectId(input.projectId);
+        return all.filter((p: any) => canSee(p.category));
       }),
 
     // Obtener fotos por etapa
@@ -2211,8 +2238,9 @@ export const projectPhotosRouter = router({
         projectId: z.number(),
         stage: z.string(),
       }))
-      .query(async ({ input }) => {
-        return await db.getProjectPhotosByStage(input.projectId, input.stage);
+      .query(async ({ ctx, input }) => {
+        const photos = await db.getProjectPhotosByStage(input.projectId, input.stage);
+        return photos.filter((p: any) => validatePhotoViewPermission(ctx.user.role, p.category));
       }),
 
     // Obtener fotos por categoría

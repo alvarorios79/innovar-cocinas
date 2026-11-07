@@ -58,8 +58,9 @@ export function validatePhotoViewPermission(role: string, category: string): boo
   }
 
   if (role === "jefe_taller" || role === "operario") {
-    // jefe_taller y operario pueden ver TODAS las categorías (solo lectura en pre-producción)
-    return true;
+    // Taller: nada comercial (decisión de Álvaro, nov 2026). Ven medidas, diseños y producción
+    // en solo lectura, pero NO la carpeta de cotización (documento con precios).
+    return category !== "cotizacion";
   }
 
   return false;

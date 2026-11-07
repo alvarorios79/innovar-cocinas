@@ -151,7 +151,7 @@ export function OperarioDashboard() {
 
   const getStatusLabel = (status: string) => {
     const statusLabels: Record<string, string> = {
-      aprobacion_final: "Aprobación Final",
+      aprobacion_final: "Diseño Aprobado",
       despiece: "En Despiece",
       corte: "En Corte",
       enchape: "En Enchape",

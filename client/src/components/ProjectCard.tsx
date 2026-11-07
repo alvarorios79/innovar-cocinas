@@ -38,7 +38,7 @@ const PROJECT_STATUSES = {
   en_diseno: { label: "En Diseño", color: "bg-purple-500", icon: Paintbrush },
   pendiente_modelado: { label: "Pendiente Modelado 3D", color: "bg-violet-500", icon: AlertCircle },
   pendiente_render: { label: "Pendiente Renders", color: "bg-amber-500", icon: AlertCircle },
-  aprobacion_final: { label: "Aprobación Final", color: "bg-green-400", icon: CheckCircle2 },
+  aprobacion_final: { label: "Diseño Aprobado", color: "bg-green-400", icon: CheckCircle2 },
   despiece: { label: "Despiece", color: "bg-indigo-500", icon: Paintbrush },
   corte: { label: "En Corte", color: "bg-orange-500", icon: Hammer },
   enchape: { label: "En Enchape", color: "bg-orange-600", icon: Paintbrush },

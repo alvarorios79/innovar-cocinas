@@ -51,7 +51,7 @@ const PROJECT_STATUSES: Record<string, { label: string; color: string; icon: any
   en_diseno: { label: "En Diseño", color: "bg-purple-500", icon: AlertCircle },
   pendiente_modelado: { label: "Pendiente Modelado 3D", color: "bg-violet-500", icon: AlertCircle },
   pendiente_render: { label: "Pendiente Renders", color: "bg-amber-500", icon: AlertCircle },
-  aprobacion_final: { label: "Aprobación Final", color: "bg-green-400", icon: CheckCircle2 },
+  aprobacion_final: { label: "Diseño Aprobado", color: "bg-green-400", icon: CheckCircle2 },
   despiece: { label: "Despiece", color: "bg-indigo-500", icon: AlertCircle },
   corte: { label: "En Corte", color: "bg-orange-500", icon: AlertCircle },
   enchape: { label: "En Enchape", color: "bg-orange-600", icon: AlertCircle },

@@ -869,7 +869,10 @@ ${whatsAppLink}` : "⚠️ El cliente no tiene número de WhatsApp registrado.")
 
         // Determinar el número de revisión
         const currentRevision = (project as any).modeladoRevisionNumber || 0;
-        const newRevision = currentRevision === 0 ? 1 : currentRevision;
+        // Reenvío después de que el cliente pidió cambios (proyecto volvió a "en_diseno"):
+        // es una revisión nueva (antes quedaba el mismo número y el CRM mostraba "1 Rev").
+        const isResendAfterChanges = currentRevision >= 1 && project.status === "en_diseno" && !!(project as any).changesRequestedAt;
+        const newRevision = currentRevision === 0 ? 1 : (isResendAfterChanges ? currentRevision + 1 : currentRevision);
         
         // Solo cambiar estado si no está ya en pendiente_modelado
         if (project.status !== "pendiente_modelado") {
@@ -877,6 +880,7 @@ ${whatsAppLink}` : "⚠️ El cliente no tiene número de WhatsApp registrado.")
             await db.updateProject(input.projectId, {
               status: "pendiente_modelado",
               modeladoRevisionNumber: newRevision,
+              ...(isResendAfterChanges ? { changesRequestedAt: null, clientApprovalNotes: null } : {}),
             });
             
             await db.createProjectStatusHistory({
@@ -960,7 +964,10 @@ ${whatsAppLink}` : "⚠️ El cliente no tiene número de WhatsApp registrado.")
 
         // Determinar el número de revisión
         const currentRevision = (project as any).renderRevisionNumber || 0;
-        const newRevision = currentRevision === 0 ? 1 : currentRevision;
+        // Reenvío después de que el cliente pidió cambios (proyecto volvió a "en_diseno"):
+        // es una revisión nueva (antes quedaba el mismo número y el CRM mostraba "1 Rev").
+        const isResendAfterChanges = currentRevision >= 1 && project.status === "en_diseno" && !!(project as any).changesRequestedAt;
+        const newRevision = currentRevision === 0 ? 1 : (isResendAfterChanges ? currentRevision + 1 : currentRevision);
         
         // Solo cambiar estado si no está ya en pendiente_render
         if (project.status !== "pendiente_render") {
@@ -968,6 +975,7 @@ ${whatsAppLink}` : "⚠️ El cliente no tiene número de WhatsApp registrado.")
             await db.updateProject(input.projectId, {
               status: "pendiente_render",
               renderRevisionNumber: newRevision,
+              ...(isResendAfterChanges ? { changesRequestedAt: null, clientApprovalNotes: null } : {}),
             });
             
             await db.createProjectStatusHistory({

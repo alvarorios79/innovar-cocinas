@@ -64,7 +64,7 @@ const PROJECT_STATUSES: Record<string, { label: string; color: string; icon: any
   en_diseno: { label: "En Diseño", color: "bg-purple-500", icon: Paintbrush },
   pendiente_modelado: { label: "Pendiente Modelado 3D", color: "bg-violet-500", icon: AlertCircle },
   pendiente_render: { label: "Pendiente Renders", color: "bg-amber-500", icon: AlertCircle },
-  aprobacion_final: { label: "Aprobación Final", color: "bg-green-400", icon: CheckCircle2 },
+  aprobacion_final: { label: "Diseño Aprobado", color: "bg-green-400", icon: CheckCircle2 },
   despiece: { label: "Despiece", color: "bg-indigo-500", icon: FileText },
   corte: { label: "En Corte", color: "bg-orange-500", icon: Hammer },
   enchape: { label: "En Enchape", color: "bg-orange-600", icon: Paintbrush },
@@ -81,6 +81,10 @@ const getStatusLabel = (status: string, modeladoRevisionNumber?: number | null, 
   }
   if (status === "pendiente_render" && renderRevisionNumber && renderRevisionNumber > 0) {
     return `Pendiente Aprobación Render ${renderRevisionNumber}`;
+  }
+  // El cliente aprobó los renders: mostrar con qué versión quedó aprobado el diseño
+  if (status === "aprobacion_final" && renderRevisionNumber && renderRevisionNumber > 0) {
+    return `Diseño Aprobado V${renderRevisionNumber}`;
   }
   return PROJECT_STATUSES[status]?.label || status;
 };
@@ -2440,17 +2444,17 @@ export default function Projects() {
         </DialogContent>
       </Dialog>
 
-      {/* Diálogo de confirmación para avanzar a Aprobación Final */}
+      {/* Diálogo de confirmación para avanzar a Diseño Aprobado */}
       <Dialog open={showAdvanceConfirmDialog} onOpenChange={setShowAdvanceConfirmDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="text-amber-400 flex items-center gap-2">
               <AlertTriangle className="h-5 w-5" />
-              Confirmar Aprobación Final
+              Confirmar Diseño Aprobado
             </DialogTitle>
             <DialogDescription className="space-y-3">
               <p>
-                Estás a punto de marcar el proyecto <strong>"{projectToAdvance?.clientName}"</strong> como <strong>Aprobación Final</strong>.
+                Estás a punto de marcar el proyecto <strong>"{projectToAdvance?.clientName}"</strong> como <strong>Diseño Aprobado</strong>.
               </p>
               {projectToAdvance?.renderRevisionNumber && projectToAdvance.renderRevisionNumber > 1 && (
                 <p className="text-amber-400 font-medium">

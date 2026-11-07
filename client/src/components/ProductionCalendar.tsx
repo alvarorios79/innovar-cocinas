@@ -16,7 +16,7 @@ import { Link } from "wouter";
 
 // Estados de producción
 const PRODUCTION_STATUSES = {
-  aprobacion_final: { label: "Aprobación Final", color: "bg-green-400" },
+  aprobacion_final: { label: "Diseño Aprobado", color: "bg-green-400" },
   despiece: { label: "Despiece", color: "bg-blue-400" },
   corte: { label: "Corte", color: "bg-orange-400" },
   enchape: { label: "Enchape", color: "bg-orange-500" },

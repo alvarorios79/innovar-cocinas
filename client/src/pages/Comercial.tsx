@@ -200,7 +200,7 @@ export default function Comercial() {
       en_diseno: "En Diseño",
       pendiente_modelado: "Pendiente Modelado 3D",
       pendiente_render: "Pendiente Renders",
-      aprobacion_final: "Aprobación Final",
+      aprobacion_final: "Diseño Aprobado",
       despiece: "En Despiece",
       corte: "En Corte",
       enchape: "En Enchape",

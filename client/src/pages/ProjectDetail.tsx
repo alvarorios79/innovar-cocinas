@@ -77,7 +77,7 @@ const PROJECT_STATUSES: Record<string, { label: string; color: string; icon: any
   en_diseno: { label: "En Diseño", color: "bg-purple-500", icon: AlertCircle },
   pendiente_modelado: { label: "Pendiente Modelado 3D", color: "bg-violet-500", icon: AlertCircle },
   pendiente_render: { label: "Pendiente Renders", color: "bg-amber-500", icon: AlertCircle },
-  aprobacion_final: { label: "Aprobación Final", color: "bg-green-400", icon: CheckCircle2 },
+  aprobacion_final: { label: "Diseño Aprobado", color: "bg-green-400", icon: CheckCircle2 },
   despiece: { label: "Despiece", color: "bg-indigo-500", icon: AlertCircle },
   corte: { label: "En Corte", color: "bg-orange-500", icon: AlertCircle },
   enchape: { label: "En Enchape", color: "bg-orange-600", icon: AlertCircle },
@@ -94,6 +94,10 @@ const getStatusLabel = (status: string, modeladoRevisionNumber?: number | null, 
   }
   if (status === "pendiente_render" && renderRevisionNumber && renderRevisionNumber > 0) {
     return `Pendiente Aprobación Render ${renderRevisionNumber}`;
+  }
+  // El cliente aprobó los renders: mostrar con qué versión quedó aprobado el diseño
+  if (status === "aprobacion_final" && renderRevisionNumber && renderRevisionNumber > 0) {
+    return `Diseño Aprobado V${renderRevisionNumber}`;
   }
   return PROJECT_STATUSES[status]?.label || status;
 };
@@ -2506,7 +2510,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
             <AlertDialogDescription className="space-y-3">
               <p>
                 Esta acción saltará las etapas de diseño (modelado 3D, renders) y enviará el proyecto 
-                directamente al estado <strong>"Aprobación Final"</strong>.
+                directamente al estado <strong>"Diseño Aprobado"</strong>.
               </p>
               <p>
                 Esto es útil para proyectos pequeños que se fabrican directamente en el taller sin 

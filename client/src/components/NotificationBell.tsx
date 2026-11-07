@@ -21,6 +21,23 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+// iPhone/iPad: el push web solo funciona con el CRM instalado en la pantalla de inicio
+// (iOS 16.4+) y el permiso solo se puede pedir al tocar un botón.
+function isIOS(): boolean {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+function isStandalone(): boolean {
+  return window.matchMedia?.("(display-mode: standalone)").matches || (navigator as any).standalone === true;
+}
+type PushState = "unsupported" | "needs-install" | "default" | "denied" | "granted";
+function getPushState(): PushState {
+  if (typeof window === "undefined") return "unsupported";
+  if (isIOS() && !isStandalone()) return "needs-install";
+  if (!("serviceWorker" in navigator) || !("PushManager" in window) || typeof Notification === "undefined") return "unsupported";
+  return Notification.permission as PushState;
+}
+
 // Función para solicitar permiso de notificaciones y suscribirse
 async function subscribeToPush(vapidPublicKey: string): Promise<PushSubscription | null> {
   if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
@@ -174,23 +191,33 @@ export function NotificationBell() {
     },
   });
 
-  // Suscribirse a notificaciones push cuando el usuario inicia sesión
+  const [pushState, setPushState] = useState<PushState>(() => getPushState());
+
+  const activatePush = async (): Promise<boolean> => {
+    if (!vapidData?.publicKey) return false;
+    const subscription = await subscribeToPush(vapidData.publicKey);
+    setPushState(getPushState());
+    if (!subscription) return false;
+    const keys = subscription.toJSON().keys;
+    if (!keys) return false;
+    subscribeMutation.mutate({
+      endpoint: subscription.endpoint,
+      p256dh: keys.p256dh || "",
+      auth: keys.auth || "",
+      userAgent: navigator.userAgent,
+    });
+    setIsSubscribed(true);
+    return true;
+  };
+
+  // Suscribirse a notificaciones push cuando el usuario inicia sesión.
+  // En iPhone/iPad solo si el permiso ya está dado: pedirlo sin un toque no funciona allí
+  // (para eso está el botón "Activar notificaciones" en la campanita).
   useEffect(() => {
-    if (user && vapidData?.publicKey && !isSubscribed) {
-      subscribeToPush(vapidData.publicKey).then((subscription) => {
-        if (subscription) {
-          const keys = subscription.toJSON().keys;
-          if (keys) {
-            subscribeMutation.mutate({
-              endpoint: subscription.endpoint,
-              p256dh: keys.p256dh || "",
-              auth: keys.auth || "",
-              userAgent: navigator.userAgent,
-            });
-            setIsSubscribed(true);
-          }
-        }
-      });
+    if (!user || !vapidData?.publicKey || isSubscribed) return;
+    const state = getPushState();
+    if (state === "granted" || (state === "default" && !isIOS())) {
+      activatePush();
     }
   }, [user, vapidData?.publicKey, isSubscribed]);
 
@@ -302,6 +329,38 @@ export function NotificationBell() {
               )}
             </div>
           </div>
+
+          {/* Activar notificaciones push en este dispositivo */}
+          {pushState !== "granted" && pushState !== "unsupported" && (
+            <div className="p-3 border-b bg-muted/40 text-xs space-y-2">
+              {pushState === "needs-install" && (
+                <p>
+                  📱 Para recibir avisos en el iPhone: en Safari toca <b>Compartir</b> → <b>Agregar a pantalla de inicio</b>,
+                  abre el CRM desde ese ícono y vuelve aquí para activar las notificaciones.
+                </p>
+              )}
+              {pushState === "default" && (
+                <>
+                  <p>Activa las notificaciones para recibir los avisos en este dispositivo, aunque el CRM esté cerrado.</p>
+                  <Button
+                    size="sm"
+                    className="w-full"
+                    onClick={async () => {
+                      const ok = await activatePush();
+                      if (ok) toast.success("Notificaciones activadas en este dispositivo");
+                      else if (getPushState() === "denied") toast.error("Las notificaciones quedaron bloqueadas. Actívalas en Ajustes del teléfono → Notificaciones → Innovar.");
+                      else toast.error("No se pudieron activar las notificaciones");
+                    }}
+                  >
+                    Activar notificaciones
+                  </Button>
+                </>
+              )}
+              {pushState === "denied" && (
+                <p>🔕 Las notificaciones están bloqueadas en este dispositivo. Actívalas en los ajustes del teléfono o del navegador (Notificaciones → Innovar) y vuelve a abrir el CRM.</p>
+              )}
+            </div>
+          )}
 
           {/* Bulk actions toolbar */}
           {selectedIds.size > 0 && (

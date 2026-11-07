@@ -76,8 +76,9 @@ export async function sendPushToUser(userId: number, payload: PushPayload): Prom
         {
           endpoint: sub.endpoint,
           keys: {
-    // @ts-ignore
-            p256dh: sub.p256dh,
+            // La columna se llama p256Dh (D mayúscula). Antes se leía sub.p256dh (undefined)
+            // con @ts-ignore → ningún push salía de verdad.
+            p256dh: sub.p256Dh,
             auth: sub.auth,
           },
         },

@@ -64,6 +64,23 @@ export function serveStatic(app: Express) {
     );
   }
 
+  // Vista previa (Open Graph) al compartir enlaces del portal del cliente por WhatsApp
+  // (ver galleryMeta.ts). Va antes de express.static porque "/gallery" no es un archivo.
+  app.get("/gallery", async (req, res, next) => {
+    try {
+      const { buildGalleryMetaTags, injectMetaTags } = await import("./galleryMeta");
+      const origin = `${req.protocol}://${req.get("host")}`;
+      const tags = await buildGalleryMetaTags(req.query as any, origin);
+      if (!tags) return next();
+      const html = await fs.promises.readFile(path.resolve(distPath, "index.html"), "utf-8");
+      const title = /og:title" content="([^"]*)"/.exec(tags)?.[1]?.replace(/&amp;/g, "&");
+      res.status(200).set({ "Content-Type": "text/html" }).end(injectMetaTags(html, tags, title));
+    } catch (err) {
+      console.warn("[galleryMeta] sin vista previa:", (err as Error).message);
+      next();
+    }
+  });
+
   app.use(express.static(distPath));
 
   // fall through to index.html if the file doesn't exist (but NOT for /api routes)

@@ -16,6 +16,7 @@ import { addBusinessDays, calculateEstimatedDeliveryDate } from "../business-day
 import { sanitizeText, sanitizeHtml, sanitizeForEmail, sanitizePhone, sanitizeEmail } from "../sanitize";
 import { randomBytes } from "crypto";
 import { computeDesignVersions } from "@shared/designVersions";
+import { GOOGLE_REVIEW_URL } from "@shared/const";
 
 
 export const publicGalleryRouter = router({
@@ -756,11 +757,18 @@ ${portalLink}
             `— INNOVAR Cocinas de Diseño ✨`,
 
           entregado:
-            `🎉 ¡Hola ${clientName}! Tu proyecto está terminado y listo para disfrutar — aquí tienes las fotos finales de tu nuevo espacio:
+            `🎉 ¡Hola ${clientName}! Tu proyecto está terminado y listo para disfrutar. En este enlace está todo el recorrido de tu nuevo espacio, desde el diseño hasta las fotos finales:
 ${portalLink}
 
 ` +
-            `Fue un placer trabajar para ti y esperamos que lo disfrutes por muchos años. Recuerda que cuentas con nuestra garantía y que ante cualquier detalle estamos a una llamada al 313 680 2025. Y si conoces a alguien que quiera transformar su cocina o closet, ¡con gusto los atendemos! 🏠✨
+            `Puedes compartirlo con tu familia y amigos para que vean cómo quedó. 📲
+
+` +
+            `⭐ Si te gustó nuestro trabajo, nos ayudarías muchísimo calificándonos en Google (toma menos de un minuto):
+${GOOGLE_REVIEW_URL}
+
+` +
+            `Fue un placer trabajar para ti. Recuerda que cuentas con nuestra garantía y que ante cualquier detalle estamos a una llamada al 313 680 2025. Y si conoces a alguien que quiera transformar su cocina o closet, ¡con gusto los atendemos! 🏠✨
 
 — INNOVAR Cocinas de Diseño`,
         };

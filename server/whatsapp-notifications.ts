@@ -2,6 +2,7 @@
  * Servicio de notificaciones por WhatsApp para proyectos
  * Genera mensajes personalizados según el estado del proyecto
  */
+import { GOOGLE_REVIEW_URL } from "@shared/const";
 
 // Plantillas de mensajes por estado del proyecto
 const MESSAGE_TEMPLATES: Record<string, (data: ProjectMessageData) => string> = {
@@ -149,7 +150,7 @@ Tu proyecto *"${data.projectName}"* ha sido *ENTREGADO* exitosamente.
 Esperamos que disfrutes tu nueva ${data.workType}. Ha sido un placer trabajar contigo.
 
 ⭐ Si estás satisfecho con nuestro trabajo, te agradeceríamos mucho si nos dejas una reseña en Google:
-https://g.page/r/CZ41O10XEQCQEBk/review
+${GOOGLE_REVIEW_URL}
 
 📸 También nos encantaría ver fotos de cómo quedó instalado en tu hogar.
 

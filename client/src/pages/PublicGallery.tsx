@@ -19,6 +19,7 @@ import {
 import { WatermarkedImage, WatermarkedFullscreenImage } from "@/components/WatermarkedImage";
 import { toast } from "sonner";
 import { groupByVersion, type DesignVersionInfo } from "@shared/designVersions";
+import { GOOGLE_REVIEW_URL } from "@shared/const";
 import { 
   Image as ImageIcon, 
   ZoomIn, 
@@ -202,6 +203,16 @@ export default function PublicGallery() {
       ? projectStatusLabel[(project as any).status as string]
       : null;
 
+    // ── Portal de entrega: al llegar a "entregado" ─────────────────────────────
+    const isDelivered = (project as any).status === "entregado";
+    const portalUrl = typeof window !== "undefined" ? window.location.href : "";
+    const workLabel = (WORK_TYPES[project.workType as string] || "proyecto").toLowerCase();
+    const shareText = `¡Mira cómo quedó mi proyecto de ${workLabel} con Innovar Cocinas de Diseño! 😍\n${portalUrl}`;
+    const copyLink = async () => {
+      try { await navigator.clipboard.writeText(portalUrl); toast.success("Enlace copiado"); }
+      catch { toast.error("No se pudo copiar; mantén presionado el enlace del navegador para copiarlo"); }
+    };
+
     const PhotoRow = ({ rowPhotos, sublabel }: { rowPhotos: typeof photos; sublabel?: string }) => (
       <div className="mb-5 last:mb-0">
         {sublabel && (
@@ -232,6 +243,19 @@ export default function PublicGallery() {
         </div>
       </div>
     );
+
+    const finalSection = finalPhotos.length > 0 ? (
+      <section>
+        <div className="flex items-center gap-3 mb-5">
+          <span className="text-xl">🏠</span>
+          <h2 className="text-white font-bold text-lg">{isDelivered ? "Así quedó tu nuevo espacio" : "Instalación y Entrega"}</h2>
+          <div className="flex-1 h-px" style={{ background: "#252525" }} />
+        </div>
+        <div className="rounded-2xl p-4 md:p-5" style={{ background: "#141414", border: "1px solid #222" }}>
+          <PhotoRow rowPhotos={finalPhotos} />
+        </div>
+      </section>
+    ) : null;
 
     return (
       <div className="min-h-screen flex flex-col" style={{ background: "#0a0a0a" }}>
@@ -276,6 +300,37 @@ export default function PublicGallery() {
 
         {/* ── CONTENIDO ── */}
         <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-8 space-y-8">
+
+          {/* ENTREGA: gracias + reseña en Google + compartir */}
+          {isDelivered && (
+            <section className="rounded-2xl p-6 md:p-8 text-center"
+              style={{ background: "linear-gradient(135deg, rgba(0,188,212,0.16), #141414 70%)", border: "1px solid rgba(0,188,212,0.35)" }}>
+              <div className="text-4xl mb-2">🎉</div>
+              <h2 className="text-white text-xl md:text-2xl font-bold mb-2">¡Gracias por confiar en Innovar!</h2>
+              <p className="text-sm mb-6" style={{ color: "#aaa" }}>
+                Tu proyecto está terminado. Aquí queda todo el recorrido, desde el diseño hasta la entrega, para que lo veas cuando quieras.
+              </p>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <a href={GOOGLE_REVIEW_URL} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold text-black transition-opacity hover:opacity-90"
+                  style={{ background: "#FBBC04" }}>
+                  ⭐ Califícanos en Google
+                </a>
+                <a href={`https://wa.me/?text=${encodeURIComponent(shareText)}`} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold text-white transition-opacity hover:opacity-90"
+                  style={{ background: "#25D366" }}>
+                  📲 Compartir por WhatsApp
+                </a>
+                <button onClick={copyLink}
+                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold text-white transition-colors"
+                  style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.18)" }}>
+                  🔗 Copiar enlace
+                </button>
+              </div>
+              <p className="text-xs mt-4" style={{ color: "#666" }}>Tu calificación nos ayuda a que más familias de Pereira nos conozcan. 💚</p>
+            </section>
+          )}
+          {isDelivered && finalSection}
 
           {/* Sin fotos aún */}
           {!hasAnyPhotos && (
@@ -345,27 +400,23 @@ export default function PublicGallery() {
             </section>
           )}
 
-          {/* INSTALACIÓN Y ENTREGA */}
-          {finalPhotos.length > 0 && (
-            <section>
-              <div className="flex items-center gap-3 mb-5">
-                <span className="text-xl">🏠</span>
-                <h2 className="text-white font-bold text-lg">Instalación y Entrega</h2>
-                <div className="flex-1 h-px" style={{ background: "#252525" }} />
-              </div>
-              <div className="rounded-2xl p-4 md:p-5" style={{ background: "#141414", border: "1px solid #222" }}>
-                <PhotoRow rowPhotos={finalPhotos} />
-              </div>
-            </section>
-          )}
+          {/* INSTALACIÓN Y ENTREGA (si ya se entregó, va arriba) */}
+          {!isDelivered && finalSection}
 
           {/* CONTACTO */}
           <section
             className="rounded-2xl p-6 md:p-8 text-center"
             style={{ background: "#141414", border: "1px solid rgba(0,188,212,0.2)" }}
           >
-            <p className="text-sm mb-1" style={{ color: "#666" }}>¿Tienes preguntas sobre tu proyecto?</p>
-            <h3 className="text-white font-bold text-xl mb-6">Contáctanos por WhatsApp</h3>
+            <p className="text-sm mb-1" style={{ color: "#666" }}>{isDelivered ? "¿Te gustó y quieres un proyecto así?" : "¿Tienes preguntas sobre tu proyecto?"}</p>
+            <h3 className="text-white font-bold text-xl mb-6">{isDelivered ? "Agenda tu visita o escríbenos" : "Contáctanos por WhatsApp"}</h3>
+            {isDelivered && (
+              <a href="/agendar" className="inline-flex items-center gap-2 px-6 py-3 mb-4 rounded-2xl font-bold transition-opacity hover:opacity-90"
+                style={{ background: "#00BCD4", color: "#0a0a0a" }}>
+                📅 Agendar visita de medidas
+              </a>
+            )}
+            {isDelivered && <br />}
             <a
               href="https://wa.link/y3mpkk"
               target="_blank"

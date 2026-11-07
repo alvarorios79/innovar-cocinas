@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import { Bell, Check, CheckCheck, Trash2, ExternalLink } from "lucide-react";
 import { useLocation } from "wouter";
@@ -132,6 +133,14 @@ export function NotificationBell() {
 
   // Mutations
   const subscribeMutation = trpc.notifications.subscribe.useMutation();
+  const sendTestMutation = trpc.notifications.sendTest.useMutation({
+    onSuccess: () => {
+      toast.success("Notificación de prueba enviada. Si las notificaciones están permitidas, llega en unos segundos.");
+      refetchUnread();
+      refetchNotifications();
+    },
+    onError: (e) => toast.error(e.message || "No se pudo enviar la prueba"),
+  });
   const markAsReadMutation = trpc.notifications.markAsRead.useMutation({
     onSuccess: () => {
       refetchUnread();
@@ -269,6 +278,17 @@ export function NotificationBell() {
           <div className="flex items-center justify-between p-4 border-b">
             <h3 className="font-semibold">Notificaciones</h3>
             <div className="flex gap-2">
+              {["admin", "super_admin", "comercial"].includes(user?.role ?? "") && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  title="Enviar una notificación de prueba a este dispositivo"
+                  onClick={() => sendTestMutation.mutate()}
+                  disabled={sendTestMutation.isPending}
+                >
+                  Probar
+                </Button>
+              )}
               {unreadCount > 0 && (
                 <Button
                   variant="ghost"

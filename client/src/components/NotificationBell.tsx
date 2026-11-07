@@ -38,6 +38,9 @@ function getPushState(): PushState {
   return Notification.permission as PushState;
 }
 
+// Último error al suscribirse (se muestra en el diagnóstico de la campanita)
+let lastPushError = "";
+
 // Función para solicitar permiso de notificaciones y suscribirse
 async function subscribeToPush(vapidPublicKey: string): Promise<PushSubscription | null> {
   if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
@@ -81,6 +84,7 @@ async function subscribeToPush(vapidPublicKey: string): Promise<PushSubscription
     return subscription;
   } catch (error) {
     console.error("Error subscribing to push:", error);
+    lastPushError = (error as any)?.message || String(error);
     return null;
   }
 }
@@ -197,13 +201,38 @@ export function NotificationBell() {
 
   const [pushState, setPushState] = useState<PushState>(() => getPushState());
 
+  const [pushDiag, setPushDiag] = useState("");
+  const refreshPushDiag = async () => {
+    try {
+      const iosVer = navigator.userAgent.match(/OS (\d+)_(\d+)/);
+      let suscrito = "no";
+      if ("serviceWorker" in navigator) {
+        const reg = await navigator.serviceWorker.getRegistration();
+        const sub = await reg?.pushManager?.getSubscription();
+        suscrito = reg ? (sub ? "sí" : "no") : "sin service worker";
+      }
+      setPushDiag([
+        `permiso: ${typeof Notification !== "undefined" ? Notification.permission : "no disponible"}`,
+        `instalada: ${isStandalone() ? "sí" : "no"}`,
+        iosVer ? `iOS ${iosVer[1]}.${iosVer[2]}` : "",
+        `push: ${"PushManager" in window ? "sí" : "no"}`,
+        `registrado: ${suscrito}`,
+        `clave servidor: ${vapidData?.publicKey ? "sí" : "no"}`,
+        lastPushError ? `error: ${lastPushError}` : "",
+      ].filter(Boolean).join(" · "));
+    } catch (e: any) {
+      setPushDiag("diagnóstico falló: " + (e?.message || e));
+    }
+  };
+
   const activatePush = async (): Promise<boolean> => {
-    if (!vapidData?.publicKey) return false;
+    if (!vapidData?.publicKey) { lastPushError = "el servidor no entregó la clave pública"; refreshPushDiag(); return false; }
     const subscription = await subscribeToPush(vapidData.publicKey);
     setPushState(getPushState());
+    refreshPushDiag();
     if (!subscription) return false;
     const keys = subscription.toJSON().keys;
-    if (!keys) return false;
+    if (!keys) { lastPushError = "la suscripción no trae claves"; refreshPushDiag(); return false; }
     subscribeMutation.mutate({
       endpoint: subscription.endpoint,
       p256dh: keys.p256dh || "",
@@ -213,6 +242,9 @@ export function NotificationBell() {
     setIsSubscribed(true);
     return true;
   };
+
+  // Al abrir la campanita, actualizar el diagnóstico de este dispositivo
+  useEffect(() => { if (open) refreshPushDiag(); }, [open, vapidData?.publicKey]);
 
   // Suscribirse a notificaciones push cuando el usuario inicia sesión.
   // En iPhone/iPad solo si el permiso ya está dado: pedirlo sin un toque no funciona allí
@@ -333,6 +365,23 @@ export function NotificationBell() {
               )}
             </div>
           </div>
+
+          {/* Diagnóstico de push de ESTE dispositivo (solo admin/super_admin) */}
+          {["admin", "super_admin"].includes(user?.role ?? "") && (
+            <div className="px-3 py-2 border-b text-[11px] text-muted-foreground space-y-1">
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-medium">Este dispositivo</span>
+                <div className="flex gap-2">
+                  <button className="underline" onClick={() => refreshPushDiag()}>Revisar</button>
+                  <button className="underline" onClick={async () => {
+                    const ok = await activatePush();
+                    toast[ok ? "success" : "error"](ok ? "Dispositivo registrado para notificaciones" : "No se pudo registrar: " + (lastPushError || getPushState()));
+                  }}>Registrar de nuevo</button>
+                </div>
+              </div>
+              {pushDiag && <p className="break-words">{pushDiag}</p>}
+            </div>
+          )}
 
           {/* Activar notificaciones push en este dispositivo */}
           {pushState !== "granted" && pushState !== "unsupported" && (

@@ -24,7 +24,6 @@ import { paymentsRouter } from "./routers/payments";
 import { financialSettingsRouter } from "./routers/financialSettings";
 import { dashboardRouter } from "./routers/dashboard";
 import { dataProtectionRouter } from "./routers/dataProtection";
-import { backupsRouter } from "./routers/backups";
 import { accountingClosuresRouter } from "./routers/accountingClosures";
 import { postventaRouter } from "./routers/postventa";
 import { contadorRouter } from "./routers/contador";
@@ -33,7 +32,6 @@ import { technicalVisitsRouter } from "./routers/technicalVisits";
 export const appRouter = router({
   accountingClosures: accountingClosuresRouter,
   contador: contadorRouter,
-  backups: backupsRouter,
   dataProtection: dataProtectionRouter,
   system: systemRouter,
   cleanup: cleanupRouter,

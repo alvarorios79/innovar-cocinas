@@ -20,7 +20,6 @@ import { startAppointmentReminderService } from "../appointment-reminder-service
 import { startTeamWhatsAppService } from "../whatsapp-team-notifications";
 import { startPeriodicCleanup } from "../tmp-cleanup";
 import { startWhatsAppTokenMonitor } from "../whatsapp-token-monitor";
-import { backupScheduler } from "../services/backupScheduler";
 import { apiRateLimiter, authRateLimiter, uploadRateLimiter } from "../rate-limiter";
 import cors from "cors";
 import quotationPdfRouter from "../routes/quotation-pdf";
@@ -236,9 +235,8 @@ async function startServer() {
     
     // Iniciar monitoreo diario del token de WhatsApp
     startWhatsAppTokenMonitor();
-    
-    // Iniciar scheduler de backups automáticos
-    backupScheduler.initialize().catch(console.error);
+    // Copias de seguridad: las hace Render (Point-in-Time Recovery 3 días + Export manual).
+    // El scheduler propio (MySQL, de la época Manus) se quitó en Deploy #249: nunca funcionó con PostgreSQL.
   });
 }
 

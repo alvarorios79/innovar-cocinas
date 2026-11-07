@@ -74,11 +74,6 @@ import { triggerAlertEvaluation } from './services/financialAlertMonitor';
 let _db: ReturnType<typeof drizzle> | null = null;
 // Pool removed - PostgreSQL connection handled by drizzle directly
 
-export async function getPool() {
-  // Deprecated: use getDb() instead
-  return null;
-}
-
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {

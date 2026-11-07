@@ -14,9 +14,6 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
-} from "@/components/ui/dialog";
-import {
   Ruler, Camera, FileText, ChevronRight, Loader2,
   CheckCircle2, Clock, Send, User, MapPin, Phone,
   FileSpreadsheet, Eye, Maximize2, X, ArrowLeft,
@@ -155,18 +152,6 @@ export default function VisitasTecnicas() {
   const [lightboxUrl, setLightboxUrl]         = useState<string | null>(null);
   const [statusFilter, setStatusFilter]       = useState<VisitStatus | "todas">("todas");
 
-  // Modal nueva visita técnica
-  const [showNewVisit, setShowNewVisit]       = useState(false);
-  const [newVisitClientId, setNewVisitClientId] = useState<number | "">("");
-  const [newVisitWorkType, setNewVisitWorkType] = useState<WorkType>("cocina");
-  const [newVisitMedidorId, setNewVisitMedidorId] = useState<number | "">("");
-  const [newVisitDate, setNewVisitDate]       = useState("");
-  const [newVisitNotes, setNewVisitNotes]     = useState("");
-
-  // Modal asignar medidor a visita existente
-  const [assignVisitId, setAssignVisitId]     = useState<number | null>(null);
-  const [assignMedidorId, setAssignMedidorId] = useState<number | "">("");
-  const [assignDate, setAssignDate]           = useState("");
 
   const utils = trpc.useUtils();
 
@@ -179,33 +164,6 @@ export default function VisitasTecnicas() {
     { visitId: selectedVisitId ?? 0 },
     { enabled: !!selectedVisitId, refetchOnWindowFocus: false }
   );
-
-  // Clientes y medidores para los formularios
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: allClients = [] } = (trpc as any).clients.list.useQuery(undefined, { refetchOnWindowFocus: false });
-  const { data: allUsers = [] }   = trpc.userManagement.listAll.useQuery(undefined, { refetchOnWindowFocus: false });
-  const medidores = (allUsers as any[]).filter((u: any) => u.role === "medidor");
-
-  const createVisitMutation = trpc.technicalVisits.create.useMutation({
-    onSuccess: () => {
-      toast.success("Visita técnica creada y medidor notificado");
-      setShowNewVisit(false);
-      setNewVisitClientId(""); setNewVisitWorkType("cocina");
-      setNewVisitMedidorId(""); setNewVisitDate(""); setNewVisitNotes("");
-      utils.technicalVisits.list.invalidate();
-    },
-    onError: (e) => toast.error(e.message || "Error creando visita"),
-  });
-
-  const assignMutation = trpc.technicalVisits.assign.useMutation({
-    onSuccess: () => {
-      toast.success("Medidor asignado y notificado");
-      setAssignVisitId(null);
-      setAssignMedidorId(""); setAssignDate("");
-      utils.technicalVisits.list.invalidate();
-    },
-    onError: (e) => toast.error(e.message || "Error asignando medidor"),
-  });
 
   // Eliminar levantamiento (borrado lógico: deletedAt). Antes el botón llamaba
   // a una mutación que no existía y no hacía nada.
@@ -231,26 +189,6 @@ export default function VisitasTecnicas() {
       ? `&workTypes=${encodeURIComponent(multiTypes.join(","))}`
       : `&workType=${visit.workType}`;
     navigate(`/quotations?fromVisit=${visit.id}${clientParam}${workTypeParam}`);
-  };
-
-  const handleCreateVisit = () => {
-    if (!newVisitClientId) { toast.error("Selecciona un cliente"); return; }
-    createVisitMutation.mutate({
-      clientId:      Number(newVisitClientId),
-      workType:      newVisitWorkType,
-      assignedTo:    newVisitMedidorId ? Number(newVisitMedidorId) : undefined,
-      scheduledDate: newVisitDate || undefined,
-      notes:         newVisitNotes || undefined,
-    });
-  };
-
-  const handleAssign = () => {
-    if (!assignVisitId || !assignMedidorId) { toast.error("Selecciona un medidor"); return; }
-    assignMutation.mutate({
-      visitId:       assignVisitId,
-      assignedTo:    Number(assignMedidorId),
-      scheduledDate: assignDate || undefined,
-    });
   };
 
   // ── Vista detalle ────────────────────────────────────────────────────────
@@ -755,14 +693,6 @@ export default function VisitasTecnicas() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    {!(visit as any).assignedToUser && visit.status === "borrador" && (
-                      <button
-                        onClick={e => { e.stopPropagation(); setAssignVisitId(visit.id); setAssignMedidorId(""); setAssignDate(""); }}
-                        className="text-xs bg-amber-500/10 text-amber-400 border border-amber-500/30 px-2 py-1 rounded-full hover:bg-amber-500/20 transition-colors"
-                      >
-                        Asignar
-                      </button>
-                    )}
                     {visit.status === "enviada" && (
                       <span className="text-xs bg-[#1DB5A8]/10 text-[#1DB5A8] border border-[#1DB5A8]/30 px-2 py-1 rounded-full">
                         Lista para cotizar
@@ -794,139 +724,6 @@ export default function VisitasTecnicas() {
         </div>
       </div>
 
-      {/* ── Dialog: Nueva visita técnica ───────────────────────────────────── */}
-      <Dialog open={showNewVisit} onOpenChange={setShowNewVisit}>
-        <DialogContent className="bg-[#162828] border border-[#1DB5A8]/20 text-white max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-[#1DB5A8] flex items-center gap-2">
-              <Ruler className="h-5 w-5" /> Nueva visita técnica
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            {/* Cliente */}
-            <div>
-              <label className="text-xs text-gray-400 mb-1 block">Cliente *</label>
-              <select
-                value={newVisitClientId}
-                onChange={e => setNewVisitClientId(Number(e.target.value) || "")}
-                className="w-full bg-[#0C1A1A] border border-[#1DB5A8]/20 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#1DB5A8]"
-              >
-                <option value="">— Seleccionar cliente —</option>
-                {(allClients as any[]).map((c: any) => (
-                  <option key={c.id} value={c.id}>{c.name} {c.phone ? `· ${c.phone}` : ""}</option>
-                ))}
-              </select>
-            </div>
-            {/* Tipo de trabajo */}
-            <div>
-              <label className="text-xs text-gray-400 mb-1 block">Tipo de trabajo</label>
-              <select
-                value={newVisitWorkType}
-                onChange={e => setNewVisitWorkType(e.target.value as WorkType)}
-                className="w-full bg-[#0C1A1A] border border-[#1DB5A8]/20 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#1DB5A8]"
-              >
-                {Object.entries(WORK_TYPE_LABELS).map(([k, v]) => (
-                  <option key={k} value={k}>{v}</option>
-                ))}
-              </select>
-            </div>
-            {/* Medidor */}
-            <div>
-              <label className="text-xs text-gray-400 mb-1 block">Asignar medidor</label>
-              <select
-                value={newVisitMedidorId}
-                onChange={e => setNewVisitMedidorId(Number(e.target.value) || "")}
-                className="w-full bg-[#0C1A1A] border border-[#1DB5A8]/20 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#1DB5A8]"
-              >
-                <option value="">— Asignar después —</option>
-                {medidores.map((m: any) => (
-                  <option key={m.id} value={m.id}>{m.name}</option>
-                ))}
-              </select>
-            </div>
-            {/* Fecha */}
-            <div>
-              <label className="text-xs text-gray-400 mb-1 block">Fecha y hora de visita</label>
-              <Input
-                type="datetime-local"
-                value={newVisitDate}
-                onChange={e => setNewVisitDate(e.target.value)}
-                className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white [color-scheme:dark]"
-              />
-            </div>
-            {/* Notas */}
-            <div>
-              <label className="text-xs text-gray-400 mb-1 block">Notas</label>
-              <Textarea
-                value={newVisitNotes}
-                onChange={e => setNewVisitNotes(e.target.value)}
-                placeholder="Instrucciones, observaciones..."
-                rows={3}
-                className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white placeholder:text-gray-600 resize-none"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setShowNewVisit(false)} className="text-gray-400">
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleCreateVisit}
-              disabled={createVisitMutation.isPending}
-              className="bg-[#1DB5A8] hover:bg-[#17a396] text-white"
-            >
-              {createVisitMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Crear visita"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* ── Dialog: Asignar medidor a visita existente ─────────────────────── */}
-      <Dialog open={!!assignVisitId} onOpenChange={open => { if (!open) setAssignVisitId(null); }}>
-        <DialogContent className="bg-[#162828] border border-[#1DB5A8]/20 text-white max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="text-amber-400 flex items-center gap-2">
-              <UserCheck className="h-5 w-5" /> Asignar medidor
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div>
-              <label className="text-xs text-gray-400 mb-1 block">Medidor *</label>
-              <select
-                value={assignMedidorId}
-                onChange={e => setAssignMedidorId(Number(e.target.value) || "")}
-                className="w-full bg-[#0C1A1A] border border-[#1DB5A8]/20 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#1DB5A8]"
-              >
-                <option value="">— Seleccionar medidor —</option>
-                {medidores.map((m: any) => (
-                  <option key={m.id} value={m.id}>{m.name}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="text-xs text-gray-400 mb-1 block">Fecha y hora de visita</label>
-              <Input
-                type="datetime-local"
-                value={assignDate}
-                onChange={e => setAssignDate(e.target.value)}
-                className="bg-[#0C1A1A] border-[#1DB5A8]/20 text-white [color-scheme:dark]"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setAssignVisitId(null)} className="text-gray-400">
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleAssign}
-              disabled={assignMutation.isPending}
-              className="bg-amber-500 hover:bg-amber-600 text-white"
-            >
-              {assignMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Asignar"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

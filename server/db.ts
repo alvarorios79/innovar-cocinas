@@ -614,14 +614,10 @@ export async function createProject(project: InsertProject, dataOrigin: "manual"
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  // Validación: Si el nombre contiene TEST, DEBE ser dataOrigin = 'test'
-  if (project.name.toUpperCase().includes('TEST') && dataOrigin !== 'test') {
-    throw new Error('Los proyectos con TEST en el nombre DEBEN tener dataOrigin = test');
-  }
-  
-  // Validación: Si dataOrigin = 'test', el nombre DEBE contener TEST
-  if (dataOrigin === 'test' && !project.name.toUpperCase().includes('TEST')) {
-    throw new Error('Los proyectos con dataOrigin = test DEBEN tener TEST en el nombre');
+  // La BD solo admite dataOrigin 'manual' o 'system' (enum data_origin). Antes había reglas para
+  // 'test' que impedían crear un proyecto cuyo nombre contuviera "TEST" (p. ej. un cliente "Testa").
+  if (dataOrigin === 'test') {
+    throw new Error("dataOrigin 'test' no existe en la base de datos; usa 'manual' o 'system'");
   }
   
   // Validación: Si dataOrigin = 'system', el nombre DEBE contener SYSTEM
@@ -1871,11 +1867,13 @@ export async function getUnreadNotificationsCount(userId: number): Promise<numbe
   if (!db) return 0;
 
   try {
-    const result = await db.select({ count: sql<number>`COUNT(*)` })
+    // Solo las NO leídas (antes contaba todas y el número de la campanita nunca bajaba).
+    // COUNT(*)::int para que PostgreSQL devuelva número y no texto.
+    const result = await db.select({ count: sql<number>`COUNT(*)::int` })
       .from(notifications)
-      .where(eq(notifications.userId, userId));
+      .where(and(eq(notifications.userId, userId), eq(notifications.read, 0)));
 
-    return result[0]?.count || 0;
+    return Number(result[0]?.count) || 0;
   } catch (error) {
     // Si la tabla no existe o hay error, retornar 0
     return 0;
@@ -2816,53 +2814,6 @@ export async function permanentlyDeleteRecord(tableName: string, id: number) {
   }
 }
 
-export async function emptyRecycleBin() {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  // Respetar orden de foreign keys: primero hijos, luego padres
-  // 1. Eliminar items de cotizaciones (hijo de quotations)
-  const deletedQuotationIds = await db.select({ id: quotations.id }).from(quotations).where(isNotNull(quotations.deletedAt));
-  if (deletedQuotationIds.length > 0) {
-    const ids = deletedQuotationIds.map(q => q.id);
-    await db.delete(quotationItems).where(inArray(quotationItems.quotationId, ids));
-  }
-  // 2. Eliminar cotizaciones soft-deleted
-  await db.delete(quotations).where(isNotNull(quotations.deletedAt));
-  // 3. Eliminar hijos de projects soft-deleted
-  const deletedProjectIds = await db.select({ id: projects.id }).from(projects).where(isNotNull(projects.deletedAt));
-  if (deletedProjectIds.length > 0) {
-    const ids = deletedProjectIds.map(p => p.id);
-    await db.delete(expenses).where(and(inArray(expenses.projectId, ids), isNotNull(expenses.deletedAt)));
-    await db.delete(tasks).where(and(inArray(tasks.projectId, ids), isNotNull(tasks.deletedAt)));
-  }
-  // 4. Eliminar tasks y expenses soft-deleted sin proyecto
-  await db.delete(tasks).where(isNotNull(tasks.deletedAt));
-  await db.delete(expenses).where(isNotNull(expenses.deletedAt));
-  // 5. Eliminar projects soft-deleted (ANTES de clients porque projects tiene FK a clients)
-  await db.delete(projects).where(isNotNull(projects.deletedAt));
-  // 6. Eliminar hijos de clients soft-deleted (respetar FK: advisoryRequests, appointments, priorEstimates, quotations)
-  const deletedClientIds = await db.select({ id: clients.id }).from(clients).where(isNotNull(clients.deletedAt));
-  if (deletedClientIds.length > 0) {
-    const ids = deletedClientIds.map(c => c.id);
-    // Eliminar advisory requests de esos clientes
-    await db.delete(advisoryRequests).where(inArray(advisoryRequests.clientId, ids));
-    // Eliminar prior estimates de esos clientes
-    await db.delete(priorEstimates).where(inArray(priorEstimates.clientId, ids));
-    // Eliminar appointments de esos clientes
-    await db.delete(appointments).where(inArray(appointments.clientId, ids));
-    // Eliminar quotation items de cotizaciones de esos clientes
-    const clientQuotations = await db.select({ id: quotations.id }).from(quotations).where(inArray(quotations.clientId, ids));
-    if (clientQuotations.length > 0) {
-      await db.delete(quotationItems).where(inArray(quotationItems.quotationId, clientQuotations.map(q => q.id)));
-    }
-    // Eliminar quotations de esos clientes
-    await db.delete(quotations).where(inArray(quotations.clientId, ids));
-  }
-  // 7. Eliminar appointments soft-deleted sin cliente
-  await db.delete(appointments).where(isNotNull(appointments.deletedAt));
-  // 8. Finalmente eliminar clients soft-deleted
-  await db.delete(clients).where(isNotNull(clients.deletedAt));
-}
 
 // ============ FUNCIONES FALTANTES PUBLIC GALLERY ============
 

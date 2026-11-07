@@ -102,7 +102,7 @@ export const tasksRouter = router({
               priority: input.priority,
               dueDate: input.dueDate,
               assignedBy: ctx.user.name || "Un administrador",
-              portalUrl: `${process.env.VITE_APP_URL || ""}/tasks`,
+              portalUrl: `${process.env.VITE_APP_URL || "https://innovar-cocinas.onrender.com"}/tasks`,
             });
             await sendEmail({
               to: assignedUserForEmail.email,

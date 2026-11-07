@@ -116,7 +116,7 @@ export const appointmentsRouter = router({
                     userName: client.name,
                     email: client.email,
                     temporaryPassword,
-                    portalUrl: `${process.env.VITE_APP_URL || ""}/portal`,
+                    portalUrl: `${process.env.VITE_APP_URL || "https://innovar-cocinas.onrender.com"}/portal`,
                   });
                   await sendEmail({
                     to: client.email,
@@ -145,7 +145,7 @@ export const appointmentsRouter = router({
                 appointmentDate: scheduledDate,
                 workTypes: input.workTypes,
                 notes: input.notes ? sanitizeText(input.notes) : undefined,
-                portalUrl: `${process.env.VITE_APP_URL || ""}/portal`,
+                portalUrl: `${process.env.VITE_APP_URL || "https://innovar-cocinas.onrender.com"}/portal`,
               });
               await sendEmail({
                 to: client.email,

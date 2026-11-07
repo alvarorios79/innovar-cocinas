@@ -18,8 +18,6 @@ import { whatsappCloudRouter } from "./routers/whatsappCloud";
 import { expensesRouter } from "./routers/expenses";
 import { quotationsVersioningRouter } from "./routers/quotations-versioning";
 import { quotationsDownloadRouter } from "./routers/quotations-download";
-import { systemRouter } from "./routers/system";
-import { cleanupRouter } from "./routers/cleanup";
 import { paymentsRouter } from "./routers/payments";
 import { financialSettingsRouter } from "./routers/financialSettings";
 import { dashboardRouter } from "./routers/dashboard";
@@ -33,8 +31,6 @@ export const appRouter = router({
   accountingClosures: accountingClosuresRouter,
   contador: contadorRouter,
   dataProtection: dataProtectionRouter,
-  system: systemRouter,
-  cleanup: cleanupRouter,
   payments: paymentsRouter,
   financialSettings: financialSettingsRouter,
   dashboard: dashboardRouter,

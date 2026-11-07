@@ -31,7 +31,6 @@ import Accounting from "./pages/Accounting";
 import AppointmentsCalendar from "./pages/AppointmentsCalendar";
 import { CEODashboard } from "./pages/CEODashboard";
 import { Redirect } from "wouter";
-import LimpiezaSistema from "./pages/LimpiezaSistema";
 // ── Nuevos módulos (Fase 1 — placeholders) ───────────────────────────────────
 import Clients from "./pages/Clients";
 import Design from "./pages/Design";
@@ -89,7 +88,6 @@ function Router() {
         <Route path={"/accounting"}><Accounting /></Route>
         <Route path={"/ceo-dashboard"}><CEODashboard /></Route>
         <Route path={"/profitability-dashboard"}><Redirect to="/ceo-dashboard" /></Route>
-        <Route path={"/limpieza-sistema"} component={LimpiezaSistema} />
         {/* Nuevos módulos */}
         <Route path={"/clients"}><Clients /></Route>
         <Route path={"/design"}><Design /></Route>

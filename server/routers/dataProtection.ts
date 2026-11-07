@@ -177,33 +177,4 @@ export const dataProtectionRouter = router({
       }
     }),
 
-  // ============ ADMIN ONLY - EMPTY RECYCLE BIN ============
-
-  emptyRecycleBin: protectedProcedure
-    .input(z.object({
-      daysOld: z.number().default(30),
-    }))
-    .mutation(async ({ input, ctx }) => {
-      // Only super_admin can empty recycle bin
-      if (ctx.user.role !== "super_admin") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Solo super administradores pueden vaciar la papelera",
-        });
-      }
-
-      try {
-        await db.emptyRecycleBin();
-        return {
-          success: true,
-          message: `Papelera vaciada exitosamente`,
-          totalDeleted: 0,
-        };
-      } catch (error: any) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: error.message || "Error al vaciar papelera",
-        });
-      }
-    }),
 });

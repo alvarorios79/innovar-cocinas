@@ -35,7 +35,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { ExpenseImportModal } from "@/components/ExpenseImportModal";
 import { ReceiptUpload } from "@/components/ReceiptUpload";
 import { Textarea } from "@/components/ui/textarea";
 import { PaymentsSummary } from "@/components/PaymentsSummary";
@@ -44,7 +43,7 @@ import { AccountingClosureTab } from "@/components/AccountingClosureTab";
 import { ClosureReportTab } from "@/components/ClosureReportTab";
 import { ConfirmedClosuresTab } from "@/components/ConfirmedClosuresTab";
 import { ClosedProjectsTab } from "@/components/ClosedProjectsTab";
-import { Upload, CheckCircle2, Archive } from "lucide-react";
+import { CheckCircle2, Archive } from "lucide-react";
 
 // Jerarquía de categorías operativas
 const OPERATIVE_HIERARCHY: Record<string, { label: string; subcategories: { value: string; label: string }[] }> = {
@@ -234,7 +233,6 @@ export default function Accounting() {
   const [maxAmount, setMaxAmount] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
-  const [importModalOpen, setImportModalOpen] = useState(false);
   const [receiptUrl, setReceiptUrl] = useState<string>("");
   const [receiptFileName, setReceiptFileName] = useState<string>("");
   const [activeTab, setActiveTab] = useState<"expenses" | "movimientos" | "closure" | "confirmed" | "closed" | "reports" | "config">("expenses");
@@ -295,7 +293,6 @@ export default function Accounting() {
   }, [projects, movClientId]);
 
   // Check if user has permission to import
-  const canImport = user?.role === "admin" || user?.role === "super_admin";
 
   // Función para resetear el formulario (mantiene tipo de gasto)
   const resetForm = () => {
@@ -577,28 +574,11 @@ export default function Accounting() {
 
   return (
     <div className="pb-20 md:pb-6">
-      <ExpenseImportModal
-        open={importModalOpen}
-        onOpenChange={setImportModalOpen}
-        projects={projects || []}
-      />
       <PageHeader
         title="Contabilidad"
         subtitle="Registro y control de gastos del proyecto"
         icon={<Calculator className="h-5 w-5" />}
         showBack={true}
-        actions={
-          canImport ? (
-            <Button
-              onClick={() => setImportModalOpen(true)}
-              style={{ background: "linear-gradient(135deg, #1DB5A8, #0D9B8F)" }}
-              className="text-white font-medium shadow-sm hover:opacity-90"
-            >
-              <Upload className="h-4 w-4 mr-1.5" />
-              Importar gastos
-            </Button>
-          ) : undefined
-        }
       />
 
       <div className="container max-w-6xl mx-auto px-4 py-4">

@@ -38,7 +38,20 @@ async function subscribeToPush(vapidPublicKey: string): Promise<PushSubscription
     
     // Verificar si ya existe una suscripción
     let subscription = await registration.pushManager.getSubscription();
-    
+
+    // Si la suscripción existente se hizo con otra clave VAPID (p. ej. claves viejas),
+    // el servidor no podría enviarle nada: se anula y se crea una nueva.
+    if (subscription) {
+      const currentKey = subscription.options?.applicationServerKey;
+      const wantedKey = urlBase64ToUint8Array(vapidPublicKey);
+      const current = currentKey ? new Uint8Array(currentKey) : null;
+      const sameKey = !!current && current.length === wantedKey.length && current.every((b, i) => b === wantedKey[i]);
+      if (!sameKey) {
+        await subscription.unsubscribe().catch(() => {});
+        subscription = null;
+      }
+    }
+
     if (!subscription) {
       // Crear nueva suscripción
       subscription = await registration.pushManager.subscribe({

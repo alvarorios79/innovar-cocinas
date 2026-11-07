@@ -130,7 +130,8 @@ describe("WhatsApp Cloud Service", () => {
   describe("Plantilla confirmacion_cita con logo", () => {
     it("sendAppointmentConfirmation debe aceptar todos los parámetros requeridos", async () => {
       const { sendAppointmentConfirmation } = await import("./whatsapp-cloud");
-      expect(sendAppointmentConfirmation.length).toBe(4);
+      // Ahora recibe también el enlace de la cita (citaLink) → 5 parámetros
+      expect(sendAppointmentConfirmation.length).toBe(5);
     });
 
     it("sendAppointmentConfirmation debe retornar WhatsAppMessageResponse", async () => {

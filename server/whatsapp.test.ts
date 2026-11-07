@@ -25,7 +25,7 @@ describe("WhatsApp Notifications Service", () => {
       const message = generateProjectMessage(baseMessageData);
       
       expect(message).toContain("¡Hola Juan Pérez!");
-      expect(message).toContain("INNOVAR Cocinas Integrales");
+      expect(message).toContain("INNOVAR Cocinas de Diseño");
       expect(message).toContain("Cocina Moderna");
       expect(message).toContain("Cocina Integral");
       expect(message).toContain(baseMessageData.portalUrl);
@@ -159,15 +159,15 @@ describe("WhatsApp Notifications Service", () => {
     });
 
     it("should include type parameter when provided", () => {
-      const url = generatePortalUrl(789, "https://innovar.com", "modelado_3d");
+      const url = generatePortalUrl(789, "https://innovar.com", null, "modelado_3d");
       
       expect(url).toBe("https://innovar.com/gallery?project=789&type=modelado_3d");
     });
 
     it("should include renders type when provided", () => {
-      const url = generatePortalUrl(101, "https://innovar.com", "renders");
+      const url = generatePortalUrl(101, "https://innovar.com", "tok123", "renders");
       
-      expect(url).toBe("https://innovar.com/gallery?project=101&type=renders");
+      expect(url).toBe("https://innovar.com/gallery?project=101&token=tok123&type=renders");
     });
   });
 

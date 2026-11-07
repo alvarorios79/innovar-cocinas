@@ -54,7 +54,7 @@ describe("auth.logout", () => {
     expect(clearedCookies[0]?.options).toMatchObject({
       maxAge: -1,
       secure: true,
-      sameSite: "none",
+      sameSite: "lax", // "lax" a propósito: iOS Safari bloquea "none" (ver _core/cookies.ts)
       httpOnly: true,
       path: "/",
     });

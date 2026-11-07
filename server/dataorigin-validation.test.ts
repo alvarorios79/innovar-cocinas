@@ -1,114 +1,42 @@
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, afterAll } from "vitest";
 import { createProject, getDb } from "./db";
 import { projects } from "../drizzle/schema";
-import { eq } from "drizzle-orm";
+import { inArray } from "drizzle-orm";
 
+/**
+ * Reglas de dataOrigin al crear proyectos (db.createProject).
+ * La BD solo admite 'manual' y 'system' (enum data_origin). Desde nov 2026 un nombre con
+ * "TEST" (p. ej. cliente "Testa") ya NO impide crear el proyecto.
+ */
 describe("dataOrigin Validation Rules", () => {
-  let db: any;
-
-  beforeAll(async () => {
-    db = await getDb();
-  });
+  const created: number[] = [];
+  const base = { clientId: 1, workType: "cocina", status: "cotizacion_enviada", createdBy: 1 } as any;
 
   afterAll(async () => {
-    // Cleanup: Delete test projects
-    if (db) {
-      await db.delete(projects).where(
-        eq(projects.name, "TEST-VALIDATION-PROJECT")
-      );
-    }
+    const db = await getDb();
+    if (db && created.length) await db.delete(projects).where(inArray(projects.id, created));
   });
 
-  it("should allow creating project with dataOrigin='manual' and no TEST in name", async () => {
-    const result = await createProject(
-      {
-        name: "Regular Project",
-        clientId: 1,
-        totalAmount: 100000,
-        status: "cotizacion_enviada",
-        createdBy: 1,
-      },
-      "manual"
-    );
-    expect(result).toBeGreaterThan(0);
+  it("permite un proyecto manual normal", async () => {
+    const id = await createProject({ ...base, name: "Proyecto Normal" }, "manual");
+    created.push(id);
+    expect(id).toBeGreaterThan(0);
   });
 
-  it("should reject creating project with TEST in name but dataOrigin='manual'", async () => {
-    expect(() => {
-      return createProject(
-        {
-          name: "TEST-VALIDATION-PROJECT",
-          clientId: 1,
-          totalAmount: 100000,
-          status: "cotizacion_enviada",
-          createdBy: 1,
-        },
-        "manual"
-      );
-    }).rejects.toThrow(
-      "Los proyectos con TEST en el nombre DEBEN tener dataOrigin = test"
-    );
+  it("permite un proyecto manual cuyo nombre contiene TEST (p. ej. cliente Testa)", async () => {
+    const id = await createProject({ ...base, name: "COT-2026-1 - Maria Testa" }, "manual");
+    created.push(id);
+    expect(id).toBeGreaterThan(0);
   });
 
-  it("should allow creating project with TEST in name and dataOrigin='test'", async () => {
-    const result = await createProject(
-      {
-        name: "TEST-VALIDATION-PROJECT",
-        clientId: 1,
-        totalAmount: 100000,
-        status: "cotizacion_enviada",
-        createdBy: 1,
-      },
-      "test"
-    );
-    expect(result).toBeGreaterThan(0);
+  it("rechaza dataOrigin 'test' (no existe en la base de datos)", async () => {
+    await expect(createProject({ ...base, name: "TEST X" }, "test")).rejects.toThrow("no existe en la base de datos");
   });
 
-  it("should reject creating project with dataOrigin='test' but no TEST in name", async () => {
-    expect(() => {
-      return createProject(
-        {
-          name: "Regular Project",
-          clientId: 1,
-          totalAmount: 100000,
-          status: "cotizacion_enviada",
-          createdBy: 1,
-        },
-        "test"
-      );
-    }).rejects.toThrow(
-      "Los proyectos con dataOrigin = test DEBEN tener TEST en el nombre"
-    );
-  });
-
-  it("should reject creating project with dataOrigin='system' but no SYSTEM in name", async () => {
-    expect(() => {
-      return createProject(
-        {
-          name: "Regular Project",
-          clientId: 1,
-          totalAmount: 100000,
-          status: "cotizacion_enviada",
-          createdBy: 1,
-        },
-        "system"
-      );
-    }).rejects.toThrow(
-      "Los proyectos con dataOrigin = system DEBEN tener SYSTEM en el nombre"
-    );
-  });
-
-  it("should allow creating project with SYSTEM in name and dataOrigin='system'", async () => {
-    const result = await createProject(
-      {
-        name: "SYSTEM-AUTO-PROJECT",
-        clientId: 1,
-        totalAmount: 100000,
-        status: "cotizacion_enviada",
-        createdBy: 1,
-      },
-      "system"
-    );
-    expect(result).toBeGreaterThan(0);
+  it("exige SYSTEM en el nombre para dataOrigin 'system'", async () => {
+    await expect(createProject({ ...base, name: "Sin la palabra" }, "system")).rejects.toThrow("SYSTEM");
+    const id = await createProject({ ...base, name: "SYSTEM Proyecto" }, "system");
+    created.push(id);
+    expect(id).toBeGreaterThan(0);
   });
 });

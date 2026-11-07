@@ -23,10 +23,10 @@ describe("Password Authentication", () => {
       role: "user",
       loginMethod: "password",
       passwordHash,
-      lastSignedIn: new Date(),
-    });
+      lastSignedIn: new Date().toISOString(),
+    }).returning({ id: users.id });
 
-    testUserId = result.insertId;
+    testUserId = result.id;
   });
 
   describe("validatePasswordStrength", () => {

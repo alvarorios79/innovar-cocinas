@@ -65,7 +65,7 @@ describe("Quotations - Fixed Costs Logic", () => {
       description: "Cocina integral en L",
       quantity: "1",
       totalPrice: subtotal.toString(),
-      includesFixedCosts: false, // NO incluye costos fijos
+      includesFixedCosts: 0, // NO incluye costos fijos
     });
 
     // Verificar cotización
@@ -108,7 +108,7 @@ describe("Quotations - Fixed Costs Logic", () => {
       description: "Cocina integral en U + Closet",
       quantity: "1",
       totalPrice: itemPrice.toString(),
-      includesFixedCosts: true, // SÍ incluye costos fijos
+      includesFixedCosts: 1, // SÍ incluye costos fijos
     });
 
     // Verificar cotización
@@ -151,7 +151,7 @@ describe("Quotations - Fixed Costs Logic", () => {
       description: "Cocina premium con costos incluidos",
       quantity: "1",
       totalPrice: itemPrice.toString(),
-      includesFixedCosts: true,
+      includesFixedCosts: 1,
     });
 
     const quotation = await db.getQuotationById(quotationId);

@@ -15,5 +15,7 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["server/**/*.test.ts", "server/**/*.spec.ts"],
+    // Carga .env solo si la base es local (ver server/test-setup.ts)
+    setupFiles: ["./server/test-setup.ts"],
   },
 });

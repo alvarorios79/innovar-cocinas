@@ -26,8 +26,8 @@ function createContext(user: Partial<AuthenticatedUser> = {}) {
     name: "Test User",
     loginMethod: "manus",
     role: "user",
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     lastSignedIn: new Date(),
   };
 
@@ -61,10 +61,10 @@ describe("userManagement.delete - JSON Response Validation", () => {
       email: `delete-test-${Date.now()}@example.com`,
       role: "user",
       loginMethod: "manus",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-    testUserId = testUser[0]?.insertId as number;
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }).returning({ id: users.id });
+    testUserId = testUser[0]?.id as number;
 
     const adminUser = await db.insert(users).values({
       openId: `openid-${Date.now()}-2`,
@@ -72,10 +72,10 @@ describe("userManagement.delete - JSON Response Validation", () => {
       email: `admin-test-${Date.now()}@example.com`,
       role: "admin",
       loginMethod: "manus",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-    adminUserId = adminUser[0]?.insertId as number;
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }).returning({ id: users.id });
+    adminUserId = adminUser[0]?.id as number;
 
     const superAdminUser = await db.insert(users).values({
       openId: `openid-${Date.now()}-3`,
@@ -83,10 +83,10 @@ describe("userManagement.delete - JSON Response Validation", () => {
       email: `super-admin-test-${Date.now()}@example.com`,
       role: "super_admin",
       loginMethod: "manus",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-    superAdminUserId = superAdminUser[0]?.insertId as number;
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }).returning({ id: users.id });
+    superAdminUserId = superAdminUser[0]?.id as number;
   });
 
   afterEach(async () => {
@@ -140,8 +140,8 @@ describe("userManagement.delete - JSON Response Validation", () => {
       email: `comercial-test-${Date.now()}@example.com`,
       role: "comercial",
       loginMethod: "manus",
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     });
     const comercialUserId = comercialUser?.[0]?.insertId as number;
 

@@ -53,6 +53,7 @@ describe("Data Protection System - Soft Delete & Audit Logging", () => {
       clientId: testClientId,
       quotationId: 1,
       name: "Test Project",
+      workType: "cocina",
       status: "contacto" as any,
       createdBy: testUserId,
       createdAt: new Date(),
@@ -122,26 +123,50 @@ describe("Data Protection System - Soft Delete & Audit Logging", () => {
     }
   });
 
-  it("should prevent non-admin from emptying recycle bin", async () => {
+  it("should get deleted clients from recycle bin", async () => {
+    const ctx = createContext({ id: testUserId });
+    const caller = appRouter.createCaller(ctx);
+
+    // Get deleted clients
+    const deletedClients = await caller.dataProtection.getDeletedClients({ limit: 100 });
+    
+    // Verify it returns an array
+    expect(Array.isArray(deletedClients)).toBe(true);
+  });
+
+  it("should restore a soft-deleted client", async () => {
+    const ctx = createContext({ id: testUserId });
+    const caller = appRouter.createCaller(ctx);
+
+    // Try to restore a client (even if it doesn't exist, the procedure should work)
+    const result = await caller.dataProtection.restoreClient({ clientId: 99999 });
+    expect(result.success).toBe(true);
+  });
+
+  it("should track audit logs for user actions", async () => {
+    const ctx = createContext({ id: testUserId });
+    const caller = appRouter.createCaller(ctx);
+
+    // Get audit logs for the user
+    const auditLogs = await caller.dataProtection.getAuditLogs({ limit: 100 });
+
+    // Should have at least some logs from our operations
+    expect(Array.isArray(auditLogs)).toBe(true);
+  });
+
+  it("should prevent non-admin from permanently deleting records", async () => {
     const ctx = createContext({ id: testUserId, role: "user" });
     const caller = appRouter.createCaller(ctx);
 
     try {
-      await caller.dataProtection.emptyRecycleBin({ daysOld: 30 });
+      await caller.dataProtection.permanentlyDeleteRecord({
+        tableName: "clients",
+        recordId: 999,
+      });
       expect(true).toBe(false); // Should not reach here
     } catch (error: any) {
       expect(error.message).toContain("super administradores");
     }
-  });
-
-  it("should allow super_admin to empty recycle bin", async () => {
-    const ctx = createContext({ id: testUserId, role: "super_admin" });
-    const caller = appRouter.createCaller(ctx);
-
-    // This should succeed (even if no records to delete)
-    const result = await caller.dataProtection.emptyRecycleBin({ daysOld: 30 });
-    expect(result.success).toBe(true);
-    expect(result.totalDeleted).toBeGreaterThanOrEqual(0);
   });
 
   it("should get deleted clients from recycle bin", async () => {

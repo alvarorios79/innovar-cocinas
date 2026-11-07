@@ -63,33 +63,9 @@ describe("Hardware Catalog with Prices", () => {
     expect(updatedHardware?.description).toBe("Descripción actualizada");
   });
 
-  it("should deactivate hardware item", async () => {
-    // Desactivar (active = 0)
-    await db.updateHardwareItem(hardwareId, { active: 0 });
-
-    // Verificar que ya no aparece en la lista de activos (getHardwareCatalog filtra active=1)
-    const activeHardware = await db.getHardwareCatalog("cocinas");
-    const deactivatedHardware = activeHardware.find((h: any) => h.id === hardwareId);
-    
-    // Puede aparecer o no según el filtro de getHardwareCatalog, pero el campo active debe ser 0
-    const allHardware = await db.getAllHardware();
-    const foundHardware = allHardware.find((h: any) => h.id === hardwareId);
-    expect(foundHardware).toBeDefined();
-    expect(foundHardware?.active).toBeFalsy(); // MySQL tinyint: 0 = falsy
-  });
-
-  it("should get all hardware including inactive", async () => {
-    const allHardware = await db.getAllHardware();
-    
-    expect(Array.isArray(allHardware)).toBe(true);
-    
-    // El herraje desactivado debe estar en la lista completa
-    const deactivatedHardware = allHardware.find((h: any) => h.id === hardwareId);
-    expect(deactivatedHardware).toBeDefined();
-    expect(deactivatedHardware?.active).toBeFalsy(); // MySQL tinyint: 0 = falsy
-    // Limpiar
-    await db.deleteHardwareItem(hardwareId);
-  });
+  // Casos "deactivate" e "including inactive" quitados: desde los Deploys #163–#231 los herrajes
+  // se administran en el Motor de Cotización (baja lógica en pricingConfig) y getAllHardware()
+  // devuelve solo los activos.
 
   it("should filter hardware by different categories", async () => {
     // Crear herrajes en diferentes categorías

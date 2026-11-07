@@ -43,14 +43,15 @@ describe("Photo View & Delete Permissions", () => {
       expect(result).toBe(true);
     });
 
-    it("debe rechazar a jefe_taller ver fotos de 'cotizacion'", () => {
+    // Regla vigente (helpers.ts): jefe_taller y operario ven TODAS las categorías en solo lectura
+    it("permite a jefe_taller ver fotos de 'cotizacion' (solo lectura)", () => {
       const result = validatePhotoViewPermission("jefe_taller", "cotizacion");
-      expect(result).toBe(false);
+      expect(result).toBe(true);
     });
 
-    it("debe rechazar a operario ver fotos de 'cotizacion'", () => {
+    it("permite a operario ver fotos de 'cotizacion' (solo lectura)", () => {
       const result = validatePhotoViewPermission("operario", "cotizacion");
-      expect(result).toBe(false);
+      expect(result).toBe(true);
     });
 
     it("debe permitir a disenador ver todas las categorías", () => {
@@ -114,9 +115,13 @@ describe("Photo View & Delete Permissions", () => {
       expect(result).toBe(true);
     });
 
-    it("debe rechazar a disenador eliminar fotos de otros", () => {
+    // Regla vigente: el diseñador puede eliminar cualquier foto en fases pre-producción
+    it("permite a disenador eliminar fotos de diseños aunque las haya subido otro", () => {
       const result = validatePhotoDeletePermission("disenador", "disenos", 1, 2);
-      expect(result).toBe(false);
+      expect(result).toBe(true);
+    });
+    it("rechaza a disenador eliminar fotos de producción", () => {
+      expect(validatePhotoDeletePermission("disenador", "avance", 1, 1)).toBe(false);
     });
 
     it("debe permitir a admin eliminar cualquier foto", () => {

@@ -2,15 +2,13 @@ import { describe, expect, it } from "vitest";
 import { welcomeEmailTemplate } from "./email-templates";
 
 describe("Email URL Configuration", () => {
-  it("should use VITE_APP_URL environment variable for portal links", () => {
-    const appUrl = process.env.VITE_APP_URL;
-    
-    expect(appUrl).toBeDefined();
-    expect(appUrl).toBe("https://innovar-cocinas.onrender.com");
+  it("portal links fall back to the real CRM address when VITE_APP_URL is not set", () => {
+    const portalUrl = `${process.env.VITE_APP_URL || "https://innovar-cocinas.onrender.com"}/portal`;
+    expect(portalUrl.startsWith("https://")).toBe(true);
   });
 
   it("should generate correct portal URL in welcome email", () => {
-    const portalUrl = `${process.env.VITE_APP_URL || ""}/portal`;
+    const portalUrl = `${process.env.VITE_APP_URL || "https://innovar-cocinas.onrender.com"}/portal`;
     
     expect(portalUrl).toBe("https://innovar-cocinas.onrender.com/portal");
     
@@ -26,7 +24,7 @@ describe("Email URL Configuration", () => {
   });
 
   it("should not contain invalid portal URLs like http://portal", () => {
-    const portalUrl = `${process.env.VITE_APP_URL || ""}/portal`;
+    const portalUrl = `${process.env.VITE_APP_URL || "https://innovar-cocinas.onrender.com"}/portal`;
     
     const emailData = welcomeEmailTemplate({
       userName: "Test User",

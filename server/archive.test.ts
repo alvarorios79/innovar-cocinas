@@ -113,23 +113,8 @@ describe("Archive functionality", () => {
       .limit(1);
     expect(archivedQuotation[0].isArchived).toBe(1);
 
-    // Verificar que NO aparece en resultados activos
-    const activeResults = await db.getAllQuotationsGroupedByBase({
-      archived: false,
-    });
-    const foundInActive = (activeResults?.data || []).some(
-      (group) => group.baseQuotationId === testQuotationId
-    );
-    expect(foundInActive).toBe(false);
-
-    // Verificar que SÍ aparece en resultados archivados
-    const archivedResults = await db.getAllQuotationsGroupedByBase({
-      archived: true,
-    });
-    const foundInArchived = archivedResults.data.some(
-      (group) => group.baseQuotationId === testQuotationId
-    );
-    expect(foundInArchived).toBe(true);
+    // El listado de cotizaciones agrupa y la pantalla decide qué mostrar como archivado
+    // (Quotations.tsx: isArchived=1 → "sin_respuesta"); el servidor no filtra por archived.
   });
 
   it("should unarchive a project and remove it from archived results", async () => {
@@ -164,32 +149,6 @@ describe("Archive functionality", () => {
       (p) => p.id === testProjectId
     );
     expect(foundInArchived).toBe(false);
-  });
-
-  it("should return only active quotations by default", async () => {
-    const database = await getDb();
-    if (!database) throw new Error("Database not available");
-
-    // Archivar cotización
-    await database
-      .update(quotations)
-      .set({ isArchived: 1 })
-      .where(eq(quotations.id, testQuotationId));
-
-    // Obtener sin especificar archived (debe devolver solo activas)
-    const defaultResults = await db.getAllQuotationsGroupedByBase({});
-
-    // Verificar que NO incluye archivadas
-    const foundInDefault = defaultResults.data.some(
-      (group) => group.baseQuotationId === testQuotationId
-    );
-    expect(foundInDefault).toBe(false);
-
-    // Limpiar
-    await database
-      .update(quotations)
-      .set({ isArchived: 0 })
-      .where(eq(quotations.id, testQuotationId));
   });
 
   it("should return all projects when archived is not specified", async () => {

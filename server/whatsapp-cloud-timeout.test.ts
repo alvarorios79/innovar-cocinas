@@ -1,9 +1,16 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as whatsappCloud from "./whatsapp-cloud";
 
 describe("WhatsApp Cloud - Timeout Handling", () => {
+  // WhatsApp Cloud está "dormido" (sin claves en Render): para probar el manejo de errores
+  // se simulan claves ficticias; fetch está simulado, no se llama a Meta.
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubEnv("WHATSAPP_ACCESS_TOKEN", "token-de-prueba");
+    vi.stubEnv("WHATSAPP_PHONE_NUMBER_ID", "123456789");
+  });
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it("should detect abort error as timeout", async () => {

@@ -291,7 +291,9 @@ describe("FASE 4 - Accounting Closure Confirmation", () => {
     expect(confirmedClosure[0].confirmedBy).toBe(1);
     expect(confirmedClosure[0].confirmedAt).toBeDefined();
 
-    const confirmedAt = new Date(confirmedClosure[0].confirmedAt);
+    // La BD guarda la hora UTC sin zona ("YYYY-MM-DD HH:MM:SS"): leerla como UTC
+    const raw = String(confirmedClosure[0].confirmedAt);
+    const confirmedAt = new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(raw) ? raw : raw.replace(" ", "T") + "Z");
     expect(confirmedAt.getTime()).toBeGreaterThanOrEqual(beforeConfirmation.getTime());
     expect(confirmedAt.getTime()).toBeLessThanOrEqual(afterConfirmation.getTime());
 

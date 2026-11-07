@@ -34,10 +34,11 @@ describe("Notifications Bulk Deletion", () => {
       role: "super_admin",
       openId: randomUUID(),
       dataOrigin: "system",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-    testUserId = (userResult as any)[0]?.insertId || 1;
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }).returning({ id: users.id });
+    // Antes (MySQL) usaba insertId y caía en el usuario 1: mezclaba notificaciones reales
+    testUserId = userResult[0].id;
 
     // Create test notifications
     for (let i = 0; i < 5; i++) {
@@ -46,12 +47,11 @@ describe("Notifications Bulk Deletion", () => {
         title: `Test Notification ${i + 1}`,
         body: `Test body ${i + 1}`,
         type: "sistema" as any,
-        read: false,
-        sentPush: false,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
-      notificationIds.push((result as any)[0]?.insertId || i);
+        read: 0,
+        sentPush: 0,
+        createdAt: new Date().toISOString(),
+      }).returning({ id: notifications.id });
+      notificationIds.push(result[0].id);
     }
   });
 
@@ -117,12 +117,11 @@ describe("Notifications Bulk Deletion", () => {
       title: "Test Notification",
       body: "Test body",
       type: "sistema" as any,
-      read: false,
-      sentPush: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-    const newId = (result as any)[0]?.insertId;
+      read: 0,
+      sentPush: 0,
+      createdAt: new Date().toISOString(),
+    }).returning({ id: notifications.id });
+    const newId = result[0].id;
 
     // Try to delete with empty array - should fail validation
     try {
@@ -148,12 +147,11 @@ describe("Notifications Bulk Deletion", () => {
       title: "Test Notification",
       body: "Test body",
       type: "sistema" as any,
-      read: false,
-      sentPush: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-    const newId = (result as any)[0]?.insertId;
+      read: 0,
+      sentPush: 0,
+      createdAt: new Date().toISOString(),
+    }).returning({ id: notifications.id });
+    const newId = result[0].id;
 
     // This should work with authenticated context
     const deleteResult = await caller.notifications.deleteBulk({ ids: [newId] });
@@ -170,12 +168,11 @@ describe("Notifications Bulk Deletion", () => {
       title: "Test Notification",
       body: "Test body",
       type: "sistema" as any,
-      read: false,
-      sentPush: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-    const newId = (result as any)[0]?.insertId;
+      read: 0,
+      sentPush: 0,
+      createdAt: new Date().toISOString(),
+    }).returning({ id: notifications.id });
+    const newId = result[0].id;
 
     // This should work with authenticated context
     const deleteResult = await caller.notifications.deleteAll();
@@ -213,12 +210,11 @@ describe("Notifications Bulk Deletion", () => {
         title: `Bulk Test ${i}`,
         body: `Body ${i}`,
         type: "sistema" as any,
-        read: false,
-        sentPush: false,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
-      ids.push((result as any)[0]?.insertId);
+        read: 0,
+        sentPush: 0,
+        createdAt: new Date().toISOString(),
+      }).returning({ id: notifications.id });
+      ids.push(result[0].id);
     }
 
     // Delete all created notifications

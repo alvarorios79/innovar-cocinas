@@ -341,7 +341,7 @@ export function NotificationBell() {
           <div className="flex items-center justify-between p-4 border-b">
             <h3 className="font-semibold">Notificaciones</h3>
             <div className="flex gap-2">
-              {["admin", "super_admin", "comercial"].includes(user?.role ?? "") && (
+              {!!user && (
                 <Button
                   variant="ghost"
                   size="sm"
@@ -366,8 +366,9 @@ export function NotificationBell() {
             </div>
           </div>
 
-          {/* Diagnóstico de push de ESTE dispositivo (solo admin/super_admin) */}
-          {["admin", "super_admin"].includes(user?.role ?? "") && (
+          {/* Diagnóstico de push de ESTE dispositivo (todos los roles: así cada persona puede
+              registrar su celular si no le llegan las notificaciones) */}
+          {!!user && (
             <div className="px-3 py-2 border-b text-[11px] text-muted-foreground space-y-1">
               <div className="flex items-center justify-between gap-2">
                 <span className="font-medium">Este dispositivo</span>

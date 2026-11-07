@@ -107,9 +107,7 @@ export const notificationsRouter = router({
     // Enviar notificación de prueba (solo admin)
     sendTest: protectedProcedure
       .mutation(async ({ ctx }) => {
-        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
-          throw new TRPCError({ code: "FORBIDDEN", message: "Solo administradores pueden enviar notificaciones de prueba" });
-        }
+        // Cualquier usuario puede probar: la prueba solo se envía a sí mismo
 
         // Diagnóstico: crea el aviso de la campanita y envía el push, devolviendo el resultado
         const { sendPushToUser } = await import("../push-notifications");

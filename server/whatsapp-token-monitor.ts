@@ -163,6 +163,14 @@ async function runTokenCheck(): Promise<void> {
  * Verifica inmediatamente al iniciar y luego cada 24 horas.
  */
 export function startWhatsAppTokenMonitor(): void {
+  // WhatsApp Cloud API está "dormido" (sin WHATSAPP_ACCESS_TOKEN / WHATSAPP_PHONE_NUMBER_ID en Render).
+  // Mientras no esté configurado no tiene sentido revisar el token cada día: solo dejaba errores en el
+  // registro. Para activarlo en la etapa de automatización basta con poner esas 2 variables en Render.
+  if (!process.env.WHATSAPP_ACCESS_TOKEN || !process.env.WHATSAPP_PHONE_NUMBER_ID) {
+    logger.info("[WhatsAppMonitor] WhatsApp Cloud API no configurado (dormido): monitor de token apagado");
+    return;
+  }
+
   // Verificación inicial (con delay de 10 segundos para que el servidor arranque)
   setTimeout(async () => {
     logger.info("[WhatsAppMonitor] Verificación inicial del token de WhatsApp...");

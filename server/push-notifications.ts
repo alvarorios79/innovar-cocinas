@@ -9,21 +9,29 @@ if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
   console.error("[Push] VAPID_PUBLIC_KEY y VAPID_PRIVATE_KEY son obligatorias. Notificaciones push deshabilitadas.");
 }
 
-// Configurar web-push solo si las keys están disponibles
+// Configurar web-push solo si las keys están disponibles y son válidas.
+// Si las claves están mal (p. ej. mal copiadas en Render), NO se tumba el servidor:
+// solo se desactiva el push. (Antes setVapidDetails lanzaba error al arrancar y el CRM no iniciaba.)
+let vapidConfigured = false;
 if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
-  webpush.setVapidDetails(
-    "mailto:info@innovarcocinas.com",
-    VAPID_PUBLIC_KEY,
-    VAPID_PRIVATE_KEY
-  );
+  try {
+    webpush.setVapidDetails(
+      "mailto:ventas@cocinasintegralespereira.co",
+      VAPID_PUBLIC_KEY,
+      VAPID_PRIVATE_KEY
+    );
+    vapidConfigured = true;
+  } catch (err) {
+    console.error("[Push] Claves VAPID inválidas — notificaciones push deshabilitadas:", (err as Error).message);
+  }
 }
 
 function isPushEnabled(): boolean {
-  return !!(VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY);
+  return vapidConfigured;
 }
 
 export function getVapidPublicKey() {
-  return VAPID_PUBLIC_KEY;
+  return vapidConfigured ? VAPID_PUBLIC_KEY : undefined;
 }
 
 interface PushPayload {

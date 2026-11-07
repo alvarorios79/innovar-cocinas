@@ -110,6 +110,28 @@ export const publicGalleryRouter = router({
           };
         }
 
+        // La etapa del proyecto debe coincidir con lo que se aprueba. Antes, aprobar renders con el
+        // proyecto todavía en modelado lo saltaba a "aprobacion_final".
+        const status = project.status as string;
+        if (input.type === "renders" && status !== "pendiente_render") {
+          if (status === "pendiente_modelado" || status === "en_diseno") {
+            throw new TRPCError({
+              code: "PRECONDITION_FAILED",
+              message: "Primero debes aprobar el modelado 3D. Revisa el enlace del modelado que te enviamos o escríbenos al 313 680 2025.",
+            });
+          }
+          throw new TRPCError({
+            code: "PRECONDITION_FAILED",
+            message: "Los renders de este proyecto no están pendientes de aprobación. Si tienes dudas, escríbenos al 313 680 2025.",
+          });
+        }
+        if (input.type === "modelado_3d" && !["en_diseno", "pendiente_modelado", "pendiente_render"].includes(status)) {
+          throw new TRPCError({
+            code: "PRECONDITION_FAILED",
+            message: "El modelado 3D de este proyecto ya no está pendiente de aprobación. Si tienes dudas, escríbenos al 313 680 2025.",
+          });
+        }
+
         const now = new Date();
         
         // Guardar la aprobación según el tipo

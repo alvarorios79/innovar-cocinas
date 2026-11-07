@@ -3095,6 +3095,9 @@ export async function createPushSubscription(data: {
 }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
+  // Un dispositivo = un registro: borrar los anteriores con el mismo endpoint
+  // (también si otro usuario inició sesión antes en ese mismo dispositivo).
+  await db.delete(pushSubscriptions).where(eq(pushSubscriptions.endpoint, data.endpoint));
   const result = await db.insert(pushSubscriptions).values({
     userId: data.userId,
     endpoint: data.endpoint,

@@ -57,8 +57,16 @@ export async function sendPushToUser(userId: number, payload: PushPayload): Prom
   if (!isPushEnabled()) {
     return { success: 0, failed: 0 };
   }
-  const subscriptions = await db.getPushSubscriptionsByUserId(userId);
-  
+  const allSubscriptions = await db.getPushSubscriptionsByUserId(userId);
+  // Un mismo dispositivo (endpoint) puede estar repetido en la BD (antes se guardaba en cada
+  // carga del CRM): enviar solo una vez por dispositivo, al registro más reciente.
+  const byEndpoint = new Map<string, (typeof allSubscriptions)[number]>();
+  for (const s of allSubscriptions) {
+    const prev = byEndpoint.get(s.endpoint);
+    if (!prev || s.id > prev.id) byEndpoint.set(s.endpoint, s);
+  }
+  const subscriptions = Array.from(byEndpoint.values());
+
   let success = 0;
   let failed = 0;
 

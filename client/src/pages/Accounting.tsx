@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Link } from "wouter";
-import { ExportExpensesButton } from "@/components/ExportExpensesButton";
+import { ExportExpensesPdfButton } from "@/components/ExportExpensesPdfButton";
 import { ExportExpensesWordButton } from "@/components/ExportExpensesWordButton";
 import {
   AlertDialog,
@@ -864,23 +864,23 @@ export default function Accounting() {
                 <CardDescription>Últimos gastos registrados</CardDescription>
               </div>
               <div className="flex gap-2 flex-wrap justify-end">
-                <ExportExpensesButton
+                <ExportExpensesPdfButton
                   expenses={filteredExpenses as any}
                   filter="all"
-                  filename={`Gastos_INNOVAR_${new Date().toISOString().slice(0, 10)}`}
-                  label="Excel Todo"
+                  title={`Informe_Gastos_INNOVAR_${new Date().toISOString().slice(0, 10)}`}
+                  label="PDF Todo"
                 />
-                <ExportExpensesButton
+                <ExportExpensesPdfButton
                   expenses={filteredExpenses as any}
                   filter="proyecto"
-                  filename={`Gastos_Proyecto_${new Date().toISOString().slice(0, 10)}`}
-                  label="Excel Proyecto"
+                  title={`Informe_Gastos_Proyecto_${new Date().toISOString().slice(0, 10)}`}
+                  label="PDF Proyecto"
                 />
-                <ExportExpensesButton
+                <ExportExpensesPdfButton
                   expenses={filteredExpenses as any}
                   filter="bodega"
-                  filename={`Gastos_Bodega_${new Date().toISOString().slice(0, 10)}`}
-                  label="Excel Bodega"
+                  title={`Informe_Gastos_Bodega_${new Date().toISOString().slice(0, 10)}`}
+                  label="PDF Bodega"
                 />
                 <ExportExpensesWordButton
                   expenses={filteredExpenses as any}

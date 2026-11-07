@@ -51,6 +51,9 @@ function fmtCOP(n: number) {
 
 function fmtDate(d: string) {
   if (!d) return '';
+  // "2026-11-02" se lee como fecha local (si no, en Colombia sale el día anterior)
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(d));
+  if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])).toLocaleDateString('es-CO');
   try { return new Date(d).toLocaleDateString('es-CO'); } catch { return d; }
 }
 

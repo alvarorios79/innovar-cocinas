@@ -20,7 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CheckCircle2, Calendar, DollarSign, TrendingUp, Loader2 } from "lucide-react";
+import { CheckCircle2, Calendar, DollarSign, TrendingUp, Loader2, Download, FileText } from "lucide-react";
+import { toast } from "sonner";
 
 function formatDate(date: any) {
   if (!date) return "-";
@@ -39,7 +40,24 @@ function formatCurrency(value: number) {
   }).format(value);
 }
 
+// Descarga el PDF o Word de un cierre (mismo archivo que en "Cierre Contable")
+async function downloadClosure(fetcher: (i: { closureId: number }) => Promise<{ base64: string; mimeType: string; filename: string }>, closureId: number, kind: string) {
+  try {
+    const result = await fetcher({ closureId });
+    const bytes = Uint8Array.from(atob(result.base64), c => c.charCodeAt(0));
+    const blob = new Blob([bytes], { type: result.mimeType });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = result.filename;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(link.href), 10000);
+  } catch (err) {
+    toast.error(`${kind}: ${err instanceof Error ? err.message : String(err)}`);
+  }
+}
+
 export function ConfirmedClosuresTab() {
+  const utils = trpc.useUtils();
   const [periodStart, setPeriodStart] = useState("");
   const [periodEnd, setPeriodEnd] = useState("");
   const [sortBy, setSortBy] = useState<"recent" | "oldest">("recent");
@@ -155,6 +173,7 @@ export function ConfirmedClosuresTab() {
                     <TableHead className="text-right font-semibold">Utilidad Neta</TableHead>
                     <TableHead className="text-center font-semibold">Proyectos</TableHead>
                     <TableHead className="text-center font-semibold">Confirmado</TableHead>
+                    <TableHead className="text-center font-semibold">Descargar</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -209,6 +228,28 @@ export function ConfirmedClosuresTab() {
                           <span className="text-xs text-muted-foreground">
                             {formatDate(closure.confirmedAt)}
                           </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <div className="flex flex-col gap-1 items-center">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-teal-500 text-teal-400 hover:bg-teal-500/10 w-24"
+                            onClick={() => downloadClosure(utils.accountingClosures.downloadPDF.fetch, closure.id, "PDF")}
+                          >
+                            <Download className="h-4 w-4 mr-1" />
+                            PDF
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-blue-500 text-blue-400 hover:bg-blue-500/10 w-24"
+                            onClick={() => downloadClosure(utils.accountingClosures.downloadWord.fetch, closure.id, "Word")}
+                          >
+                            <FileText className="h-4 w-4 mr-1" />
+                            Word
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>

@@ -87,6 +87,7 @@ export function CEODashboard() {
         />
         <KpiCard
           label="Por Cobrar"
+          className="col-span-2 sm:col-span-1"
           value={formatCurrency(porCobrar)}
           helper={`${pctPorCobrar}% del total vendido pendiente`}
           icon={<AlertTriangle className="h-5 w-5" />}

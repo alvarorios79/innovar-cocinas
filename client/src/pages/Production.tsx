@@ -201,7 +201,7 @@ export default function Production() {
             return (
               <div
                 key={stage.key}
-                className="min-w-[260px] max-w-[280px] shrink-0 flex flex-col rounded-xl border"
+                className="min-w-[240px] sm:min-w-[260px] max-w-[280px] shrink-0 self-start flex flex-col rounded-xl border"
                 style={{ background: stage.bg, borderColor: `${stage.color}20` }}
               >
                 {/* Columna header */}
@@ -225,9 +225,9 @@ export default function Production() {
                 </div>
 
                 {/* Tarjetas */}
-                <div className="flex-1 p-2 space-y-2 min-h-[120px]">
+                <div className="flex-1 p-2 space-y-2 min-h-[64px] sm:min-h-[120px]">
                   {stageProjects.length === 0 ? (
-                    <p className="text-center text-xs text-white/30 py-6">Sin proyectos</p>
+                    <p className="text-center text-xs text-white/30 py-3 sm:py-6">Sin proyectos</p>
                   ) : (
                     stageProjects.map((project) => (
                       <ProdCard

@@ -111,20 +111,14 @@ export function RemindersPanel({ userId, userRole, compact = false }: RemindersP
 
   if (activeReminders.length === 0) {
     return (
-      <Card className="bg-card border-amber-500/20" style={{ borderTop: "3px solid #F59E0B" }}>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Bell className="h-4 w-4 text-amber-400" />
-            Recordatorios
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-4">
-            <CheckCircle2 className="h-8 w-8 mx-auto text-green-400 mb-2" />
-            <p className="text-sm text-white/45">No tienes recordatorios pendientes</p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm">
+        <Bell className="h-4 w-4 text-amber-400 shrink-0" />
+        <span className="font-medium text-foreground">Recordatorios</span>
+        <span className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground">
+          <CheckCircle2 className="h-3.5 w-3.5 text-green-400" />
+          Ninguno pendiente
+        </span>
+      </div>
     );
   }
 

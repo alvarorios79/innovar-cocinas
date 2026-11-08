@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Eye, EyeOff, Edit, FileText, Send, Copy, Download, FolderPlus, FileEdit, Lock, Trash2, Image as ImageIcon, Archive, GitCompare } from "lucide-react";
+import { Eye, EyeOff, Edit, FileText, Send, Copy, Download, FolderPlus, FileEdit, Lock, Trash2, Image as ImageIcon, Archive, GitCompare, MoreHorizontal, ChevronUp } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { downloadPDFiOS } from "@/lib/pdf-download";
@@ -50,6 +50,8 @@ export function QuotationGroupCard({
   const [selectedVersionId, setSelectedVersionId] = useState(group.activeVersion.id);
   const [showValues, setShowValues] = useState(false);
   const [showComparator, setShowComparator] = useState(false);
+  // Celular: los botones menos usados van detrás de "Más"
+  const [showMore, setShowMore] = useState(false);
   
   const archiveQuotation = trpc.quotations.archive.useMutation({
     onSuccess: () => {
@@ -157,9 +159,9 @@ export function QuotationGroupCard({
       )}
       {/* HEADER COMPACTO - UNA SOLA LÍNEA */}
       <div className="px-3 py-2 md:px-3 md:py-2 border-b border-[rgba(106,207,199,0.12)] bg-card">
-        <div className="flex items-center gap-2 md:gap-3 mb-2">
+        <div className="flex items-center gap-2 md:gap-3">
           {/* Logo Innovar pequeño (32px) */}
-          <div className="flex-shrink-0 w-8 h-8 md:w-8 md:h-8 rounded-md flex items-center justify-center overflow-hidden">
+          <div className="hidden sm:flex flex-shrink-0 w-8 h-8 rounded-md items-center justify-center overflow-hidden">
             <img
               src="/logo-light.png"
               alt="Innovar"
@@ -182,7 +184,7 @@ export function QuotationGroupCard({
               <p className="text-xs text-white/45 truncate">
                 {group.quotationNumber}
               </p>
-              {isActiveVersion && (
+              {isActiveVersion && group.versionCount > 1 && (
                 <Badge className="bg-primary text-white text-xs py-0 px-2">
                   Versión actual
                 </Badge>
@@ -211,14 +213,12 @@ export function QuotationGroupCard({
                 </Badge>
               )}
               {group.hasProject ? (
-                <Badge className="bg-green-500/15 text-green-300 text-xs py-0 px-2 border border-green-300 flex items-center gap-1">
-                  <span className="text-base">✅</span>
-                  <span>Proyecto</span>
+                <Badge className="bg-green-500/15 text-green-300 text-xs py-0 px-2 border border-green-500/40">
+                  Con proyecto
                 </Badge>
               ) : (
-                <Badge className="bg-red-500/15 text-red-300 text-xs py-0 px-2 border border-red-300 flex items-center gap-1">
-                  <span className="text-base">❌</span>
-                  <span>Sin Proyecto</span>
+                <Badge className="bg-red-500/15 text-red-300 text-xs py-0 px-2 border border-red-500/40">
+                  Sin proyecto
                 </Badge>
               )}
               {group.hasProject && selectedVersion.id === group.activeProjectQuotationId && (
@@ -241,16 +241,22 @@ export function QuotationGroupCard({
 
           {/* Total y fechas compactas */}
           <div className="flex-shrink-0 text-right">
-            <div className="text-sm md:text-base font-bold text-white">
+            <button
+              type="button"
+              onClick={() => setShowValues(!showValues)}
+              className="inline-flex items-center gap-1 text-sm md:text-base font-bold text-white"
+              title={showValues ? "Ocultar valores" : "Ver valores"}
+            >
               {showValues ? (
                 `$${parseFloat(selectedVersion.total || "0").toLocaleString("es-CO", {
                   minimumFractionDigits: 0,
                   maximumFractionDigits: 0,
                 })}`
               ) : (
-                <span className="text-white/30 text-xs">••••••••</span>
+                <span className="text-white/30 text-xs">••••••</span>
               )}
-            </div>
+              {showValues ? <EyeOff className="w-3 h-3 text-white/45" /> : <Eye className="w-3 h-3 text-white/45" />}
+            </button>
             <div className="text-xs text-white/45 mt-0.5 space-y-0.5">
               <div>Crea: {createdDate.toLocaleDateString('es-CO', { month: '2-digit', day: '2-digit' })}</div>
               <div>Vence: {validUntilDate.toLocaleDateString('es-CO', { month: '2-digit', day: '2-digit' })}</div>
@@ -258,8 +264,9 @@ export function QuotationGroupCard({
           </div>
         </div>
 
-        {/* Selector de versión - SIEMPRE VISIBLE */}
-        <div className="flex items-center gap-2">
+        {/* Selector de versión - solo si hay más de una */}
+        {group.versionCount > 1 && (
+        <div className="flex items-center gap-2 mt-2">
           <label className="text-xs font-medium text-white/60">Versión:</label>
           <Select
             value={selectedVersionId.toString()}
@@ -282,46 +289,15 @@ export function QuotationGroupCard({
             </SelectContent>
           </Select>
         </div>
+        )}
       </div>
 
       <CardContent className="px-3 py-2 md:px-3 md:py-2 space-y-2">
-        {/* Sección de Precios - Colapsable compacta */}
-        {isActiveVersion && (
-          <div className="border-b border-[rgba(106,207,199,0.12)] pb-2">
-            <button
-              onClick={() => setShowValues(!showValues)}
-              className="w-full flex items-center justify-between px-2 py-1 rounded text-xs font-medium text-white/85 hover:bg-white/[0.03] transition-colors"
-            >
-              <span>Precios</span>
-              {showValues ? (
-                <EyeOff className="w-3 h-3 text-white/45" />
-              ) : (
-                <Eye className="w-3 h-3 text-white/45" />
-              )}
-            </button>
-            
-            {showValues && (
-              <div className="mt-1 p-2 rounded bg-primary/5 border border-primary/20 text-xs space-y-1">
-                <div className="flex justify-between">
-                  <span className="text-white/60">Subtotal:</span>
-                  <span className="font-semibold">
-                    ${parseFloat(selectedVersion.subtotal || "0").toLocaleString("es-CO", {
-                      minimumFractionDigits: 0,
-                      maximumFractionDigits: 0,
-                    })}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-white/60">Transporte:</span>
-                  <span className="font-semibold">
-                    ${parseFloat(selectedVersion.transportCost || "0").toLocaleString("es-CO", {
-                      minimumFractionDigits: 0,
-                      maximumFractionDigits: 0,
-                    })}
-                  </span>
-                </div>
-              </div>
-            )}
+        {/* Desglose de precios (se abre tocando el total) */}
+        {isActiveVersion && showValues && (
+          <div className="p-2 rounded bg-primary/5 border border-primary/20 text-xs flex flex-wrap gap-x-4 gap-y-1">
+            <span><span className="text-white/60">Subtotal:</span> <span className="font-semibold">${parseFloat(selectedVersion.subtotal || "0").toLocaleString("es-CO", { maximumFractionDigits: 0 })}</span></span>
+            <span><span className="text-white/60">Transporte:</span> <span className="font-semibold">${parseFloat(selectedVersion.transportCost || "0").toLocaleString("es-CO", { maximumFractionDigits: 0 })}</span></span>
           </div>
         )}
 
@@ -342,7 +318,7 @@ export function QuotationGroupCard({
             <Button
               size="sm"
               variant="outline"
-              className="text-xs py-1 px-2 h-7 gap-1"
+              className={`text-xs py-1 px-2 h-7 gap-1 ${showMore ? "" : "hidden"} sm:inline-flex`}
               onClick={async () => {
                 if (group.hasProject) {
                   const confirmed = (await confirmAction(
@@ -373,10 +349,12 @@ export function QuotationGroupCard({
             <span className="hidden sm:inline">PDF</span>
           </Button>
 
-          <ExportQuotationWordButton
-            quotationId={selectedVersion.id}
-            quotationNumber={selectedVersion.quotationNumber || group.quotationNumber}
-          />
+          <span className={`${showMore ? "" : "hidden"} sm:inline-flex`}>
+            <ExportQuotationWordButton
+              quotationId={selectedVersion.id}
+              quotationNumber={selectedVersion.quotationNumber || group.quotationNumber}
+            />
+          </span>
 
           {/* SECUNDARIOS */}
           {isActiveVersion && !group.activeVersion.projectId && (
@@ -396,7 +374,7 @@ export function QuotationGroupCard({
             <Button
               size="sm"
               variant="outline"
-              className="text-xs py-1 px-2 h-7 gap-1"
+              className={`text-xs py-1 px-2 h-7 gap-1 ${showMore ? "" : "hidden"} sm:inline-flex`}
               onClick={() => onEditPDF(selectedVersion)}
               disabled={isLocked}
             >
@@ -409,7 +387,7 @@ export function QuotationGroupCard({
             <Button
               size="sm"
               variant="outline"
-              className="text-xs py-1 px-2 h-7 gap-1"
+              className={`text-xs py-1 px-2 h-7 gap-1 ${showMore ? "" : "hidden"} sm:inline-flex`}
               onClick={() => onSend(selectedVersion)}
               disabled={isLocked}
             >
@@ -485,7 +463,7 @@ export function QuotationGroupCard({
             <Button
               size="sm"
               variant={isLocked ? "default" : "outline"}
-              className={`text-xs py-1 px-2 h-7 gap-1 ${isLocked ? "bg-gray-800 hover:bg-gray-900" : ""}`}
+              className={`text-xs py-1 px-2 h-7 gap-1 ${isLocked ? "bg-gray-800 hover:bg-gray-900" : ""} ${showMore ? "" : "hidden"} sm:inline-flex`}
               onClick={() => onToggleLock(selectedVersion)}
             >
               <Lock className="w-3 h-3" />
@@ -497,7 +475,7 @@ export function QuotationGroupCard({
             <Button
               size="sm"
               variant="destructive"
-              className="text-xs py-1 px-2 h-7 gap-1"
+              className={`text-xs py-1 px-2 h-7 gap-1 ${showMore ? "" : "hidden"} sm:inline-flex`}
               onClick={() => onDelete(selectedVersion)}
               disabled={isLocked}
               title={isLocked ? "Desbloquea la cotización para poder eliminar" : "Eliminar cotización"}
@@ -506,6 +484,16 @@ export function QuotationGroupCard({
               <span className="hidden sm:inline">Elim</span>
             </Button>
           )}
+
+          <Button
+            size="sm"
+            variant="ghost"
+            className="sm:hidden text-xs py-1 px-2 h-7 gap-1 text-muted-foreground ml-auto"
+            onClick={() => setShowMore(!showMore)}
+          >
+            {showMore ? <ChevronUp className="w-3.5 h-3.5" /> : <MoreHorizontal className="w-3.5 h-3.5" />}
+            {showMore ? "Menos" : "Más"}
+          </Button>
         </div>
 
         {/* Indicador de versión histórica */}
@@ -515,41 +503,16 @@ export function QuotationGroupCard({
           </div>
         )}
 
-        {/* Sección de Notas */}
-        {isActiveVersion && (
-          <div className="mt-3 p-3 rounded bg-[#1a2f2f] border border-[rgba(106,207,199,0.2)]">
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-sm font-semibold text-white/85">Notas del Cliente</label>
-              <div className="flex gap-1">
-                <select
-                  disabled
-                  value={
-                    (selectedVersion as any).status === "approved" || (selectedVersion as any).clientResponseStatus === "approved" ? "aprobado"
-                    : (selectedVersion as any).status === "rejected" || (selectedVersion as any).clientResponseStatus === "rejected" ? "rechazado"
-                    : ""
-                  }
-                  onChange={() => {}}
-                  className="text-xs px-2 py-1 rounded border border-[rgba(106,207,199,0.3)] bg-card text-white/70"
-                >
-                  <option value="">Sin estado</option>
-                  <option value="aprobado">Aprobado</option>
-                  <option value="rechazado">Rechazado</option>
-                  <option value="revision">Revisión</option>
-                </select>
-              </div>
-            </div>
-            <textarea
-              className="w-full text-xs p-2 rounded border border-[rgba(106,207,199,0.3)] bg-card text-white/80 placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-primary/40"
-              placeholder="Ingresa la respuesta del cliente aquí..."
-              rows={2}
-              defaultValue={selectedVersion.clientResponseNotes || ""}
-            />
-            {(selectedVersion as any).status === "rejected" && (
-              <div className="mt-2 text-xs text-red-300 bg-red-500/10 border border-red-500/25 rounded px-2 py-1">
-                <span className="font-semibold">Cliente rechazó.</span>{" "}
-                Motivo: {(selectedVersion as any).rejectionReason?.trim() || "no indicó motivo"}
-              </div>
-            )}
+        {/* Respuesta del cliente (llega desde el enlace público). Antes había un cuadro para escribir que no guardaba nada. */}
+        {isActiveVersion && (selectedVersion as any).status === "rejected" && (
+          <div className="text-xs text-red-300 bg-red-500/10 border border-red-500/25 rounded px-2 py-1">
+            <span className="font-semibold">Cliente rechazó.</span>{" "}
+            Motivo: {(selectedVersion as any).rejectionReason?.trim() || selectedVersion.clientResponseNotes?.trim() || "no indicó motivo"}
+          </div>
+        )}
+        {isActiveVersion && (selectedVersion as any).status !== "rejected" && selectedVersion.clientResponseNotes?.trim() && (
+          <div className="text-xs text-white/80 bg-white/[0.04] border border-border rounded px-2 py-1">
+            <span className="font-semibold text-white/60">Nota del cliente:</span> {selectedVersion.clientResponseNotes}
           </div>
         )}
       </CardContent>

@@ -61,11 +61,11 @@ export function KpiCard({
       }}
       onClick={onClick}
     >
-      <div className="p-3 sm:p-4">
-        <div className="flex items-start justify-between mb-2">
+      <div className="p-2.5 sm:p-4">
+        <div className="flex items-start justify-between mb-1.5 sm:mb-2">
           <p className="text-xs font-medium text-muted-foreground leading-tight pr-2">{label}</p>
           <div
-            className="flex items-center justify-center rounded-lg shrink-0"
+            className="hidden sm:flex items-center justify-center rounded-lg shrink-0"
             style={{
               width: 30,
               height: 30,
@@ -77,7 +77,7 @@ export function KpiCard({
           </div>
         </div>
         <p
-          className="text-2xl font-bold tracking-tight leading-none tabular-nums"
+          className="text-xl sm:text-2xl font-bold tracking-tight leading-none tabular-nums"
           style={{ color: accent }}
         >
           {value}
@@ -103,10 +103,13 @@ export function KpiCard({
 export function KpiGrid({
   children,
   cols = 4,
+  mobileCols,
   className = "",
 }: {
   children: React.ReactNode;
   cols?: 2 | 3 | 4 | 5 | 6;
+  /** Columnas en celular (por defecto 2). Usar 3 o 4 solo con números cortos (no montos en pesos). */
+  mobileCols?: 2 | 3 | 4;
   className?: string;
 }) {
   const colsClass = {
@@ -116,9 +119,12 @@ export function KpiGrid({
     5: "grid-cols-2 sm:grid-cols-3 lg:grid-cols-5",
     6: "grid-cols-2 sm:grid-cols-3 lg:grid-cols-6",
   }[cols];
+  const finalCols = mobileCols
+    ? colsClass.replace(/^grid-cols-\d/, { 2: "grid-cols-2", 3: "grid-cols-3", 4: "grid-cols-4" }[mobileCols])
+    : colsClass;
 
   return (
-    <div className={`grid ${colsClass} gap-3 mb-5 ${className}`}>
+    <div className={`grid ${finalCols} gap-2 sm:gap-3 mb-4 sm:mb-5 ${className}`}>
       {children}
     </div>
   );

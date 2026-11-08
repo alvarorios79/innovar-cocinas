@@ -1008,7 +1008,7 @@ export default function Tasks() {
             {/* Tab: Mis Tareas */}
             <TabsContent value="mis-tareas" className="space-y-4">
               {/* Stats de mis tareas */}
-              <KpiGrid cols={3}>
+              <KpiGrid cols={3} mobileCols={3}>
                 <KpiCard
                   label="Pendientes"
                   value={myPendingCount}
@@ -1045,7 +1045,7 @@ export default function Tasks() {
             {/* Tab: Supervisión */}
             <TabsContent value="supervision" className="space-y-4">
               {/* Stats globales */}
-              <KpiGrid cols={3}>
+              <KpiGrid cols={3} mobileCols={3}>
                 <KpiCard
                   label="Pendientes"
                   value={allPendingCount}
@@ -1131,7 +1131,7 @@ export default function Tasks() {
           /* Vista normal para usuarios sin permisos de supervisión */
           <>
             {/* Números (mismo estilo que la vista de supervisión) */}
-            <KpiGrid cols={3}>
+            <KpiGrid cols={3} mobileCols={3}>
               <KpiCard label="Pendientes" value={myPendingCount} icon={<Clock className="h-4 w-4" />} accent="var(--warning)" onClick={() => setStatusFilter("pendiente")} />
               <KpiCard label="En Progreso" value={myInProgressCount} icon={<Play className="h-4 w-4" />} accent="var(--info)" onClick={() => setStatusFilter("en_progreso")} />
               <KpiCard label="Completadas" value={myCompletedCount} icon={<CheckCircle2 className="h-4 w-4" />} accent="var(--success)" onClick={() => setStatusFilter("completada")} />

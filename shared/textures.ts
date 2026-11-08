@@ -1,0 +1,8 @@
+/**
+ * Texturas grandes para descargar (diseñador → SketchUp). Generado a partir de los catálogos.
+ * Archivos en client/public/materiales/<marca>/texturas/<código>.jpg. Si un código no está aquí,
+ * se descarga la muestra pequeña.
+ */
+export const TEXTURES_PRIMADERA = new Set<string>(["andino", "artico", "bacata", "bareque", "blanco_tradicional", "brooklyn_oak", "candelaria", "checua", "chircal", "cocuy", "creta", "flormorado", "glaze", "humo", "iguaque", "ika", "jayka", "kanua", "majuy", "maku", "mali", "roble_cenizo", "rovere_arena", "rustic_sand", "sapan", "sikuani", "suesca", "sukta", "tambo", "taroa", "tauari", "tausa", "tihua", "tumaco", "volcanico", "yalaa"]);
+export const TEXTURES_DURATEX = new Set<string>(["agatha", "amaretto", "ambar", "arena", "auro", "austral", "bahia", "blanco_nevado", "bohemm", "boreal", "bosco", "cala", "capuccino", "carbono", "chantilli", "cinza_cobalto", "etna", "glacial", "gracia", "graffo", "humo", "kallio", "koa", "lana", "lunar", "macula", "marmoro", "meril", "mitte", "negro", "nuez", "perla", "riviera", "sarga", "soder", "tabacco_chic", "terranta", "traviata", "tribeca", "ultramar", "verde_olivo", "viena", "vienes"]);
+export const TEXTURES_MESONES = new Set<string>(["blanco_atlantico", "blanco_dallas", "blanco_estelar", "blanco_extra", "blanco_polar", "calacatta_gold", "calacatta_gris", "calala_gold_brillante", "calala_gold_mate", "caralagin_brillante", "carrara_brillante", "golden_thread_brillante", "gris_cemento", "gris_estelar", "kenya_black", "marquina_negro", "negro_estelar", "negro_san_gabriel", "new_caledonia", "pure_black_brillante", "pure_black_mate", "pure_white_brillante", "pure_white_mate", "salmon_brown", "statuario_gold", "statuario_white", "verde_ubatuba", "white_marle_brillante"]);

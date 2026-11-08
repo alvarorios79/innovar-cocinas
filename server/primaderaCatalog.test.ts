@@ -70,3 +70,18 @@ describe("Catálogo de mesones", () => {
     expect(countertopDesignsByType("granito").length).toBe(6);
   });
 });
+
+describe("Texturas para descargar", () => {
+  it("cada textura registrada existe y se usa la grande cuando hay", async () => {
+    const fs = await import("fs");
+    const { TEXTURES_PRIMADERA, TEXTURES_DURATEX, TEXTURES_MESONES } = await import("../shared/textures");
+    for (const [dir, set] of [["primadera", TEXTURES_PRIMADERA], ["duratex", TEXTURES_DURATEX], ["mesones", TEXTURES_MESONES]] as const) {
+      for (const c of set) expect(fs.existsSync(`client/public/materiales/${dir}/texturas/${c}.jpg`), `${dir}/${c}`).toBe(true);
+    }
+    const { woodTexture, findPrimaderaDesign: find } = await import("../shared/primaderaCatalog");
+    expect(woodTexture(find("Sikuani")!)).toMatchObject({ full: true, url: "/materiales/primadera/texturas/sikuani.jpg", fileName: "Sikuani - Primadera.jpg" });
+    expect(woodTexture(find("Oasis (Duratex)")!).full).toBe(false);
+    const { countertopTexture } = await import("../shared/countertopCatalog");
+    expect(countertopTexture(findCountertopDesign("Calala Gold · Mate")!).url).toBe("/materiales/mesones/texturas/calala_gold_mate.jpg");
+  });
+});

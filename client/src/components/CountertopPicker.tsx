@@ -4,9 +4,11 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Check, Gem, ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { COUNTERTOP_TYPE_LABELS } from "@shared/materials";
+import { TextureLink } from "@/components/PrimaderaPicker";
 import {
   countertopDesignsByType,
   countertopHasPhoto,
+  countertopTexture,
   countertopLabel,
   countertopSwatchUrl,
   findCountertopDesign,
@@ -69,12 +71,12 @@ export function CountertopPicker({
             {designs.map((d) => {
               const on = current?.code === d.code;
               return (
+                <div key={d.code} className="relative">
                 <button
                   type="button"
-                  key={d.code}
                   onClick={() => { onPick(countertopLabel(d)); setOpen(false); }}
                   className={cn(
-                    "relative rounded-lg border overflow-hidden text-left transition-all hover:border-primary/60",
+                    "relative w-full rounded-lg border overflow-hidden text-left transition-all hover:border-primary/60",
                     on ? "border-primary ring-2 ring-primary" : "border-border"
                   )}
                 >
@@ -98,6 +100,8 @@ export function CountertopPicker({
                     </p>
                   </div>
                 </button>
+                {countertopHasPhoto(d) && <TextureLink {...countertopTexture(d)} compact className="absolute top-2 left-2" />}
+                </div>
               );
             })}
           </div>
@@ -105,4 +109,11 @@ export function CountertopPicker({
       </Dialog>
     </>
   );
+}
+
+/** Descarga de la textura del mesón elegido (si está en el catálogo y tiene foto). */
+export function CountertopTextureLink({ name, compact = false }: { name?: string; compact?: boolean }) {
+  const d = findCountertopDesign(name);
+  if (!d || !countertopHasPhoto(d)) return null;
+  return <TextureLink {...countertopTexture(d)} compact={compact} />;
 }

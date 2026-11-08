@@ -8,6 +8,8 @@
  *   de algunas referencias es estimado — confirmar con Álvaro.
  * Para agregar más: poner la muestra en client/public/materiales/mesones/<code>.jpg y una fila aquí.
  */
+import { TEXTURES_MESONES } from "./textures";
+
 export type CountertopType = "granito" | "cuarzo" | "sinterizado";
 
 export interface CountertopDesign {
@@ -60,6 +62,15 @@ export const countertopLabel = (d: CountertopDesign) => (d.finish ? `${d.name} �
 
 export const countertopSwatchUrl = (code: string) => `/materiales/mesones/${code}.jpg`;
 export const countertopHasPhoto = (d: CountertopDesign) => d.photo !== false;
+/** Textura grande para descargar (o la muestra si aún no hay textura) y nombre del archivo. */
+export function countertopTexture(d: CountertopDesign): { url: string; fileName: string; full: boolean } {
+  const full = countertopHasPhoto(d) && TEXTURES_MESONES.has(d.code);
+  return {
+    url: full ? `/materiales/mesones/texturas/${d.code}.jpg` : countertopSwatchUrl(d.code),
+    fileName: `${countertopLabel(d).replace(" · ", " ")} - ${d.type}.jpg`,
+    full,
+  };
+}
 
 const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ").trim().toLowerCase();
 

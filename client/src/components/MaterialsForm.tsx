@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { WOOD_TYPE_LABELS, COUNTERTOP_TYPE_LABELS } from "@shared/materials";
 import { WoodColorsEditor, WoodColorsView } from "@/components/PrimaderaPicker";
 import { parseWoodColors, woodColorRows } from "@shared/primaderaCatalog";
-import { CountertopPicker, CountertopSwatch } from "@/components/CountertopPicker";
+import { CountertopPicker, CountertopSwatch, CountertopTextureLink } from "@/components/CountertopPicker";
 import { findCountertopDesign, countertopSwatchUrl, countertopHasPhoto } from "@shared/countertopCatalog";
 
 interface MaterialsFormProps {
@@ -288,6 +288,7 @@ export function MaterialsForm({ projectId, readOnly = false }: MaterialsFormProp
                 {r.value && <p className="font-semibold text-foreground break-words">{r.value}</p>}
               </div>
               {r.key === "wood" && <WoodColorsView value={formData.woodColor} />}
+              {r.key === "countertop" && <CountertopTextureLink name={formData.countertopName} />}
             </div>
           </div>
         ))}
@@ -379,8 +380,9 @@ export function MaterialsForm({ projectId, readOnly = false }: MaterialsFormProp
               />
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <CountertopSwatch name={formData.countertopName} />
+            <CountertopTextureLink name={formData.countertopName} />
             <CountertopPicker
               type={formData.countertopType}
               value={formData.countertopName}

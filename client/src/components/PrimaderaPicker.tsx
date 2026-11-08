@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Check, Palette, ImageIcon } from "lucide-react";
+import { Check, Palette, ImageIcon, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   PRIMADERA_CATEGORY_LABELS,
@@ -13,6 +13,7 @@ import {
   woodSwatchUrl,
   woodShortName,
   woodHasPhoto,
+  woodTexture,
   WOOD_BRANDS,
   BRAND_OF_CATEGORY,
   type WoodBrand,
@@ -34,6 +35,38 @@ function GlossBox({ d, className }: { d: PrimaderaDesign; className: string }) {
       style={{ background: `linear-gradient(135deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 45%), ${d.color ?? "#ccc"}` }}
       title={`${d.name} (color aproximado, sin foto aún)`}
     />
+  );
+}
+
+/** Botón para descargar la textura (para SketchUp). `compact` = solo ícono sobre la foto. */
+export function TextureLink({ url, fileName, full, compact = false, className }: {
+  url: string; fileName: string; full: boolean; compact?: boolean; className?: string;
+}) {
+  const title = full ? "Descargar textura" : "Descargar muestra (aún no hay textura grande)";
+  if (compact) {
+    return (
+      <a
+        href={url}
+        download={fileName}
+        onClick={(e) => e.stopPropagation()}
+        title={title}
+        aria-label={title}
+        className={cn("flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white shadow hover:bg-black/80", className)}
+      >
+        <Download className="h-4 w-4" />
+      </a>
+    );
+  }
+  return (
+    <a
+      href={url}
+      download={fileName}
+      title={title}
+      className={cn("inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-primary/60", className)}
+    >
+      <Download className="h-3.5 w-3.5" />
+      {full ? "Descargar textura" : "Descargar muestra"}
+    </a>
   );
 }
 
@@ -118,12 +151,12 @@ function PrimaderaDialog({
                 {PRIMADERA_DESIGNS.filter((d) => d.category === c).map((d) => {
                   const on = current === d.name;
                   return (
+                    <div key={d.code} className="relative">
                     <button
                       type="button"
-                      key={d.code}
                       onClick={() => { onPick(d.name); onOpenChange(false); }}
                       className={cn(
-                        "relative rounded-lg border overflow-hidden text-left transition-all hover:border-primary/60",
+                        "relative w-full rounded-lg border overflow-hidden text-left transition-all hover:border-primary/60",
                         on ? "border-primary ring-2 ring-primary" : "border-border"
                       )}
                     >
@@ -145,6 +178,8 @@ function PrimaderaDialog({
                         <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">{d.hint}</p>
                       </div>
                     </button>
+                    {woodHasPhoto(d) && <TextureLink {...woodTexture(d)} compact className="absolute top-2 left-2" />}
+                    </div>
                   );
                 })}
               </div>
@@ -154,6 +189,13 @@ function PrimaderaDialog({
       </DialogContent>
     </Dialog>
   );
+}
+
+/** Descarga de la textura del color elegido (si está en el catálogo y tiene foto). */
+function SlotTexture({ name, compact = false }: { name?: string; compact?: boolean }) {
+  const d = findPrimaderaDesign(name);
+  if (!d || !woodHasPhoto(d)) return null;
+  return <TextureLink {...woodTexture(d)} compact={compact} />;
 }
 
 /** Una parte de la cocina (interior, exterior, superiores o inferiores) con su color. */
@@ -177,10 +219,13 @@ function ColorSlot({
         <ColorSwatch name={value} className="w-14 h-14" />
         <div className="flex-1 min-w-0 space-y-2">
           <Input value={value} onChange={(e) => onChange(e.target.value)} placeholder="Nombre del color o referencia" />
-          <Button type="button" variant="outline" size="sm" onClick={() => setOpen(true)}>
-            <Palette className="h-4 w-4 mr-2" />
-            Elegir del catálogo de madera
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button type="button" variant="outline" size="sm" onClick={() => setOpen(true)}>
+              <Palette className="h-4 w-4 mr-2" />
+              Elegir del catálogo de madera
+            </Button>
+            <SlotTexture name={value} />
+          </div>
         </div>
       </div>
       <PrimaderaDialog open={open} onOpenChange={setOpen} title={label} value={value} onPick={onChange} startTab={startTab} />
@@ -255,10 +300,11 @@ export function WoodColorsView({ value }: { value?: string | null }) {
       {rows.map((r) => (
         <div key={r.label} className="flex items-center gap-3 rounded-md bg-background/40 p-2">
           <ColorSwatch name={r.value} />
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{r.label}</p>
             <p className="font-semibold text-sm break-words">{r.value}</p>
           </div>
+          <SlotTexture name={r.value} compact />
         </div>
       ))}
     </div>

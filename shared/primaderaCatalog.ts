@@ -4,6 +4,8 @@
  * Las muestras (`/materiales/primadera/<code>.jpg`) son representaciones aproximadas del color;
  * para especificar, Primadera recomienda pedir muestra física.
  */
+import { TEXTURES_PRIMADERA, TEXTURES_DURATEX } from "./textures";
+
 export type PrimaderaCategory =
   | "nativas" | "unicolores" | "tendencia" | "piedras_textil" | "basicos"   // Primadera
   | "altos_brillos"                                                        // Altos brillos
@@ -145,6 +147,18 @@ export const PRIMADERA_DESIGNS: PrimaderaDesign[] = [
 
 export const woodSwatchUrl = (d: PrimaderaDesign) => `/materiales/${BRAND_DIR[BRAND_OF_CATEGORY[d.category]]}/${d.code}.jpg`;
 export const woodShortName = (d: PrimaderaDesign) => d.short ?? d.name;
+/** Textura grande para descargar (o la muestra si aún no hay textura) y nombre del archivo. */
+export function woodTexture(d: PrimaderaDesign): { url: string; fileName: string; full: boolean } {
+  const brand = BRAND_OF_CATEGORY[d.category];
+  const dir = BRAND_DIR[brand];
+  const set = dir === "duratex" ? TEXTURES_DURATEX : TEXTURES_PRIMADERA;
+  const full = woodHasPhoto(d) && set.has(d.code);
+  return {
+    url: full ? `/materiales/${dir}/texturas/${d.code}.jpg` : woodSwatchUrl(d),
+    fileName: `${woodShortName(d)} - ${brand}.jpg`,
+    full,
+  };
+}
 export const woodHasPhoto = (d: PrimaderaDesign) => d.photo !== false;
 
 /** Busca un diseño por el nombre guardado en el proyecto (sin tildes ni mayúsculas). */

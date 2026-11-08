@@ -23,6 +23,20 @@ describe("Colores de madera (Primadera)", () => {
     expect(parseWoodColors("")).toEqual(emptyWoodColors());
   });
 
+  it("cada color con foto tiene su muestra y los altos brillos tienen color aproximado", async () => {
+    const fs = await import("fs");
+    const { PRIMADERA_DESIGNS, woodHasPhoto, woodSwatchUrl } = await import("../shared/primaderaCatalog");
+    for (const d of PRIMADERA_DESIGNS) {
+      if (woodHasPhoto(d)) expect(fs.existsSync(`client/public${woodSwatchUrl(d)}`), d.code).toBe(true);
+      else expect(d.color, d.code).toMatch(/^#[0-9a-f]{6}$/i);
+    }
+    expect(PRIMADERA_DESIGNS.filter((d) => d.category === "altos_brillos").length).toBe(6);
+    expect(PRIMADERA_DESIGNS.filter((d) => d.category.startsWith("dx_")).length).toBe(47);
+    // Mismo nombre en dos marcas no se confunde: "Humo" es Primadera, "Humo (Duratex)" es Duratex
+    expect(findPrimaderaDesign("Humo")?.category).toBe("unicolores");
+    expect(findPrimaderaDesign("Humo (Duratex)")?.category).toBe("dx_maderas");
+  });
+
   it("reconoce colores sin importar tildes ni mayúsculas", () => {
     expect(findPrimaderaDesign("artico")?.name).toBe("Ártico");
     expect(findPrimaderaDesign("Roble Natural")).toBeUndefined();

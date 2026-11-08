@@ -10,7 +10,13 @@ import {
   PRIMADERA_CATEGORY_LABELS,
   PRIMADERA_DESIGNS,
   findPrimaderaDesign,
-  primaderaSwatchUrl,
+  woodSwatchUrl,
+  woodShortName,
+  woodHasPhoto,
+  WOOD_BRANDS,
+  BRAND_OF_CATEGORY,
+  type WoodBrand,
+  type PrimaderaDesign,
   parseWoodColors,
   formatWoodColors,
   woodColorRows,
@@ -20,7 +26,18 @@ import {
 
 const CATEGORIES = Object.keys(PRIMADERA_CATEGORY_LABELS) as PrimaderaCategory[];
 
-/** Cuadrito con la muestra del color (si es de Primadera); si no, un ícono neutro. */
+/** Cuadro de color con brillo para los colores que aún no tienen foto (p. ej. altos brillos). */
+function GlossBox({ d, className }: { d: PrimaderaDesign; className: string }) {
+  return (
+    <div
+      className={cn(className, "relative overflow-hidden")}
+      style={{ background: `linear-gradient(135deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 45%), ${d.color ?? "#ccc"}` }}
+      title={`${d.name} (color aproximado, sin foto aún)`}
+    />
+  );
+}
+
+/** Cuadrito con la muestra del color (si está en el catálogo); si no, un ícono neutro. */
 export function ColorSwatch({ name, className = "w-12 h-12" }: { name?: string; className?: string }) {
   const d = findPrimaderaDesign(name);
   if (!d) {
@@ -30,14 +47,15 @@ export function ColorSwatch({ name, className = "w-12 h-12" }: { name?: string; 
       </div>
     );
   }
+  if (!woodHasPhoto(d)) return <GlossBox d={d} className={cn(className, "rounded-md border border-border shrink-0")} />;
   return (
-    <a href={primaderaSwatchUrl(d.code)} target="_blank" rel="noreferrer" className="shrink-0">
-      <img src={primaderaSwatchUrl(d.code)} alt={d.name} className={cn(className, "rounded-md object-cover border border-border")} loading="lazy" />
+    <a href={woodSwatchUrl(d)} target="_blank" rel="noreferrer" className="shrink-0">
+      <img src={woodSwatchUrl(d)} alt={d.name} className={cn(className, "rounded-md object-cover border border-border")} loading="lazy" />
     </a>
   );
 }
 
-/** Ventana del catálogo Primadera 2025: se toca un color y queda elegido. */
+/** Ventana del catálogo de madera: se elige la marca, la línea y se toca el color. */
 function PrimaderaDialog({
   open, onOpenChange, title, value, onPick, startTab,
 }: {
@@ -48,26 +66,53 @@ function PrimaderaDialog({
   onPick: (name: string) => void;
   startTab: PrimaderaCategory;
 }) {
-  const [tab, setTab] = useState<PrimaderaCategory>(startTab);
-  const current = findPrimaderaDesign(value)?.name;
+  const currentDesign = findPrimaderaDesign(value);
+  const current = currentDesign?.name;
+  // Abre en la marca/línea del color ya elegido; si no hay, en la sugerida para esta parte
+  const initialTab = currentDesign?.category ?? startTab;
+  const [brand, setBrand] = useState<WoodBrand>(BRAND_OF_CATEGORY[initialTab]);
+  const [tab, setTab] = useState<PrimaderaCategory>(initialTab);
+  const brandCategories = CATEGORIES.filter((c) => BRAND_OF_CATEGORY[c] === brand);
+  const pickBrand = (b: WoodBrand) => {
+    setBrand(b);
+    setTab(CATEGORIES.find((c) => BRAND_OF_CATEGORY[c] === b)!);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{title} — Catálogo Primadera 2025</DialogTitle>
+          <DialogTitle>{title} — Catálogo de madera</DialogTitle>
           <DialogDescription>
-            Toca el color para elegirlo. Las muestras son aproximadas: para confirmar, pide la muestra física.
+            Elige la marca y toca el color. Las muestras son aproximadas: para confirmar, pide la muestra física.
           </DialogDescription>
         </DialogHeader>
 
+        <div className="grid grid-cols-3 gap-2">
+          {WOOD_BRANDS.map((b) => (
+            <button
+              key={b}
+              type="button"
+              onClick={() => pickBrand(b)}
+              className={cn(
+                "rounded-lg border px-2 py-2 text-sm font-semibold transition-colors",
+                brand === b ? "border-primary bg-primary/15 text-primary" : "border-border bg-surface text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {b}
+            </button>
+          ))}
+        </div>
+
         <Tabs value={tab} onValueChange={(v) => setTab(v as PrimaderaCategory)}>
-          <TabsList>
-            {CATEGORIES.map((c) => (
-              <TabsTrigger key={c} value={c}>{PRIMADERA_CATEGORY_LABELS[c]}</TabsTrigger>
-            ))}
-          </TabsList>
-          {CATEGORIES.map((c) => (
+          {brandCategories.length > 1 && (
+            <TabsList>
+              {brandCategories.map((c) => (
+                <TabsTrigger key={c} value={c}>{PRIMADERA_CATEGORY_LABELS[c]}</TabsTrigger>
+              ))}
+            </TabsList>
+          )}
+          {brandCategories.map((c) => (
             <TabsContent key={c} value={c} className="mt-4">
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
                 {PRIMADERA_DESIGNS.filter((d) => d.category === c).map((d) => {
@@ -82,14 +127,21 @@ function PrimaderaDialog({
                         on ? "border-primary ring-2 ring-primary" : "border-border"
                       )}
                     >
-                      <img src={primaderaSwatchUrl(d.code)} alt={d.name} className="w-full aspect-square object-cover" loading="lazy" />
+                      {woodHasPhoto(d) ? (
+                        <img src={woodSwatchUrl(d)} alt={d.name} className="w-full aspect-square object-cover" loading="lazy" />
+                      ) : (
+                        <div className="relative">
+                          <GlossBox d={d} className="w-full aspect-square" />
+                          <span className="absolute bottom-2 left-2 rounded bg-black/55 px-1.5 py-0.5 text-[10px] text-white">Foto pendiente</span>
+                        </div>
+                      )}
                       {on && (
                         <span className="absolute top-2 right-2 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow">
                           <Check className="h-4 w-4" />
                         </span>
                       )}
                       <div className="p-2 bg-surface">
-                        <p className="font-semibold text-sm leading-tight">{d.name}</p>
+                        <p className="font-semibold text-sm leading-tight">{woodShortName(d)}</p>
                         <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">{d.hint}</p>
                       </div>
                     </button>
@@ -127,7 +179,7 @@ function ColorSlot({
           <Input value={value} onChange={(e) => onChange(e.target.value)} placeholder="Nombre del color o referencia" />
           <Button type="button" variant="outline" size="sm" onClick={() => setOpen(true)}>
             <Palette className="h-4 w-4 mr-2" />
-            Elegir del catálogo Primadera
+            Elegir del catálogo de madera
           </Button>
         </div>
       </div>

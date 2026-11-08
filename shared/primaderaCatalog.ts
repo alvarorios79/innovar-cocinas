@@ -4,13 +4,29 @@
  * Las muestras (`/materiales/primadera/<code>.jpg`) son representaciones aproximadas del color;
  * para especificar, Primadera recomienda pedir muestra física.
  */
-export type PrimaderaCategory = "nativas" | "unicolores" | "tendencia" | "piedras_textil" | "basicos";
+export type PrimaderaCategory =
+  | "nativas" | "unicolores" | "tendencia" | "piedras_textil" | "basicos"   // Primadera
+  | "altos_brillos"                                                        // Altos brillos
+  | "dx_maderas" | "dx_unicolores" | "dx_hibridos";                        // Duratex
+
+/** Marcas / líneas del catálogo de madera (en la ventana se elige primero la marca). */
+export type WoodBrand = "Primadera" | "Duratex" | "Altos brillos";
+export const WOOD_BRANDS: WoodBrand[] = ["Primadera", "Duratex", "Altos brillos"];
+export const BRAND_OF_CATEGORY: Record<PrimaderaCategory, WoodBrand> = {
+  nativas: "Primadera", unicolores: "Primadera", tendencia: "Primadera", piedras_textil: "Primadera", basicos: "Primadera",
+  altos_brillos: "Altos brillos",
+  dx_maderas: "Duratex", dx_unicolores: "Duratex", dx_hibridos: "Duratex",
+};
+const BRAND_DIR: Record<WoodBrand, string> = { Primadera: "primadera", Duratex: "duratex", "Altos brillos": "primadera" };
 
 export interface PrimaderaDesign {
   code: string;      // nombre del archivo de la muestra
-  name: string;      // nombre comercial (el que se guarda en el proyecto)
+  name: string;      // texto que se guarda en el proyecto (Duratex lleva "(Duratex)" para no confundir con Primadera)
+  short?: string;    // nombre corto para mostrar en la ventana (si es distinto de `name`)
   category: PrimaderaCategory;
   hint: string;      // descripción corta del catálogo
+  photo?: boolean;   // false = aún sin foto: se muestra un cuadro del color aproximado
+  color?: string;    // color aproximado para el cuadro (solo cuando no hay foto)
 }
 
 export const PRIMADERA_CATEGORY_LABELS: Record<PrimaderaCategory, string> = {
@@ -19,6 +35,10 @@ export const PRIMADERA_CATEGORY_LABELS: Record<PrimaderaCategory, string> = {
   tendencia: "Maderas tendencia",
   piedras_textil: "Piedras + textil",
   basicos: "Básicos",
+  altos_brillos: "Altos brillos",
+  dx_maderas: "Maderas",
+  dx_unicolores: "Unicolores",
+  dx_hibridos: "Piedras y textiles",
 };
 
 export const PRIMADERA_DESIGNS: PrimaderaDesign[] = [
@@ -64,9 +84,68 @@ export const PRIMADERA_DESIGNS: PrimaderaDesign[] = [
   // Básicos
   { code: "glaze", name: "Glazé", category: "basicos", hint: "Madera clara blanqueada" },
   { code: "mali", name: "Mali", category: "basicos", hint: "Madera con vetas marcadas" },
+  // Altos brillos (pedido de Álvaro, 7 nov 2026). Fotos pendientes: al tenerlas, guardarlas como
+  // client/public/materiales/primadera/<code>.jpg y quitar `photo: false`.
+  { code: "alto_brillo_blanco", name: "Alto Brillo Blanco", category: "altos_brillos", hint: "Blanco brillante", photo: false, color: "#f4f4f2" },
+  { code: "alto_brillo_gris_oscuro", name: "Alto Brillo Gris Oscuro", category: "altos_brillos", hint: "Gris oscuro brillante", photo: false, color: "#4a4e52" },
+  { code: "alto_brillo_gris_claro", name: "Alto Brillo Gris Claro", category: "altos_brillos", hint: "Gris claro brillante", photo: false, color: "#c8cacc" },
+  { code: "alto_brillo_capuchino", name: "Alto Brillo Capuchino", category: "altos_brillos", hint: "Café con leche brillante", photo: false, color: "#9c7a5c" },
+  { code: "alto_brillo_beige", name: "Alto Brillo Beige", category: "altos_brillos", hint: "Beige brillante", photo: false, color: "#d9c7a6" },
+  { code: "alto_brillo_hueso", name: "Alto Brillo Hueso", category: "altos_brillos", hint: "Blanco hueso brillante", photo: false, color: "#ebe2cf" },
+  // Duratex — Colección 2024-2025 ("duratex_20242025.pdf", enviado por Álvaro el 7 nov 2026). 47 diseños.
+  // Muestras recortadas del catálogo; Cedro y Wengue no traen muestra (color aproximado).
+  { code: "arena", name: "Arena (Duratex)", short: "Arena", category: "dx_maderas", hint: "Atemporales" },
+  { code: "capuccino", name: "Capuccino (Duratex)", short: "Capuccino", category: "dx_maderas", hint: "Atemporales" },
+  { code: "cedro", name: "Cedro (Duratex)", short: "Cedro", category: "dx_maderas", hint: "Atemporales", photo: false, color: "#8b4a2b" },
+  { code: "chantilli", name: "Chantillí (Duratex)", short: "Chantillí", category: "dx_maderas", hint: "Atemporales" },
+  { code: "glacial", name: "Glacial (Duratex)", short: "Glacial", category: "dx_maderas", hint: "Atemporales" },
+  { code: "gracia", name: "Grácia (Duratex)", short: "Grácia", category: "dx_maderas", hint: "Atemporales" },
+  { code: "humo", name: "Humo (Duratex)", short: "Humo", category: "dx_maderas", hint: "Atemporales" },
+  { code: "kallio", name: "Kallio (Duratex)", short: "Kallio", category: "dx_maderas", hint: "Atemporales" },
+  { code: "mitte", name: "Mitte (Duratex)", short: "Mitte", category: "dx_maderas", hint: "Atemporales" },
+  { code: "nuez", name: "Nuez (Duratex)", short: "Nuez", category: "dx_maderas", hint: "Atemporales" },
+  { code: "soder", name: "Söder (Duratex)", short: "Söder", category: "dx_maderas", hint: "Atemporales" },
+  { code: "tribeca", name: "Tribeca (Duratex)", short: "Tribeca", category: "dx_maderas", hint: "Atemporales" },
+  { code: "vienes", name: "Vienés (Duratex)", short: "Vienés", category: "dx_maderas", hint: "Atemporales" },
+  { code: "wengue", name: "Wengue (Duratex)", short: "Wengue", category: "dx_maderas", hint: "Atemporales", photo: false, color: "#3a2a20" },
+  { code: "amaretto", name: "Amaretto (Duratex)", short: "Amaretto", category: "dx_maderas", hint: "Rústica" },
+  { code: "austral", name: "Austral (Duratex)", short: "Austral", category: "dx_maderas", hint: "Rústica" },
+  { code: "cala", name: "Cala (Duratex)", short: "Cala", category: "dx_maderas", hint: "Rústica" },
+  { code: "carbono", name: "Carbono (Duratex)", short: "Carbono", category: "dx_maderas", hint: "Rústica" },
+  { code: "koa", name: "Koa (Duratex)", short: "Koa", category: "dx_maderas", hint: "Rústica" },
+  { code: "macula", name: "Mácula (Duratex)", short: "Mácula", category: "dx_maderas", hint: "Rústica" },
+  { code: "tabacco_chic", name: "Tabacco Chic (Duratex)", short: "Tabacco Chic", category: "dx_maderas", hint: "Rústica" },
+  { code: "bahia", name: "Bahía (Duratex)", short: "Bahía", category: "dx_maderas", hint: "Tendencia" },
+  { code: "boreal", name: "Boreal (Duratex)", short: "Boreal", category: "dx_maderas", hint: "Tendencia" },
+  { code: "bosco", name: "Bosco (Duratex)", short: "Bosco", category: "dx_maderas", hint: "Tendencia" },
+  { code: "oasis", name: "Oasis (Duratex)", short: "Oasis", category: "dx_maderas", hint: "Tendencia" },
+  { code: "riviera", name: "Riviera (Duratex)", short: "Riviera", category: "dx_maderas", hint: "Tendencia" },
+  { code: "sagano", name: "Sagano (Duratex)", short: "Sagano", category: "dx_maderas", hint: "Tendencia" },
+  { code: "terranta", name: "Terranta (Duratex)", short: "Terranta", category: "dx_maderas", hint: "Tendencia" },
+  { code: "traviata", name: "Traviata (Duratex)", short: "Traviata", category: "dx_maderas", hint: "Tendencia" },
+  { code: "ambar", name: "Ámbar (Duratex)", short: "Ámbar", category: "dx_unicolores", hint: "Sólido" },
+  { code: "blanco_nevado", name: "Blanco Nevado (Duratex)", short: "Blanco Nevado", category: "dx_unicolores", hint: "Sólido" },
+  { code: "cinza_cobalto", name: "Cinza Cobalto (Duratex)", short: "Cinza Cobalto", category: "dx_unicolores", hint: "Sólido" },
+  { code: "graffo", name: "Graffo (Duratex)", short: "Graffo", category: "dx_unicolores", hint: "Sólido" },
+  { code: "negro", name: "Negro (Duratex)", short: "Negro", category: "dx_unicolores", hint: "Sólido" },
+  { code: "perla", name: "Perla (Duratex)", short: "Perla", category: "dx_unicolores", hint: "Sólido" },
+  { code: "ultramar", name: "Ultramar (Duratex)", short: "Ultramar", category: "dx_unicolores", hint: "Sólido" },
+  { code: "verde_olivo", name: "Verde Olivo (Duratex)", short: "Verde Olivo", category: "dx_unicolores", hint: "Sólido" },
+  { code: "viena", name: "Viena (Duratex)", short: "Viena", category: "dx_unicolores", hint: "Sólido" },
+  { code: "auro", name: "Auro (Duratex)", short: "Auro", category: "dx_unicolores", hint: "Metalizado" },
+  { code: "bohemm", name: "Bohemm (Duratex)", short: "Bohemm", category: "dx_unicolores", hint: "Metalizado" },
+  { code: "agatha", name: "Ágatha (Duratex)", short: "Ágatha", category: "dx_hibridos", hint: "Piedra" },
+  { code: "etna", name: "Étna (Duratex)", short: "Étna", category: "dx_hibridos", hint: "Piedra" },
+  { code: "lunar", name: "Lunar (Duratex)", short: "Lunar", category: "dx_hibridos", hint: "Piedra" },
+  { code: "marmoro", name: "Mármoro (Duratex)", short: "Mármoro", category: "dx_hibridos", hint: "Piedra" },
+  { code: "meril", name: "Meril (Duratex)", short: "Meril", category: "dx_hibridos", hint: "Piedra" },
+  { code: "lana", name: "Lana (Duratex)", short: "Lana", category: "dx_hibridos", hint: "Textil" },
+  { code: "sarga", name: "Sarga (Duratex)", short: "Sarga", category: "dx_hibridos", hint: "Textil" },
 ];
 
-export const primaderaSwatchUrl = (code: string) => `/materiales/primadera/${code}.jpg`;
+export const woodSwatchUrl = (d: PrimaderaDesign) => `/materiales/${BRAND_DIR[BRAND_OF_CATEGORY[d.category]]}/${d.code}.jpg`;
+export const woodShortName = (d: PrimaderaDesign) => d.short ?? d.name;
+export const woodHasPhoto = (d: PrimaderaDesign) => d.photo !== false;
 
 /** Busca un diseño por el nombre guardado en el proyecto (sin tildes ni mayúsculas). */
 export function findPrimaderaDesign(name?: string | null): PrimaderaDesign | undefined {

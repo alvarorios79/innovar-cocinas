@@ -689,6 +689,7 @@ export const publicGalleryRouter = router({
           ensamble: "Ensamble / Armado",
           listo_instalacion: "Listo para instalación",
           trabajando_instalacion: "Trabajando en Instalación",
+          entregado: "Entrega final",
         };
 
         const stageLabel = stageLabels[input.stageName];
@@ -785,6 +786,34 @@ ${GOOGLE_REVIEW_URL}
           const phone = clientPhone.replace(/\D/g, '');
           const phoneWithCountry = phone.startsWith('57') ? phone : `57${phone}`;
           whatsAppLink = `https://wa.me/${phoneWithCountry}?text=${encodeURIComponent(waMessage)}`;
+        }
+
+        // Admin, super_admin y comercial envían ellos mismos desde el número oficial (el navegador abre
+        // WhatsApp con el mensaje): no se crea tarea y se borran las que hubiera pendientes de esta etapa.
+        const sendsDirectly = ["super_admin", "admin", "comercial"].includes(ctx.user.role);
+        if (sendsDirectly) {
+          const removed = await db.deleteStageAdvanceTasks(input.projectId, stageLabel);
+          return {
+            success: true,
+            message: whatsAppLink
+              ? `Abriendo WhatsApp para enviar el avance a ${clientName}.${removed ? " La tarea pendiente se cerró." : ""}`
+              : `⚠️ ${clientName} no tiene número de WhatsApp registrado.`,
+            whatsAppLink,
+            stageLabel,
+            adminsNotified: 0,
+          };
+        }
+
+        // Taller: si ya hay una tarea pendiente de esta misma etapa, no se repite
+        const alreadyPending = await db.getPendingStageAdvanceTasks(input.projectId, stageLabel);
+        if (alreadyPending.length > 0) {
+          return {
+            success: true,
+            message: `✅ Ya está pendiente que admin envíe el avance a ${clientName}.`,
+            whatsAppLink,
+            stageLabel,
+            adminsNotified: 0,
+          };
         }
 
         const collaboratorName = ctx.user.name || "Un colaborador";

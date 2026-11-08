@@ -448,6 +448,7 @@ export default function Accounting() {
               <span className="hidden sm:inline">Movimientos</span>
               <span className="sm:hidden">Mov.</span>
             </Button>
+            {user?.role === "super_admin" && (
             <Button
               variant={activeTab === "closure" ? "default" : "ghost"}
               onClick={() => setActiveTab("closure")}
@@ -457,6 +458,7 @@ export default function Accounting() {
               <span className="hidden sm:inline">Cierre Contable</span>
               <span className="sm:hidden">Cierre<br/>Contable</span>
             </Button>
+            )}
             <Button
               variant={activeTab === "confirmed" ? "default" : "ghost"}
               onClick={() => setActiveTab("confirmed")}
@@ -1205,7 +1207,7 @@ export default function Accounting() {
         )}
 
         {/* CLOSURE TAB */}
-        {activeTab === "closure" && (
+        {activeTab === "closure" && user?.role === "super_admin" && (
           <AccountingClosureTab />
         )}
 

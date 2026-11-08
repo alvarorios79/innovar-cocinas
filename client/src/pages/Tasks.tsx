@@ -491,7 +491,12 @@ export default function Tasks() {
               {getStatusBadge(task.status)}
             </div>
             {task.description && (
-              <p className="text-sm text-muted-foreground mb-2 break-words overflow-hidden line-clamp-3">{task.description}</p>
+              <p className="text-sm text-muted-foreground mb-2 break-words overflow-hidden line-clamp-3">
+                {/* Tareas de enviar avance: solo el resumen (el mensaje y el enlace van en el botón "Enviar por WhatsApp") */}
+                {String(task.title).startsWith("📱 Enviar avance")
+                  ? String(task.description).split("\n")[0].replace(/\*/g, "")
+                  : task.description}
+              </p>
             )}
             <div className="text-xs text-muted-foreground space-y-1">
               {showAssignedTo && task.assignedToUser && (
@@ -534,6 +539,24 @@ export default function Tasks() {
 
           {/* Acciones */}
           <div className="flex flex-col gap-2">
+            {/* Tarea de enviar avance al cliente: abre WhatsApp con el mensaje listo y la tarea se borra sola */}
+            {task.status !== "completada" && String(task.title).startsWith("📱 Enviar avance") && (() => {
+              const link = String(task.description || "").match(/https:\/\/wa\.me\/\S+/)?.[0];
+              return link ? (
+                <Button
+                  size="sm"
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                  onClick={() => {
+                    window.open(link, "_blank", "noopener,noreferrer");
+                    updateTaskStatus.mutate({ taskId: task.id, status: "completada" });
+                  }}
+                  disabled={updateTaskStatus.isPending}
+                >
+                  <MessageCircle className="h-4 w-4 mr-1" />
+                  Enviar por WhatsApp
+                </Button>
+              ) : null;
+            })()}
             {task.status === "pendiente" && (
               <Button
                 size="sm"

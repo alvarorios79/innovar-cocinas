@@ -270,6 +270,13 @@ export const tasksRouter = router({
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para modificar esta tarea" });
         }
 
+        // Tarea automática de "enviar avance al cliente": al hacerla se borra (también las copias de los demás admins)
+        const stageLabel = db.stageLabelFromTaskTitle(task.title);
+        if (input.status === "completada" && stageLabel && task.projectId) {
+          await db.deleteStageAdvanceTasks(task.projectId, stageLabel);
+          return { success: true, removed: true };
+        }
+
         const updateData: any = { status: input.status };
         if (input.status === "completada") {
           updateData.completedAt = new Date();

@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -88,6 +89,8 @@ export function ClosureReportTab() {
   };
 
   const confirmMutation = trpc.accountingClosures.confirm.useMutation();
+  const { user } = useAuth();
+  const canConfirm = user?.role === "super_admin";
 
   const handleConfirmClosure = async (closureId: number) => {
     try {
@@ -314,7 +317,7 @@ export function ClosureReportTab() {
                         <Download className="h-4 w-4 mr-1" />
                         {downloadingId === closure.id ? "Generando..." : "Word"}
                       </Button>
-                      {closure.status === "draft" && (
+                      {closure.status === "draft" && canConfirm && (
                         <Button
                           size="sm"
                           variant="default"

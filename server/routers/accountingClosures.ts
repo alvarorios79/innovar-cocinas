@@ -31,11 +31,13 @@ import {
 
 } from "../db";
 
+// Hacer cierres contables (preparar, crear y confirmar) es exclusivo de super_admin (decisión Álvaro, 8 nov 2026).
+// Admin puede ver y descargar los cierres ya hechos.
 export const accountingClosuresRouter = router({
   /**
    * Get eligible projects for accounting closure (archived + fully paid + no closure)
    */
-  getPendingProjects: adminProcedure.query(async () => {
+  getPendingProjects: superAdminProcedure.query(async () => {
     try {
       const projects = await getEligibleProjectsForAccountingClosure();
       return projects;
@@ -51,7 +53,7 @@ export const accountingClosuresRouter = router({
   /**
    * Create a new accounting closure
    */
-  create: adminProcedure
+  create: superAdminProcedure
     .input(
       z.object({
         periodStart: z.date(),
@@ -151,7 +153,7 @@ export const accountingClosuresRouter = router({
   /**
    * Confirm an accounting closure
    */
-  confirm: adminProcedure
+  confirm: superAdminProcedure
     .input(z.object({ closureId: z.number() }))
     .mutation(async ({ input, ctx }) => {
       try {
@@ -427,7 +429,7 @@ export const accountingClosuresRouter = router({
    * Get projects eligible for accounting closure
    * Criteria: archived, no closure assigned, balance = 0 (fully paid)
    */
-  getEligibleProjects: adminProcedure.query(async () => {
+  getEligibleProjects: superAdminProcedure.query(async () => {
     try {
       const projects = await getEligibleProjectsForAccountingClosure();
       return projects;
@@ -516,7 +518,7 @@ export const accountingClosuresRouter = router({
    * Calculate closure preview with real calculations
    * Shows what the closure will contain before creating it
    */
-  calculatePreview: adminProcedure
+  calculatePreview: superAdminProcedure
     .input(
       z.object({
         projectIds: z.array(z.number()),

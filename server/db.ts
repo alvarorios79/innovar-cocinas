@@ -958,6 +958,39 @@ export async function updateTask(id: number, data: Partial<InsertTask>) {
   await db.update(tasks).set(data).where(eq(tasks.id, id));
 }
 
+/** Prefijo del título de las tareas automáticas de "enviar avance al cliente" (publicGallery.notifyStageAdvance). */
+export const STAGE_ADVANCE_TASK_PREFIX = "📱 Enviar avance";
+const stageAdvanceTitlePrefix = (stageLabel: string) => `${STAGE_ADVANCE_TASK_PREFIX} "${stageLabel}"`;
+
+/** Tareas pendientes (no completadas) de enviar el avance de una etapa de un proyecto (una por admin). */
+export async function getPendingStageAdvanceTasks(projectId: number, stageLabel: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select({ id: tasks.id }).from(tasks).where(and(
+    eq(tasks.projectId, projectId),
+    like(tasks.title, `${stageAdvanceTitlePrefix(stageLabel)}%`),
+    ne(tasks.status, "completada"),
+  ));
+}
+
+/** Borra TODAS las copias de la tarea de enviar el avance (de todos los admins): ya se envió. */
+export async function deleteStageAdvanceTasks(projectId: number, stageLabel: string) {
+  const db = await getDb();
+  if (!db) return 0;
+  const rows = await db.delete(tasks).where(and(
+    eq(tasks.projectId, projectId),
+    like(tasks.title, `${stageAdvanceTitlePrefix(stageLabel)}%`),
+  )).returning({ id: tasks.id });
+  return rows.length;
+}
+
+/** Si el título es de una tarea de enviar avance, devuelve la etapa (lo que va entre comillas). */
+export function stageLabelFromTaskTitle(title: string): string | null {
+  if (!title.startsWith(STAGE_ADVANCE_TASK_PREFIX)) return null;
+  const m = title.match(/"([^"]+)"/);
+  return m ? m[1] : null;
+}
+
 export async function deleteTask(id: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");

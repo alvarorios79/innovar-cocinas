@@ -702,15 +702,16 @@ export default function AppointmentsCalendar() {
                         key={index}
                         onClick={() => setSelectedDate(date)}
                         className={`
-                          relative p-1 md:p-2 min-h-[60px] md:min-h-[80px] rounded-lg border transition-all
+                          relative p-1 md:p-2 min-h-[48px] md:min-h-[80px] rounded-lg border transition-all
                           ${!isCurrentMonth ? "opacity-40" : ""}
                           ${isToday ? "ring-2 ring-primary" : ""}
                           ${isSelected ? "bg-primary/20 border-primary/50" : "border-white/[0.08] hover:border-white/[0.18]"}
                           ${availability === "none" ? "bg-transparent" : availability === "blocked" ? "bg-white/[0.03]" : "bg-white/[0.07]"}
                         `}
                       >
-                        <div className="flex flex-col items-start leading-tight">
-                          <span className={`text-[10px] font-normal ${availability === "none" ? "text-white/15" : availability === "blocked" ? "text-white/20" : "text-white/35"}`}>
+                        <div className="flex flex-col items-center md:items-start leading-tight">
+                          {/* En celular sobra: el nombre del día ya está arriba de cada columna */}
+                          <span className={`hidden md:inline text-[10px] font-normal ${availability === "none" ? "text-white/15" : availability === "blocked" ? "text-white/20" : "text-white/35"}`}>
                             {DAYS_SHORT[date.getDay()]}
                           </span>
                           <span className={`text-sm font-semibold ${isToday ? "text-primary" : availability === "none" ? "text-white/20" : availability === "blocked" ? "text-white/30" : "text-white/85"}`}>

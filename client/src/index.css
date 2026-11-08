@@ -576,3 +576,12 @@
   .scrollbar-hide { scrollbar-width: none; -ms-overflow-style: none; }
   .scrollbar-hide::-webkit-scrollbar { display: none; }
 }
+
+/* Dentro del CRM el marco general (DashboardLayout → .app-main) ya pone los márgenes: las pantallas
+   que usan .container no deben sumar otro margen lateral ni superior (en el celular se veía el doble). */
+.app-main .container {
+  padding-left: 0;
+  padding-right: 0;
+  padding-top: 0;
+  max-width: none;
+}

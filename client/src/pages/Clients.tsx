@@ -370,7 +370,7 @@ function ClientCard({
 
   return (
     <Card className="hover:shadow-md transition-all" style={{ borderColor: "rgba(106,207,199,0.15)" }}>
-      <CardContent className="p-4">
+      <CardContent className="p-3 sm:p-4">
         <div className="flex items-start gap-3">
           {/* Avatar */}
           <div
@@ -425,18 +425,14 @@ function ClientCard({
                   {client.address}
                 </p>
               )}
+              <p className="text-[11px] text-muted-foreground/70">
+                Desde {new Date(client.createdAt).toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" })}
+              </p>
             </div>
           </div>
-        </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-between mt-3 pt-3" style={{ borderTop: "1px solid rgba(106,207,199,0.10)" }}>
-          <span className="text-[11px]" style={{ color: "rgba(255,255,255,0.35)" }}>
-            {new Date(client.createdAt).toLocaleDateString("es-CO", {
-              day: "2-digit", month: "short", year: "numeric",
-            })}
-          </span>
-          <div className="flex gap-0.5">
+          {/* Editar / eliminar a la derecha (antes ocupaban una fila aparte) */}
+          <div className="flex gap-0.5 shrink-0 -mr-1 -mt-1">
             <Button
               variant="ghost"
               size="sm"
@@ -461,6 +457,7 @@ function ClientCard({
             </Button>
           </div>
         </div>
+
       </CardContent>
     </Card>
   );

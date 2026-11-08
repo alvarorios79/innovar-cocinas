@@ -564,8 +564,8 @@ function DashboardLayoutContent({ children, setSidebarWidth, sidebarWidth }: Das
           </header>
         )}
 
-        <main className="flex-1 min-h-screen" style={{ background: "var(--background)" }}>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <main className="app-main flex-1 min-h-screen" style={{ background: "var(--background)" }}>
+          <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 pt-4 pb-6 sm:py-6">
             {children}
           </div>
         </main>

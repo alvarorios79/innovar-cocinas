@@ -370,6 +370,8 @@ function formatDateKey(date: Date): string {
 }
 
 interface DailyMotivationProps {
+  /** Sin recuadro propio (cuando va dentro de otro recuadro, p. ej. el encabezado de Inicio) */
+  bare?: boolean;
   userName?: string;
   className?: string;
   userBirthDate?: Date | null;
@@ -384,7 +386,7 @@ const BIRTHDAY_PHRASES = [
   "¡Que este nuevo año de vida te traiga mucha felicidad, {name}! 🌟",
 ];
 
-export function DailyMotivation({ userName, className = "", userBirthDate }: DailyMotivationProps) {
+export function DailyMotivation({ userName, className = "", userBirthDate, bare = false }: DailyMotivationProps) {
   const today = new Date();
   
   // Verificar si hoy es el cumpleaños del usuario
@@ -536,8 +538,8 @@ export function DailyMotivation({ userName, className = "", userBirthDate }: Dai
 
   return (
     <div
-      className={`relative bg-card rounded-xl p-3 border border-white/[0.06] ${className}`}
-      style={{ borderLeft: `3px solid ${accentColor}` }}
+      className={bare ? `relative ${className}` : `relative bg-card rounded-xl p-3 border border-white/[0.06] ${className}`}
+      style={bare ? undefined : { borderLeft: `3px solid ${accentColor}` }}
     >
       {/* Confeti decorativo para cumpleaños (pequeño, no intrusivo) */}
       {isBirthdayMessage && (
@@ -550,7 +552,7 @@ export function DailyMotivation({ userName, className = "", userBirthDate }: Dai
       <div className="flex items-center gap-3">
         <div
           className="flex items-center justify-center rounded-lg shrink-0"
-          style={{ width: 34, height: 34, background: `${accentColor}1A`, color: accentColor }}
+          style={{ width: 34, height: 34, background: `color-mix(in srgb, ${accentColor} 12%, transparent)`, color: accentColor }}
         >
           <IconComponent className="h-4 w-4" />
         </div>

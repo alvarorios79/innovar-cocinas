@@ -643,13 +643,15 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
       />
       
       <div className="container py-6">
-        {/* Breadcrumbs */}
-        <Breadcrumbs
-          items={[
-            { label: "Proyectos", href: "/projects" },
-            { label: projectDetail.name },
-          ]}
-        />
+        {/* Breadcrumbs (en celular sobra: ya está el botón Atrás y la barra de abajo) */}
+        <div className="hidden sm:block">
+          <Breadcrumbs
+            items={[
+              { label: "Proyectos", href: "/projects" },
+              { label: projectDetail.name },
+            ]}
+          />
+        </div>
         
         {/* Header */}
         <PageHeader
@@ -663,8 +665,8 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
           }
         />
 
-        {/* Acciones rápidas */}
-        <div className="flex flex-wrap gap-2 mb-6">
+        {/* Acciones rápidas: en celular una sola fila que se desliza */}
+        <div className="flex gap-2 mb-4 sm:mb-6 overflow-x-auto scrollbar-hide -mx-3.5 px-3.5 sm:mx-0 sm:px-0 sm:flex-wrap sm:overflow-visible [&>button]:shrink-0">
           {projectDetail.client?.whatsappPhone && user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && (
             <Button
               variant="outline"
@@ -707,8 +709,9 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
               Editar Fechas
             </Button>
           )}
-          {/* Botón Enviar directo a Taller - Solo para super_admin y admin */}
-          {(user?.role === "admin" || user?.role === "super_admin") && (
+          {/* Botón Enviar directo a Taller - Solo para super_admin y admin, y solo cuando se puede usar */}
+          {(user?.role === "admin" || user?.role === "super_admin") &&
+            ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render"].includes(projectDetail.status as string) && (
             <Button
               variant="outline"
               size="sm"

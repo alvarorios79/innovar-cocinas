@@ -557,27 +557,20 @@ export function TeamDashboard() {
 
   return (
     <div>
-      {/* Banner de bienvenida — reemplaza header + hero con logo */}
-      <div
-        className="rounded-xl p-4 md:p-5 mb-4 md:mb-6 bg-card border border-border text-foreground"
-      >
-        <div className="flex items-start gap-4">
-          <div className="bg-primary/15 text-primary p-2.5 rounded-xl shrink-0">
+      {/* Encabezado único: rol + saludo + frase del día (antes eran dos recuadros) */}
+      <div className="rounded-xl p-3 md:p-5 mb-4 md:mb-6 bg-card border border-border text-foreground">
+        <div className="flex items-center gap-3">
+          <div className="bg-primary/15 text-primary p-2 md:p-2.5 rounded-xl shrink-0 [&_svg]:h-5 [&_svg]:w-5 md:[&_svg]:h-6 md:[&_svg]:w-6">
             {config.icon}
           </div>
           <div className="min-w-0">
-            <h2 className="text-xl font-bold leading-tight">{config.title}</h2>
-            <p className="text-muted-foreground text-sm mt-0.5">{config.subtitle}</p>
-            <p className="text-muted-foreground text-xs mt-1">
-              ¡Hola, <span className="font-semibold text-foreground">{user?.name || "Usuario"}</span>! 👋
-            </p>
+            <h2 className="text-lg md:text-xl font-bold leading-tight">{config.title}</h2>
+            <p className="text-muted-foreground text-xs md:text-sm mt-0.5 truncate">{config.subtitle}</p>
           </div>
         </div>
-      </div>
-
-      {/* Frase motivacional */}
-      <div className="mb-6">
-        <DailyMotivation userName={user?.name || undefined} userBirthDate={user?.birthDate ? new Date(user.birthDate) : undefined} />
+        <div className="mt-3 pt-3 border-t border-border">
+          <DailyMotivation bare userName={user?.name || undefined} userBirthDate={user?.birthDate ? new Date(user.birthDate) : undefined} />
+        </div>
       </div>
 
       {/* "El rancho ardiendo": proyectos en diseño que el jefe de taller debe ir preparando */}
@@ -591,18 +584,21 @@ export function TeamDashboard() {
               <TrendingUp className="h-4 w-4 text-primary" />
               Resumen del Día
             </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
+            <div
+              className="grid gap-1.5 md:gap-3"
+              style={{ gridTemplateColumns: `repeat(${Math.min(Math.max(stats.length, 1), 4)}, minmax(0, 1fr))` }}
+            >
               {stats.map((stat, index) => (
                 <Link key={index} href={stat.link}>
-                  <Card className={`hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-[1.02] overflow-hidden bg-card ${(stat as any).highlight ? 'border border-green-400/60 shadow-lg shadow-green-400/15' : 'border border-[rgba(106,207,199,0.12)] hover:border-[rgba(106,207,199,0.35)]'}`}>
-                    <CardContent className="p-3 md:p-4">
-                      <div className="flex items-center justify-between mb-2 md:mb-3">
-                        <div className="bg-primary/15 text-primary p-2 md:p-2.5 rounded-lg">
+                  <Card className={`h-full hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden bg-card ${(stat as any).highlight ? 'border border-success/60 shadow-lg shadow-success/15' : 'border border-border hover:border-primary/40'}`}>
+                    <CardContent className="p-2 md:p-4 h-full flex flex-col items-center md:items-stretch text-center md:text-left">
+                      <div className="flex items-center justify-center md:justify-between w-full md:mb-3">
+                        <div className="hidden md:block bg-primary/15 text-primary p-2.5 rounded-lg">
                           {stat.icon}
                         </div>
-                        <span className="text-2xl md:text-3xl font-bold text-foreground tabular-nums">{stat.value}</span>
+                        <span className="text-xl md:text-3xl font-bold text-foreground tabular-nums leading-none">{stat.value}</span>
                       </div>
-                      <p className="text-[10px] md:text-xs font-semibold text-white/55 uppercase tracking-wide">{stat.label}</p>
+                      <p className="mt-1 md:mt-0 text-[10px] md:text-xs font-semibold text-muted-foreground uppercase tracking-wide leading-tight">{stat.label}</p>
                     </CardContent>
                   </Card>
                 </Link>
@@ -620,18 +616,18 @@ export function TeamDashboard() {
               <Target className="h-4 w-4 text-primary" />
               Acciones Rápidas
             </h2>
-            <div className={`grid ${quickActions.length <= 3 ? 'grid-cols-3' : 'grid-cols-2 md:grid-cols-4'} gap-2 md:gap-3`}>
+            <div className="grid gap-1.5 md:gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(64px, 1fr))" }}>
               {quickActions.map((action, index) => (
                 (action as any).isCalendarSelector ? (
                   <Dialog key={index}>
                     <DialogTrigger asChild>
-                      <Button 
-                        className={`w-full h-auto py-3 md:py-4 flex flex-col items-center gap-1.5 bg-card text-foreground border border-border hover:border-primary/50 hover:bg-accent transition-colors`}
+<Button
+                        className="w-full h-full px-0 py-2 md:py-4 flex flex-col items-center gap-1 md:gap-1.5 bg-card text-foreground border border-border hover:border-primary/50 hover:bg-accent transition-colors"
                       >
-                        <div className="bg-card/20 p-2 rounded-lg">
+                        <div className="bg-primary/15 text-primary p-1.5 md:p-2 rounded-lg [&_svg]:h-5 [&_svg]:w-5 md:[&_svg]:h-6 md:[&_svg]:w-6">
                           {action.icon}
                         </div>
-                        <span className="font-bold text-sm md:text-base">{action.label}</span>
+                        <span className="font-semibold text-[10px] sm:text-[11px] md:text-base leading-tight tracking-tight whitespace-nowrap text-center w-full">{action.label}</span>
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-md">
@@ -662,14 +658,14 @@ export function TeamDashboard() {
                   </Dialog>
                 ) : (
                   <Link key={index} href={action.href}>
-                    <Button 
-                      className={`w-full h-auto py-3 md:py-4 flex flex-col items-center gap-1.5 bg-card text-foreground border border-border hover:border-primary/50 hover:bg-accent transition-colors`}
-                    >
-                      <div className="bg-primary/15 text-primary p-2 rounded-lg">
-                        {action.icon}
-                      </div>
-                      <span className="font-bold text-sm md:text-base">{action.label}</span>
-                    </Button>
+<Button
+                        className="w-full h-full px-0 py-2 md:py-4 flex flex-col items-center gap-1 md:gap-1.5 bg-card text-foreground border border-border hover:border-primary/50 hover:bg-accent transition-colors"
+                      >
+                        <div className="bg-primary/15 text-primary p-1.5 md:p-2 rounded-lg [&_svg]:h-5 [&_svg]:w-5 md:[&_svg]:h-6 md:[&_svg]:w-6">
+                          {action.icon}
+                        </div>
+                        <span className="font-semibold text-[10px] sm:text-[11px] md:text-base leading-tight tracking-tight whitespace-nowrap text-center w-full">{action.label}</span>
+                      </Button>
                   </Link>
                 )
               ))}
@@ -694,40 +690,22 @@ export function TeamDashboard() {
                   </Button>
                 </Link>
               </div>
-<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {myProjects.slice(0, 4).map((project, index) => {
-                  const projectColors = ["bg-primary/15 text-primary"];
-                  return (
-                    <Link key={project.id} href="/projects">
-                      <Card className="bg-card border border-[rgba(106,207,199,0.12)] hover:border-[rgba(106,207,199,0.35)] hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-[1.02] overflow-hidden">
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between gap-2 mb-2">
-                            <div className={`${projectColors[0]} p-2 rounded-lg`}>
-                              {project.workType === "cocina" && <span className="text-xl">🍳</span>}
-                              {project.workType === "closet" && <span className="text-xl">👔</span>}
-                              {project.workType === "puertas" && <span className="text-xl">🛏</span>}
-                              {project.workType === "centro_tv" && <span className="text-xl">📺</span>}
-                              {!project.workType && <Briefcase className="h-5 w-5 text-white" />}
-                            </div>
-                            <Badge
-                              variant="outline"
-                              className={`${getStatusColor(project.status)} font-semibold text-xs`}
-                            >
-                              {getStatusLabel(project.status)}
-                            </Badge>
-                          </div>
-                          <h3 className="font-bold text-white truncate text-sm md:text-base">{project.name}</h3>
-                          <p className="text-xs text-white/55 mt-1">
-                            {project.workType === "cocina" && "Cocina Integral"}
-                            {project.workType === "closet" && "Closet"}
-                            {project.workType === "puertas" && "Puertas"}
-                            {project.workType === "centro_tv" && "Centro de TV"}
-                          </p>
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  );
-                })}
+<div className="rounded-xl border border-border bg-card divide-y divide-border overflow-hidden">
+                {myProjects.slice(0, 4).map((project) => (
+                  <Link key={project.id} href={`/projects/${project.id}`}>
+                    <div className="flex items-center justify-between gap-3 px-3 py-2.5 hover:bg-accent cursor-pointer">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-sm text-foreground truncate">{(project as any).client?.name || project.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {project.workType === "cocina" ? "Cocina integral" : project.workType === "closet" ? "Closet" : project.workType === "puertas" ? "Puertas" : project.workType === "centro_tv" ? "Centro de TV" : project.name}
+                        </p>
+                      </div>
+                      <Badge variant="outline" className={`${getStatusColor(project.status)} font-semibold text-[11px] shrink-0`}>
+                        {getStatusLabel(project.status)}
+                      </Badge>
+                    </div>
+                  </Link>
+                ))}
               </div>
           </div>
         </section>
@@ -748,40 +726,24 @@ export function TeamDashboard() {
                   </Button>
                 </Link>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {myTasks.slice(0, 4).map((task, index) => {
-                  const taskColors = ["bg-primary/15 text-primary"];
+              <div className="rounded-xl border border-border bg-card divide-y divide-border overflow-hidden">
+                {myTasks.slice(0, 4).map((task) => {
                   const priorityColors: Record<string, string> = {
                     alta: "bg-red-500/20 text-red-300 border-red-400/30",
                     media: "bg-amber-500/20 text-amber-300 border-amber-400/30",
                     baja: "bg-green-500/20 text-green-300 border-green-400/30",
                   };
-                  const priorityIcons: Record<string, string> = {
-                    alta: "🔥",
-                    media: "⚡",
-                    baja: "✅",
-                  };
                   return (
                     <Link key={task.id} href="/tasks">
-                      <Card className="bg-card border border-[rgba(106,207,199,0.12)] hover:border-[rgba(106,207,199,0.35)] hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-[1.02] overflow-hidden">
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between gap-2 mb-2">
-                            <div className={`${taskColors[0]} p-2 rounded-lg`}>
-                              <ClipboardList className="h-5 w-5 text-white" />
-                            </div>
-                            <Badge
-                              variant="outline"
-                              className={`${priorityColors[task.priority || "media"]} font-semibold text-xs`}
-                            >
-                              {priorityIcons[task.priority || "media"]} {task.priority === "alta" ? "Urgente" : task.priority === "media" ? "Media" : "Baja"}
-                            </Badge>
-                          </div>
-                          <h3 className="font-bold text-white truncate text-sm md:text-base">{task.title}</h3>
-                          <p className="text-xs text-white/55 mt-1 line-clamp-1">
-                            {task.description || "Sin descripción"}
-                          </p>
-                        </CardContent>
-                      </Card>
+                      <div className="flex items-center justify-between gap-3 px-3 py-2.5 hover:bg-accent cursor-pointer">
+                        <div className="min-w-0">
+                          <p className="font-semibold text-sm text-foreground truncate">{task.title}</p>
+                          <p className="text-xs text-muted-foreground truncate">{task.description || "Sin descripción"}</p>
+                        </div>
+                        <Badge variant="outline" className={`${priorityColors[task.priority || "media"]} font-semibold text-[11px] shrink-0`}>
+                          {task.priority === "alta" ? "Urgente" : task.priority === "media" ? "Media" : "Baja"}
+                        </Badge>
+                      </div>
                     </Link>
                   );
                 })}

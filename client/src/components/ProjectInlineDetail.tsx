@@ -32,8 +32,7 @@ import {
   Trash2
 } from "lucide-react";
 import { useFileViewer } from "@/components/FileViewer";
-import { MaterialsForm } from "@/components/MaterialsForm";
-import { HardwareSelector } from "@/components/HardwareSelector";
+import { ProjectMaterialsPanel } from "@/components/ProjectMaterialsPanel";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -1948,16 +1947,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
 
         {/* Tab Materiales */}
         <TabsContent value="materials" className="space-y-6 mt-4">
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Materiales Base</h3>
-              <MaterialsForm projectId={projectDetail.id} />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Herrajes del Proyecto</h3>
-              <HardwareSelector projectId={projectDetail.id} />
-            </div>
-          </div>
+          <ProjectMaterialsPanel projectId={projectDetail.id} />
         </TabsContent>
 
         {/* Tab Fotos */}

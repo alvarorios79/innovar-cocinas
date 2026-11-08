@@ -48,8 +48,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PhotoUploader } from "@/components/PhotoUploader";
 import { FileViewer, useFileViewer } from "@/components/FileViewer";
-import { MaterialsForm } from "@/components/MaterialsForm";
-import { HardwareSelector } from "@/components/HardwareSelector";
+import { ProjectMaterialsPanel } from "@/components/ProjectMaterialsPanel";
 import { ProjectInlineDetail } from "@/components/ProjectInlineDetail";
 import { PageHeader } from "@/components/PageHeader";
 import { ReportExportButtons } from "@/components/ReportExportButtons";
@@ -1486,16 +1485,7 @@ export default function Projects() {
                 </TabsContent>
 
                 <TabsContent value="materials" className="space-y-6">
-                  <div className="space-y-6">
-                    <div>
-                      <h3 className="text-lg font-semibold mb-4">Materiales Base</h3>
-                      <MaterialsForm projectId={projectDetail.id} />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold mb-4">Herrajes del Proyecto</h3>
-                      <HardwareSelector projectId={projectDetail.id} />
-                    </div>
-                  </div>
+                  <ProjectMaterialsPanel projectId={projectDetail.id} />
                 </TabsContent>
 
                 <TabsContent value="photos" className="space-y-4">

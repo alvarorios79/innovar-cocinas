@@ -21,6 +21,7 @@ import { randomBytes } from "crypto";
 import { buildScheme } from "@shared/kitchenPlanScheme";
 import { sendPushToRole } from "../push-notifications";
 import { computeDesignVersions } from "@shared/designVersions";
+import { canEditMaterials, canViewMaterials } from "@shared/materials";
 
 
 // Esquemas del plano de módulos de la cocina de un proyecto (a partir de los ítems de su cotización)
@@ -2370,11 +2371,12 @@ export const projectDetailsRouter = router({
 export const projectMaterialsRouter = router({
     get: protectedProcedure
       .input(z.object({ projectId: z.number() }))
-      .query(async ({ input }) => {
-        const quotationItems = await db.getLatestQuotationItems(input.projectId);
-        if (quotationItems && quotationItems.length > 0) {
-          return db.normalizeQuotationItemsToMaterials(quotationItems);
+      .query(async ({ ctx, input }) => {
+        if (!canViewMaterials(ctx.user.role)) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para ver los materiales" });
         }
+        // Lo guardado en la pestaña Materiales es la fuente de verdad. (Antes, si el proyecto
+        // venía de una cotización, se devolvía la cotización y lo guardado nunca se veía.)
         const materials = await db.getProjectMaterials(input.projectId);
         return materials[0] ?? null;
       }),
@@ -2387,8 +2389,7 @@ export const projectMaterialsRouter = router({
         fileName: z.string(),
       }))
       .mutation(async ({ ctx, input }) => {
-        const allowedRoles = ["super_admin", "admin", "comercial", "disenador"];
-        if (!allowedRoles.includes(ctx.user.role)) {
+        if (!canEditMaterials(ctx.user.role)) {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para subir fotos" });
         }
         
@@ -2427,8 +2428,7 @@ export const projectMaterialsRouter = router({
         notes: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
-        const allowedRoles = ["super_admin", "admin", "comercial", "disenador"];
-        if (!allowedRoles.includes(ctx.user.role)) {
+        if (!canEditMaterials(ctx.user.role)) {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para editar materiales" });
         }
         const { projectId, ...data } = input;
@@ -2438,8 +2438,16 @@ export const projectMaterialsRouter = router({
 
     getSelectedHardware: protectedProcedure
       .input(z.object({ projectId: z.number() }))
-      .query(async ({ input }) => {
-        return await db.getProjectHardwareSelections(input.projectId);
+      .query(async ({ ctx, input }) => {
+        if (!canViewMaterials(ctx.user.role)) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para ver los herrajes" });
+        }
+        const rows = await db.getProjectHardwareSelections(input.projectId);
+        // El taller no ve nada comercial: sin precio del catálogo
+        if (isWorkshopRole(ctx.user.role)) {
+          return rows.map((r) => ({ ...r, hardware: r.hardware ? { ...r.hardware, price: null } : null }));
+        }
+        return rows;
       }),
 
     selectHardware: protectedProcedure
@@ -2450,8 +2458,7 @@ export const projectMaterialsRouter = router({
         notes: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
-        const allowedRoles = ["super_admin", "admin", "comercial", "disenador"];
-        if (!allowedRoles.includes(ctx.user.role)) {
+        if (!canEditMaterials(ctx.user.role)) {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para seleccionar herrajes" });
         }
         const id = await db.addProjectHardwareSelection(input.projectId, input.hardwareId, input.selectedOption, input.notes, ctx.user.id);
@@ -2464,8 +2471,7 @@ export const projectMaterialsRouter = router({
         hardwareId: z.number(),
       }))
       .mutation(async ({ ctx, input }) => {
-        const allowedRoles = ["super_admin", "admin", "comercial", "disenador"];
-        if (!allowedRoles.includes(ctx.user.role)) {
+        if (!canEditMaterials(ctx.user.role)) {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para modificar herrajes" });
         }
         await db.removeProjectHardwareSelection(input.projectId, input.hardwareId);

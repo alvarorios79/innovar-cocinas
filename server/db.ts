@@ -2496,12 +2496,28 @@ export async function getProjectHardwareSelections(projectId: number) {
   const hardwareIds = Array.from(new Set(rows.map(r => r.hardwareId)));
   const hardwareItems: any[] = await getHardwareByIds(hardwareIds);
   const hardwareMap = new Map<number, any>(hardwareItems.map((h: any) => [h.id, h]));
-  return rows.map(r => ({ ...r, hardware: hardwareMap.get(r.hardwareId) ?? null }));
+  // Si quedaron repetidos de antes, se muestra uno solo por herraje (el más reciente)
+  const byHardware = new Map<number, typeof rows[number]>();
+  for (const r of rows) {
+    const prev = byHardware.get(r.hardwareId);
+    if (!prev || r.id > prev.id) byHardware.set(r.hardwareId, r);
+  }
+  return Array.from(byHardware.values()).map(r => ({ ...r, hardware: hardwareMap.get(r.hardwareId) ?? null }));
 }
 
 export async function addProjectHardwareSelection(projectId: number, hardwareId: number, selectedOption?: string, notes?: string, createdBy?: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
+  // Sin duplicados: si el herraje ya está en el proyecto, solo se actualiza la opción
+  const existing = await db.select({ id: projectHardwareSelections.id }).from(projectHardwareSelections)
+    .where(and(eq(projectHardwareSelections.projectId, projectId), eq(projectHardwareSelections.hardwareId, hardwareId)))
+    .limit(1);
+  if (existing[0]) {
+    await db.update(projectHardwareSelections)
+      .set({ selectedOption: selectedOption ?? null, notes: notes ?? null })
+      .where(eq(projectHardwareSelections.id, existing[0].id));
+    return existing[0].id;
+  }
   const result = await db.insert(projectHardwareSelections).values({
     projectId,
     hardwareId,

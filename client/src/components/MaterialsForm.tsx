@@ -8,6 +8,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/lib/trpc";
 import { Loader2, Save, Upload, Image as ImageIcon, X } from "lucide-react";
 import { toast } from "sonner";
+import { WOOD_TYPE_LABELS, COUNTERTOP_TYPE_LABELS } from "@shared/materials";
+import { WoodColorsEditor, WoodColorsView } from "@/components/PrimaderaPicker";
+import { parseWoodColors, woodColorRows } from "@shared/primaderaCatalog";
+import { CountertopPicker, CountertopSwatch } from "@/components/CountertopPicker";
+import { findCountertopDesign, countertopSwatchUrl, countertopHasPhoto } from "@shared/countertopCatalog";
 
 interface MaterialsFormProps {
   projectId: number;
@@ -90,10 +95,10 @@ export function MaterialsForm({ projectId, readOnly = false }: MaterialsFormProp
   useEffect(() => {
     if (materials) {
       setFormData({
-        woodType: materials.woodType || "",
+        woodType: (materials.woodType || "") as "rh" | "estandar" | "",
         woodColor: materials.woodColor || "",
         woodPhotoUrl: materials.woodPhotoUrl || "",
-        countertopType: materials.countertopType || "",
+        countertopType: (materials.countertopType || "") as "granito" | "cuarzo" | "sinterizado" | "",
         countertopName: materials.countertopName || "",
         countertopPhotoUrl: materials.countertopPhotoUrl || "",
         sinkMeasure: materials.sinkMeasure || "",
@@ -237,15 +242,67 @@ export function MaterialsForm({ projectId, readOnly = false }: MaterialsFormProp
     </div>
   );
 
+  // Taller (solo consulta): resumen limpio con lo que lleva el proyecto
+  if (readOnly) {
+    const rows = [
+      {
+        key: "wood", icon: "🪵", title: "Madera",
+        value: formData.woodType ? WOOD_TYPE_LABELS[formData.woodType] : "",
+        hasColors: woodColorRows(parseWoodColors(formData.woodColor)).length > 0,
+        photo: formData.woodPhotoUrl,
+      },
+      {
+        key: "countertop", icon: "🪨", title: "Mesón",
+        value: [formData.countertopType && COUNTERTOP_TYPE_LABELS[formData.countertopType], formData.countertopName].filter(Boolean).join(" · "),
+        // Sin foto propia: se muestra la muestra del catálogo si el mesón está en él
+        photo: formData.countertopPhotoUrl || (() => {
+          const d = findCountertopDesign(formData.countertopName);
+          return d && countertopHasPhoto(d) ? countertopSwatchUrl(d.code) : "";
+        })(),
+        hasColors: false,
+      },
+    ].filter((r) => r.value || r.photo || r.hasColors);
+
+    if (rows.length === 0 && !formData.notes) {
+      return (
+        <p className="text-sm text-muted-foreground text-center py-6">
+          Aún no se han definido la madera ni el mesón de este proyecto.
+        </p>
+      );
+    }
+
+    return (
+      <div className="space-y-3">
+        {rows.map((r) => (
+          <div key={r.key} className="flex items-center gap-3 rounded-lg border border-border bg-surface p-3">
+            {r.photo ? (
+              <a href={r.photo} target="_blank" rel="noreferrer" className="shrink-0">
+                <img src={r.photo} alt={r.title} className="w-16 h-16 rounded-md object-cover border" />
+              </a>
+            ) : r.hasColors ? null : (
+              <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center text-2xl shrink-0">{r.icon}</div>
+            )}
+            <div className="min-w-0 flex-1 space-y-2">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">{r.title}</p>
+                {r.value && <p className="font-semibold text-foreground break-words">{r.value}</p>}
+              </div>
+              {r.key === "wood" && <WoodColorsView value={formData.woodColor} />}
+            </div>
+          </div>
+        ))}
+        {formData.notes && (
+          <div className="rounded-lg border border-border bg-surface p-3">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Notas</p>
+            <p className="text-sm whitespace-pre-wrap">{formData.notes}</p>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      {/* Banner de solo lectura para diseñador */}
-      {readOnly && (
-        <div className="bg-blue-500/10 border border-blue-500/25 rounded-lg p-3 flex items-center gap-2 text-blue-300">
-          <span className="text-lg">🔒</span>
-          <span className="text-sm">Modo solo lectura - Los materiales y herrajes fueron seleccionados previamente para este proyecto</span>
-        </div>
-      )}
       {/* Madera */}
       <Card>
         <CardHeader className="pb-2 sm:pb-3">
@@ -274,16 +331,11 @@ export function MaterialsForm({ projectId, readOnly = false }: MaterialsFormProp
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label>Color / Referencia</Label>
-              <Input
-                value={formData.woodColor}
-                onChange={(e) => setFormData(prev => ({ ...prev, woodColor: e.target.value }))}
-                placeholder="Ej: Roble Natural, Wengue"
-                disabled={readOnly}
-              />
-            </div>
           </div>
+          <WoodColorsEditor
+            value={formData.woodColor}
+            onChange={(v) => setFormData(prev => ({ ...prev, woodColor: v }))}
+          />
           {renderPhotoSection("wood", "woodPhotoUrl", "Foto del Material", formData.woodPhotoUrl)}
         </CardContent>
       </Card>
@@ -322,10 +374,18 @@ export function MaterialsForm({ projectId, readOnly = false }: MaterialsFormProp
               <Input
                 value={formData.countertopName}
                 onChange={(e) => setFormData(prev => ({ ...prev, countertopName: e.target.value }))}
-                placeholder="Ej: Blanco Carrara, Negro Absoluto"
+                placeholder="Ej: Calala Gold · Mate"
                 disabled={readOnly}
               />
             </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <CountertopSwatch name={formData.countertopName} />
+            <CountertopPicker
+              type={formData.countertopType}
+              value={formData.countertopName}
+              onPick={(label) => setFormData(prev => ({ ...prev, countertopName: label, countertopType: findCountertopDesign(label)?.type ?? prev.countertopType }))}
+            />
           </div>
           {renderPhotoSection("countertop", "countertopPhotoUrl", "Foto del Mesón", formData.countertopPhotoUrl)}
         </CardContent>

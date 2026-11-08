@@ -36,6 +36,7 @@ import {
   ArrowRight,
   XCircle,
   Box,
+  Layers,
   ImageIcon,
   Truck,
   Hammer,
@@ -47,8 +48,7 @@ import {
 } from "lucide-react";
 import { useEffect } from "react";
 import { useFileViewer, FileViewer } from "@/components/FileViewer";
-import { MaterialsForm } from "@/components/MaterialsForm";
-import { HardwareSelector } from "@/components/HardwareSelector";
+import { ProjectMaterialsPanel } from "@/components/ProjectMaterialsPanel";
 import { ProjectResultCard } from "@/components/ProjectResultCard";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -763,6 +763,13 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
               <span>Diseño</span>
             </TabsTrigger>
             <TabsTrigger
+              value="materiales"
+              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 transition-colors rounded-md whitespace-nowrap"
+            >
+              <Layers className="h-3.5 w-3.5 mr-1" />
+              <span>Materiales</span>
+            </TabsTrigger>
+            <TabsTrigger
               value="produccion"
               className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 transition-colors rounded-md whitespace-nowrap"
             >
@@ -1073,41 +1080,16 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
             )}
           </TabsContent>
 
+          {/* Tab Materiales — oficina elige, taller consulta */}
+          <TabsContent value="materiales" className="space-y-4">
+            <ProjectMaterialsPanel projectId={projectDetail.id} />
+          </TabsContent>
+
           {/* Tab Producción */}
           <TabsContent value="produccion" className="space-y-4">
             {(user?.role === "jefe_taller" || user?.role === "operario") && (
               <ProjectModulePlan projectId={projectId} defaultOpen={false} />
             )}
-            <Card>
-              <CardHeader className="py-3 bg-orange-500/10">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <Palette className="h-4 w-4 text-orange-400" />
-                  Materiales Seleccionados
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-4">
-                <MaterialsForm
-                  projectId={projectDetail.id}
-                  readOnly={user?.role === "disenador" || (user?.role !== "admin" && user?.role !== "super_admin")}
-                />
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="py-3 bg-orange-500/10">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <Box className="h-4 w-4 text-orange-400" />
-                  Herrajes
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-4">
-                <HardwareSelector
-                  projectId={projectDetail.id}
-                  readOnly={user?.role !== "admin" && user?.role !== "super_admin"}
-                  showOnlySelected={false}
-                />
-              </CardContent>
-            </Card>
-
             {/* Fotos avance producción */}
             {Object.entries(produccionFolders).map(([category, subcategories]) => (
               <Card key={category}>

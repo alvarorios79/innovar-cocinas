@@ -14,6 +14,7 @@ import {
   woodShortName,
   woodHasPhoto,
   woodTexture,
+  woodColorCode,
   WOOD_BRANDS,
   BRAND_OF_CATEGORY,
   type WoodBrand,
@@ -33,7 +34,7 @@ function GlossBox({ d, className }: { d: PrimaderaDesign; className: string }) {
     <div
       className={cn(className, "relative overflow-hidden")}
       style={{ background: `linear-gradient(135deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 45%), ${d.color ?? "#ccc"}` }}
-      title={`${d.name} (color aproximado, sin foto aún)`}
+      title={d.category === "altos_brillos" ? `${d.name} (color de referencia)` : `${d.name} (color aproximado, sin foto aún)`}
     />
   );
 }
@@ -165,7 +166,9 @@ function PrimaderaDialog({
                       ) : (
                         <div className="relative">
                           <GlossBox d={d} className="w-full aspect-square" />
-                          <span className="absolute bottom-2 left-2 rounded bg-black/55 px-1.5 py-0.5 text-[10px] text-white">Foto pendiente</span>
+                          {d.category !== "altos_brillos" && (
+                            <span className="absolute bottom-2 left-2 rounded bg-black/55 px-1.5 py-0.5 text-[10px] text-white">Foto pendiente</span>
+                          )}
                         </div>
                       )}
                       {on && (
@@ -176,6 +179,9 @@ function PrimaderaDialog({
                       <div className="p-2 bg-surface">
                         <p className="font-semibold text-sm leading-tight">{woodShortName(d)}</p>
                         <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">{d.hint}</p>
+                        {woodColorCode(d) && (
+                          <p className="text-[11px] font-mono text-foreground/80 leading-tight mt-1 select-all">{woodColorCode(d)}</p>
+                        )}
                       </div>
                     </button>
                     {woodHasPhoto(d) && <TextureLink {...woodTexture(d)} compact className="absolute top-2 left-2" />}
@@ -194,6 +200,9 @@ function PrimaderaDialog({
 /** Descarga de la textura del color elegido (si está en el catálogo y tiene foto). */
 function SlotTexture({ name, compact = false }: { name?: string; compact?: boolean }) {
   const d = findPrimaderaDesign(name);
+  if (d && woodColorCode(d)) {
+    return <span className="text-[11px] font-mono text-muted-foreground select-all">{woodColorCode(d)}</span>;
+  }
   if (!d || !woodHasPhoto(d)) return null;
   return <TextureLink {...woodTexture(d)} compact={compact} />;
 }

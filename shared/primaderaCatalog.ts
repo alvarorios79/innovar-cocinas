@@ -86,8 +86,8 @@ export const PRIMADERA_DESIGNS: PrimaderaDesign[] = [
   // Básicos
   { code: "glaze", name: "Glazé", category: "basicos", hint: "Madera clara blanqueada" },
   { code: "mali", name: "Mali", category: "basicos", hint: "Madera con vetas marcadas" },
-  // Altos brillos (pedido de Álvaro, 7 nov 2026). Fotos pendientes: al tenerlas, guardarlas como
-  // client/public/materiales/primadera/<code>.jpg y quitar `photo: false`.
+  // Altos brillos (pedido de Álvaro, 7 nov 2026). NO llevan foto (decisión Álvaro, 8 nov 2026: en el
+  // render son solo color con brillo); se muestran con su color de referencia, sin aviso de foto pendiente.
   { code: "alto_brillo_blanco", name: "Alto Brillo Blanco", category: "altos_brillos", hint: "Blanco brillante", photo: false, color: "#f4f4f2" },
   { code: "alto_brillo_gris_oscuro", name: "Alto Brillo Gris Oscuro", category: "altos_brillos", hint: "Gris oscuro brillante", photo: false, color: "#4a4e52" },
   { code: "alto_brillo_gris_claro", name: "Alto Brillo Gris Claro", category: "altos_brillos", hint: "Gris claro brillante", photo: false, color: "#c8cacc" },
@@ -147,6 +147,13 @@ export const PRIMADERA_DESIGNS: PrimaderaDesign[] = [
 
 export const woodSwatchUrl = (d: PrimaderaDesign) => `/materiales/${BRAND_DIR[BRAND_OF_CATEGORY[d.category]]}/${d.code}.jpg`;
 export const woodShortName = (d: PrimaderaDesign) => d.short ?? d.name;
+/** Código del color de referencia (altos brillos) para copiarlo al render: "#4A4E52 · RGB 74, 78, 82". */
+export function woodColorCode(d: PrimaderaDesign): string | null {
+  if (d.category !== "altos_brillos" || !d.color) return null;
+  const h = d.color.replace("#", "");
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16));
+  return `#${h.toUpperCase()} · RGB ${r}, ${g}, ${b}`;
+}
 /** Textura grande para descargar (o la muestra si aún no hay textura) y nombre del archivo. */
 export function woodTexture(d: PrimaderaDesign): { url: string; fileName: string; full: boolean } {
   const brand = BRAND_OF_CATEGORY[d.category];

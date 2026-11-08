@@ -81,6 +81,9 @@ describe("Texturas para descargar", () => {
     const { woodTexture, findPrimaderaDesign: find } = await import("../shared/primaderaCatalog");
     expect(woodTexture(find("Sikuani")!)).toMatchObject({ full: true, url: "/materiales/primadera/texturas/sikuani.jpg", fileName: "Sikuani - Primadera.jpg" });
     expect(woodTexture(find("Oasis (Duratex)")!).full).toBe(false);
+    const { woodColorCode } = await import("../shared/primaderaCatalog");
+    expect(woodColorCode(find("Alto Brillo Gris Oscuro")!)).toBe("#4A4E52 · RGB 74, 78, 82");
+    expect(woodColorCode(find("Sikuani")!)).toBeNull();
     const { countertopTexture } = await import("../shared/countertopCatalog");
     expect(countertopTexture(findCountertopDesign("Calala Gold · Mate")!).url).toBe("/materiales/mesones/texturas/calala_gold_mate.jpg");
   });

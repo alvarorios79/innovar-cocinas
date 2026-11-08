@@ -700,10 +700,12 @@ export default function Projects() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div></div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Celular: estado y rentabilidad lado a lado; búsqueda a todo el ancho */}
+              <div className="grid grid-cols-2 gap-2 w-full sm:w-auto sm:flex">
               {/* Filtro por estado - filtrado según rol */}
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectTrigger className={`w-full sm:w-[180px] ${(user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial") ? "" : "col-span-2"}`}>
                   <SelectValue placeholder="Filtrar" />
                 </SelectTrigger>
                 <SelectContent>
@@ -738,7 +740,7 @@ export default function Projects() {
                   <SelectValue placeholder="Rentabilidad" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todas</SelectItem>
+                  <SelectItem value="all">Toda rentabilidad</SelectItem>
                   <SelectItem value="healthy">Saludable (mayor a 20%)</SelectItem>
                   <SelectItem value="moderate">Moderada (10-20%)</SelectItem>
                   <SelectItem value="risk">En Riesgo (menor a 15%)</SelectItem>
@@ -746,6 +748,7 @@ export default function Projects() {
                 </SelectContent>
               </Select>
             )}
+              </div>
             
             {/* Input de busqueda por cliente */}
             <Input
@@ -756,6 +759,8 @@ export default function Projects() {
               className="w-full sm:w-[200px]"
             />
             
+            {/* Saldo pendiente y atrasados: lado a lado en celular */}
+            <div className="grid grid-cols-2 gap-2 w-full sm:w-auto sm:flex">
             {/* Filtro de saldo pendiente */}
             {(user?.role === "admin" || user?.role === "super_admin") && (
               <Button
@@ -764,10 +769,10 @@ export default function Projects() {
                   setShowPendingPaymentOnly(!showPendingPaymentOnly);
                   if (!showPendingPaymentOnly) setShowOverdueOnly(false);
                 }}
-                className={showPendingPaymentOnly ? "bg-amber-500 hover:bg-amber-600" : ""}
+                className={`w-full sm:w-auto px-2 sm:px-4 ${showPendingPaymentOnly ? "bg-amber-500 hover:bg-amber-600" : ""}`}
               >
-                <AlertCircle className="h-4 w-4 mr-2" />
-                Saldo Pendiente
+                <AlertCircle className="h-4 w-4 mr-1.5 sm:mr-2 shrink-0" />
+                Saldo pendiente
               </Button>
             )}
 
@@ -779,12 +784,13 @@ export default function Projects() {
                   setShowOverdueOnly(!showOverdueOnly);
                   if (!showOverdueOnly) setShowPendingPaymentOnly(false);
                 }}
-                className={showOverdueOnly ? "bg-red-500 hover:bg-red-600 text-white" : "border-red-300 text-red-400 hover:bg-red-500/10"}
+                className={`w-full sm:w-auto px-2 sm:px-4 ${(user?.role === "admin" || user?.role === "super_admin") ? "" : "col-span-2"} ${showOverdueOnly ? "bg-red-500 hover:bg-red-600 text-white" : "border-red-300 text-red-400 hover:bg-red-500/10"}`}
               >
-                <AlertCircle className="h-4 w-4 mr-2" />
-                ⚠️ Atrasados (+5 días)
+                <AlertCircle className="h-4 w-4 mr-1.5 sm:mr-2 shrink-0" />
+                Atrasados +5 días
               </Button>
             )}
+            </div>
 
             {/* Botón eliminar seleccionados (solo admin) */}
             {(user?.role === "admin" || user?.role === "super_admin") && selectedProjects.length > 0 && (
@@ -798,7 +804,7 @@ export default function Projects() {
             )}
 
             {/* Contador de proyectos filtrados */}
-            <div className="text-sm text-gray-500 ml-auto">
+            <div className="text-xs sm:text-sm text-muted-foreground w-full sm:w-auto sm:ml-auto text-right">
               Mostrando {filteredProjects.length} de {projects.length} proyectos
               {profitFilter !== "all" && (
                 <span className="ml-2">
@@ -807,54 +813,47 @@ export default function Projects() {
               )}
             </div>
 
-            {/* Gráfico de Distribución de Rentabilidad — solo admin, super_admin y comercial */}
+            {/* Distribución de Rentabilidad — solo admin, super_admin y comercial. Una sola fila de 4, a todo el ancho;
+                tocar una casilla filtra la lista por ese nivel (tocar de nuevo quita el filtro). */}
             {(user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial") && (() => {
               const healthy = projects.filter((p: any) => (p.rentabilidad ?? 0) > 20).length;
               const moderate = projects.filter((p: any) => (p.rentabilidad ?? 0) >= 10 && (p.rentabilidad ?? 0) <= 20).length;
               const risk = projects.filter((p: any) => (p.rentabilidad ?? 0) >= 5 && (p.rentabilidad ?? 0) < 10).length;
               const critical = projects.filter((p: any) => (p.rentabilidad ?? 0) < 5).length;
-              const total = healthy + moderate + risk + critical;
+              const levels = [
+                { key: "healthy", n: healthy, label: "Saludable", range: "más de 20%", color: "var(--success)" },
+                { key: "moderate", n: moderate, label: "Moderado", range: "10-20%", color: "var(--warning)" },
+                { key: "risk", n: risk, label: "En riesgo", range: "5-10%", color: "var(--color-orange-500, #f97316)" },
+                { key: "critical", n: critical, label: "Crítico", range: "menos de 5%", color: "var(--destructive)" },
+              ];
 
               return (
-                <div className="mt-6 rounded-xl"
-                  style={{ background: "var(--card)", border: "1px solid rgba(255,255,255,0.06)", borderTop: "3px solid #10b981" }}>
-                  <div className="px-5 pt-4 pb-1">
-                    <h3 className="text-sm font-semibold" style={{ color: "rgba(255,255,255,0.85)" }}>
-                      Distribución de Rentabilidad
-                    </h3>
+                <div className="w-full mt-2 rounded-xl border border-border bg-card" style={{ borderTop: "3px solid var(--success)" }}>
+                  <div className="px-3 sm:px-5 pt-3 pb-0">
+                    <h3 className="text-sm font-semibold text-foreground/85">Distribución de rentabilidad</h3>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 p-4">
-                    {/* Saludable */}
-                    <div className="rounded-lg p-3 sm:p-4 flex flex-col items-center justify-center text-center"
-                      style={{ background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.25)" }}>
-                      <div className="text-xl sm:text-2xl font-bold" style={{ color: "#34d399" }}>{healthy}</div>
-                      <div className="text-xs font-medium mt-1" style={{ color: "#6ee7b7" }}>Saludable</div>
-                      <div className="text-[10px] mt-0.5 hidden sm:block" style={{ color: "rgba(110,231,183,0.6)" }}>(mayor a 20%)</div>
-                    </div>
-
-                    {/* Moderado */}
-                    <div className="rounded-lg p-3 sm:p-4 flex flex-col items-center justify-center text-center"
-                      style={{ background: "rgba(234,179,8,0.12)", border: "1px solid rgba(234,179,8,0.25)" }}>
-                      <div className="text-xl sm:text-2xl font-bold" style={{ color: "#fbbf24" }}>{moderate}</div>
-                      <div className="text-xs font-medium mt-1" style={{ color: "#fcd34d" }}>Moderado</div>
-                      <div className="text-[10px] mt-0.5 hidden sm:block" style={{ color: "rgba(252,211,77,0.6)" }}>(10-20%)</div>
-                    </div>
-
-                    {/* En Riesgo */}
-                    <div className="rounded-lg p-3 sm:p-4 flex flex-col items-center justify-center text-center"
-                      style={{ background: "rgba(249,115,22,0.12)", border: "1px solid rgba(249,115,22,0.25)" }}>
-                      <div className="text-xl sm:text-2xl font-bold" style={{ color: "#fb923c" }}>{risk}</div>
-                      <div className="text-xs font-medium mt-1" style={{ color: "#fdba74" }}>En Riesgo</div>
-                      <div className="text-[10px] mt-0.5 hidden sm:block" style={{ color: "rgba(253,186,116,0.6)" }}>(5-10%)</div>
-                    </div>
-
-                    {/* Crítico */}
-                    <div className="rounded-lg p-3 sm:p-4 flex flex-col items-center justify-center text-center"
-                      style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.25)" }}>
-                      <div className="text-xl sm:text-2xl font-bold" style={{ color: "#f87171" }}>{critical}</div>
-                      <div className="text-xs font-medium mt-1" style={{ color: "#fca5a5" }}>Crítico</div>
-                      <div className="text-[10px] mt-0.5 hidden sm:block" style={{ color: "rgba(252,165,165,0.6)" }}>(menor a 5%)</div>
-                    </div>
+                  <div className="grid grid-cols-4 gap-1.5 sm:gap-3 p-2.5 sm:p-4">
+                    {levels.map((l) => {
+                      const on = profitFilter === l.key;
+                      return (
+                        <button
+                          key={l.key}
+                          type="button"
+                          onClick={() => setProfitFilter(on ? "all" : l.key)}
+                          title={`Ver solo ${l.label.toLowerCase()} (${l.range})`}
+                          className={`rounded-lg px-1 py-2 sm:p-4 flex flex-col items-center justify-center text-center transition-shadow ${on ? "ring-2" : ""}`}
+                          style={{
+                            background: `color-mix(in srgb, ${l.color} 12%, transparent)`,
+                            border: `1px solid color-mix(in srgb, ${l.color} 30%, transparent)`,
+                            ...(on ? { boxShadow: `0 0 0 2px ${l.color}` } : {}),
+                          }}
+                        >
+                          <span className="text-lg sm:text-2xl font-bold leading-none" style={{ color: l.color }}>{l.n}</span>
+                          <span className="text-[11px] sm:text-xs font-medium mt-1 leading-tight" style={{ color: l.color }}>{l.label}</span>
+                          <span className="text-[10px] mt-0.5 hidden sm:block text-muted-foreground">{l.range}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               );

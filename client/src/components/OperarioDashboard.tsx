@@ -248,120 +248,38 @@ export function OperarioDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header Simplificado */}
-      <header className="border-b bg-card/95 backdrop-blur-md sticky top-0 z-50 shadow-sm">
-        <div className="container">
-          <div className="flex h-14 md:h-16 items-center justify-between">
-            <Link href="/" className="flex items-center gap-2">
-              <img src="/logo-light.png" alt="INNOVAR" style={{ height: 36, width: 36, objectFit: "contain", flexShrink: 0 }} />
-              <div className="hidden sm:flex flex-col leading-none">
-                <span className="font-bold text-xs text-white" style={{ letterSpacing: "0.14em" }}>INNOVAR</span>
-                <span className="text-[9px]" style={{ color: "rgba(106,207,199,0.55)" }}>Cocinas de Diseño</span>
-              </div>
-            </Link>
-            
-            <div className="flex items-center gap-2 md:gap-4">
-              <NotificationBell />
-              <div className="hidden md:flex items-center gap-2 text-sm">
-                <Badge variant="outline" className="bg-primary/15 text-primary border-primary/25">
-                  Operario
-                </Badge>
-                <span className="font-medium text-white/85">{user?.name}</span>
-              </div>
-              <LogoutButton />
-              <MobileNav />
+    <div>
+      {/* Encabezado único (antes: encabezado propio duplicado + logo grande + saludo + frase aparte) */}
+      <div className="max-w-4xl mx-auto space-y-4 mb-4">
+        <div className="rounded-xl p-3 md:p-5 bg-card border border-border text-foreground">
+          <div className="flex items-center gap-3">
+            <div className="bg-primary/15 text-primary p-2 md:p-2.5 rounded-xl shrink-0">
+              <Package className="h-5 w-5 md:h-6 md:w-6" />
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-lg md:text-xl font-bold leading-tight">Panel de Operario</h2>
+              <p className="text-muted-foreground text-xs md:text-sm mt-0.5">Tus tareas y proyectos</p>
             </div>
           </div>
-        </div>
-      </header>
-
-      {/* Hero Simplificado */}
-      <section className="py-4 md:py-6">
-        <div className="container">
-          <div className="max-w-4xl mx-auto space-y-4">
-            {/* Logo y Saludo */}
-            <div className="flex justify-center mb-2">
-              <img src="/logo-light.png" alt="INNOVAR Cocinas Integrales"
-                style={{ height: 80, width: 80, objectFit: "contain" }} />
-            </div>
-            
-            <div className="bg-gradient-to-r from-blue-600 to-teal-600 rounded-2xl p-4 md:p-6 text-white shadow-xl">
-              <div className="flex items-center gap-3">
-                <div className="bg-card/20 p-3 rounded-xl">
-                  <Package className="h-8 w-8" />
-                </div>
-                <div>
-                  <h1 className="text-xl md:text-2xl font-bold">¡Hola, {user?.name?.split(' ')[0]}!</h1>
-                  <p className="text-white/80 text-sm">Panel de Operario - Tareas y Proyectos</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Frase Motivacional Diaria */}
-            <DailyMotivation userName={user?.name || undefined} userBirthDate={user?.birthDate ? new Date(user.birthDate) : undefined} />
+          <div className="mt-3 pt-3 border-t border-border">
+            <DailyMotivation bare userName={user?.name || undefined} userBirthDate={user?.birthDate ? new Date(user.birthDate) : undefined} />
           </div>
         </div>
-      </section>
 
-      {/* Resumen Rápido */}
-      <section className="py-2 md:py-3">
-        <div className="container">
-          <div className="max-w-4xl mx-auto">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <Card className="border border-white/[0.08] shadow-md bg-card">
-                <CardContent className="p-4 text-center">
-                  <div className="p-2 rounded-xl bg-primary/15 w-fit mx-auto mb-2">
-                    <ClipboardList className="h-5 w-5 text-primary" />
-                  </div>
-                  <p className="text-2xl font-bold text-foreground">{pendingTasks.length}</p>
-                  <p className="text-xs text-muted-foreground">Tareas</p>
-                </CardContent>
-              </Card>
-              <Card className="border border-white/[0.08] shadow-md bg-card">
-                <CardContent className="p-4 text-center">
-                  <div className="p-2 rounded-xl bg-red-500/15 w-fit mx-auto mb-2">
-                    <AlertTriangle className="h-5 w-5 text-red-400" />
-                  </div>
-                  <p className="text-2xl font-bold text-foreground">{urgentTasks.length}</p>
-                  <p className="text-xs text-muted-foreground">Urgentes</p>
-                </CardContent>
-              </Card>
-              <Card className="border border-white/[0.08] shadow-md bg-card">
-                <CardContent className="p-4 text-center">
-                  <div className="p-2 rounded-xl bg-green-500/15 w-fit mx-auto mb-2">
-                    <Play className="h-5 w-5 text-green-400" />
-                  </div>
-                  <p className="text-2xl font-bold text-foreground">{inProgressTasks.length}</p>
-                  <p className="text-xs text-muted-foreground">En Proceso</p>
-                </CardContent>
-              </Card>
+        {/* Resumen: una sola fila */}
+        <div className="grid grid-cols-3 gap-2 md:gap-3">
+          {[
+            { n: pendingTasks.length, label: "Tareas", color: "var(--primary)" },
+            { n: urgentTasks.length, label: "Urgentes", color: "var(--destructive)" },
+            { n: inProgressTasks.length, label: "En proceso", color: "var(--success)" },
+          ].map((k) => (
+            <div key={k.label} className="rounded-xl border border-border bg-card p-2.5 md:p-4 text-center">
+              <p className="text-xl md:text-2xl font-bold leading-none" style={{ color: k.color }}>{k.n}</p>
+              <p className="text-[11px] md:text-xs text-muted-foreground mt-1">{k.label}</p>
             </div>
-            
-            {/* Botón Ver Todos los Proyectos - Tarjeta Grande */}
-            <div className="mt-4">
-              <Link href="/projects">
-                <Card className="border border-[rgba(106,207,199,0.25)] shadow-lg bg-card cursor-pointer hover:shadow-xl hover:border-[rgba(106,207,199,0.45)] transition-all duration-300 overflow-hidden">
-                  <CardContent className="p-6 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-primary/15 rounded-xl">
-                        <Package className="h-8 w-8 text-primary" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-foreground">Ver Todos los Proyectos</h3>
-                        <p className="text-sm text-muted-foreground">Accede a la lista completa de proyectos</p>
-                      </div>
-                    </div>
-                    <div className="p-2 bg-primary/15 rounded-full">
-                      <ArrowRight className="h-6 w-6 text-primary" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            </div>
-          </div>
+          ))}
         </div>
-      </section>
+      </div>
 
       {/* Mis Tareas */}
       <section className="py-3 md:py-4">

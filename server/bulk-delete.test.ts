@@ -75,53 +75,6 @@ describe("Bulk Delete Operations", () => {
     });
   });
 
-  describe("Bulk Delete Advisory Requests", () => {
-    it("should delete multiple advisory requests", async () => {
-      const caller = appRouter.createCaller({
-        user: testUser,
-        req: {} as any,
-        res: {} as any,
-      });
-
-      // Crear 3 solicitudes de asesoramiento
-      const adv1 = await caller.advisory.create({
-        clientId: testClient.id,
-        workType: "cocina",
-        preferredCallTime: "manana",
-        notes: "Asesoramiento 1 para eliminación masiva",
-      });
-
-      const adv2 = await caller.advisory.create({
-        clientId: testClient.id,
-        workType: "closet",
-        preferredCallTime: "tarde",
-        notes: "Asesoramiento 2 para eliminación masiva",
-      });
-
-      const adv3 = await caller.advisory.create({
-        clientId: testClient.id,
-        workType: "puertas",
-        preferredCallTime: "noche",
-        notes: "Asesoramiento 3 para eliminación masiva",
-      });
-
-      // Verificar que se crearon
-      const allAdvisory = await caller.advisory.list();
-      const createdIds = [adv1.id, adv2.id, adv3.id];
-      const foundAdvisory = allAdvisory.filter(a => createdIds.includes(a.id));
-      expect(foundAdvisory.length).toBe(3);
-
-      // Eliminar las 3 solicitudes (simulando eliminación masiva)
-      for (const id of createdIds) {
-        await caller.advisory.delete({ id });
-      }
-
-      // Verificar que se eliminaron
-      const remainingAdvisory = await caller.advisory.list();
-      const stillExists = remainingAdvisory.filter(a => createdIds.includes(a.id));
-      expect(stillExists.length).toBe(0);
-    });
-  });
 
   describe("Bulk Delete Quotations", () => {
     it("should delete multiple quotations", async () => {

@@ -37,28 +37,6 @@ describe("Delete Endpoints", () => {
     });
   });
 
-  describe("advisory.delete", () => {
-    it("should allow admin to delete advisory request", async () => {
-      const caller = appRouter.createCaller({
-        user: { id: 1, role: "admin", name: "Admin", email: "admin@test.com", openId: "admin123" },
-        req: {} as any,
-        res: {} as any,
-      });
-
-      const result = await caller.advisory.delete({ id: 999 });
-      expect(result.success).toBe(true);
-    });
-
-    it("should reject user trying to delete advisory request", async () => {
-      const caller = appRouter.createCaller({
-        user: { id: 1, role: "user", name: "User", email: "user@test.com", openId: "user123" },
-        req: {} as any,
-        res: {} as any,
-      });
-
-      await expect(caller.advisory.delete({ id: 999 })).rejects.toThrow("No tienes permisos para eliminar asesoramientos");
-    });
-  });
 
   describe("quotations.delete", () => {
     it("should allow admin to delete quotation", async () => {

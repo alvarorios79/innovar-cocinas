@@ -37,153 +37,6 @@ const STATUS_LABELS: Record<string, { label: string; className: string }> = {
   convertida: { label: "Convertido", className: "bg-green-500/15 text-green-400" },
 };
 
-function LevantamientosTab() {
-  const [selectedVisit, setSelectedVisit] = useState<any>(null);
-  const { data: visits = [] } = trpc.technicalVisits.list.useQuery(undefined);
-
-  if ((visits as any[]).length === 0) {
-    return (
-      <Card>
-        <CardContent className="pt-10 pb-10 text-center text-muted-foreground">
-          <ClipboardList className="h-10 w-10 mx-auto mb-3 opacity-30" />
-          <p>No hay levantamientos registrados aún.</p>
-          <p className="text-sm mt-1">Los medidores enviarán sus visitas técnicas aquí.</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (selectedVisit) {
-    return (
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm" onClick={() => setSelectedVisit(null)}>← Volver</Button>
-            <CardTitle className="flex items-center gap-2">
-              <ClipboardList className="h-5 w-5 text-primary" />
-              Levantamiento — {selectedVisit.clientName}
-            </CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div><span className="text-muted-foreground">Trabajo:</span> <span className="font-medium">{WORK_LABELS[selectedVisit.workType] || selectedVisit.workType}</span></div>
-            <div><span className="text-muted-foreground">Estado:</span> <Badge className={(STATUS_LABELS[selectedVisit.status] || STATUS_LABELS.borrador).className}>{(STATUS_LABELS[selectedVisit.status] || STATUS_LABELS.borrador).label}</Badge></div>
-            <div><span className="text-muted-foreground">Teléfono:</span> <span className="font-medium">{selectedVisit.clientPhone || "—"}</span></div>
-            <div><span className="text-muted-foreground">Dirección:</span> <span className="font-medium">{selectedVisit.clientAddress || "—"}</span></div>
-            <div><span className="text-muted-foreground">Medidor:</span> <span className="font-medium">{selectedVisit.createdByName || "—"}</span></div>
-            <div><span className="text-muted-foreground">Fecha:</span> <span className="font-medium">{selectedVisit.createdAt ? new Date(selectedVisit.createdAt).toLocaleDateString("es-CO") : "—"}</span></div>
-          </div>
-
-          {selectedVisit.measurements && Object.keys(selectedVisit.measurements).length > 0 && (
-            <div>
-              <h4 className="font-semibold text-primary mb-2">Medidas</h4>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {Object.entries(selectedVisit.measurements).map(([k, v]: any) => (
-                  <div key={k} className="bg-white/[0.04] rounded p-2 text-sm">
-                    <div className="text-muted-foreground text-xs">{k}</div>
-                    <div className="font-medium">{String(v)}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {selectedVisit.notes && (
-            <div>
-              <h4 className="font-semibold text-primary mb-2">Notas</h4>
-              <p className="text-sm bg-white/[0.04] rounded p-3">{selectedVisit.notes}</p>
-            </div>
-          )}
-
-          {selectedVisit.technicalEvaluation && (
-            <div>
-              <h4 className="font-semibold text-primary mb-2">Evaluación técnica</h4>
-              <p className="text-sm">{selectedVisit.technicalEvaluation}</p>
-            </div>
-          )}
-
-          {(selectedVisit.photos || []).length > 0 && (
-            <div>
-              <h4 className="font-semibold text-primary mb-2">Fotos ({(selectedVisit.photos || []).length})</h4>
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                {(selectedVisit.photos || []).map((photo: any) => (
-                  <a key={photo.id} href={photo.url} target="_blank" rel="noopener noreferrer">
-                    <img src={photo.url} alt={photo.fileName} className="w-full aspect-square object-cover rounded border border-white/10 hover:border-primary transition-colors" />
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Acciones */}
-          <div className="flex flex-wrap gap-2 pt-4 border-t border-white/10">
-            {selectedVisit.status !== "convertida" && (
-              <Button
-                className="bg-teal-600 hover:bg-teal-700 text-white"
-                onClick={() => {
-                  const params = new URLSearchParams();
-                  params.set("new", "1");
-                  if (selectedVisit.clientId) params.set("clientId", String(selectedVisit.clientId));
-                  if (selectedVisit.workType) params.set("workType", selectedVisit.workType);
-                  window.location.href = "/cotizaciones?" + params.toString();
-                }}
-              >
-                <FileText className="h-4 w-4 mr-2" />
-                Crear cotización
-              </Button>
-            )}
-            {selectedVisit.status === "enviada" && (
-              <span className="text-xs text-amber-400 self-center">
-                ⚠️ Pendiente de cotización
-              </span>
-            )}
-            {selectedVisit.status === "convertida" && (
-              <span className="text-xs text-green-400 self-center">
-                ✓ Convertido a proyecto
-              </span>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <ClipboardList className="h-5 w-5 text-primary" />
-          Levantamientos Técnicos
-        </CardTitle>
-        <CardDescription>Visitas técnicas enviadas por el equipo de medidores.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-2">
-          {(visits as any[]).map((visit: any) => (
-            <div
-              key={visit.id}
-              onClick={() => setSelectedVisit(visit)}
-              className="flex items-center justify-between p-3 rounded-lg border border-white/[0.06] hover:border-primary/30 bg-white/[0.02] hover:bg-white/[0.04] cursor-pointer transition-colors"
-            >
-              <div>
-                <p className="font-medium text-sm">{visit.clientName}</p>
-                <p className="text-xs text-muted-foreground">{WORK_LABELS[visit.workType] || visit.workType} · {visit.clientAddress || "Sin dirección"}</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge className={(STATUS_LABELS[visit.status] || STATUS_LABELS.borrador).className}>
-                  {(STATUS_LABELS[visit.status] || STATUS_LABELS.borrador).label}
-                </Badge>
-                <span className="text-xs text-muted-foreground">{visit.createdAt ? new Date(visit.createdAt).toLocaleDateString("es-CO") : ""}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
 export default function Admin() {
   const { user, isAuthenticated, loading } = useAuth();
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
@@ -238,13 +91,12 @@ export default function Admin() {
   const APPOINTMENTS_PER_PAGE = 10;
 
   const utils = trpc.useUtils();
-  const { data: appointmentsData, isLoading: loadingAppointments } = trpc.appointments.listPaginated.useQuery({ page: appointmentPage, limit: APPOINTMENTS_PER_PAGE });
+  const appointmentsData: any = undefined; const loadingAppointments = false;
   const appointments: any[] = (appointmentsData as any)?.appointments || appointmentsData?.data || [];
   const totalAppointments = appointmentsData?.total || 0;
   const totalAppointmentPages = Math.ceil(totalAppointments / APPOINTMENTS_PER_PAGE) || 1;
-  const { data: advisoryRequests = [], isLoading: loadingAdvisory } = trpc.advisory.list.useQuery();
-  const { data: quotations = [], isLoading: loadingQuotations } = trpc.quotations.list.useQuery();
-  const { data: clientsData, isLoading: loadingClients } = trpc.clients.listPaginated.useQuery({ page: clientPage, limit: CLIENTS_PER_PAGE });
+  const quotations: any[] = []; const loadingQuotations = false;
+  const clientsData: any = undefined; const loadingClients = false;
   const clients = clientsData?.clients || [];
   const totalClients = clientsData?.total || 0;
   const totalClientPages = Math.ceil(totalClients / CLIENTS_PER_PAGE) || 1;
@@ -258,12 +110,6 @@ export default function Admin() {
     },
   });
 
-  const updateAdvisoryStatus = trpc.advisory.updateStatus.useMutation({
-    onSuccess: () => {
-      utils.advisory.list.invalidate();
-      toast.success("Estado actualizado");
-    },
-  });
 
   const createQuotation = trpc.quotations.create.useMutation({
     onSuccess: () => {
@@ -329,15 +175,6 @@ export default function Admin() {
     },
   });
 
-  const deleteTestUsers = trpc.userManagement.deleteTestUsers.useMutation({
-    onSuccess: () => {
-      utils.userManagement.listAll.invalidate();
-      setDeleteConfirm(null);
-    },
-    onError: (error) => {
-      toast.error(error.message || "Error al eliminar usuario");
-    },
-  });
 
   const updateBirthDate = trpc.userManagement.updateBirthDate.useMutation({
     onSuccess: () => {
@@ -387,16 +224,6 @@ export default function Admin() {
     },
   });
 
-  const deleteAdvisory = trpc.advisory.delete.useMutation({
-    onSuccess: () => {
-      utils.advisory.list.invalidate();
-      toast.success("Asesoramiento eliminado exitosamente");
-      setDeleteConfirm(null);
-    },
-    onError: (error) => {
-      toast.error(error.message || "Error al eliminar asesoramiento");
-    },
-  });
 
   const deleteQuotation = trpc.quotations.delete.useMutation({
     onSuccess: () => {
@@ -493,19 +320,7 @@ export default function Admin() {
     }
   };
 
-  const toggleSelectAdvisory = (id: number) => {
-    setSelectedAdvisory(prev => 
-      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-    );
-  };
 
-  const toggleSelectAllAdvisory = () => {
-    if (selectedAdvisory.length === advisoryRequests.length) {
-      setSelectedAdvisory([]);
-    } else {
-      setSelectedAdvisory(advisoryRequests.map(a => a.id));
-    }
-  };
 
   const toggleSelectQuotation = (id: number) => {
     setSelectedQuotations(prev => 
@@ -536,7 +351,7 @@ export default function Admin() {
     }
   };
 
-  const handleBulkDelete = async (type: 'appointments' | 'advisory' | 'quotations' | 'users') => {
+  const handleBulkDelete = async (type: 'appointments' | 'quotations' | 'users') => {
     let count = 0;
     let items: number[] = [];
     
@@ -544,10 +359,6 @@ export default function Admin() {
       case 'appointments':
         count = selectedAppointments.length;
         items = selectedAppointments;
-        break;
-      case 'advisory':
-        count = selectedAdvisory.length;
-        items = selectedAdvisory;
         break;
       case 'quotations':
         count = selectedQuotations.length;
@@ -561,7 +372,7 @@ export default function Admin() {
 
     if (count === 0) return;
 
-    if ((await confirmAction(`¿Estás seguro de eliminar ${count} ${type === 'appointments' ? 'citas' : type === 'advisory' ? 'asesoramientos' : type === 'quotations' ? 'cotizaciones' : 'usuarios'}?`))) {
+    if ((await confirmAction(`¿Estás seguro de eliminar ${count} ${type === 'appointments' ? 'citas' : type === 'quotations' ? 'cotizaciones' : 'usuarios'}?`))) {
       // Eliminar cada item individualmente
       if (type === 'users') {
         // Para usuarios, eliminamos uno por uno esperando confirmación
@@ -574,9 +385,6 @@ export default function Admin() {
             case 'appointments':
               deleteAppointment.mutate({ id });
               break;
-            case 'advisory':
-              deleteAdvisory.mutate({ id });
-              break;
             case 'quotations':
               deleteQuotation.mutate({ id });
               break;
@@ -588,9 +396,6 @@ export default function Admin() {
       switch (type) {
         case 'appointments':
           setSelectedAppointments([]);
-          break;
-        case 'advisory':
-          setSelectedAdvisory([]);
           break;
         case 'quotations':
           setSelectedQuotations([]);
@@ -608,9 +413,6 @@ export default function Admin() {
     switch (deleteConfirm.type) {
       case "appointment":
         deleteAppointment.mutate({ id: deleteConfirm.id });
-        break;
-      case "advisory":
-        deleteAdvisory.mutate({ id: deleteConfirm.id });
         break;
       case "quotation":
         deleteQuotation.mutate({ id: deleteConfirm.id });
@@ -708,835 +510,22 @@ export default function Admin() {
     <div className="pb-20 md:pb-0">
       <div className="container py-4 md:py-6 px-3 md:px-4">
         <PageHeader
-          title="Panel Administrativo"
-          subtitle="Gestión de citas, cotizaciones, usuarios y sistema"
+          title="Admin — Usuarios"
+          subtitle="Crear usuarios, asignar roles y restablecer claves"
           icon={<Wrench className="h-5 w-5" />}
           showBack={false}
         />
       </div>
 
       <div className="container py-2 md:py-4 px-3 md:px-4">
-        {/* Stats Cards */}
-        <KpiGrid cols={4} className="mb-4 md:mb-8">
-          <KpiCard
-            label="Citas Pendientes"
-            value={appointments.filter((a: any) => a.status === "pendiente").length}
-            icon={<Calendar className="h-4 w-4" />}
-            accent="var(--primary)"
-          />
-          <KpiCard
-            label="Asesoramiento"
-            value={advisoryRequests.filter((a) => a.status === "pendiente").length}
-            icon={<Phone className="h-4 w-4" />}
-            accent="#6366F1"
-          />
-          <KpiCard
-            label="Cotizaciones"
-            value={quotations.length}
-            icon={<FileText className="h-4 w-4" />}
-            accent="var(--info)"
-          />
-          <KpiCard
-            label="Clientes"
-            value={clients.length}
-            icon={<Users className="h-4 w-4" />}
-            accent="var(--success)"
-          />
-        </KpiGrid>
 
-        {/* Panel de Recordatorios */}
-        {user && (
-          <div className="mb-4 md:mb-8">
-            <RemindersPanel userId={user.id} userRole={user.role} />
-          </div>
-        )}
 
         {/* Main Content */}
-        <Tabs defaultValue="appointments" className="space-y-4">
-          <TabsList className="w-full">
-            <TabsTrigger 
-              value="appointments" 
-              className="text-xs sm:text-sm px-2 py-2 transition-colors"
-            >
-              Citas
-            </TabsTrigger>
-            <TabsTrigger 
-              value="advisory" 
-              className="text-xs sm:text-sm px-2 py-2 transition-colors"
-            >
-              Asesoría
-            </TabsTrigger>
-            <TabsTrigger 
-              value="quotations" 
-              className="text-xs sm:text-sm px-2 py-2 transition-colors"
-            >
-              Cotizaciones
-            </TabsTrigger>
-            <TabsTrigger 
-              value="clients" 
-              className="text-xs sm:text-sm px-2 py-2 transition-colors"
-            >
-              Clientes
-            </TabsTrigger>
-            <TabsTrigger 
-              value="users" 
-              className="text-xs sm:text-sm px-2 py-2 transition-colors"
-            >
-              Usuarios
-            </TabsTrigger>
-            {/* Pestaña Herrajes oculta: los herrajes ahora se administran en Motor de Cotización → Herrajes */}
-            <TabsTrigger
-              value="projects"
-              className="text-xs sm:text-sm px-2 py-2 transition-colors"
-            >
-              Proyectos
-            </TabsTrigger>
-            <TabsTrigger
-              value="levantamientos"
-              className="text-xs sm:text-sm px-2 py-2 transition-colors"
-            >
-              <ClipboardList className="h-3 w-3 mr-1 inline" />
-              Levantamientos
-            </TabsTrigger>
-            {(user?.role === "super_admin" || user?.role === "admin") && (
-              <Link href="/profitability-dashboard">
-                <Button variant="outline" className="text-xs sm:text-sm px-2 py-2 bg-primary/10 hover:bg-primary/15 text-teal-300 border-teal-300">
-                  <DollarSign className="h-4 w-4 mr-1" />
-                  Rentabilidad
-                </Button>
-              </Link>
-            )}
-            {user?.role === "super_admin" && (
-              <>
-                <TabsTrigger 
-                  value="pricing" 
-                  className="text-xs sm:text-sm px-2 py-2 transition-colors"
-                >
-                  <DollarSign className="h-4 w-4 mr-1" />
-                  Precios
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="system-zone" 
-                  className="text-xs sm:text-sm px-2 py-2 transition-colors"
-                >
-                  <Wrench className="h-4 w-4 mr-1" />
-                  Limpieza
-                </TabsTrigger>
-              </>
-            )}
-          </TabsList>
+        <Tabs defaultValue="users" className="space-y-4">
 
-          {/* Appointments Tab */}
-          <TabsContent value="appointments" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <div>
-                    <CardTitle>Citas Agendadas</CardTitle>
-                    <CardDescription>Gestiona las citas de los clientes</CardDescription>
-                  </div>
-                  <div className="flex gap-2">
-                    {selectedAppointments.length > 0 && (
-                      <Button
-                        variant="destructive"
-                        onClick={() => handleBulkDelete('appointments')}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Eliminar ({selectedAppointments.length})
-                      </Button>
-                    )}
-                    <Dialog open={showCrearCitaDialog} onOpenChange={setShowCrearCitaDialog}>
-                      <DialogTrigger asChild>
-                        <Button>
-                          <Plus className="mr-2 h-4 w-4" />
-                          Crear Cita
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-md">
-                        <DialogHeader>
-                          <DialogTitle>Nueva Cita</DialogTitle>
-                          <DialogDescription>Agenda una visita de medición para un cliente</DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4 py-2">
-                          <div className="space-y-1">
-                            <Label>Nombre del cliente *</Label>
-                            <Input
-                              value={crearCitaForm.name}
-                              onChange={e => setCrearCitaForm(f => ({ ...f, name: e.target.value }))}
-                              placeholder="Nombre completo"
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <Label>WhatsApp *</Label>
-                            <Input
-                              value={crearCitaForm.phone}
-                              onChange={e => setCrearCitaForm(f => ({ ...f, phone: e.target.value }))}
-                              placeholder="3XXXXXXXXX"
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <Label>Dirección</Label>
-                            <Input
-                              value={crearCitaForm.address}
-                              onChange={e => setCrearCitaForm(f => ({ ...f, address: e.target.value }))}
-                              placeholder="Dirección del proyecto"
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <Label>Tipo de trabajo *</Label>
-                            <div className="grid grid-cols-2 gap-2 pt-1">
-                              {(["cocina", "closet", "puertas", "centro_tv"] as const).map(wt => (
-                                <label key={wt} className="flex items-center gap-2 cursor-pointer">
-                                  <Checkbox
-                                    checked={crearCitaForm.workTypes.includes(wt)}
-                                    onCheckedChange={checked => setCrearCitaForm(f => ({
-                                      ...f,
-                                      workTypes: checked
-                                        ? [...f.workTypes, wt]
-                                        : f.workTypes.filter(w => w !== wt),
-                                    }))}
-                                  />
-                                  <span className="text-sm">
-                                    {wt === "centro_tv" ? "Centro TV" : wt.charAt(0).toUpperCase() + wt.slice(1)}
-                                  </span>
-                                </label>
-                              ))}
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-2 gap-3">
-                            <div className="space-y-1">
-                              <Label>Fecha</Label>
-                              <Input
-                                type="date"
-                                value={crearCitaForm.date}
-                                onChange={e => setCrearCitaForm(f => ({ ...f, date: e.target.value }))}
-                              />
-                            </div>
-                            <div className="space-y-1">
-                              <Label>Hora</Label>
-                              <Input
-                                type="time"
-                                value={crearCitaForm.time}
-                                onChange={e => setCrearCitaForm(f => ({ ...f, time: e.target.value }))}
-                              />
-                            </div>
-                          </div>
-                          {medidores.length > 0 && (
-                            <div className="space-y-1">
-                              <Label>Medidor (opcional)</Label>
-                              <Select
-                                value={crearCitaMedidorId ? String(crearCitaMedidorId) : "none"}
-                                onValueChange={v => setCrearCitaMedidorId(v === "none" ? null : Number(v))}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Sin asignar" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="none">Sin asignar</SelectItem>
-                                  {medidores.map((m: any) => (
-                                    <SelectItem key={m.id} value={String(m.id)}>{m.name}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          )}
-                          <Button
-                            onClick={handleCrearCita}
-                            disabled={crearCitaLoading}
-                            className="w-full bg-teal-600 hover:bg-teal-700 text-white"
-                          >
-                            {crearCitaLoading ? "Creando..." : "Crear Cita"}
-                          </Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {loadingAppointments ? (
-                  <p>Cargando...</p>
-                ) : appointments.length === 0 ? (
-                  <p className="text-muted-foreground">No hay citas agendadas</p>
-                ) : (
-                  <div className="space-y-4">
-                    {/* Checkbox Seleccionar Todo */}
-                    <div className="flex items-center gap-2 pb-2 border-b">
-                      <Checkbox
-                        checked={selectedAppointments.length === appointments.length && appointments.length > 0}
-                        onCheckedChange={toggleSelectAllAppointments}
-                      />
-                      <span className="text-sm font-medium">
-                        Seleccionar todas ({appointments.length})
-                      </span>
-                    </div>
-                    
-                    {appointments.map((apt: any) => (
-                      <div key={apt.id} className="border rounded-lg p-3 sm:p-4 space-y-2">
-                        <div className="flex items-start gap-3">
-                          {/* Checkbox individual */}
-                          <Checkbox
-                            checked={selectedAppointments.includes(apt.id)}
-                            onCheckedChange={() => toggleSelectAppointment(apt.id)}
-                            className="mt-1"
-                          />
-                          
-                          <div className="flex-1 flex items-start justify-between">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <h3 className="font-semibold">{apt.client?.name}</h3>
-                              {getStatusBadge(apt.status)}
-                            </div>
-                            <p className="text-sm text-muted-foreground">
-                              {getWorkTypeLabel(apt.workTypes)}
-                            </p>
-                            <p className="text-sm">
-                              <span className="font-medium">WhatsApp:</span> {apt.client?.whatsappPhone}
-                            </p>
-                            {apt.client?.email && (
-                              <p className="text-sm break-words min-w-0">
-                                <span className="font-medium">Email:</span> {apt.client?.email}
-                              </p>
-                            )}
-                            {apt.client?.address && (
-                              <p className="text-sm break-words min-w-0">
-                                <span className="font-medium">Dirección:</span> {apt.client?.address}
-                              </p>
-                            )}
-                            <p className="text-sm">
-                              <span className="font-medium">Fecha:</span> {formatDate(apt.scheduledDate)}
-                            </p>
-                            {apt.notes && (
-                              <p className="text-sm break-words min-w-0">
-                                <span className="font-medium">Notas:</span> {apt.notes}
-                              </p>
-                            )}
 
-                            {/* Asignación de medidor */}
-                            {medidores.length > 0 && (
-                              <div className="flex items-center gap-2 pt-1">
-                                <span className="text-sm font-medium text-muted-foreground shrink-0">Medidor:</span>
-                                <Select
-                                  value={apt.assignedMedidorId ? String(apt.assignedMedidorId) : "none"}
-                                  onValueChange={(val) =>
-                                    assignMedidorMutation.mutate({
-                                      appointmentId: apt.id,
-                                      medidorId: val === "none" ? null : Number(val),
-                                    })
-                                  }
-                                >
-                                  <SelectTrigger className="h-7 text-xs w-[140px]">
-                                    <SelectValue placeholder="Sin asignar" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="none">Sin asignar</SelectItem>
-                                    {medidores.map((m: any) => (
-                                      <SelectItem key={m.id} value={String(m.id)}>{m.name}</SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex flex-col gap-2">
-                            <Select
-                              value={apt.status}
-                              onValueChange={(value) =>
-                                updateAppointmentStatus.mutate({ id: apt.id, status: value as any })
-                              }
-                            >
-                              <SelectTrigger className="w-full sm:w-[140px]">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="pendiente">Pendiente</SelectItem>
-                                <SelectItem value="confirmada">Confirmada</SelectItem>
-                                <SelectItem value="completada">Completada</SelectItem>
-                                <SelectItem value="cancelada">Cancelada</SelectItem>
-                              </SelectContent>
-                            </Select>
 
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => setDeleteConfirm({ type: "appointment", id: apt.id, name: apt.client?.name || "Cita" })}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
 
-                            {apt.status === "completada" && (
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => setSelectedAppointment(apt)}
-                                  >
-                                    Crear Cotización
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent className="max-w-2xl">
-                                  <DialogHeader>
-                                    <DialogTitle>Crear Cotización</DialogTitle>
-                                    <DialogDescription>
-                                      Cliente: {apt.client?.name} - {getWorkTypeLabel(apt.workTypes)}
-                                    </DialogDescription>
-                                  </DialogHeader>
-                                  <form onSubmit={handleCreateQuotation} className="space-y-4">
-                                    <div className="space-y-2">
-                                      <Label htmlFor="description">Descripción del trabajo *</Label>
-                                      <Textarea
-                                        id="description"
-                                        required
-                                        rows={4}
-                                        value={quotationForm.description}
-                                        onChange={(e) =>
-                                          setQuotationForm({ ...quotationForm, description: e.target.value })
-                                        }
-                                      />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                      <Label htmlFor="materials">Materiales</Label>
-                                      <Textarea
-                                        id="materials"
-                                        rows={3}
-                                        value={quotationForm.materials}
-                                        onChange={(e) =>
-                                          setQuotationForm({ ...quotationForm, materials: e.target.value })
-                                        }
-                                      />
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-4">
-                                      <div className="space-y-2">
-                                        <Label htmlFor="totalPrice">Precio Total (COP) *</Label>
-                                        <Input
-                                          id="totalPrice"
-                                          type="number"
-                                          required
-                                          value={quotationForm.totalPrice}
-                                          onChange={(e) =>
-                                            setQuotationForm({ ...quotationForm, totalPrice: e.target.value })
-                                          }
-                                        />
-                                      </div>
-
-                                      <div className="space-y-2">
-                                        <Label htmlFor="validUntil">Válida hasta</Label>
-                                        <Input
-                                          id="validUntil"
-                                          type="date"
-                                          value={quotationForm.validUntil}
-                                          onChange={(e) =>
-                                            setQuotationForm({ ...quotationForm, validUntil: e.target.value })
-                                          }
-                                        />
-                                      </div>
-                                    </div>
-
-                                    <Button type="submit" className="w-full">
-                                      Crear Cotización
-                                    </Button>
-                                  </form>
-                                </DialogContent>
-                              </Dialog>
-                            )}
-                          </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-              {totalAppointmentPages > 1 && (
-                <div className="flex items-center justify-between border-t p-4 gap-2">
-                  <Button variant="outline" size="sm" disabled={appointmentPage === 1} onClick={() => setAppointmentPage(p => Math.max(1, p - 1))}>← Anterior</Button>
-                  <span className="text-sm text-muted-foreground">Página {appointmentPage} de {totalAppointmentPages} ({totalAppointments} registros)</span>
-                  <Button variant="outline" size="sm" disabled={appointmentPage === totalAppointmentPages} onClick={() => setAppointmentPage(p => Math.min(totalAppointmentPages, p + 1))}>Siguiente →</Button>
-                </div>
-              )}
-            </Card>
-          </TabsContent>
-
-          {/* Advisory Tab */}
-          <TabsContent value="advisory" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <div>
-                    <CardTitle>Solicitudes de Asesoramiento</CardTitle>
-                    <CardDescription>Clientes que solicitan asesoramiento telefónico</CardDescription>
-                  </div>
-                  <div className="flex gap-2">
-                    {selectedAdvisory.length > 0 && (
-                      <Button
-                        variant="destructive"
-                        onClick={() => handleBulkDelete('advisory')}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Eliminar ({selectedAdvisory.length})
-                      </Button>
-                    )}
-                    <Link href="/#asesoramiento">
-                      <Button>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Crear Asesoramiento
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {loadingAdvisory ? (
-                  <p>Cargando...</p>
-                ) : advisoryRequests.length === 0 ? (
-                  <p className="text-muted-foreground">No hay solicitudes de asesoramiento</p>
-                ) : (
-                  <div className="space-y-4">
-                    {/* Checkbox Seleccionar Todo */}
-                    <div className="flex items-center gap-2 pb-2 border-b">
-                      <Checkbox
-                        checked={selectedAdvisory.length === advisoryRequests.length && advisoryRequests.length > 0}
-                        onCheckedChange={toggleSelectAllAdvisory}
-                      />
-                      <span className="text-sm font-medium">
-                        Seleccionar todas ({advisoryRequests.length})
-                      </span>
-                    </div>
-                    
-                    {advisoryRequests.map((req) => (
-                      <div key={req.id} className="border rounded-lg p-4 space-y-2">
-                        <div className="flex items-start gap-3">
-                          {/* Checkbox individual */}
-                          <Checkbox
-                            checked={selectedAdvisory.includes(req.id)}
-                            onCheckedChange={() => toggleSelectAdvisory(req.id)}
-                            className="mt-1"
-                          />
-                          
-                          <div className="flex-1 flex items-start justify-between">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <h3 className="font-semibold">{req.client?.name}</h3>
-                              {getStatusBadge(req.status)}
-                            </div>
-                            <p className="text-sm text-muted-foreground">
-                              {getWorkTypeLabel(req.workType)}
-                            </p>
-                            <p className="text-sm">
-                              <span className="font-medium">WhatsApp:</span> {req.client?.whatsappPhone}
-                            </p>
-                            {req.client?.email && (
-                              <p className="text-sm break-words min-w-0">
-                                <span className="font-medium">Email:</span> {req.client?.email}
-                              </p>
-                            )}
-                            {req.preferredCallTime && (
-                              <p className="text-sm">
-                                <span className="font-medium">Horario preferido:</span> {getCallTimeLabel(req.preferredCallTime)}
-                              </p>
-                            )}
-                            {req.notes && (
-                              <p className="text-sm break-words min-w-0">
-                                <span className="font-medium">Consulta:</span> {req.notes}
-                              </p>
-                            )}
-                            <p className="text-xs text-muted-foreground">
-                              Creada: {formatDate(req.createdAt)}
-                            </p>
-                          </div>
-                          <div className="flex flex-col gap-2">
-                            <Select
-                              value={req.status}
-                              onValueChange={(value) =>
-                                updateAdvisoryStatus.mutate({ id: req.id, status: value as any })
-                              }
-                            >
-                              <SelectTrigger className="w-full sm:w-[140px]">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="pendiente">Pendiente</SelectItem>
-                                <SelectItem value="contactado">Contactado</SelectItem>
-                                <SelectItem value="completado">Completado</SelectItem>
-                              </SelectContent>
-                            </Select>
-
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => setDeleteConfirm({ type: "advisory", id: req.id, name: req.client?.name || "Asesoramiento" })}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Quotations Tab */}
-          <TabsContent value="quotations" className="space-y-3">
-            <Card className="border-primary/25 bg-gradient-to-br from-teal-950/30 to-white">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-teal-300">Sistema de Cotizaciones</CardTitle>
-                    <CardDescription>Crea y gestiona cotizaciones profesionales con PDF y envío automático</CardDescription>
-                  </div>
-                  <Link href="/quotations">
-                    <Button size="lg" className="gap-2 bg-teal-600 hover:bg-teal-700">
-                      <FileText className="h-5 w-5" />
-                      Ir a Cotizaciones
-                    </Button>
-                  </Link>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-3">
-                <div className="grid gap-3 md:grid-cols-3">
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-card border border-teal-100">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center text-primary font-bold">
-                      1
-                    </div>
-                    <div>
-                      <div className="font-semibold text-sm mb-1">Items Dinámicos</div>
-                      <p className="text-xs text-muted-foreground">Múltiples items con descripción detallada</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-card border border-teal-100">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center text-primary font-bold">
-                      2
-                    </div>
-                    <div>
-                      <div className="font-semibold text-sm mb-1">PDF Profesional</div>
-                      <p className="text-xs text-muted-foreground">Genera PDFs con logo y diseño corporativo</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-card border border-teal-100">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center text-primary font-bold">
-                      3
-                    </div>
-                    <div>
-                      <div className="font-semibold text-sm mb-1">Envío Automático</div>
-                      <p className="text-xs text-muted-foreground">Envía por email con un solo clic</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Clients Tab */}
-          <TabsContent value="clients" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Clientes</CardTitle>
-                    <CardDescription>Los clientes se crean automáticamente al agendar citas o solicitar servicios</CardDescription>
-                  </div>
-                  <div className="flex gap-2">
-                    <CreateQuickClientDialog 
-                      onClientCreated={() => {
-                        utils.clients.list.invalidate();
-                        utils.clients.listPaginated.invalidate();
-                        setClientPage(1);
-                      }}
-                    />
-                    {selectedClients.length > 0 && (
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={async () => {
-                          if ((await confirmAction(`¿Estás seguro de eliminar ${selectedClients.length} cliente(s)?`))) {
-                            selectedClients.forEach(id => deleteClient.mutate({ id }));
-                            setSelectedClients([]);
-                          }
-                        }}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Eliminar {selectedClients.length} seleccionado(s)
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {loadingClients ? (
-                  <p>Cargando...</p>
-                ) : clients.length === 0 ? (
-                  <p className="text-muted-foreground">No hay clientes registrados</p>
-                ) : (
-                  <div className="space-y-4">
-                    {/* Barra de búsqueda y ordenamiento */}
-                    <div className="flex gap-3">
-                      <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          placeholder="Buscar por nombre, teléfono o email..."
-                          value={clientSearchQuery}
-                          onChange={(e) => setClientSearchQuery(e.target.value)}
-                          className="pl-10"
-                        />
-                      </div>
-                      <Select value={clientSortBy} onValueChange={(value: any) => setClientSortBy(value)}>
-                              <SelectTrigger className="w-full sm:w-[200px]">
-                                <SelectValue />
-                              </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="date-desc">Más recientes</SelectItem>
-                          <SelectItem value="date-asc">Más antiguos</SelectItem>
-                          <SelectItem value="name-asc">Nombre (A-Z)</SelectItem>
-                          <SelectItem value="name-desc">Nombre (Z-A)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    {(() => {
-                      // Filtrar clientes
-                      const filteredClients = clients.filter(client => {
-                        const query = clientSearchQuery.toLowerCase();
-                        return (
-                          client.name.toLowerCase().includes(query) ||
-                          client.whatsappPhone.includes(query) ||
-                          (client.email && client.email.toLowerCase().includes(query))
-                        );
-                      });
-                      
-                      // Ordenar clientes
-                      const sortedClients = [...filteredClients].sort((a, b) => {
-                        switch (clientSortBy) {
-                          case "name-asc":
-                            return a.name.localeCompare(b.name);
-                          case "name-desc":
-                            return b.name.localeCompare(a.name);
-                          case "date-asc":
-                            return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-                          case "date-desc":
-                            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-                          default:
-                            return 0;
-                        }
-                      });
-                      
-                      if (sortedClients.length === 0) {
-                        return <p className="text-muted-foreground text-center py-8">No se encontraron clientes</p>;
-                      }
-                      
-                      return (
-                        <>
-                          {clientSearchQuery && (
-                            <p className="text-sm text-muted-foreground">
-                              {sortedClients.length} de {clients.length} cliente(s) encontrado(s)
-                            </p>
-                          )}
-                          
-                          <div className="flex items-center gap-2 pb-2 border-b">
-                            <Checkbox
-                              checked={selectedClients.length === sortedClients.length && sortedClients.length > 0}
-                              onCheckedChange={(checked) => {
-                                if (checked) {
-                                  setSelectedClients(sortedClients.map(c => c.id));
-                                } else {
-                                  setSelectedClients([]);
-                                }
-                              }}
-                            />
-                            <span className="text-sm font-medium">Seleccionar todos</span>
-                          </div>
-                          
-                          {sortedClients.map((client) => (
-                            <div key={client.id} className="border rounded-lg p-4">
-                              <div className="flex items-start gap-3">
-                                <Checkbox
-                                  checked={selectedClients.includes(client.id)}
-                                  onCheckedChange={(checked) => {
-                                    if (checked) {
-                                      setSelectedClients([...selectedClients, client.id]);
-                                    } else {
-                                      setSelectedClients(selectedClients.filter(id => id !== client.id));
-                                    }
-                                  }}
-                                  className="mt-1"
-                                />
-                                <div className="flex-1 space-y-1">
-                                  <div className="flex items-center gap-2">
-                                    <h3 className="font-semibold">{client.name}</h3>
-                                    {client.internalManagement && (
-                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-500/15 text-amber-300 border border-amber-500/25">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                                          <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                                        </svg>
-                                        Gestión interna
-                                      </span>
-                                    )}
-                                  </div>
-                                  <p className="text-sm">
-                                    <span className="font-medium">WhatsApp:</span> {client.whatsappPhone}
-                                  </p>
-                                  {client.email && (
-                                    <p className="text-sm">
-                                      <span className="font-medium">Email:</span> {client.email}
-                                    </p>
-                                  )}
-                                  {client.address && (
-                                    <p className="text-sm">
-                                      <span className="font-medium">Dirección:</span> {client.address}
-                                    </p>
-                                  )}
-                                  <p className="text-xs text-muted-foreground mt-2">
-                                    Registrado: {formatDate(client.createdAt)}
-                                  </p>
-                                </div>
-                                <div className="flex gap-2">
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => {
-                                      setEditingClient(client);
-                                      setEditFormData({
-                                        name: client.name || '',
-                                        email: client.email || '',
-                                        whatsappPhone: client.whatsappPhone || '',
-                                        address: client.address || ''
-                                      });
-                                    }}
-                                  >
-                                    Editar
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="destructive"
-                                    onClick={() => setDeleteConfirm({ type: "client", id: client.id, name: client.name })}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </>
-                      );
-                    })()}
-                  </div>
-                )}
-              </CardContent>
-              {totalClientPages > 1 && (
-                <div className="flex items-center justify-between border-t p-4 gap-2">
-                  <Button variant="outline" size="sm" disabled={clientPage === 1} onClick={() => setClientPage(p => Math.max(1, p - 1))}>← Anterior</Button>
-                  <span className="text-sm text-muted-foreground">Página {clientPage} de {totalClientPages} ({totalClients} registros)</span>
-                  <Button variant="outline" size="sm" disabled={clientPage === totalClientPages} onClick={() => setClientPage(p => Math.min(totalClientPages, p + 1))}>Siguiente →</Button>
-                </div>
-              )}
-            </Card>
-          </TabsContent>
 
           {/* Users Tab */}
           <TabsContent value="users" className="space-y-4">
@@ -2009,31 +998,7 @@ export default function Admin() {
                                   <Badge variant="outline" className="border-orange-500/40 text-white/45">{testUsers.length}</Badge>
                                 </div>
                                 <div className="flex gap-2 flex-wrap">
-                                  <Button
-                                    size="sm"
-                                    variant="destructive"
-                                    className="bg-red-600 hover:bg-red-700"
-                                    onClick={async () => {
-                                      if ((await confirmAction(`🧹 LIMPIEZA DEL SISTEMA\n\nSe eliminarán en cascada:\n• ${testUsers.length} usuarios de prueba\n• Todos los clientes de prueba asociados\n• Todas las citas de clientes de prueba\n• Todas las cotizaciones de clientes de prueba\n• Todos los proyectos de clientes de prueba\n\n⚠️ Esta acción NO se puede deshacer.\n\n¿Continuar?`))) {
-                                        const testUserIds = testUsers.map(u => u.id);
-                                        deleteTestUsers.mutate({ userIds: testUserIds }, {
-                                          onSuccess: (result: any) => {
-                                            const msg = `🧹 Limpieza completada:\n• ${result.deletedUsers || result.deleted} usuarios\n• ${result.deletedClients || 0} clientes\n• ${result.deletedAppointments || 0} citas\n• ${result.deletedQuotations || 0} cotizaciones\n• ${result.deletedProjects || 0} proyectos`;
-                                            toast.success(msg, { duration: 8000 });
-                                            utils.userManagement.listAll.invalidate();
-                                            setSelectedUsers([]);
-                                          },
-                                          onError: (error) => {
-                                            toast.error(`Error: ${error.message}`);
-                                          }
-                                        });
-                                      }
-                                    }}
-                                    disabled={deleteTestUsers.isPending}
-                                  >
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    {deleteTestUsers.isPending ? 'Limpiando...' : `🧹 Limpieza del Sistema`}
-                                  </Button>
+
                                   {selectedUsers.some(id => testUsers.map(u => u.id).includes(id)) && (
                                     <Button
                                       size="sm"
@@ -2116,64 +1081,7 @@ export default function Admin() {
             </Card>
           </TabsContent>
 
-          {/* Projects Tab */}
-          <TabsContent value="projects" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-primary" />
-                  Gestión de Proyectos
-                </CardTitle>
-                <CardDescription>
-                  Accede a todos los proyectos de la empresa. Haz clic en el botón para ir a la página completa de proyectos.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Link href="/projects">
-                  <Button className="bg-teal-600 hover:bg-teal-700">
-                    <FileText className="h-4 w-4 mr-2" />
-                    Ver Todos los Proyectos
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
-          {/* Levantamientos Tab */}
-          <TabsContent value="levantamientos" className="space-y-4">
-            <LevantamientosTab />
-          </TabsContent>
-
-          {/* Pricing Config Tab - Solo Super Admin */}
-          {user?.role === "super_admin" && (
-            <TabsContent value="pricing" className="space-y-4">
-              <Card className="border-green-200 bg-green-500/10/50">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <DollarSign className="h-5 w-5 text-green-400" />
-                    Configuración de Precios
-                  </CardTitle>
-                  <CardDescription>
-                    Administra todos los precios del sistema de cotizaciones desde un panel dedicado.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Link href="/pricing-config">
-                    <Button className="bg-green-600 hover:bg-green-700">
-                      <DollarSign className="h-4 w-4 mr-2" />
-                      Abrir Panel de Precios
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          )}
-          {user?.role === "super_admin" && (
-            <TabsContent value="system-zone" className="space-y-4">
-              <WhatsAppStatusPanel />
-
-            </TabsContent>
-          )}
         </Tabs>
       </div>
 
@@ -2181,7 +1089,7 @@ export default function Admin() {
       <Dialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>¿Eliminar {deleteConfirm?.type === "appointment" ? "cita" : deleteConfirm?.type === "advisory" ? "asesoramiento" : deleteConfirm?.type === "quotation" ? "cotización" : deleteConfirm?.type === "client" ? "cliente" : "usuario"}?</DialogTitle>
+            <DialogTitle>¿Eliminar {deleteConfirm?.type === "appointment" ? "cita" : deleteConfirm?.type === "quotation" ? "cotización" : deleteConfirm?.type === "client" ? "cliente" : "usuario"}?</DialogTitle>
             <DialogDescription>
               Estás a punto de eliminar: <strong>{deleteConfirm?.name}</strong>. Esta acción no se puede deshacer.
             </DialogDescription>
@@ -2193,7 +1101,7 @@ export default function Admin() {
             <Button 
               variant="destructive" 
               onClick={handleDelete}
-              disabled={deleteAppointment.isPending || deleteAdvisory.isPending || deleteQuotation.isPending || deleteClient.isPending || deleteUser.isPending}
+              disabled={deleteAppointment.isPending || deleteQuotation.isPending || deleteClient.isPending || deleteUser.isPending}
             >
               Eliminar
             </Button>

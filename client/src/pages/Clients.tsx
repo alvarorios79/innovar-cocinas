@@ -139,7 +139,6 @@ export default function Clients() {
     const d = new Date(c.createdAt);
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   }).length;
-  const withAccount = clients.filter((c) => c.userId).length;
 
   return (
     <div className="pb-20 md:pb-6">
@@ -160,11 +159,10 @@ export default function Clients() {
       />
 
       {/* ── Stats ── */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
+      <div className="grid grid-cols-2 gap-3 mb-6">
         {[
           { label: "Total", value: total, accent: "var(--primary)" },
-          { label: "Con cuenta", value: withAccount, accent: "#0D9B8F" },
-          { label: "Este mes", value: newThisMonth, accent: "#0F766E" },
+          { label: "Nuevos este mes", value: newThisMonth, accent: "#0F766E" },
         ].map((s) => (
           <div key={s.label} className="rounded-xl p-4 text-center" style={{ background: "rgba(106,207,199,0.07)", border: "1px solid rgba(106,207,199,0.12)" }}>
             <p className="text-2xl font-bold" style={{ color: s.accent }}>{s.value}</p>
@@ -389,12 +387,7 @@ function ClientCard({
                   Interno
                 </Badge>
               )}
-              {client.userId && (
-                <Badge className="text-[10px] px-1.5 py-0" style={{ background: "rgba(106,207,199,0.15)", color: "#6ACFC7", border: "1px solid rgba(106,207,199,0.25)" }}>
-                  <CheckCircle className="h-2.5 w-2.5 mr-0.5" />
-                  Portal
-                </Badge>
-              )}
+
             </div>
 
             <div className="space-y-1">

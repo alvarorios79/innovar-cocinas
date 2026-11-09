@@ -667,21 +667,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
 
         {/* Acciones rápidas: en celular una sola fila que se desliza */}
         <div className="flex gap-2 mb-4 sm:mb-6 overflow-x-auto scrollbar-hide -mx-3.5 px-3.5 sm:mx-0 sm:px-0 sm:flex-wrap sm:overflow-visible [&>button]:shrink-0">
-          {projectDetail.client?.whatsappPhone && user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="bg-green-500/10 hover:bg-green-500/15 text-green-300 border-green-500/25"
-              onClick={() => {
-                const rawPhone = (projectDetail.client?.whatsappPhone || "").replace(/\D/g, "");
-                const phone = rawPhone.length > 10 ? rawPhone : `57${rawPhone}`;
-                window.open(`https://wa.me/${phone}`, "_blank");
-              }}
-            >
-              <MessageCircle className="h-4 w-4 mr-1" />
-              WhatsApp
-            </Button>
-          )}
+          {/* (Se quitó el botón "WhatsApp" que solo abría el chat vacío con el cliente: cada etapa ya tiene su envío con mensaje y enlace) */}
           <Button variant="outline" size="sm" onClick={handleExportPdf} disabled={generatingPdf}>
             <FileDown className="h-4 w-4 mr-1" />
             {generatingPdf ? "Generando..." : "Exportar PDF"}

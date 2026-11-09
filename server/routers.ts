@@ -2,7 +2,6 @@ import { router } from "./_core/trpc";
 import { authRouter } from "./routers/auth";
 import { clientsRouter } from "./routers/clients";
 import { appointmentsRouter, availabilityRouter } from "./routers/appointments";
-import { advisoryRouter, estimatesRouter } from "./routers/advisory";
 import { leadsRouter } from "./routers/leads";
 import { quotationsRouter } from "./routers/quotations";
 import { quotationsDebugRouter } from "./routers/quotations-debug";
@@ -39,9 +38,7 @@ export const appRouter = router({
   clients: clientsRouter,
   appointments: appointmentsRouter,
   availability: availabilityRouter,
-  advisory: advisoryRouter,
   leads: leadsRouter,
-  estimates: estimatesRouter,
   quotations: quotationsRouter,
   quotationsDebug: quotationsDebugRouter,
   userManagement: userManagementRouter,

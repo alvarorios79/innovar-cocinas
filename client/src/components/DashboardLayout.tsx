@@ -71,7 +71,7 @@ type MenuSection = {
 };
 
 // ── Estructura de navegación ─────────────────────────────────────────────────
-const menuSections: MenuSection[] = [
+export const menuSections: MenuSection[] = [
   {
     title: "Principal",
     items: [
@@ -151,6 +151,18 @@ const menuSections: MenuSection[] = [
 ];
 
 // ── Etiquetas de rol ─────────────────────────────────────────────────────────
+/** Secciones del menú que ve un rol. super_admin (CEO) ve TODO el CRM. */
+export function getVisibleMenuSections(role: string): MenuSection[] {
+  return menuSections
+    .map((section) => ({
+      ...section,
+      items: section.items.filter(
+        (item) => role === "super_admin" || !item.roles || item.roles.includes(role)
+      ),
+    }))
+    .filter((section) => section.items.length > 0);
+}
+
 const roleLabels: Record<string, { label: string; color: string }> = {
   super_admin: { label: "Super Admin", color: "bg-purple-500/15 text-purple-300 border-purple-500/40/25" },
   admin:       { label: "Admin",       color: "bg-primary/15 text-primary border-primary/25" },
@@ -282,15 +294,8 @@ function DashboardLayoutContent({ children, setSidebarWidth, sidebarWidth }: Das
   const { data: leadCounts } = trpc.leads.counts.useQuery(undefined, { enabled: canSeeLeads, refetchInterval: 120_000 });
   const pendingLeads = (leadCounts?.nuevos ?? 0) + (leadCounts?.seguimientosHoy ?? 0);
 
-  // Filtrar secciones y ítems según el rol del usuario
-  const visibleSections = menuSections
-    .map((section) => ({
-      ...section,
-      items: section.items.filter(
-        (item) => !item.roles || item.roles.includes(userRole)
-      ),
-    }))
-    .filter((section) => section.items.length > 0);
+  // Filtrar secciones y ítems según el rol del usuario (super_admin ve todo)
+  const visibleSections = getVisibleMenuSections(userRole);
 
   const activeMenuItem = visibleSections
     .flatMap((s) => s.items)

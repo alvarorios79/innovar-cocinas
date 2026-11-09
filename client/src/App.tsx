@@ -12,14 +12,12 @@ import { MobileBottomNavigation } from "./components/navigation/MobileBottomNavi
 import { OfflineIndicator } from "./components/OfflineIndicator";
 import Home from "./pages/Home";
 import Admin from "./pages/Admin";
-import Portal from "./pages/Portal";
 import Projects from "./pages/Projects";
 import DashboardLayout from "./components/DashboardLayout";
 import Tasks from "./pages/Tasks";
 import InstallationCalendar from "./pages/InstallationCalendar";
 import Quotations from "./pages/Quotations";
 import Login from "./pages/Login";
-import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import ProjectDetail from "./pages/ProjectDetail";
@@ -50,9 +48,9 @@ function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
 
   // Rutas siempre públicas (nunca usan DashboardLayout)
-  const alwaysPublicRoutes = ["/login", "/register", "/forgot-password", "/reset-password", "/portal", "/gallery", "/cotizacion", "/agendar", "/visita", "/cita"];
+  const alwaysPublicRoutes = ["/login", "/forgot-password", "/reset-password", "/gallery", "/cotizacion", "/agendar", "/visita", "/cita"];
   const isAlwaysPublic = alwaysPublicRoutes.some(
-    route => location === route || location.startsWith("/portal") || location.startsWith("/gallery") || location.startsWith("/cotizacion") || location.startsWith("/agendar") || location.startsWith("/visita") || location.startsWith("/cita")
+    route => location === route || location.startsWith("/gallery") || location.startsWith("/cotizacion") || location.startsWith("/agendar") || location.startsWith("/visita") || location.startsWith("/cita")
   );
   if (isAlwaysPublic) return <>{children}</>;
 
@@ -70,7 +68,6 @@ function Router() {
         <Route path={"/"} component={Home} />
         <Route path={"/admin"}><Admin /></Route>
         <Route path={"/comercial"}><Comercial /></Route>
-        <Route path={"/portal"} component={Portal} />
         <Route path={"/projects"}><Projects /></Route>
         <Route path={"/projects/:id"}><ProjectDetail /></Route>
         <Route path={"/tasks"}><Tasks /></Route>
@@ -78,7 +75,6 @@ function Router() {
         <Route path={"/appointments-calendar"}><AppointmentsCalendar /></Route>
         <Route path={"/quotations"}><Quotations /></Route>
         <Route path={"/login"} component={Login} />
-        <Route path={"/register"} component={Register} />
         <Route path={"/forgot-password"} component={ForgotPassword} />
         <Route path={"/reset-password"} component={ResetPassword} />
         <Route path={"/gallery"}><PublicGallery /></Route>

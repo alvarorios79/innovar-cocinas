@@ -41,12 +41,15 @@ export function waPhone(phone?: string | null): string | null {
 export function docsMessage(firstName: string, projectName: string, names: string[], link: string): string {
   const uno = names.length === 1;
   const lista = names.map((n) => `• ${n}`).join("\n");
+  const hola = firstName ? `Hola ${firstName}!` : "Hola!";
   return (
-    `📐 Hola ${firstName}! Te compartimos ${uno ? "el documento" : "los documentos"} de tu proyecto *"${projectName}"*:\n` +
+    `📐 ${hola} Tu proyecto *"${projectName}"* sigue avanzando.\n\n` +
+    `Te compartimos ${uno ? "el plano preparado" : "los planos preparados"} con mucho cuidado por nuestro equipo:\n` +
     `${lista}\n\n` +
-    `Puedes ${uno ? "verlo y descargarlo" : "verlos y descargarlos"} aquí (también reenviar el enlace a tu maestro de obra o plomero):\n${link}\n\n` +
-    `Cuando ${uno ? "lo" : "los"} revises, por favor toca *Recibido* en el enlace para dejar constancia. ✅\n\n` +
-    `— INNOVAR Cocinas de Diseño`
+    `Ahí encontrarás marcados todos los puntos para que la obra quede lista y tu espacio salga perfecto. Puedes ${uno ? "verlo y descargarlo" : "verlos y descargarlos"} aquí, y reenviar el enlace a tu maestro de obra, plomero o electricista:\n${link}\n\n` +
+    `🙏 Cuando ${uno ? "lo" : "los"} revises, toca *Recibido* en el enlace; así sabemos que ${uno ? "te llegó" : "te llegaron"} bien.\n\n` +
+    `Cualquier duda, con gusto te ayudamos al 313 680 2025.\n\n` +
+    `— INNOVAR Cocinas de Diseño ✨`
   );
 }
 

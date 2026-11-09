@@ -984,6 +984,14 @@ export const projectVideos = pgTable("projectVideos", {
 	index("projectVideos_projectId_idx").on(table.projectId),
 ]);
 
+// Galerías quitadas del Portafolio (no borra fotos; se puede restaurar)
+export const portfolioHidden = pgTable("portfolioHidden", {
+	id: serial('id').primaryKey(),
+	projectId: integer().notNull().references(() => projects.id),
+	hiddenBy: integer().notNull().references(() => users.id),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+});
+
 // Registro de lo publicado en redes (para no repetir y llevar la cuenta)
 export const socialPublications = pgTable("socialPublications", {
 	id: serial('id').primaryKey(),

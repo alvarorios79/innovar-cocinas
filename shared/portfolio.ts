@@ -30,6 +30,7 @@ export const PORTFOLIO_SECTIONS: { key: PortfolioSection; label: string; hint: s
 const SUBCATEGORY_SECTION: Record<string, PortfolioSection> = {
   fotos_iniciales: "antes",
   modelado_3d: "diseno",
+  modelado: "diseno", // nombre viejo
   renders: "diseno",
   proceso_instalacion: "instalacion",
   fotos_finales: "despues",
@@ -103,6 +104,17 @@ export function formatBytes(n?: number | null): string {
   if (n < 1024 * 1024 * 1024) return `${(n / (1024 * 1024)).toFixed(1)} MB`;
   return `${(n / (1024 * 1024 * 1024)).toFixed(2)} GB`;
 }
+
+/** Dónde queda guardada una foto subida desde cada bloque del portafolio. */
+export const SECTION_UPLOAD_TARGET: Record<PortfolioSection, { stage: string; category: string; subcategory: string }> = {
+  antes: { stage: "inicial", category: "medidas", subcategory: "fotos_iniciales" },
+  diseno: { stage: "diseno", category: "disenos", subcategory: "renders" },
+  instalacion: { stage: "final", category: "instalacion", subcategory: "proceso_instalacion" },
+  despues: { stage: "final", category: "entrega", subcategory: "fotos_finales" },
+};
+
+/** Límite de tamaño de una foto (ya reducida en el navegador antes de subir). */
+export const MAX_PHOTO_BYTES = 25 * 1024 * 1024;
 
 /** Límite de tamaño de un video (un recorrido de 1–2 min grabado en el celular pesa 100–400 MB). */
 export const MAX_VIDEO_BYTES = 1024 * 1024 * 1024; // 1 GB

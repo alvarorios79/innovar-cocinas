@@ -9,7 +9,7 @@ import { TRPCError } from "@trpc/server";
 import { and, eq, gte } from "drizzle-orm";
 import { protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
-import { portfolioStars, projects, projectVideos, socialPublications } from "../../drizzle/schema";
+import { portfolioHidden, portfolioStars, projects, projectVideos, socialPublications } from "../../drizzle/schema";
 import { canEditPortfolio, canViewPortfolio } from "@shared/portfolio";
 import {
   FALLBACK_POST_TYPE, SOCIAL_NETWORK_KEYS, SOCIAL_POST_TYPE_KEYS, WEEKLY_PLAN,
@@ -34,6 +34,7 @@ function summary(p: PortfolioProject) {
   const { available, published } = postStatusOf(p);
   return {
     id: p.id, name: p.name, clientName: p.clientName, workType: p.workType, status: p.status, closed: p.closed,
+    delivered: p.delivered, hidden: p.hidden,
     deliveredAt: p.deliveredAt, city: p.city, woodColor: p.woodColor, countertop: p.countertop,
     cover: coverOf(p), counts: countsOf(p), available, published,
   };
@@ -46,7 +47,7 @@ export const portfolioRouter = router({
   list: protectedProcedure.query(async ({ ctx }) => {
     assertView(ctx.user.role);
     const d = await database();
-    return (await loadPortfolio(d)).map(summary);
+    return (await loadPortfolio(d, { includeEmpty: true, includeHidden: true })).map(summary);
   }),
 
   get: protectedProcedure
@@ -54,8 +55,8 @@ export const portfolioRouter = router({
     .query(async ({ ctx, input }) => {
       assertView(ctx.user.role);
       const d = await database();
-      const [p] = await loadPortfolio(d, { projectIds: [input.projectId] });
-      if (!p) throw new TRPCError({ code: "NOT_FOUND", message: "Este proyecto aún no tiene fotos para el portafolio" });
+      const [p] = await loadPortfolio(d, { projectIds: [input.projectId], includeEmpty: true, includeHidden: true });
+      if (!p) throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
       return { ...p, ...postStatusOf(p), cover: coverOf(p), counts: countsOf(p) };
     }),
 
@@ -65,7 +66,7 @@ export const portfolioRouter = router({
     .mutation(async ({ ctx, input }) => {
       assertEdit(ctx.user.role);
       const d = await database();
-      const [p] = await loadPortfolio(d, { projectIds: [input.projectId] });
+      const [p] = await loadPortfolio(d, { projectIds: [input.projectId], includeHidden: true });
       const key = `${input.source === "levantamiento" ? "lev" : "foto"}-${input.mediaId}`;
       const media = p && Object.values(p.media).flat().find((m) => m.key === key);
       if (!media) throw new TRPCError({ code: "NOT_FOUND", message: "Foto no encontrada en este proyecto" });
@@ -88,6 +89,23 @@ export const portfolioRouter = router({
       const d = await database();
       await d.update(projectVideos).set({ deletedAt: new Date().toISOString() }).where(eq(projectVideos.id, input.id));
       return { success: true };
+    }),
+
+  /**
+   * Quitar / restaurar la galería de un proyecto del Portafolio (para dejar solo los más bonitos).
+   * No borra ninguna foto ni video: siguen guardados en el proyecto.
+   */
+  setHidden: protectedProcedure
+    .input(z.object({ projectId: z.number(), hidden: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      assertEdit(ctx.user.role);
+      const d = await database();
+      if (input.hidden) {
+        await d.insert(portfolioHidden).values({ projectId: input.projectId, hiddenBy: ctx.user.id }).onConflictDoNothing();
+      } else {
+        await d.delete(portfolioHidden).where(eq(portfolioHidden.projectId, input.projectId));
+      }
+      return { hidden: input.hidden };
     }),
 });
 

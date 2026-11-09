@@ -98,6 +98,15 @@ export async function runMigrations() {
       name: "portafolio_redes_8",
       sql: `CREATE INDEX IF NOT EXISTS "socialPublications_publishedAt_idx" ON "socialPublications" ("publishedAt")`,
     },
+    // Galerías quitadas del Portafolio (8 nov 2026)
+    {
+      name: "portafolio_eliminadas_1",
+      sql: `CREATE TABLE IF NOT EXISTS "portfolioHidden" ("id" serial PRIMARY KEY, "projectId" integer NOT NULL REFERENCES "projects"("id"), "hiddenBy" integer NOT NULL REFERENCES "users"("id"), "createdAt" timestamp NOT NULL DEFAULT now())`,
+    },
+    {
+      name: "portafolio_eliminadas_2",
+      sql: `CREATE UNIQUE INDEX IF NOT EXISTS "portfolioHidden_projectId_uq" ON "portfolioHidden" ("projectId")`,
+    },
   ];
 
   for (const m of migrations) {

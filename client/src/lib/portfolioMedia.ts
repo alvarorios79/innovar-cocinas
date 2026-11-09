@@ -75,3 +75,37 @@ export async function saveOrShare(blob: Blob, fileName: string, preferShare = fa
   setTimeout(() => URL.revokeObjectURL(a.href), 4000);
   return "downloaded";
 }
+
+/**
+ * Reduce la foto antes de subirla (máx. 2400 px, JPEG): una foto del celular de 4–8 MB queda en ~0,5–1 MB
+ * y se ve igual de bien en redes. Si el navegador no la puede abrir (p. ej. HEIC en Chrome), se sube tal cual.
+ */
+export async function shrinkImage(file: File, maxSide = 2400): Promise<Blob> {
+  try {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(bitmap.width * scale);
+    canvas.height = Math.round(bitmap.height * scale);
+    canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    bitmap.close?.();
+    const blob: Blob | null = await new Promise((r) => canvas.toBlob(r, "image/jpeg", 0.88));
+    return blob || file;
+  } catch {
+    return file;
+  }
+}
+
+/** Sube una foto a un bloque del portafolio (Antes, Diseño, Instalación o Después). */
+export async function uploadPortfolioPhoto(projectId: number, section: string, file: File): Promise<{ id: number; url: string }> {
+  const body = await shrinkImage(file);
+  const res = await fetch(`/api/portfolio/photos?projectId=${projectId}&section=${section}`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": body.type || file.type || "image/jpeg" },
+    body,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || "No se pudo subir la foto");
+  return data;
+}

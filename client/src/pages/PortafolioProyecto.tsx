@@ -3,7 +3,7 @@
  * Estrellas ⭐ = "de las buenas": portada del proyecto y primeras en las publicaciones de redes.
  */
 import { useRef, useState } from "react";
-import { Link, useRoute } from "wouter";
+import { Link, useLocation, useRoute } from "wouter";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -14,9 +14,9 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { SocialPostComposer } from "@/components/SocialPostComposer";
 import { confirmAction } from "@/lib/confirm";
 import { formatDate } from "@/lib/format";
-import { downloadMediaUrl, slug, uploadProjectVideo } from "@/lib/portfolioMedia";
+import { downloadMediaUrl, slug, uploadPortfolioPhoto, uploadProjectVideo } from "@/lib/portfolioMedia";
 import {
-  ChevronLeft, ChevronRight, Download, ExternalLink, Film, ImageIcon, Loader2, Megaphone, Star, Trash2, Upload,
+  ChevronLeft, ChevronRight, Download, ExternalLink, Film, ImageIcon, ImagePlus, Loader2, Megaphone, RotateCcw, Star, Trash2, Upload,
 } from "lucide-react";
 import { MAX_VIDEO_BYTES, PORTFOLIO_SECTIONS, canEditPortfolio, formatBytes, workTypeLabel, type PortfolioSection } from "@shared/portfolio";
 import { SOCIAL_NETWORKS, SOCIAL_POST_TYPES, type SocialNetwork, type SocialPostType } from "@shared/socialPosts";
@@ -25,10 +25,10 @@ import { parseWoodColors, woodColorRows } from "@shared/primaderaCatalog";
 type Media = { key: string; source: "foto" | "levantamiento"; id: number; url: string; folder: string; createdAt: string; starred: boolean };
 
 const EMPTY_HINT: Record<PortfolioSection, string> = {
-  antes: "Sin fotos del antes. Recuérdale al medidor tomar fotos del espacio vacío en el levantamiento.",
+  antes: "Sin fotos del antes. Si las tienes en el celular, súbelas con \"Subir fotos\". Recuérdale al medidor tomarlas en el levantamiento.",
   diseno: "Sin modelado ni renders.",
   instalacion: "Sin fotos de la instalación.",
-  despues: "Sin fotos finales. El taller las sube al terminar (carpeta Entrega → Fotos finales).",
+  despues: "Sin fotos finales. Súbelas aquí o el taller las sube al terminar (Entrega → Fotos finales).",
 };
 
 export default function PortafolioProyecto() {
@@ -43,6 +43,10 @@ export default function PortafolioProyecto() {
   const [composer, setComposer] = useState<{ open: boolean; type?: SocialPostType }>({ open: false });
   const [upload, setUpload] = useState<{ name: string; pct: number } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const photoRef = useRef<HTMLInputElement>(null);
+  const [photoSection, setPhotoSection] = useState<PortfolioSection | null>(null);
+  const [photoUpload, setPhotoUpload] = useState<{ section: PortfolioSection; done: number; total: number } | null>(null);
+  const [, navigate] = useLocation();
 
   const refresh = () => {
     utils.portfolio.get.invalidate({ projectId });
@@ -58,6 +62,56 @@ export default function PortafolioProyecto() {
     onSuccess: () => { refresh(); toast.success("Video quitado del portafolio"); },
     onError: (e) => toast.error(e.message),
   });
+
+  const hideMut = trpc.portfolio.setHidden.useMutation({
+    onSuccess: (r) => {
+      refresh();
+      if (r.hidden) {
+        toast.success("Galería quitada del portafolio. Puedes restaurarla desde \"Eliminadas\".");
+        navigate("/portafolio");
+      } else {
+        toast.success("Galería restaurada");
+      }
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const askHide = async () => {
+    const ok = await confirmAction({
+      title: "¿Eliminar esta galería del portafolio?",
+      description: "Deja de aparecer en el Portafolio y en Redes. Las fotos y videos NO se borran: siguen guardados en el proyecto y puedes restaurar la galería desde \"Eliminadas\".",
+      confirmText: "Eliminar galería",
+      destructive: true,
+    });
+    if (ok) hideMut.mutate({ projectId, hidden: true });
+  };
+
+  const pickPhotos = (section: PortfolioSection) => {
+    setPhotoSection(section);
+    photoRef.current?.click();
+  };
+
+  const onPickPhotos = async (files: FileList | null) => {
+    const section = photoSection;
+    if (!files?.length || !section) return;
+    const list = Array.from(files).filter((f) => f.type.startsWith("image/") || /\.(heic|heif)$/i.test(f.name));
+    let ok = 0;
+    setPhotoUpload({ section, done: 0, total: list.length });
+    for (let i = 0; i < list.length; i++) {
+      const file = list[i];
+      try {
+        await uploadPortfolioPhoto(projectId, section, file);
+        ok++;
+      } catch (e: any) {
+        toast.error(`${file.name}: ${e.message}`);
+      }
+      setPhotoUpload({ section, done: i + 1, total: list.length });
+    }
+    setPhotoUpload(null);
+    if (photoRef.current) photoRef.current.value = "";
+    if (ok) toast.success(ok === 1 ? "Foto subida" : `${ok} fotos subidas`);
+    refresh();
+  };
 
   const toggleStar = (m: Media) => {
     if (!canEdit) return;
@@ -94,7 +148,7 @@ export default function PortafolioProyecto() {
     );
   }
 
-  const woodRows = woodColorRows(parseWoodColors(data.woodColor));
+  const woodRows = data.woodColor ? woodColorRows(parseWoodColors(data.woodColor)) : [];
   const published = data.publications;
 
   return (
@@ -115,10 +169,34 @@ export default function PortafolioProyecto() {
               </Button>
             )}
             <Link href={`/projects/${data.id}`}><Button variant="ghost" className="gap-1.5"><ExternalLink className="h-4 w-4" />Proyecto</Button></Link>
+            {canEdit && !data.hidden && (
+              <Button variant="ghost" className="gap-1.5 text-destructive hover:text-destructive" onClick={askHide} disabled={hideMut.isPending}>
+                <Trash2 className="h-4 w-4" />Eliminar galería
+              </Button>
+            )}
           </div>
         }
       />
       <input ref={fileRef} type="file" accept="video/*" multiple className="hidden" onChange={(e) => onPickVideos(e.target.files)} />
+      <input ref={photoRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => onPickPhotos(e.target.files)} />
+
+      {data.hidden && (
+        <div className="mb-4 rounded-xl border border-warning/50 bg-warning/10 p-3 flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm">Esta galería está <b>eliminada del portafolio</b>: no aparece en el Portafolio ni en Redes.</p>
+          {canEdit && (
+            <Button size="sm" variant="outline" className="gap-1.5" disabled={hideMut.isPending} onClick={() => hideMut.mutate({ projectId, hidden: false })}>
+              <RotateCcw className="h-4 w-4" />Restaurar
+            </Button>
+          )}
+        </div>
+      )}
+
+      {photoUpload && (
+        <div className="mb-4 rounded-xl border border-primary/40 bg-primary/5 p-3 space-y-2">
+          <p className="text-sm">Subiendo fotos a <b>{PORTFOLIO_SECTIONS.find((x) => x.key === photoUpload.section)?.label}</b>… {photoUpload.done} de {photoUpload.total}</p>
+          <Progress value={(photoUpload.done / Math.max(1, photoUpload.total)) * 100} />
+        </div>
+      )}
 
       {upload && (
         <div className="mb-4 rounded-xl border border-primary/40 bg-primary/5 p-3 space-y-2">
@@ -160,9 +238,16 @@ export default function PortafolioProyecto() {
           const videos = s.key === "despues" ? data.videos : [];
           return (
             <section key={s.key}>
-              <div className="flex items-baseline gap-2 mb-2">
-                <h2 className="text-base font-semibold">{s.label}</h2>
-                <span className="text-xs text-muted-foreground">{s.hint} · {list.length} foto{list.length === 1 ? "" : "s"}{videos.length ? ` · ${videos.length} video${videos.length === 1 ? "" : "s"}` : ""}</span>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-baseline gap-2 min-w-0 flex-1 flex-wrap">
+                  <h2 className="text-base font-semibold">{s.label}</h2>
+                  <span className="text-xs text-muted-foreground">{s.hint} · {list.length} foto{list.length === 1 ? "" : "s"}{videos.length ? ` · ${videos.length} video${videos.length === 1 ? "" : "s"}` : ""}</span>
+                </div>
+                {canEdit && (
+                  <Button size="sm" variant="outline" className="h-8 gap-1.5 shrink-0" disabled={!!photoUpload} onClick={() => pickPhotos(s.key)}>
+                    <ImagePlus className="h-4 w-4" />Subir fotos
+                  </Button>
+                )}
               </div>
 
               {videos.length > 0 && (

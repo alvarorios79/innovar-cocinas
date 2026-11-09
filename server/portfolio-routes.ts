@@ -5,6 +5,11 @@
  *   Sube un video (el cuerpo es el archivo tal cual). Se va pasando al almacenamiento mientras llega,
  *   sin cargarlo completo en memoria. Solo super_admin, admin y comercial.
  *
+ * POST /api/portfolio/photos?projectId=N&section=antes|diseno|instalacion|despues
+ *   Sube una foto a un bloque del portafolio (ya reducida en el navegador). Queda guardada en la
+ *   carpeta del proyecto que corresponde (Fotos iniciales, Renders, Instalación, Fotos finales),
+ *   SIN cambiar la etapa del proyecto. Solo super_admin, admin y comercial.
+ *
  * GET /api/portfolio/media?u=<url>[&download=1&name=archivo]
  *   Entrega una foto o video guardado en Firebase desde el mismo dominio del CRM. Hace falta para
  *   que el navegador pueda armar las imágenes de redes (el lienzo no deja usar fotos de otro sitio)
@@ -16,9 +21,11 @@ import { Readable, Transform } from "stream";
 import { eq } from "drizzle-orm";
 import { sdk } from "./_core/sdk";
 import { getDb } from "./db";
-import { projects, projectVideos } from "../drizzle/schema";
-import { storagePutStream } from "./storage";
-import { MAX_VIDEO_BYTES, canEditPortfolio, canViewPortfolio } from "@shared/portfolio";
+import { projectPhotos, projects, projectVideos } from "../drizzle/schema";
+import { storagePut, storagePutStream } from "./storage";
+import {
+  MAX_PHOTO_BYTES, MAX_VIDEO_BYTES, SECTION_UPLOAD_TARGET, canEditPortfolio, canViewPortfolio, type PortfolioSection,
+} from "@shared/portfolio";
 
 const ALLOWED_MEDIA_HOSTS = ["firebasestorage.googleapis.com", "storage.googleapis.com"];
 
@@ -47,7 +54,54 @@ function byteLimit(max: number) {
   return { stream: t, size: () => total };
 }
 
+const PHOTO_EXT: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/heic": "heic", "image/heif": "heif" };
+
+async function readBody(req: Request, max: number): Promise<Buffer> {
+  const chunks: Buffer[] = [];
+  let total = 0;
+  for await (const c of req) {
+    total += (c as Buffer).length;
+    if (total > max) throw new Error("PHOTO_TOO_LARGE");
+    chunks.push(c as Buffer);
+  }
+  return Buffer.concat(chunks);
+}
+
 export function registerPortfolioRoutes(app: Express) {
+  app.post("/api/portfolio/photos", async (req: Request, res: Response) => {
+    const user: any = await userOf(req);
+    if (!user) return res.status(401).json({ error: "Inicia sesión de nuevo" });
+    if (!canEditPortfolio(user.role)) return res.status(403).json({ error: "No tienes permisos para subir fotos al portafolio" });
+
+    const projectId = Number(req.query.projectId);
+    const section = String(req.query.section || "") as PortfolioSection;
+    const target = SECTION_UPLOAD_TARGET[section];
+    const contentType = String(req.headers["content-type"] || "").split(";")[0].trim().toLowerCase();
+    if (!projectId || !target) return res.status(400).json({ error: "Falta el proyecto o el bloque" });
+    if (!contentType.startsWith("image/")) return res.status(400).json({ error: "El archivo no es una foto" });
+
+    const db = await getDb();
+    if (!db) return res.status(500).json({ error: "Base de datos no disponible" });
+    const [proj] = await db.select({ id: projects.id }).from(projects).where(eq(projects.id, projectId));
+    if (!proj) return res.status(404).json({ error: "Proyecto no encontrado" });
+
+    try {
+      const body = await readBody(req, MAX_PHOTO_BYTES);
+      if (!body.length) return res.status(400).json({ error: "La foto llegó vacía" });
+      const ext = PHOTO_EXT[contentType] || "jpg";
+      const key = `projects/${projectId}/portafolio/${section}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { url } = await storagePut(key, body, contentType);
+      const [row] = await db.insert(projectPhotos).values({
+        projectId, photoUrl: url, uploadedBy: user.id, description: "Subida desde el Portafolio",
+        stage: target.stage, category: target.category, subcategory: target.subcategory,
+      } as any).returning({ id: projectPhotos.id });
+      return res.json({ id: row.id, url });
+    } catch (err: any) {
+      if (err?.message === "PHOTO_TOO_LARGE") return res.status(413).json({ error: "La foto pesa demasiado" });
+      console.error("[Portafolio] Error subiendo foto:", err);
+      return res.status(500).json({ error: "No se pudo subir la foto. Intenta de nuevo." });
+    }
+  });
   app.post("/api/portfolio/videos", async (req: Request, res: Response) => {
     const user: any = await userOf(req);
     if (!user) return res.status(401).json({ error: "Inicia sesión de nuevo" });

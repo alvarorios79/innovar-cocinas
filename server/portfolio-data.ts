@@ -3,9 +3,9 @@
  * (Antes · Diseño · Instalación · Después), los videos, las estrellas, los materiales
  * y lo ya publicado en redes. Lo usan los routers `portfolio` y `social`.
  */
-import { and, desc, eq, inArray, isNull, or, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, or } from "drizzle-orm";
 import {
-  clients, portfolioStars, projectMaterials, projectPhotos, projects, projectVideos, quotations,
+  clients, portfolioHidden, portfolioStars, projectMaterials, projectPhotos, projects, projectVideos, quotations,
   socialPublications, technicalVisitPhotos, technicalVisits,
 } from "../drizzle/schema";
 import {
@@ -36,6 +36,8 @@ export type PortfolioProject = {
   workType: string;
   status: string;
   closed: boolean;
+  delivered: boolean;               // entregado, cerrado o archivado
+  hidden: boolean;                  // galería quitada del portafolio (se puede restaurar)
   deliveredAt: string | null;
   city: string | null;
   woodColor: string | null;
@@ -58,19 +60,17 @@ const FOLDER_LABEL: Record<string, string> = {
 const byDate = (a: { createdAt: string }, b: { createdAt: string }) => a.createdAt.localeCompare(b.createdAt);
 
 /**
- * Proyectos del portafolio: entregados o cerrados (también archivados) con al menos una foto útil o video.
- * `projectIds` limita la consulta (detalle de un proyecto).
+ * Proyectos del portafolio.
+ * - Por defecto: los que tienen al menos una foto útil o video y no se quitaron del portafolio (Redes, avisos).
+ * - `includeEmpty`: también los que no tienen fotos (para alimentarlos desde el Portafolio).
+ * - `includeHidden`: también las galerías quitadas (para poder restaurarlas).
+ * - `projectIds` limita la consulta (detalle de un proyecto).
  */
-export async function loadPortfolio(db: any, opts: { projectIds?: number[] } = {}): Promise<PortfolioProject[]> {
-  const base = [
-    isNull(projects.deletedAt),
-    or(
-      eq(projects.status, "entregado"),
-      sql`${projects.accountingClosureId} is not null`,
-      eq(projects.isArchived, 1),
-      sql`${projects.deliveredAt} is not null`,
-    ),
-  ];
+export async function loadPortfolio(
+  db: any,
+  opts: { projectIds?: number[]; includeEmpty?: boolean; includeHidden?: boolean } = {},
+): Promise<PortfolioProject[]> {
+  const base: any[] = [isNull(projects.deletedAt)];
   if (opts.projectIds?.length) base.push(inArray(projects.id, opts.projectIds));
 
   const rows = await db
@@ -157,6 +157,9 @@ export async function loadPortfolio(db: any, opts: { projectIds?: number[] } = {
     .where(and(inArray(projectVideos.projectId, ids), isNull(projectVideos.deletedAt)))
     .orderBy(desc(projectVideos.createdAt));
 
+  const hiddenRows = await db.select({ projectId: portfolioHidden.projectId }).from(portfolioHidden).where(inArray(portfolioHidden.projectId, ids));
+  const hiddenSet = new Set<number>(hiddenRows.map((h: any) => h.projectId));
+
   const pubs = await db.select({ id: socialPublications.id, projectId: socialPublications.projectId, postType: socialPublications.postType, network: socialPublications.network, publishedAt: socialPublications.publishedAt })
     .from(socialPublications).where(inArray(socialPublications.projectId, ids)).orderBy(desc(socialPublications.publishedAt));
 
@@ -189,7 +192,9 @@ export async function loadPortfolio(db: any, opts: { projectIds?: number[] } = {
     const vids = (videos as any[]).filter((v) => v.projectId === r.id)
       .map((v) => ({ id: v.id, url: v.url, fileName: v.fileName, sizeBytes: v.sizeBytes ? Number(v.sizeBytes) : null, createdAt: v.createdAt }));
     const total = media.antes.length + media.diseno.length + media.instalacion.length + media.despues.length + vids.length;
-    if (!total) continue;
+    if (!total && !opts.includeEmpty) continue;
+    const hidden = hiddenSet.has(r.id);
+    if (hidden && !opts.includeHidden) continue;
 
     const visit = visitOfProject.get(r.id);
     const mat = materialOf.get(r.id);
@@ -200,6 +205,8 @@ export async function loadPortfolio(db: any, opts: { projectIds?: number[] } = {
       workType: r.workType,
       status: r.status,
       closed: !!r.accountingClosureId,
+      delivered: r.status === "entregado" || !!r.accountingClosureId || r.isArchived === 1 || !!r.deliveredAt,
+      hidden,
       deliveredAt: r.deliveredAt || null,
       city: detectCity(visit?.visitCity, visit?.clientAddress || r.clientAddress),
       woodColor: mat?.woodColor || null,

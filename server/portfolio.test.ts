@@ -201,4 +201,31 @@ describe("Portafolio y Redes (servidor)", () => {
     await admin.social.unmarkPublished({ id: r1.id });
     await expect(caller({ id: adminId, role: "disenador" }).social.markPublished({ projectId, postType: "terminado", network: "tiktok" })).rejects.toThrow();
   });
+
+  it("lista también los proyectos sin fotos (para alimentarlos)", async () => {
+    const db = await getDb();
+    const [client] = await db!.insert(clients).values({ name: "Cliente sin fotos", whatsappPhone: "3000000002" } as any).returning({ id: clients.id });
+    const [p] = await db!.insert(projects).values({ clientId: client.id, name: "Closet sin fotos", workType: "closet", status: "corte", createdBy: adminId } as any).returning({ id: projects.id });
+    const admin = caller({ id: adminId, role: "admin" });
+    const item = (await admin.portfolio.list()).find((x) => x.id === p.id)!;
+    expect(item).toBeTruthy();
+    expect(item.delivered).toBe(false);
+    expect(item.counts.despues).toBe(0);
+    expect((await admin.portfolio.get({ projectId: p.id })).media.antes).toEqual([]);
+    // Redes no lo propone (no tiene con qué armar publicación)
+    expect((await admin.social.overview()).tray.find((t) => t.id === p.id)).toBeUndefined();
+  });
+
+  it("eliminar galería la quita de Redes sin borrar fotos y se puede restaurar", async () => {
+    const admin = caller({ id: adminId, role: "admin" });
+    const fotosAntes = (await admin.portfolio.get({ projectId })).counts;
+    await admin.portfolio.setHidden({ projectId, hidden: true });
+    const item = (await admin.portfolio.list()).find((x) => x.id === projectId)!;
+    expect(item.hidden).toBe(true);
+    expect((await admin.social.overview()).tray.find((t) => t.id === projectId)).toBeUndefined();
+    expect((await admin.portfolio.get({ projectId })).counts).toEqual(fotosAntes);
+    await expect(caller({ id: adminId, role: "disenador" }).portfolio.setHidden({ projectId, hidden: false })).rejects.toThrow();
+    await admin.portfolio.setHidden({ projectId, hidden: false });
+    expect((await admin.portfolio.list()).find((x) => x.id === projectId)!.hidden).toBe(false);
+  });
 });

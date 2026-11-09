@@ -10,6 +10,7 @@
     "check": "tsc --noEmit",
     "format": "prettier --write .",
     "test": "vitest run",
+    "db:limpiar-pruebas": "tsx scripts/limpiar-base-pruebas.ts",
     "db:push": "drizzle-kit push"
   },
   "dependencies": {

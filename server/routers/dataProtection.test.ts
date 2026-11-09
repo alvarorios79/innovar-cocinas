@@ -26,41 +26,34 @@ describe("Data Protection System - Soft Delete & Audit Logging", () => {
     if (!database) throw new Error("Database not available");
 
     // Create test user
-    const userResult = await database.insert(users).values({
-      email: "dataprotection-test@example.com",
+    const [u] = await database.insert(users).values({
+      email: `dataprotection-${Date.now()}@example.com`,
       name: "Data Protection Test User",
       role: "super_admin",
-      openId: "test-openid-dp",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-    testUserId = (userResult as any)[0]?.insertId || 1;
+      openId: `test-openid-dp-${Date.now()}`,
+    } as any).returning({ id: users.id });
+    testUserId = u.id;
 
     // Create test client
-    const clientResult = await database.insert(clients).values({
+    const [c] = await database.insert(clients).values({
       userId: testUserId,
       name: "Test Client",
       email: "client@test.com",
       whatsappPhone: "+573001234567",
-      createdAt: new Date(),
-      updatedAt: new Date(),
       dataOrigin: "manual",
-    });
-    testClientId = (clientResult as any)[0]?.insertId || 1;
+    } as any).returning({ id: clients.id });
+    testClientId = c.id;
 
     // Create test project
-    const projectResult = await database.insert(projects).values({
+    const [p] = await database.insert(projects).values({
       clientId: testClientId,
-      quotationId: 1,
       name: "Test Project",
       workType: "cocina",
       status: "contacto" as any,
       createdBy: testUserId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
       dataOrigin: "manual",
-    });
-    testProjectId = (projectResult as any)[0]?.insertId || 1;
+    } as any).returning({ id: projects.id });
+    testProjectId = p.id;
   });
 
   afterAll(async () => {

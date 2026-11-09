@@ -7,10 +7,10 @@ vi.mock("./push-notifications", () => ({
   sendPushToUser: vi.fn(async () => ({ sent: 0, failed: 0, devices: 0 })),
 }));
 
-import { and, eq, like } from "drizzle-orm";
+import { and, eq, like, inArray } from "drizzle-orm";
 import { appRouter } from "./routers";
 import { getDb } from "./db";
-import { tasks, users, projects } from "../drizzle/schema";
+import { tasks, users, projects, clients } from "../drizzle/schema";
 
 const caller = (user: { id: number; role: string; name?: string }) =>
   appRouter.createCaller({ user: user as any, req: { ip: "test" } as any, res: {} as any } as any);
@@ -18,10 +18,15 @@ const caller = (user: { id: number; role: string; name?: string }) =>
 async function setup() {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  const [project] = await db.select({ id: projects.id }).from(projects).limit(1);
+  // Datos propios de la prueba (la base de pruebas se limpia sola al terminar)
+  const [staff] = await db.select({ id: users.id }).from(users)
+    .where(inArray(users.role, ["super_admin", "admin"])).limit(1);
   const [operario] = await db.select({ id: users.id }).from(users).where(eq(users.role, "operario")).limit(1);
-  const [admin] = await db.select({ id: users.id }).from(users).where(eq(users.role, "admin")).limit(1);
-  return { db, projectId: project.id, operarioId: operario?.id ?? admin.id, adminId: admin.id };
+  const [client] = await db.insert(clients).values({ name: "Cliente prueba avance", whatsappPhone: "3000000000" } as any).returning({ id: clients.id });
+  const [project] = await db.insert(projects).values({
+    clientId: client.id, name: "Proyecto prueba avance", workType: "cocina", status: "enchape", createdBy: staff.id,
+  } as any).returning({ id: projects.id });
+  return { db, projectId: project.id, operarioId: operario?.id ?? staff.id, adminId: staff.id };
 }
 
 const stageTasks = async (db: any, projectId: number) =>

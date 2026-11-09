@@ -1,6 +1,6 @@
-import { describe, it, expect, afterAll } from "vitest";
+import { describe, it, expect, afterAll, beforeAll } from "vitest";
 import { createProject, getDb } from "./db";
-import { projects } from "../drizzle/schema";
+import { projects, clients, users } from "../drizzle/schema";
 import { inArray } from "drizzle-orm";
 
 /**
@@ -10,7 +10,17 @@ import { inArray } from "drizzle-orm";
  */
 describe("dataOrigin Validation Rules", () => {
   const created: number[] = [];
-  const base = { clientId: 1, workType: "cocina", status: "cotizacion_enviada", createdBy: 1 } as any;
+  const base = { clientId: 0, workType: "cocina", status: "cotizacion_enviada", createdBy: 0 } as any;
+
+  // Cliente y usuario propios (la base de pruebas se limpia sola al terminar)
+  beforeAll(async () => {
+    const db = await getDb();
+    if (!db) throw new Error("Database not available");
+    const [u] = await db.insert(users).values({ openId: `dataorigin-${Date.now()}`, name: "Prueba dataOrigin", role: "admin" } as any).returning({ id: users.id });
+    const [c] = await db.insert(clients).values({ name: "Cliente dataOrigin", whatsappPhone: "3000000001" } as any).returning({ id: clients.id });
+    base.clientId = c.id;
+    base.createdBy = u.id;
+  });
 
   afterAll(async () => {
     const db = await getDb();

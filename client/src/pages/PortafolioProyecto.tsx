@@ -22,7 +22,7 @@ import { formatDate } from "@/lib/format";
 import { downloadMediaUrl, slug, uploadPortfolioPhoto, uploadProjectVideo } from "@/lib/portfolioMedia";
 import {
   AlertCircle, ArrowLeft, ChevronLeft, ChevronRight, Download, ExternalLink, Film, ImagePlus, Loader2, Megaphone,
-  MoreVertical, RotateCcw, Star, Trash2, Video, X,
+  ArrowRightLeft, CheckCircle2, Circle, ListChecks, MoreVertical, RotateCcw, Star, Trash2, Video, X,
 } from "lucide-react";
 import { MAX_VIDEO_BYTES, PORTFOLIO_SECTIONS, canEditPortfolio, formatBytes, workTypeLabel, type PortfolioSection } from "@shared/portfolio";
 import { SOCIAL_NETWORKS, SOCIAL_POST_TYPES, type SocialNetwork, type SocialPostType } from "@shared/socialPosts";
@@ -63,6 +63,10 @@ export default function PortafolioProyecto() {
   const { data, isLoading, error } = trpc.portfolio.get.useQuery({ projectId }, { enabled: !!projectId });
 
   const [viewer, setViewer] = useState<{ list: Media[]; index: number } | null>(null);
+  // Seleccionar varias fotos para eliminar o mover de bloque
+  const [selecting, setSelecting] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [trashOpen, setTrashOpen] = useState(false);
   const [composer, setComposer] = useState<{ open: boolean; type?: SocialPostType }>({ open: false });
   const [videoUpload, setVideoUpload] = useState<{ name: string; pct: number } | null>(null);
   const [pending, setPending] = useState<Pending[]>([]);
@@ -84,6 +88,8 @@ export default function PortafolioProyecto() {
   useEffect(() => {
     window.scrollTo({ top: 0 });
     setPending([]);
+    setSelecting(false);
+    setSelected(new Set());
   }, [projectId]);
 
   const refresh = () => {
@@ -189,6 +195,61 @@ export default function PortafolioProyecto() {
     setVideoUpload(null);
   };
 
+  const trashQuery = trpc.portfolio.trash.useQuery({ projectId }, { enabled: canEdit && !!projectId });
+  const afterChange = () => { refresh(); utils.portfolio.trash.invalidate({ projectId }); };
+  const deleteMediaMut = trpc.portfolio.deleteMedia.useMutation({
+    onSuccess: (r) => {
+      afterChange();
+      setSelected(new Set());
+      setSelecting(false);
+      toast.success(`${r.deleted === 1 ? "Foto enviada" : `${r.deleted} fotos enviadas`} a la papelera`, {
+        action: { label: "Ver papelera", onClick: () => setTrashOpen(true) },
+      });
+    },
+    onError: (e) => toast.error(e.message),
+  });
+  const moveMediaMut = trpc.portfolio.moveMedia.useMutation({
+    onSuccess: (r, v) => {
+      afterChange();
+      setSelected(new Set());
+      setSelecting(false);
+      const to = PORTFOLIO_SECTIONS.find((x) => x.key === v.section)?.label;
+      toast.success(`${r.moved === 1 ? "Foto movida" : `${r.moved} fotos movidas`} a ${to}`);
+    },
+    onError: (e) => toast.error(e.message),
+  });
+  const restoreMut = trpc.portfolio.restoreMedia.useMutation({
+    onSuccess: (r) => {
+      afterChange();
+      if (r.restored) toast.success(r.restored === 1 ? "Foto restaurada" : `${r.restored} fotos restauradas`);
+      if (r.failed) toast.error(`${r.failed} no se pudieron restaurar`);
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const allMedia = (): Media[] => (data ? (Object.values(data.media).flat() as Media[]) : []);
+  const toggleSelect = (key: string) =>
+    setSelected((s) => { const n = new Set(s); n.has(key) ? n.delete(key) : n.add(key); return n; });
+
+  const askDelete = async (items: Media[]) => {
+    if (!items.length) return;
+    const ok = await confirmAction({
+      title: items.length === 1 ? "¿Eliminar esta foto?" : `¿Eliminar ${items.length} fotos?`,
+      description: "Se quitan del portafolio y del proyecto. Quedan 30 días en la papelera (menú ⋮ → Papelera), desde donde se pueden restaurar.",
+      confirmText: items.length === 1 ? "Eliminar foto" : `Eliminar ${items.length} fotos`,
+      destructive: true,
+    });
+    if (!ok) return;
+    setViewer(null);
+    deleteMediaMut.mutate({ projectId, items: items.map((m) => ({ source: m.source, id: m.id })) });
+  };
+
+  const moveSelected = (section: PortfolioSection) => {
+    const fotos = allMedia().filter((m) => selected.has(m.key) && m.source === "foto");
+    if (!fotos.length) { toast.error("Las fotos del levantamiento no se pueden mover"); return; }
+    moveMediaMut.mutate({ projectId, ids: fotos.map((m) => m.id), section });
+  };
+
   const goTo = (section: PortfolioSection) => {
     const el = document.getElementById(`bloque-${section}`);
     if (!el) return;
@@ -212,7 +273,7 @@ export default function PortafolioProyecto() {
     (data.media[k] as Media[]).length + (k === "despues" ? data.videos.length : 0) + pending.filter((p) => p.section === k).length;
 
   return (
-    <div className="pb-28 md:pb-8">
+    <div className={selecting ? "pb-48 md:pb-28" : "pb-28 md:pb-8"}>
 
       {/* Encabezado compacto */}
       <div className="flex items-start gap-2 mb-3">
@@ -239,6 +300,12 @@ export default function PortafolioProyecto() {
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => navigate(`/projects/${data.id}`)}><ExternalLink className="h-4 w-4 mr-2" />Abrir el proyecto</DropdownMenuItem>
             {canEdit && <DropdownMenuItem onClick={() => goTo("despues")}><Video className="h-4 w-4 mr-2" />Subir video</DropdownMenuItem>}
+            {canEdit && <DropdownMenuItem onClick={() => { setSelecting(true); setSelected(new Set()); }}><ListChecks className="h-4 w-4 mr-2" />Seleccionar fotos</DropdownMenuItem>}
+            {canEdit && (
+              <DropdownMenuItem onClick={() => setTrashOpen(true)}>
+                <Trash2 className="h-4 w-4 mr-2" />Papelera{trashQuery.data?.length ? ` (${trashQuery.data.length})` : ""}
+              </DropdownMenuItem>
+            )}
             {canEdit && (
               <>
                 <DropdownMenuSeparator />
@@ -310,7 +377,21 @@ export default function PortafolioProyecto() {
             );
           })}
         </div>
-        {canEdit && <p className="hidden md:block text-[11px] text-muted-foreground mt-1.5">Toca la ⭐ de las mejores fotos: serán la portada y las primeras al crear publicaciones.</p>}
+        {canEdit && (
+          <div className="flex items-center justify-between gap-2 mt-1.5">
+            <p className="text-[11px] text-muted-foreground truncate">
+              {selecting ? "Toca las fotos que quieres eliminar o mover" : <><span className="md:hidden">⭐ = las mejores fotos</span><span className="hidden md:inline">Toca la ⭐ de las mejores fotos: serán la portada y las primeras al crear publicaciones.</span></>}
+            </p>
+            <Button
+              size="sm"
+              variant={selecting ? "default" : "outline"}
+              className="h-7 px-2.5 text-xs gap-1 shrink-0"
+              onClick={() => { setSelecting(!selecting); setSelected(new Set()); }}
+            >
+              {selecting ? <><X className="h-3.5 w-3.5" />Listo</> : <><ListChecks className="h-3.5 w-3.5" />Seleccionar</>}
+            </Button>
+          </div>
+        )}
       </div>
 
       {videoUpload && (
@@ -331,7 +412,23 @@ export default function PortafolioProyecto() {
             <section key={s.key} id={`bloque-${s.key}`}>
               <div className="flex items-baseline gap-2 mb-2">
                 <h2 className="text-base font-semibold">{s.label}</h2>
-                <span className="text-xs text-muted-foreground truncate">{EMPTY_HINT[s.key]}</span>
+                <span className="text-xs text-muted-foreground truncate flex-1">{EMPTY_HINT[s.key]}</span>
+                {selecting && list.length > 0 && (() => {
+                  const all = list.every((m) => selected.has(m.key));
+                  return (
+                    <button
+                      type="button"
+                      className="text-xs text-primary font-medium shrink-0"
+                      onClick={() => setSelected((sel) => {
+                        const n = new Set(sel);
+                        list.forEach((m) => (all ? n.delete(m.key) : n.add(m.key)));
+                        return n;
+                      })}
+                    >
+                      {all ? "Quitar todas" : "Todas"}
+                    </button>
+                  );
+                })()}
               </div>
 
               {videos.length > 0 && (
@@ -363,7 +460,7 @@ export default function PortafolioProyecto() {
                 <p className="text-xs text-muted-foreground rounded-lg border border-dashed border-border p-3">Sin fotos.</p>
               ) : (
                 <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-1.5">
-                  {canEdit && (
+                  {canEdit && !selecting && (
                     <label className="relative aspect-square rounded-lg border-2 border-dashed border-primary/50 bg-primary/5 text-primary flex flex-col items-center justify-center gap-1 active:scale-95 transition cursor-pointer overflow-hidden">
                       <ImagePlus className="h-7 w-7" />
                       <span className="text-xs font-semibold">Agregar</span>
@@ -378,7 +475,7 @@ export default function PortafolioProyecto() {
                       />
                     </label>
                   )}
-                  {canEdit && s.key === "despues" && (
+                  {canEdit && !selecting && s.key === "despues" && (
                     <label className={`relative aspect-square rounded-lg border-2 border-dashed border-info/50 bg-info/5 text-info flex flex-col items-center justify-center gap-1 active:scale-95 transition overflow-hidden ${videoUpload ? "opacity-50 pointer-events-none" : "cursor-pointer"}`}>
                       <Video className="h-7 w-7" />
                       <span className="text-xs font-semibold">Agregar</span>
@@ -394,12 +491,25 @@ export default function PortafolioProyecto() {
                     </label>
                   )}
 
-                  {list.map((m, i) => (
-                    <div key={m.key} className="relative aspect-square rounded-lg overflow-hidden bg-muted">
-                      <button type="button" className="h-full w-full" onClick={() => setViewer({ list, index: i })}>
-                        <img src={m.url} alt="" loading="lazy" className="h-full w-full object-cover" />
+                  {list.map((m, i) => {
+                    const isSel = selected.has(m.key);
+                    return (
+                    <div key={m.key} className={`relative aspect-square rounded-lg overflow-hidden bg-muted ${isSel ? "ring-[3px] ring-destructive" : ""}`}>
+                      <button
+                        type="button"
+                        className="h-full w-full"
+                        onClick={() => (selecting ? toggleSelect(m.key) : setViewer({ list, index: i }))}
+                      >
+                        <img src={m.url} alt="" loading="lazy" className={`h-full w-full object-cover transition ${isSel ? "scale-90 rounded-md opacity-80" : ""}`} />
                       </button>
-                      {(canEdit || m.starred) && (
+                      {selecting && (
+                        <span className="pointer-events-none absolute top-1.5 left-1.5">
+                          {isSel
+                            ? <CheckCircle2 className="h-6 w-6 fill-destructive text-white drop-shadow" />
+                            : <Circle className="h-6 w-6 text-white drop-shadow" />}
+                        </span>
+                      )}
+                      {!selecting && (canEdit || m.starred) && (
                         <button
                           type="button"
                           onClick={() => toggleStar(m)}
@@ -412,7 +522,8 @@ export default function PortafolioProyecto() {
                         </button>
                       )}
                     </div>
-                  ))}
+                    );
+                  })}
 
                   {mine.map((p) => (
                     <div key={p.key} className="relative aspect-square rounded-lg overflow-hidden bg-muted">
@@ -490,11 +601,85 @@ export default function PortafolioProyecto() {
                     <a href={downloadMediaUrl(m.url, `innovar-${slug(data.name)}-${m.key}.jpg`)} download>
                       <Button size="sm" variant="outline" className="h-9 gap-1"><Download className="h-4 w-4" /></Button>
                     </a>
+                    {canEdit && (
+                      <Button size="sm" variant="outline" className="h-9 gap-1 text-destructive border-destructive/50" title="Eliminar foto" onClick={() => askDelete([m])}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
             );
           })()}
+        </DialogContent>
+      </Dialog>
+
+      {/* Barra de acciones al seleccionar (encima de la barra inferior del celular) */}
+      {selecting && (
+        <div className="fixed left-0 right-0 bottom-[calc(4.25rem+env(safe-area-inset-bottom))] md:bottom-6 z-40 px-3 md:px-0 md:left-auto md:right-6 md:w-[480px]">
+          <div className="rounded-2xl border border-border bg-card/95 backdrop-blur shadow-2xl p-2.5 flex items-center gap-2">
+            <span className="text-sm font-semibold px-1.5 flex-1">{selected.size} {selected.size === 1 ? "foto" : "fotos"}</span>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="outline" className="h-10 gap-1.5" disabled={!selected.size || moveMediaMut.isPending}>
+                  <ArrowRightLeft className="h-4 w-4" />Mover
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" side="top">
+                {PORTFOLIO_SECTIONS.map((x) => (
+                  <DropdownMenuItem key={x.key} onClick={() => moveSelected(x.key)}>Mover a {x.label}</DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button
+              size="sm"
+              variant="destructive"
+              className="h-10 gap-1.5"
+              disabled={!selected.size || deleteMediaMut.isPending}
+              onClick={() => askDelete(allMedia().filter((m) => selected.has(m.key)))}
+            >
+              <Trash2 className="h-4 w-4" />Eliminar
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Papelera del proyecto */}
+      <Dialog open={trashOpen} onOpenChange={setTrashOpen}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogTitle>Papelera</DialogTitle>
+          <p className="text-xs text-muted-foreground -mt-2">Fotos eliminadas de este proyecto. Se borran solas a los 30 días.</p>
+          {!trashQuery.data?.length ? (
+            <p className="text-sm text-muted-foreground py-6 text-center">La papelera está vacía.</p>
+          ) : (
+            <>
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1.5 self-start"
+                disabled={restoreMut.isPending}
+                onClick={() => restoreMut.mutate({ projectId, trashIds: trashQuery.data!.map((t) => t.id) })}
+              >
+                <RotateCcw className="h-4 w-4" />Restaurar todas ({trashQuery.data.length})
+              </Button>
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5">
+                {trashQuery.data.map((t) => (
+                  <div key={t.id} className="relative aspect-square rounded-lg overflow-hidden bg-muted">
+                    <img src={t.url} alt="" loading="lazy" className="h-full w-full object-cover opacity-70" />
+                    <span className="absolute top-1 left-1 rounded bg-black/65 text-white text-[10px] px-1">{t.daysLeft} días</span>
+                    <button
+                      type="button"
+                      disabled={restoreMut.isPending}
+                      onClick={() => restoreMut.mutate({ projectId, trashIds: [t.id] })}
+                      className="absolute bottom-0 inset-x-0 bg-black/70 text-white text-xs py-1.5 flex items-center justify-center gap-1"
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" />Restaurar
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </DialogContent>
       </Dialog>
 

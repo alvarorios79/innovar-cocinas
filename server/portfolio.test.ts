@@ -107,7 +107,7 @@ vi.mock("./push-notifications", () => ({
 }));
 import { appRouter } from "./routers";
 import { getDb } from "./db";
-import { inArray } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import {
   users, clients, projects, projectPhotos, projectMaterials, projectVideos, technicalVisits, technicalVisitPhotos,
 } from "../drizzle/schema";
@@ -227,5 +227,54 @@ describe("Portafolio y Redes (servidor)", () => {
     await expect(caller({ id: adminId, role: "disenador" }).portfolio.setHidden({ projectId, hidden: false })).rejects.toThrow();
     await admin.portfolio.setHidden({ projectId, hidden: false });
     expect((await admin.portfolio.list()).find((x) => x.id === projectId)!.hidden).toBe(false);
+  });
+
+  it("eliminar varias fotos → papelera; se quitan del proyecto y se restauran", async () => {
+    const admin = caller({ id: adminId, role: "admin" });
+    const p = await admin.portfolio.get({ projectId });
+    const lev = p.media.antes.find((m) => m.source === "levantamiento")!;
+    const fin = p.media.despues[0];
+    await admin.portfolio.toggleStar({ projectId, source: fin.source, mediaId: fin.id });
+
+    const r = await admin.portfolio.deleteMedia({ projectId, items: [{ source: lev.source, id: lev.id }, { source: fin.source, id: fin.id }] });
+    expect(r.deleted).toBe(2);
+    const after = await admin.portfolio.get({ projectId });
+    expect(after.media.antes.find((m) => m.key === lev.key)).toBeUndefined();
+    expect(after.media.despues.find((m) => m.key === fin.key)).toBeUndefined();
+    const db = await getDb();
+    expect((await db!.select().from(projectPhotos).where(eq(projectPhotos.id, fin.id))).length).toBe(0);
+
+    const trash = await admin.portfolio.trash({ projectId });
+    expect(trash.length).toBe(2);
+    expect(trash[0].daysLeft).toBeGreaterThan(28);
+    expect(trash.map((t) => t.url)).toContain(fin.url);
+
+    const back = await admin.portfolio.restoreMedia({ projectId, trashIds: trash.map((t) => t.id) });
+    expect(back.restored).toBe(2);
+    const restored = await admin.portfolio.get({ projectId });
+    expect(restored.media.despues.find((m) => m.key === fin.key)?.url).toBe(fin.url);
+    expect(restored.media.antes.find((m) => m.key === lev.key)).toBeTruthy();
+    expect(await admin.portfolio.trash({ projectId })).toEqual([]);
+  });
+
+  it("no deja eliminar fotos de otro proyecto ni al diseñador", async () => {
+    const admin = caller({ id: adminId, role: "admin" });
+    await expect(admin.portfolio.deleteMedia({ projectId, items: [{ source: "foto", id: 999999999 }] })).rejects.toThrow();
+    const p = await admin.portfolio.get({ projectId });
+    await expect(caller({ id: adminId, role: "disenador" }).portfolio.deleteMedia({ projectId, items: [{ source: "foto", id: p.media.despues[0].id }] })).rejects.toThrow();
+  });
+
+  it("mover fotos a otro bloque", async () => {
+    const admin = caller({ id: adminId, role: "admin" });
+    const p = await admin.portfolio.get({ projectId });
+    const inst = p.media.instalacion[0];
+    expect((await admin.portfolio.moveMedia({ projectId, ids: [inst.id], section: "despues" })).moved).toBe(1);
+    const after = await admin.portfolio.get({ projectId });
+    expect(after.media.instalacion.length).toBe(0);
+    expect(after.media.despues.find((m) => m.id === inst.id)).toBeTruthy();
+    // no cambia la etapa del proyecto
+    const db = await getDb();
+    const [proj] = await db!.select({ status: projects.status }).from(projects).where(eq(projects.id, projectId));
+    expect(proj.status).toBe("entregado");
   });
 });

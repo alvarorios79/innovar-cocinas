@@ -52,6 +52,8 @@ const ARM_DELAY_MS = 600;
 export function ConfirmHost() {
   const [pending, setPending] = useState<Pending | null>(null);
   const [armed, setArmed] = useState(false);
+  // Lo último mostrado: se sigue viendo mientras el cuadro se cierra (sin parpadear vacío)
+  const [shown, setShown] = useState<Pending | null>(null);
   useEffect(() => {
     show = setPending;
     return () => { show = null; };
@@ -59,6 +61,7 @@ export function ConfirmHost() {
 
   useEffect(() => {
     if (!pending) return;
+    setShown(pending);
     setArmed(false);
     const t = setTimeout(() => setArmed(true), ARM_DELAY_MS);
     return () => clearTimeout(t);
@@ -69,16 +72,17 @@ export function ConfirmHost() {
     setPending(null);
   };
 
-  const destructive = pending?.destructive;
-  const confirmText = pending?.confirmText || (destructive ? (/cancelar/i.test(pending?.title || "") ? "Sí, cancelar" : "Sí, eliminar") : "Aceptar");
+  const view = pending || shown;
+  const destructive = view?.destructive;
+  const confirmText = view?.confirmText || (destructive ? (/cancelar/i.test(view?.title || "") ? "Sí, cancelar" : "Sí, eliminar") : "Aceptar");
 
   return (
     <AlertDialog open={!!pending} onOpenChange={o => { if (!o) close(false); }}>
       <AlertDialogContent className="max-w-md">
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-lg leading-snug">{pending?.title}</AlertDialogTitle>
-          {pending?.description && (
-            <AlertDialogDescription className="whitespace-pre-line text-sm">{pending.description}</AlertDialogDescription>
+          <AlertDialogTitle className="text-lg leading-snug">{view?.title}</AlertDialogTitle>
+          {view?.description && (
+            <AlertDialogDescription className="whitespace-pre-line text-sm">{view.description}</AlertDialogDescription>
           )}
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -87,7 +91,7 @@ export function ConfirmHost() {
               if (!armed) { e.preventDefault(); return; }
               close(false);
             }}
-          >{pending?.cancelText || "No, volver"}</AlertDialogCancel>
+          >{view?.cancelText || "No, volver"}</AlertDialogCancel>
           <AlertDialogAction
             disabled={!armed}
             onClick={(e) => {

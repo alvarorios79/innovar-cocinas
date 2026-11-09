@@ -107,6 +107,15 @@ export async function runMigrations() {
       name: "portafolio_eliminadas_2",
       sql: `CREATE UNIQUE INDEX IF NOT EXISTS "portfolioHidden_projectId_uq" ON "portfolioHidden" ("projectId")`,
     },
+    // Papelera de fotos del Portafolio (9 nov 2026)
+    {
+      name: "papelera_fotos_1",
+      sql: `CREATE TABLE IF NOT EXISTS "photoTrash" ("id" serial PRIMARY KEY, "projectId" integer NOT NULL REFERENCES "projects"("id"), "source" varchar(20) NOT NULL, "originalId" integer NOT NULL, "data" json NOT NULL, "deletedBy" integer NOT NULL REFERENCES "users"("id"), "createdAt" timestamp NOT NULL DEFAULT now())`,
+    },
+    {
+      name: "papelera_fotos_2",
+      sql: `CREATE INDEX IF NOT EXISTS "photoTrash_projectId_idx" ON "photoTrash" ("projectId")`,
+    },
   ];
 
   for (const m of migrations) {

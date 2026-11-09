@@ -6,11 +6,13 @@
  */
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { and, eq, gte } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, lt } from "drizzle-orm";
 import { protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
-import { portfolioHidden, portfolioStars, projects, projectVideos, socialPublications } from "../../drizzle/schema";
-import { canEditPortfolio, canViewPortfolio } from "@shared/portfolio";
+import {
+  photoTrash, portfolioHidden, portfolioStars, projectPhotos, projects, projectVideos, socialPublications, technicalVisitPhotos,
+} from "../../drizzle/schema";
+import { SECTION_UPLOAD_TARGET, canEditPortfolio, canViewPortfolio, type PortfolioSection } from "@shared/portfolio";
 import {
   FALLBACK_POST_TYPE, SOCIAL_NETWORK_KEYS, SOCIAL_POST_TYPE_KEYS, WEEKLY_PLAN,
   bogotaWeekday, bogotaYmd, monthStartYmd, weekStartYmd, type SocialPostType,
@@ -42,6 +44,17 @@ function summary(p: PortfolioProject) {
 
 /** Fecha de la BD ("YYYY-MM-DD HH:mm:ss", UTC) → "YYYY-MM-DD" en Colombia. */
 const ymdOf = (s: string) => bogotaYmd(new Date(s.includes("T") ? s : `${s.replace(" ", "T")}Z`));
+
+/** Días que una foto eliminada se puede restaurar desde la papelera. */
+const TRASH_DAYS = 30;
+
+async function purgeOldTrash(d: any) {
+  const limit = new Date(Date.now() - TRASH_DAYS * 24 * 60 * 60 * 1000).toISOString().replace("T", " ").replace("Z", "");
+  await d.delete(photoTrash).where(lt(photoTrash.createdAt, limit));
+}
+
+const mediaItem = z.object({ source: z.enum(["foto", "levantamiento"]), id: z.number() });
+const keyOf = (source: string, id: number) => `${source === "levantamiento" ? "lev" : "foto"}-${id}`;
 
 export const portfolioRouter = router({
   list: protectedProcedure.query(async ({ ctx }) => {
@@ -106,6 +119,110 @@ export const portfolioRouter = router({
         await d.delete(portfolioHidden).where(eq(portfolioHidden.projectId, input.projectId));
       }
       return { hidden: input.hidden };
+    }),
+
+  /**
+   * Eliminar fotos (una o varias) → papelera. La fila se guarda completa en `photoTrash` y se quita de su
+   * tabla, así desaparece del portafolio Y del proyecto. El archivo no se borra: "Restaurar" la devuelve.
+   */
+  deleteMedia: protectedProcedure
+    .input(z.object({ projectId: z.number(), items: z.array(mediaItem).min(1).max(300) }))
+    .mutation(async ({ ctx, input }) => {
+      assertEdit(ctx.user.role);
+      const d = await database();
+      const [p] = await loadPortfolio(d, { projectIds: [input.projectId], includeEmpty: true, includeHidden: true });
+      if (!p) throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
+      const valid = new Set(Object.values(p.media).flat().map((m) => m.key));
+      const items = input.items.filter((it) => valid.has(keyOf(it.source, it.id)));
+      if (!items.length) throw new TRPCError({ code: "NOT_FOUND", message: "Esas fotos no están en este proyecto" });
+
+      const fotoIds = items.filter((i) => i.source === "foto").map((i) => i.id);
+      const levIds = items.filter((i) => i.source === "levantamiento").map((i) => i.id);
+      let moved = 0;
+      await d.transaction(async (tx: any) => {
+        if (fotoIds.length) {
+          const rows = await tx.select().from(projectPhotos).where(inArray(projectPhotos.id, fotoIds));
+          if (rows.length) {
+            await tx.insert(photoTrash).values(rows.map((r: any) => ({ projectId: input.projectId, source: "foto", originalId: r.id, data: r, deletedBy: ctx.user.id })));
+            await tx.delete(portfolioStars).where(and(eq(portfolioStars.source, "foto"), inArray(portfolioStars.mediaId, fotoIds)));
+            await tx.delete(projectPhotos).where(inArray(projectPhotos.id, fotoIds));
+            moved += rows.length;
+          }
+        }
+        if (levIds.length) {
+          const rows = await tx.select().from(technicalVisitPhotos).where(inArray(technicalVisitPhotos.id, levIds));
+          if (rows.length) {
+            await tx.insert(photoTrash).values(rows.map((r: any) => ({ projectId: input.projectId, source: "levantamiento", originalId: r.id, data: r, deletedBy: ctx.user.id })));
+            await tx.delete(portfolioStars).where(and(eq(portfolioStars.source, "levantamiento"), inArray(portfolioStars.mediaId, levIds)));
+            await tx.delete(technicalVisitPhotos).where(inArray(technicalVisitPhotos.id, levIds));
+            moved += rows.length;
+          }
+        }
+      });
+      await purgeOldTrash(d);
+      return { deleted: moved };
+    }),
+
+  /** Mover fotos a otro bloque (cuando se subieron donde no era). Solo fotos del proyecto, no las del levantamiento. */
+  moveMedia: protectedProcedure
+    .input(z.object({
+      projectId: z.number(),
+      ids: z.array(z.number()).min(1).max(300),
+      section: z.enum(["antes", "diseno", "instalacion", "despues"]),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      assertEdit(ctx.user.role);
+      const d = await database();
+      const t = SECTION_UPLOAD_TARGET[input.section as PortfolioSection];
+      const res = await d.update(projectPhotos)
+        .set({ stage: t.stage, category: t.category, subcategory: t.subcategory } as any)
+        .where(and(eq(projectPhotos.projectId, input.projectId), inArray(projectPhotos.id, input.ids)))
+        .returning({ id: projectPhotos.id });
+      return { moved: res.length };
+    }),
+
+  /** Papelera del proyecto (últimos 30 días). */
+  trash: protectedProcedure
+    .input(z.object({ projectId: z.number() }))
+    .query(async ({ ctx, input }) => {
+      assertEdit(ctx.user.role);
+      const d = await database();
+      await purgeOldTrash(d);
+      const rows = await d.select().from(photoTrash).where(eq(photoTrash.projectId, input.projectId)).orderBy(desc(photoTrash.createdAt));
+      return rows.map((r: any) => ({
+        id: r.id,
+        source: r.source as "foto" | "levantamiento",
+        url: (r.data?.photoUrl || r.data?.url || "") as string,
+        deletedAt: r.createdAt as string,
+        daysLeft: Math.max(0, TRASH_DAYS - Math.floor((Date.now() - new Date(`${String(r.createdAt).replace(" ", "T")}Z`).getTime()) / 86400000)),
+      }));
+    }),
+
+  /** Restaurar fotos de la papelera a su lugar original. */
+  restoreMedia: protectedProcedure
+    .input(z.object({ projectId: z.number(), trashIds: z.array(z.number()).min(1).max(300) }))
+    .mutation(async ({ ctx, input }) => {
+      assertEdit(ctx.user.role);
+      const d = await database();
+      const rows = await d.select().from(photoTrash)
+        .where(and(eq(photoTrash.projectId, input.projectId), inArray(photoTrash.id, input.trashIds)));
+      let restored = 0;
+      const failed: number[] = [];
+      for (const r of rows as any[]) {
+        try {
+          await d.transaction(async (tx: any) => {
+            const data = { ...(r.data || {}) };
+            if (r.source === "foto") await tx.insert(projectPhotos).values(data).onConflictDoNothing();
+            else await tx.insert(technicalVisitPhotos).values(data).onConflictDoNothing();
+            await tx.delete(photoTrash).where(eq(photoTrash.id, r.id));
+          });
+          restored++;
+        } catch (err) {
+          console.error("[Portafolio] No se pudo restaurar la foto de la papelera", r.id, err);
+          failed.push(r.id);
+        }
+      }
+      return { restored, failed: failed.length };
     }),
 });
 

@@ -992,6 +992,19 @@ export const portfolioHidden = pgTable("portfolioHidden", {
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 });
 
+// Papelera de fotos del Portafolio: la fila completa se guarda aquí (30 días) y se puede restaurar
+export const photoTrash = pgTable("photoTrash", {
+	id: serial('id').primaryKey(),
+	projectId: integer().notNull().references(() => projects.id),
+	source: varchar({ length: 20 }).notNull(), // foto (projectPhotos) | levantamiento (technical_visit_photos)
+	originalId: integer().notNull(),
+	data: json().notNull(),
+	deletedBy: integer().notNull().references(() => users.id),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	index("photoTrash_projectId_idx").on(table.projectId),
+]);
+
 // Registro de lo publicado en redes (para no repetir y llevar la cuenta)
 export const socialPublications = pgTable("socialPublications", {
 	id: serial('id').primaryKey(),

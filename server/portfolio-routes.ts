@@ -29,6 +29,12 @@ import {
 
 const ALLOWED_MEDIA_HOSTS = ["firebasestorage.googleapis.com", "storage.googleapis.com"];
 
+/** Responde con error y lo deja en los registros de Render (para saber por qué falló una subida). */
+function reject(res: Response, status: number, error: string, ctx: string) {
+  console.warn(`[Portafolio] ${ctx} rechazada (${status}): ${error}`);
+  return res.status(status).json({ error });
+}
+
 async function userOf(req: Request) {
   try {
     return await sdk.authenticateRequest(req);
@@ -70,24 +76,24 @@ async function readBody(req: Request, max: number): Promise<Buffer> {
 export function registerPortfolioRoutes(app: Express) {
   app.post("/api/portfolio/photos", async (req: Request, res: Response) => {
     const user: any = await userOf(req);
-    if (!user) return res.status(401).json({ error: "Inicia sesión de nuevo" });
-    if (!canEditPortfolio(user.role)) return res.status(403).json({ error: "No tienes permisos para subir fotos al portafolio" });
+    if (!user) return reject(res, 401, "Inicia sesión de nuevo", `Foto proyecto ${req.query.projectId}`);
+    if (!canEditPortfolio(user.role)) return reject(res, 403, "No tienes permisos para subir fotos al portafolio", `Foto proyecto ${req.query.projectId}`);
 
     const projectId = Number(req.query.projectId);
     const section = String(req.query.section || "") as PortfolioSection;
     const target = SECTION_UPLOAD_TARGET[section];
-    const contentType = String(req.headers["content-type"] || "").split(";")[0].trim().toLowerCase();
-    if (!projectId || !target) return res.status(400).json({ error: "Falta el proyecto o el bloque" });
-    if (!contentType.startsWith("image/")) return res.status(400).json({ error: "El archivo no es una foto" });
+    const contentType = String(req.headers["content-type"] || "").split(";")[0].trim().toLowerCase() || "image/jpeg";
+    if (!projectId || !target) return reject(res, 400, "Falta el proyecto o el bloque", `Foto proyecto ${req.query.projectId}`);
+    if (!contentType.startsWith("image/")) return reject(res, 400, "El archivo no es una foto", `Foto proyecto ${req.query.projectId}`);
 
     const db = await getDb();
-    if (!db) return res.status(500).json({ error: "Base de datos no disponible" });
+    if (!db) return reject(res, 500, "Base de datos no disponible", `Foto proyecto ${req.query.projectId}`);
     const [proj] = await db.select({ id: projects.id }).from(projects).where(eq(projects.id, projectId));
-    if (!proj) return res.status(404).json({ error: "Proyecto no encontrado" });
+    if (!proj) return reject(res, 404, "Proyecto no encontrado", `Foto proyecto ${req.query.projectId}`);
 
     try {
       const body = await readBody(req, MAX_PHOTO_BYTES);
-      if (!body.length) return res.status(400).json({ error: "La foto llegó vacía" });
+      if (!body.length) return reject(res, 400, "La foto llegó vacía", `Foto proyecto ${req.query.projectId}`);
       const ext = PHOTO_EXT[contentType] || "jpg";
       const key = `projects/${projectId}/portafolio/${section}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
       const { url } = await storagePut(key, body, contentType);
@@ -95,29 +101,30 @@ export function registerPortfolioRoutes(app: Express) {
         projectId, photoUrl: url, uploadedBy: user.id, description: "Subida desde el Portafolio",
         stage: target.stage, category: target.category, subcategory: target.subcategory,
       } as any).returning({ id: projectPhotos.id });
+      console.log(`[Portafolio] Foto subida al proyecto ${projectId} (${section}, ${Math.round(body.length / 1024)} KB, ${contentType})`);
       return res.json({ id: row.id, url });
     } catch (err: any) {
-      if (err?.message === "PHOTO_TOO_LARGE") return res.status(413).json({ error: "La foto pesa demasiado" });
+      if (err?.message === "PHOTO_TOO_LARGE") return reject(res, 413, "La foto pesa demasiado", `Foto proyecto ${req.query.projectId}`);
       console.error("[Portafolio] Error subiendo foto:", err);
-      return res.status(500).json({ error: "No se pudo subir la foto. Intenta de nuevo." });
+      return reject(res, 500, "No se pudo subir la foto. Intenta de nuevo.", `Foto proyecto ${req.query.projectId}`);
     }
   });
   app.post("/api/portfolio/videos", async (req: Request, res: Response) => {
     const user: any = await userOf(req);
-    if (!user) return res.status(401).json({ error: "Inicia sesión de nuevo" });
-    if (!canEditPortfolio(user.role)) return res.status(403).json({ error: "No tienes permisos para subir videos" });
+    if (!user) return reject(res, 401, "Inicia sesión de nuevo", `Video proyecto ${req.query.projectId}`);
+    if (!canEditPortfolio(user.role)) return reject(res, 403, "No tienes permisos para subir videos", `Video proyecto ${req.query.projectId}`);
 
     const projectId = Number(req.query.projectId);
-    const contentType = String(req.headers["content-type"] || "").split(";")[0].trim().toLowerCase();
+    const contentType = String(req.headers["content-type"] || "").split(";")[0].trim().toLowerCase() || "video/mp4";
     const declared = Number(req.headers["content-length"] || 0);
-    if (!projectId) return res.status(400).json({ error: "Falta el proyecto" });
-    if (!contentType.startsWith("video/")) return res.status(400).json({ error: "El archivo no es un video" });
-    if (declared > MAX_VIDEO_BYTES) return res.status(413).json({ error: "El video pesa más de 1 GB" });
+    if (!projectId) return reject(res, 400, "Falta el proyecto", `Video proyecto ${req.query.projectId}`);
+    if (!contentType.startsWith("video/")) return reject(res, 400, "El archivo no es un video", `Video proyecto ${req.query.projectId}`);
+    if (declared > MAX_VIDEO_BYTES) return reject(res, 413, "El video pesa más de 1 GB", `Video proyecto ${req.query.projectId}`);
 
     const db = await getDb();
-    if (!db) return res.status(500).json({ error: "Base de datos no disponible" });
+    if (!db) return reject(res, 500, "Base de datos no disponible", `Video proyecto ${req.query.projectId}`);
     const [proj] = await db.select({ id: projects.id }).from(projects).where(eq(projects.id, projectId));
-    if (!proj) return res.status(404).json({ error: "Proyecto no encontrado" });
+    if (!proj) return reject(res, 404, "Proyecto no encontrado", `Video proyecto ${req.query.projectId}`);
 
     const rawName = String(req.query.name || "video").slice(0, 120);
     const ext = VIDEO_EXT[contentType] || (rawName.split(".").pop() || "mp4").toLowerCase().replace(/[^a-z0-9]/g, "") || "mp4";
@@ -132,9 +139,9 @@ export function registerPortfolioRoutes(app: Express) {
       console.log(`[Portafolio] Video subido al proyecto ${projectId} (${Math.round(limit.size() / 1048576)} MB)`);
       return res.json({ id: row.id, url });
     } catch (err: any) {
-      if (err?.message === "VIDEO_TOO_LARGE") return res.status(413).json({ error: "El video pesa más de 1 GB" });
+      if (err?.message === "VIDEO_TOO_LARGE") return reject(res, 413, "El video pesa más de 1 GB", `Video proyecto ${req.query.projectId}`);
       console.error("[Portafolio] Error subiendo video:", err);
-      return res.status(500).json({ error: "No se pudo subir el video. Intenta de nuevo." });
+      return reject(res, 500, "No se pudo subir el video. Intenta de nuevo.", `Video proyecto ${req.query.projectId}`);
     }
   });
 

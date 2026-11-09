@@ -66,9 +66,6 @@ export default function PortafolioProyecto() {
   const [composer, setComposer] = useState<{ open: boolean; type?: SocialPostType }>({ open: false });
   const [videoUpload, setVideoUpload] = useState<{ name: string; pct: number } | null>(null);
   const [pending, setPending] = useState<Pending[]>([]);
-  const photoRef = useRef<HTMLInputElement>(null);
-  const videoRef = useRef<HTMLInputElement>(null);
-  const sectionRef = useRef<PortfolioSection>("antes");
   const touchX = useRef<number | null>(null);
 
   // Anterior / Siguiente según la lista del Portafolio
@@ -139,15 +136,16 @@ export default function PortafolioProyecto() {
     if (ok) hideMut.mutate({ projectId, hidden: true });
   };
 
-  const pickPhotos = (section: PortfolioSection) => {
-    sectionRef.current = section;
-    photoRef.current?.click();
-  };
-
-  const onPickPhotos = async (files: FileList | null) => {
-    const section = sectionRef.current;
-    const list = Array.from(files || []).filter((f) => f.type.startsWith("image/") || /\.(heic|heif)$/i.test(f.name));
-    if (photoRef.current) photoRef.current.value = "";
+  /**
+   * El campo de archivo va ENCIMA de la casilla (transparente): el dedo toca el campo real.
+   * En el iPhone (sobre todo con el CRM instalado en la pantalla de inicio) abrir la galería
+   * "por código" desde un campo escondido a veces no hace nada.
+   */
+  const onPickPhotos = async (input: HTMLInputElement, section: PortfolioSection) => {
+    const all = Array.from(input.files || []);
+    input.value = "";
+    const list = all.filter((f) => !f.type || f.type.startsWith("image/") || /\.(heic|heif|jpe?g|png|webp)$/i.test(f.name));
+    if (all.length && !list.length) toast.error("Lo que escogiste no son fotos");
     if (!list.length) return;
     const items = list.map((file, i) => ({
       file,
@@ -155,6 +153,7 @@ export default function PortafolioProyecto() {
     }));
     setPending((ps) => [...ps, ...items.map((x) => x.p)]);
     let ok = 0;
+    const failed: string[] = [];
     await runPool(items, 2, async ({ file, p }) => {
       try {
         await uploadPortfolioPhoto(projectId, section, file);
@@ -163,18 +162,20 @@ export default function PortafolioProyecto() {
         setPending((ps) => ps.filter((x) => x.key !== p.key));
         URL.revokeObjectURL(p.preview);
       } catch (e: any) {
+        failed.push(e?.message || "No se pudo subir");
         setPending((ps) => ps.map((x) => (x.key === p.key ? { ...x, status: "error", error: e.message } : x)));
       }
     });
+    if (failed.length) toast.error(`${failed.length === 1 ? "Una foto no subió" : `${failed.length} fotos no subieron`}: ${failed[0]}`, { duration: 10000 });
     if (ok) toast.success(ok === 1 ? "Foto subida" : `${ok} fotos subidas`);
     refresh();
   };
 
-  const onPickVideos = async (files: FileList | null) => {
-    const list = Array.from(files || []);
-    if (videoRef.current) videoRef.current.value = "";
+  const onPickVideos = async (input: HTMLInputElement) => {
+    const list = Array.from(input.files || []);
+    input.value = "";
     for (const file of list) {
-      if (!file.type.startsWith("video/")) { toast.error(`${file.name} no es un video`); continue; }
+      if (file.type && !file.type.startsWith("video/")) { toast.error(`${file.name} no es un video`); continue; }
       if (file.size > MAX_VIDEO_BYTES) { toast.error(`${file.name} pesa más de 1 GB`); continue; }
       setVideoUpload({ name: file.name, pct: 0 });
       try {
@@ -182,7 +183,7 @@ export default function PortafolioProyecto() {
         toast.success("Video subido");
         refresh();
       } catch (e: any) {
-        toast.error(e.message || "No se pudo subir el video");
+        toast.error(e.message || "No se pudo subir el video", { duration: 10000 });
       }
     }
     setVideoUpload(null);
@@ -212,8 +213,6 @@ export default function PortafolioProyecto() {
 
   return (
     <div className="pb-28 md:pb-8">
-      <input ref={photoRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => onPickPhotos(e.target.files)} />
-      <input ref={videoRef} type="file" accept="video/*" multiple className="hidden" onChange={(e) => onPickVideos(e.target.files)} />
 
       {/* Encabezado compacto */}
       <div className="flex items-start gap-2 mb-3">
@@ -239,7 +238,7 @@ export default function PortafolioProyecto() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => navigate(`/projects/${data.id}`)}><ExternalLink className="h-4 w-4 mr-2" />Abrir el proyecto</DropdownMenuItem>
-            {canEdit && <DropdownMenuItem onClick={() => videoRef.current?.click()}><Video className="h-4 w-4 mr-2" />Subir video</DropdownMenuItem>}
+            {canEdit && <DropdownMenuItem onClick={() => goTo("despues")}><Video className="h-4 w-4 mr-2" />Subir video</DropdownMenuItem>}
             {canEdit && (
               <>
                 <DropdownMenuSeparator />
@@ -365,27 +364,34 @@ export default function PortafolioProyecto() {
               ) : (
                 <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-1.5">
                   {canEdit && (
-                    <button
-                      type="button"
-                      onClick={() => pickPhotos(s.key)}
-                      className="aspect-square rounded-lg border-2 border-dashed border-primary/50 bg-primary/5 text-primary flex flex-col items-center justify-center gap-1 active:scale-95 transition"
-                    >
+                    <label className="relative aspect-square rounded-lg border-2 border-dashed border-primary/50 bg-primary/5 text-primary flex flex-col items-center justify-center gap-1 active:scale-95 transition cursor-pointer overflow-hidden">
                       <ImagePlus className="h-7 w-7" />
                       <span className="text-xs font-semibold">Agregar</span>
                       <span className="text-[10px] text-primary/70 leading-none">fotos</span>
-                    </button>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        aria-label={`Agregar fotos a ${s.label}`}
+                        className="absolute inset-0 h-full w-full opacity-0 cursor-pointer"
+                        onChange={(e) => onPickPhotos(e.currentTarget, s.key)}
+                      />
+                    </label>
                   )}
                   {canEdit && s.key === "despues" && (
-                    <button
-                      type="button"
-                      disabled={!!videoUpload}
-                      onClick={() => videoRef.current?.click()}
-                      className="aspect-square rounded-lg border-2 border-dashed border-info/50 bg-info/5 text-info flex flex-col items-center justify-center gap-1 active:scale-95 transition disabled:opacity-50"
-                    >
+                    <label className={`relative aspect-square rounded-lg border-2 border-dashed border-info/50 bg-info/5 text-info flex flex-col items-center justify-center gap-1 active:scale-95 transition overflow-hidden ${videoUpload ? "opacity-50 pointer-events-none" : "cursor-pointer"}`}>
                       <Video className="h-7 w-7" />
                       <span className="text-xs font-semibold">Agregar</span>
                       <span className="text-[10px] opacity-70 leading-none">video</span>
-                    </button>
+                      <input
+                        type="file"
+                        accept="video/*"
+                        aria-label="Agregar video"
+                        disabled={!!videoUpload}
+                        className="absolute inset-0 h-full w-full opacity-0 cursor-pointer"
+                        onChange={(e) => onPickVideos(e.currentTarget)}
+                      />
+                    </label>
                   )}
 
                   {list.map((m, i) => (

@@ -42,12 +42,27 @@ export function confirmAction(input: string | ConfirmOptions): Promise<boolean> 
   return new Promise<boolean>(resolve => show!({ ...opts, resolve }));
 }
 
+/**
+ * En el celular, el mismo toque que abre el cuadro puede llegar otra vez como un segundo "clic"
+ * justo después y caer sobre el botón de confirmar (pasaba en el iPhone: borraba sin preguntar).
+ * Por eso el botón de confirmar no responde durante el primer momento después de abrirse.
+ */
+const ARM_DELAY_MS = 600;
+
 export function ConfirmHost() {
   const [pending, setPending] = useState<Pending | null>(null);
+  const [armed, setArmed] = useState(false);
   useEffect(() => {
     show = setPending;
     return () => { show = null; };
   }, []);
+
+  useEffect(() => {
+    if (!pending) return;
+    setArmed(false);
+    const t = setTimeout(() => setArmed(true), ARM_DELAY_MS);
+    return () => clearTimeout(t);
+  }, [pending]);
 
   const close = (ok: boolean) => {
     pending?.resolve(ok);
@@ -67,10 +82,19 @@ export function ConfirmHost() {
           )}
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={() => close(false)}>{pending?.cancelText || "No, volver"}</AlertDialogCancel>
+          <AlertDialogCancel
+            onClick={(e) => {
+              if (!armed) { e.preventDefault(); return; }
+              close(false);
+            }}
+          >{pending?.cancelText || "No, volver"}</AlertDialogCancel>
           <AlertDialogAction
-            onClick={() => close(true)}
-            className={cn(destructive && "bg-destructive text-destructive-foreground hover:bg-destructive/90")}
+            disabled={!armed}
+            onClick={(e) => {
+              if (!armed) { e.preventDefault(); return; }
+              close(true);
+            }}
+            className={cn(destructive && "bg-destructive text-destructive-foreground hover:bg-destructive/90", !armed && "opacity-60")}
           >
             {confirmText}
           </AlertDialogAction>

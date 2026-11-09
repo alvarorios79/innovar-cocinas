@@ -24,6 +24,8 @@ import { apiRateLimiter, authRateLimiter, uploadRateLimiter } from "../rate-limi
 import cors from "cors";
 import quotationPdfRouter from "../routes/quotation-pdf";
 import { runMigrations } from "../migrations";
+import { registerPortfolioRoutes } from "../portfolio-routes";
+import { startSocialReminders } from "../social-reminders";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -85,6 +87,9 @@ async function startServer() {
     })
   );
   
+
+  // Portafolio: subida de videos y archivos para armar publicaciones de redes
+  registerPortfolioRoutes(app);
 
   // PDF preview endpoint - Envuelve PDF en HTML para evitar que WebKit iOS lo promueva a visor nativo
   app.get("/api/pdf-preview/:quotationId", async (req, res) => {
@@ -215,6 +220,9 @@ async function startServer() {
 
     // Resumen diario de interesados (8 a. m. Colombia)
     startLeadsDailySummary();
+
+    // Recordatorio de publicar en redes (lunes, miércoles y viernes, 9 a. m. Colombia)
+    startSocialReminders();
     // Copias de seguridad: las hace Render (Point-in-Time Recovery 3 días + Export manual).
     // El scheduler propio (MySQL, de la época Manus) se quitó en Deploy #249: nunca funcionó con PostgreSQL.
   });

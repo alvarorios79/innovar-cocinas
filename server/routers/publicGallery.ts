@@ -17,6 +17,8 @@ import { sanitizeText, sanitizeHtml, sanitizeForEmail, sanitizePhone, sanitizeEm
 import { randomBytes } from "crypto";
 import { computeDesignVersions } from "@shared/designVersions";
 import { GOOGLE_REVIEW_URL } from "@shared/const";
+import { and as andOp, desc as descOp, eq as eqOp, isNull as isNullOp } from "drizzle-orm";
+import { projectVideos } from "../../drizzle/schema";
 
 
 export const publicGalleryRouter = router({
@@ -71,6 +73,14 @@ export const publicGalleryRouter = router({
             description: p.description,
             createdAt: p.createdAt,
           })),
+          // Videos del recorrido (solo en el portal completo, no en los enlaces de aprobación)
+          videos: input.type ? [] : await (async () => {
+            const d = await db.getDb();
+            if (!d) return [];
+            return d.select({ id: projectVideos.id, url: projectVideos.url }).from(projectVideos)
+              .where(andOp(eqOp(projectVideos.projectId, input.projectId), isNullOp(projectVideos.deletedAt)))
+              .orderBy(descOp(projectVideos.createdAt));
+          })().catch(() => []),
           totalModelado: allPhotos.filter(p => p.subcategory === "modelado_3d").length,
           totalRenders: allPhotos.filter(p => p.subcategory === "renders").length,
           // Versión de cada foto de diseño según los envíos al cliente (ver shared/designVersions.ts)

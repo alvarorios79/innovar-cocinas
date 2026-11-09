@@ -34,6 +34,7 @@ import {
   DollarSign,
   Shield,
   Image as ImageIcon,
+  Megaphone,
   ChevronDown,
   Users,
   KanbanSquare,
@@ -118,6 +119,10 @@ export const menuSections: MenuSection[] = [
         roles: ["super_admin", "admin", "comercial"], iconColor: "var(--primary)" },
       { icon: Star,          label: "Postventa",     path: "/postventa",
         roles: ["super_admin", "admin", "comercial"], iconColor: "#eab308" },
+      { icon: ImageIcon,     label: "Portafolio",    path: "/portafolio",
+        roles: ["super_admin", "admin", "comercial", "disenador"], iconColor: "#a855f7" },
+      { icon: Megaphone,     label: "Redes",         path: "/redes",
+        roles: ["super_admin", "admin", "comercial"], iconColor: "#ec4899" },
     ],
   },
   {
@@ -144,8 +149,6 @@ export const menuSections: MenuSection[] = [
       { icon: Calculator, label: "Motor de Cotización", path: "/pricing-config",
         roles: ["super_admin"], iconColor: "#06b6d4" },
       // "Herrajes" oculto del menú: se administran en Motor de Cotización → Herrajes
-      { icon: ImageIcon,  label: "Galerías",            path: "/galerias",
-        roles: ["super_admin", "admin", "comercial"], iconColor: "#a855f7" },
     ],
   },
 ];

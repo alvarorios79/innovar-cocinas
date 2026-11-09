@@ -6,6 +6,7 @@
 
 import { ENV } from './_core/env';
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import type { Readable } from "stream";
 
 
 // ── Backend Firebase Storage ──────────────────────────────────────────────────
@@ -155,3 +156,60 @@ export async function storagePut(
   );
 }
 
+
+// ── Subida por partes (archivos grandes: videos) ─────────────────────────────
+// No carga el archivo completo en memoria: lo va pasando al almacenamiento mientras llega.
+
+async function firebaseFile(relKey: string) {
+  const cfg = getFirebaseConfig();
+  if (!cfg) throw new Error("Firebase Storage not configured");
+  const { initializeApp, cert, getApps, getApp } = await import("firebase-admin/app");
+  const { getStorage } = await import("firebase-admin/storage");
+  const app = getApps().length === 0
+    ? initializeApp({ credential: cert({ projectId: cfg.projectId, clientEmail: cfg.clientEmail, privateKey: cfg.privateKey }), storageBucket: cfg.bucket })
+    : getApp();
+  const key = normalizeKey(relKey);
+  return { cfg, key, file: getStorage(app).bucket().file(key) };
+}
+
+export async function storagePutStream(
+  relKey: string,
+  stream: Readable,
+  contentType = "application/octet-stream"
+): Promise<{ key: string; url: string }> {
+  const { pipeline } = await import("stream/promises");
+
+  if (getFirebaseConfig()) {
+    const { randomUUID } = await import("crypto");
+    const { cfg, key, file } = await firebaseFile(relKey);
+    const downloadToken = randomUUID();
+    await pipeline(stream, file.createWriteStream({
+      resumable: true,
+      contentType,
+      metadata: {
+        contentType,
+        cacheControl: "public, max-age=31536000",
+        metadata: { firebaseStorageDownloadTokens: downloadToken },
+      },
+    }));
+    const url = `https://firebasestorage.googleapis.com/v0/b/${cfg.bucket}/o/${encodeURIComponent(key)}?alt=media&token=${downloadToken}`;
+    return { key, url };
+  }
+
+  if (getS3Config() || process.env.NODE_ENV !== "development") {
+    // S3: se junta en memoria (no se usa en producción hoy). Sin almacenamiento: storagePut avisa.
+    const chunks: Buffer[] = [];
+    for await (const c of stream) chunks.push(Buffer.from(c));
+    return storagePut(relKey, Buffer.concat(chunks), contentType);
+  }
+
+  // Desarrollo local: carpeta .local-uploads/
+  const { mkdir } = await import("fs/promises");
+  const { createWriteStream } = await import("fs");
+  const path = await import("path");
+  const key = normalizeKey(relKey).replace(/\.\.+/g, "_");
+  const filePath = path.resolve(LOCAL_UPLOADS_DIR, key);
+  await mkdir(path.dirname(filePath), { recursive: true });
+  await pipeline(stream, createWriteStream(filePath));
+  return { key, url: `/local-uploads/${key}` };
+}

@@ -180,7 +180,7 @@ export default function PublicGallery() {
     const enchapePhotos  = photos.filter((p: any) => p.stage === "enchape");
     const ensamblePhotos = photos.filter((p: any) => p.stage === "ensamble");
     const finalPhotos    = photos.filter((p: any) => p.stage === "final");
-    const hasAnyPhotos   = photos.length > 0;
+    const hasAnyPhotos   = photos.length > 0 || ((data as any)?.videos?.length ?? 0) > 0;
 
     const portalSelectedIndex = selectedPhoto !== null
       ? photos.findIndex(p => p.id === selectedPhoto)
@@ -244,7 +244,8 @@ export default function PublicGallery() {
       </div>
     );
 
-    const finalSection = finalPhotos.length > 0 ? (
+    const videos: { id: number; url: string }[] = (data as any)?.videos || [];
+    const finalSection = finalPhotos.length > 0 || videos.length > 0 ? (
       <section>
         <div className="flex items-center gap-3 mb-5">
           <span className="text-xl">🏠</span>
@@ -252,7 +253,14 @@ export default function PublicGallery() {
           <div className="flex-1 h-px" style={{ background: "#252525" }} />
         </div>
         <div className="rounded-2xl p-4 md:p-5" style={{ background: "#141414", border: "1px solid #222" }}>
-          <PhotoRow rowPhotos={finalPhotos} />
+          {videos.length > 0 && (
+            <div className={`grid gap-3 ${videos.length > 1 ? "md:grid-cols-2" : ""} ${finalPhotos.length ? "mb-4" : ""}`}>
+              {videos.map(v => (
+                <video key={v.id} src={v.url} controls preload="metadata" playsInline className="w-full max-h-[70vh] rounded-xl bg-black" />
+              ))}
+            </div>
+          )}
+          {finalPhotos.length > 0 && <PhotoRow rowPhotos={finalPhotos} />}
         </div>
       </section>
     ) : null;

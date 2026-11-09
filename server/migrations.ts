@@ -65,6 +65,39 @@ export async function runMigrations() {
       name: "projects_publicToken_backfill",
       sql: `UPDATE "projects" SET "publicToken" = md5(random()::text || id::text || clock_timestamp()::text) || left(md5(random()::text || clock_timestamp()::text), 16) WHERE "publicToken" IS NULL`,
     },
+    // Portafolio y Redes (8 nov 2026): tablas nuevas, no tocan las existentes
+    {
+      name: "portafolio_redes_1",
+      sql: `CREATE TABLE IF NOT EXISTS "portfolioStars" ( "id" serial PRIMARY KEY, "projectId" integer NOT NULL REFERENCES "projects"("id"), "source" varchar(20) NOT NULL, "mediaId" integer NOT NULL, "createdBy" integer NOT NULL REFERENCES "users"("id"), "createdAt" timestamp NOT NULL DEFAULT now() )`,
+    },
+    {
+      name: "portafolio_redes_2",
+      sql: `CREATE UNIQUE INDEX IF NOT EXISTS "portfolioStars_source_media_uq" ON "portfolioStars" ("source", "mediaId")`,
+    },
+    {
+      name: "portafolio_redes_3",
+      sql: `CREATE INDEX IF NOT EXISTS "portfolioStars_projectId_idx" ON "portfolioStars" ("projectId")`,
+    },
+    {
+      name: "portafolio_redes_4",
+      sql: `CREATE TABLE IF NOT EXISTS "projectVideos" ( "id" serial PRIMARY KEY, "projectId" integer NOT NULL REFERENCES "projects"("id"), "url" text NOT NULL, "storageKey" text, "fileName" text, "sizeBytes" bigint, "contentType" varchar(100), "uploadedBy" integer NOT NULL REFERENCES "users"("id"), "createdAt" timestamp NOT NULL DEFAULT now(), "deletedAt" timestamp )`,
+    },
+    {
+      name: "portafolio_redes_5",
+      sql: `CREATE INDEX IF NOT EXISTS "projectVideos_projectId_idx" ON "projectVideos" ("projectId")`,
+    },
+    {
+      name: "portafolio_redes_6",
+      sql: `CREATE TABLE IF NOT EXISTS "socialPublications" ( "id" serial PRIMARY KEY, "projectId" integer NOT NULL REFERENCES "projects"("id"), "postType" varchar(30) NOT NULL, "network" varchar(20) NOT NULL, "publishedBy" integer NOT NULL REFERENCES "users"("id"), "publishedAt" timestamp NOT NULL DEFAULT now(), "createdAt" timestamp NOT NULL DEFAULT now() )`,
+    },
+    {
+      name: "portafolio_redes_7",
+      sql: `CREATE INDEX IF NOT EXISTS "socialPublications_projectId_idx" ON "socialPublications" ("projectId")`,
+    },
+    {
+      name: "portafolio_redes_8",
+      sql: `CREATE INDEX IF NOT EXISTS "socialPublications_publishedAt_idx" ON "socialPublications" ("publishedAt")`,
+    },
   ];
 
   for (const m of migrations) {

@@ -34,7 +34,9 @@ import Clients from "./pages/Clients";
 import Design from "./pages/Design";
 import Production from "./pages/Production";
 import Postventa from "./pages/Postventa";
-import GalleryAdmin from "./pages/GalleryAdmin";
+import Portafolio from "./pages/Portafolio";
+import PortafolioProyecto from "./pages/PortafolioProyecto";
+import Redes from "./pages/Redes";
 import Contador from "./pages/Contador";
 import Medidor from "./pages/Medidor";
 import PideTuVisita from "./pages/PideTuVisita";
@@ -93,7 +95,10 @@ function Router() {
         <Route path={"/design"}><Design /></Route>
         <Route path={"/production"}><Production /></Route>
         <Route path={"/postventa"}><Postventa /></Route>
-        <Route path={"/galerias"}><GalleryAdmin /></Route>
+        <Route path={"/portafolio"}><Portafolio /></Route>
+        <Route path={"/portafolio/:id"}><PortafolioProyecto /></Route>
+        <Route path={"/redes"}><Redes /></Route>
+        <Route path={"/galerias"}><Redirect to="/portafolio" /></Route>
         <Route path={"/contador"}><Contador /></Route>
         <Route path={"/medidor"}><Medidor /></Route>
         <Route path={"/levantamientos"}><VisitasTecnicas /></Route>

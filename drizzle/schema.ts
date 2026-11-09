@@ -955,6 +955,49 @@ export const leads = pgTable("leads", {
 
 
 // ── Tipos de inserción usados por server/db.ts (solo tipos, no afectan la BD) ──
+// ── Portafolio y Redes (8 nov 2026) ─────────────────────────────────────────
+// Estrellas: fotos marcadas como "de las buenas" (portada, muestras y redes).
+export const portfolioStars = pgTable("portfolioStars", {
+	id: serial('id').primaryKey(),
+	projectId: integer().notNull().references(() => projects.id),
+	source: varchar({ length: 20 }).notNull(), // foto (projectPhotos) | levantamiento (technical_visit_photos)
+	mediaId: integer().notNull(),
+	createdBy: integer().notNull().references(() => users.id),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	index("portfolioStars_projectId_idx").on(table.projectId),
+]);
+
+// Videos del proyecto (normalmente el recorrido de la obra terminada)
+export const projectVideos = pgTable("projectVideos", {
+	id: serial('id').primaryKey(),
+	projectId: integer().notNull().references(() => projects.id),
+	url: text().notNull(),
+	storageKey: text(),
+	fileName: text(),
+	sizeBytes: bigint({ mode: 'number' }),
+	contentType: varchar({ length: 100 }),
+	uploadedBy: integer().notNull().references(() => users.id),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+	deletedAt: timestamp({ mode: 'string' }),
+}, (table) => [
+	index("projectVideos_projectId_idx").on(table.projectId),
+]);
+
+// Registro de lo publicado en redes (para no repetir y llevar la cuenta)
+export const socialPublications = pgTable("socialPublications", {
+	id: serial('id').primaryKey(),
+	projectId: integer().notNull().references(() => projects.id),
+	postType: varchar({ length: 30 }).notNull(), // antes_despues | render_vs_real | video | terminado
+	network: varchar({ length: 20 }).notNull(),  // instagram | facebook | tiktok
+	publishedBy: integer().notNull().references(() => users.id),
+	publishedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	index("socialPublications_projectId_idx").on(table.projectId),
+	index("socialPublications_publishedAt_idx").on(table.publishedAt),
+]);
+
 export type InsertUser = typeof users.$inferInsert;
 export type InsertLead = typeof leads.$inferInsert;
 export type InsertClient = typeof clients.$inferInsert;

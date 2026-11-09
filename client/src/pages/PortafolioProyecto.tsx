@@ -25,7 +25,7 @@ import {
   ArrowRightLeft, CheckCircle2, Circle, ListChecks, MoreVertical, RotateCcw, Star, Trash2, Video, X,
 } from "lucide-react";
 import { MAX_VIDEO_BYTES, PORTFOLIO_SECTIONS, canEditPortfolio, formatBytes, type PortfolioSection } from "@shared/portfolio";
-import { worksLabel } from "@shared/workTypes";
+import { HISTORIC_KINDS, WORK_KINDS, worksLabel, type WorkKind } from "@shared/workTypes";
 import { SOCIAL_NETWORKS, SOCIAL_POST_TYPES, type SocialNetwork, type SocialPostType } from "@shared/socialPosts";
 import { parseWoodColors, woodColorRows } from "@shared/primaderaCatalog";
 
@@ -68,6 +68,7 @@ export default function PortafolioProyecto() {
   const [selecting, setSelecting] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [trashOpen, setTrashOpen] = useState(false);
+  const [kindsEdit, setKindsEdit] = useState<WorkKind[] | null>(null);
   // Mover fotos a otro proyecto (cuando se subieron en la galería equivocada)
   const [moveOther, setMoveOther] = useState<{ q: string; target: number | null; section: PortfolioSection } | null>(null);
   const [composer, setComposer] = useState<{ open: boolean; type?: SocialPostType }>({ open: false });
@@ -240,6 +241,11 @@ export default function PortafolioProyecto() {
     onError: (e) => toast.error(e.message),
   });
 
+  const kindsMut = trpc.portfolio.setHistoricKinds.useMutation({
+    onSuccess: () => { refresh(); setKindsEdit(null); toast.success("Guardado"); },
+    onError: (e) => toast.error(e.message),
+  });
+
   const allMedia = (): Media[] => (data ? (Object.values(data.media).flat() as Media[]) : []);
   const toggleSelect = (key: string) =>
     setSelected((s) => { const n = new Set(s); n.has(key) ? n.delete(key) : n.add(key); return n; });
@@ -319,6 +325,9 @@ export default function PortafolioProyecto() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             {!data.historic && <DropdownMenuItem onClick={() => navigate(`/projects/${data.id}`)}><ExternalLink className="h-4 w-4 mr-2" />Abrir el proyecto</DropdownMenuItem>}
+            {canEdit && data.historic && (
+              <DropdownMenuItem onClick={() => setKindsEdit(data.works as WorkKind[])}><ListChecks className="h-4 w-4 mr-2" />Qué incluye</DropdownMenuItem>
+            )}
             {canEdit && <DropdownMenuItem onClick={() => goTo("despues")}><Video className="h-4 w-4 mr-2" />Subir video</DropdownMenuItem>}
             {canEdit && <DropdownMenuItem onClick={() => { setSelecting(true); setSelected(new Set()); }}><ListChecks className="h-4 w-4 mr-2" />Seleccionar fotos</DropdownMenuItem>}
             {canEdit && (
@@ -667,6 +676,37 @@ export default function PortafolioProyecto() {
           </div>
         </div>
       )}
+
+      {/* Qué incluye un histórico */}
+      <Dialog open={!!kindsEdit} onOpenChange={(o) => !o && setKindsEdit(null)}>
+        <DialogContent className="max-w-md">
+          <DialogTitle>¿Qué incluye este trabajo?</DialogTitle>
+          <p className="text-xs text-muted-foreground -mt-2">Marca todo lo que se hizo. Se usa en el filtro del Portafolio y en los textos de Redes.</p>
+          {kindsEdit && (
+            <>
+              <div className="flex flex-wrap gap-2">
+                {HISTORIC_KINDS.map((k) => {
+                  const on = kindsEdit.includes(k);
+                  return (
+                    <button
+                      key={k}
+                      type="button"
+                      onClick={() => setKindsEdit(on ? kindsEdit.filter((x) => x !== k) : [...kindsEdit, k])}
+                      className={`px-3 py-1.5 rounded-full text-sm border ${on ? "bg-primary text-primary-foreground border-primary" : "border-border"}`}
+                    >
+                      {on ? "✓ " : ""}{WORK_KINDS[k].label}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setKindsEdit(null)}>Cancelar</Button>
+                <Button disabled={!kindsEdit.length || kindsMut.isPending} onClick={() => kindsMut.mutate({ projectId, kinds: kindsEdit })}>Guardar</Button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Mover a otro proyecto */}
       <Dialog open={!!moveOther} onOpenChange={(o) => !o && setMoveOther(null)}>

@@ -121,6 +121,11 @@ export async function runMigrations() {
       name: "portafolio_historicos_1",
       sql: `CREATE TABLE IF NOT EXISTS "portfolioHistoric" ("projectId" integer PRIMARY KEY REFERENCES "projects"("id"), "workKind" varchar(30) NOT NULL, "createdBy" integer NOT NULL REFERENCES "users"("id"), "createdAt" timestamp NOT NULL DEFAULT now())`,
     },
+    // Históricos con varios trabajos ("cocina,closet"): más espacio para la lista
+    {
+      name: "portafolio_historicos_2",
+      sql: `ALTER TABLE "portfolioHistoric" ALTER COLUMN "workKind" TYPE varchar(200)`,
+    },
   ];
 
   for (const m of migrations) {

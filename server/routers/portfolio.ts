@@ -13,7 +13,7 @@ import {
   clients, photoTrash, portfolioHidden, portfolioHistoric, portfolioStars, projectPhotos, projects, projectVideos, socialPublications, technicalVisitPhotos,
 } from "../../drizzle/schema";
 import { SECTION_UPLOAD_TARGET, canEditPortfolio, canViewPortfolio, type PortfolioSection } from "@shared/portfolio";
-import { HISTORIC_KINDS, historicName, projectWorkTypeFor, type WorkKind } from "@shared/workTypes";
+import { HISTORIC_KINDS, historicName, parseHistoricKinds, projectWorkTypeFor, type WorkKind } from "@shared/workTypes";
 import {
   FALLBACK_POST_TYPE, SOCIAL_NETWORK_KEYS, SOCIAL_POST_TYPE_KEYS, WEEKLY_PLAN,
   bogotaWeekday, bogotaYmd, monthStartYmd, weekStartYmd, type SocialPostType,
@@ -263,7 +263,7 @@ export const portfolioRouter = router({
         [cli] = await d.insert(clients).values({ name: HIST_CLIENT, whatsappPhone: "0", deletedAt: now } as any).returning({ id: clients.id });
       }
       const existing = await d.select({ workKind: portfolioHistoric.workKind }).from(portfolioHistoric);
-      const n = existing.filter((e: any) => e.workKind === input.workKind).length + 1;
+      const n = existing.filter((e: any) => parseHistoricKinds(e.workKind)[0] === input.workKind).length + 1;
       const name = historicName(input.workKind, n);
       const [proj] = await d.insert(projects).values({
         clientId: cli.id, name, workType: projectWorkTypeFor(null, [{ itemType: input.workKind === "puertas" ? "puerta" : input.workKind }]),
@@ -271,6 +271,19 @@ export const portfolioRouter = router({
       } as any).returning({ id: projects.id });
       await d.insert(portfolioHistoric).values({ projectId: proj.id, workKind: input.workKind, createdBy: ctx.user.id });
       return { projectId: proj.id, name };
+    }),
+
+  /** Qué incluye un histórico (uno o varios trabajos: cocina + closet…). El nombre no cambia. */
+  setHistoricKinds: protectedProcedure
+    .input(z.object({ projectId: z.number(), kinds: z.array(z.enum(HISTORIC_KINDS as [WorkKind, ...WorkKind[]])).min(1).max(8) }))
+    .mutation(async ({ ctx, input }) => {
+      assertEdit(ctx.user.role);
+      const d = await database();
+      const kinds = parseHistoricKinds(input.kinds.join(","));
+      const res = await d.update(portfolioHistoric).set({ workKind: kinds.join(",") })
+        .where(eq(portfolioHistoric.projectId, input.projectId)).returning({ id: portfolioHistoric.projectId });
+      if (!res.length) throw new TRPCError({ code: "NOT_FOUND", message: "No es un trabajo histórico" });
+      return { kinds };
     }),
 });
 

@@ -1009,7 +1009,7 @@ export const photoTrash = pgTable("photoTrash", {
 // deletedAt para que ninguna otra pantalla lo muestre; aquí se marca y se guarda qué trabajo es.
 export const portfolioHistoric = pgTable("portfolioHistoric", {
 	projectId: integer().primaryKey().references(() => projects.id),
-	workKind: varchar({ length: 30 }).notNull(),
+	workKind: varchar({ length: 200 }).notNull(), // uno o varios separados por coma: "cocina,closet"
 	createdBy: integer().notNull().references(() => users.id),
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 });

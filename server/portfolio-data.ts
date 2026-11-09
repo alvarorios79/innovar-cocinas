@@ -12,7 +12,7 @@ import {
   PORTFOLIO_SUBCATEGORIES, detectCity, isImageUrl, portfolioSectionOf, type PortfolioSection,
 } from "@shared/portfolio";
 import { availablePostTypes, weeksBetween, type SocialPostType } from "@shared/socialPosts";
-import { detectWorks, type WorkKind } from "@shared/workTypes";
+import { detectWorks, parseHistoricKinds, type WorkKind } from "@shared/workTypes";
 
 export type PortfolioMedia = {
   key: string;                      // "foto-12" | "lev-5"
@@ -175,7 +175,7 @@ export async function loadPortfolio(
 
   const historicRows = await db.select({ projectId: portfolioHistoric.projectId, workKind: portfolioHistoric.workKind })
     .from(portfolioHistoric).where(inArray(portfolioHistoric.projectId, ids));
-  const historicKind = new Map<number, WorkKind>(historicRows.map((h: any) => [h.projectId, h.workKind as WorkKind]));
+  const historicKind = new Map<number, WorkKind[]>(historicRows.map((h: any) => [h.projectId, parseHistoricKinds(h.workKind)]));
 
   const hiddenRows = await db.select({ projectId: portfolioHidden.projectId }).from(portfolioHidden).where(inArray(portfolioHidden.projectId, ids));
   const hiddenSet = new Set<number>(hiddenRows.map((h: any) => h.projectId));
@@ -223,7 +223,7 @@ export async function loadPortfolio(
       name: r.name,
       clientName: historicKind.has(r.id) ? "" : r.clientName || "",  // los históricos no tienen cliente
       workType: r.workType,
-      works: historicKind.has(r.id) ? [historicKind.get(r.id)!] : detectWorks(itemsOf.get(quoteOf.get(r.id) || -1) || [], r.workType),
+      works: historicKind.has(r.id) ? historicKind.get(r.id)! : detectWorks(itemsOf.get(quoteOf.get(r.id) || -1) || [], r.workType),
       status: r.status,
       closed: !!r.accountingClosureId,
       historic: historicKind.has(r.id),

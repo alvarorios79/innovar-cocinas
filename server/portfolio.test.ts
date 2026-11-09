@@ -323,4 +323,15 @@ describe("Portafolio y Redes (servidor)", () => {
     expect(Number(c2.name.split(" ").pop())).toBe(Number(c1.name.split(" ").pop()) + 1);
     await expect(caller({ id: adminId, role: "disenador" }).portfolio.createHistoric({ workKind: "cocina" })).rejects.toThrow();
   });
+
+  it("histórico con varios trabajos (cocina + closet)", async () => {
+    const admin = caller({ id: adminId, role: "super_admin" });
+    const h = await admin.portfolio.createHistoric({ workKind: "cocina" });
+    const r = await admin.portfolio.setHistoricKinds({ projectId: h.projectId, kinds: ["closet", "cocina"] });
+    expect(r.kinds).toEqual(["cocina", "closet"]);
+    const item = (await admin.portfolio.list()).find((x) => x.id === h.projectId)!;
+    expect(item.works).toEqual(["cocina", "closet"]);
+    expect(item.name).toBe(h.name);
+    await expect(admin.portfolio.setHistoricKinds({ projectId, kinds: ["cocina"] })).rejects.toThrow();
+  });
 });

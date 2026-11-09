@@ -120,6 +120,13 @@ export function projectWorkTypeFor(productType: string | null | undefined, items
 /** Tipos que se pueden crear como histórico (sin datos del cliente). */
 export const HISTORIC_KINDS: WorkKind[] = ["cocina", "closet", "mueble_bano", "puertas", "centro_tv", "escaleras", "empresas", "isla"];
 
+/** Trabajos de un histórico guardados como "cocina,closet" → ["cocina", "closet"] (en orden y sin repetir). */
+export function parseHistoricKinds(text?: string | null): WorkKind[] {
+  const set = new Set((text || "").split(",").map((s) => s.trim()).filter((s) => (WORK_KINDS as any)[s]) as WorkKind[]);
+  const ordered = ORDER.filter((k) => set.has(k));
+  return ordered.length ? ordered : ["cocina"];
+}
+
 /** "Cocina histórica 3" / "Closet histórico 1" / "Puertas históricas 2". */
 export function historicName(kind: WorkKind, n: number): string {
   const k = WORK_KINDS[kind] || WORK_KINDS.cocina;

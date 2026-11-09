@@ -118,7 +118,8 @@ export default function Portafolio() {
     };
   }, [all]);
 
-  const toggleChip = (c: Chip) => setChips((cs) => (cs.includes(c) ? cs.filter((x) => x !== c) : [...cs, c]));
+  // Un filtro a la vez (como pestañas): al tocar otro se quita el anterior; tocar el marcado muestra todo
+  const toggleChip = (c: Chip) => { setView("activas"); setChips((cs) => (cs.includes(c) ? [] : [c])); };
 
   const askHide = async (id: number, name: string) => {
     const ok = await confirmAction({
@@ -191,6 +192,13 @@ export default function Portafolio() {
           </Select>
         </div>
         <div className="flex gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden pb-1">
+          <button
+            type="button"
+            onClick={() => { setChips([]); setView("activas"); }}
+            className={`shrink-0 px-3 py-1 rounded-full text-xs border ${chips.length === 0 && view === "activas" ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground"}`}
+          >
+            Todos
+          </button>
           {CHIPS.map((c) => (
             <button
               key={c.key}
@@ -204,7 +212,7 @@ export default function Portafolio() {
           <span className="shrink-0 w-px bg-border mx-1" />
           <button
             type="button"
-            onClick={() => setView(view === "activas" ? "eliminadas" : "activas")}
+            onClick={() => { setChips([]); setView(view === "activas" ? "eliminadas" : "activas"); }}
             className={`shrink-0 px-3 py-1 rounded-full text-xs border flex items-center gap-1 ${view === "eliminadas" ? "bg-destructive text-white border-destructive" : "border-border text-muted-foreground hover:text-foreground"}`}
           >
             <Trash2 className="h-3 w-3" />Eliminadas{hiddenCount ? ` (${hiddenCount})` : ""}

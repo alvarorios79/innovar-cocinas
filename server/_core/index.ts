@@ -25,6 +25,7 @@ import cors from "cors";
 import quotationPdfRouter from "../routes/quotation-pdf";
 import { runMigrations } from "../migrations";
 import { registerPortfolioRoutes } from "../portfolio-routes";
+import { registerFileDownloadRoutes } from "../file-download-routes";
 import { startSocialReminders } from "../social-reminders";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -90,6 +91,8 @@ async function startServer() {
 
   // Portafolio: subida de videos y archivos para armar publicaciones de redes
   registerPortfolioRoutes(app);
+  // Descarga de archivos del proyecto (PDF de despieces…) desde el mismo dominio, para todo el equipo
+  registerFileDownloadRoutes(app);
 
   // PDF preview endpoint - Envuelve PDF en HTML para evitar que WebKit iOS lo promueva a visor nativo
   app.get("/api/pdf-preview/:quotationId", async (req, res) => {

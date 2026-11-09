@@ -28,13 +28,15 @@ import {
   History,
   Plus,
   Loader2,
-  X
+  X,
+  FileText
 } from "lucide-react";
 import { toast } from "sonner";
 import { useState, useRef } from "react";
 import { OperatorDailyProjects } from "@/components/OperatorDailyProjects";
 import { DailyMotivation } from "@/components/DailyMotivation";
 import { LazyImage } from "@/components/LazyImage";
+import { downloadHref, isPdfUrl } from "@/lib/fileLinks";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
@@ -457,11 +459,33 @@ export function OperarioDashboard() {
       <Dialog open={!!viewingPhoto} onOpenChange={() => setViewingPhoto(null)}>
         <DialogContent className="max-w-4xl p-0 overflow-hidden">
           <div className="relative">
-            <img 
-              src={viewingPhoto || ""} 
-              alt="Foto del proyecto" 
-              className="w-full h-auto max-h-[80vh] object-contain bg-black"
-            />
+            {isPdfUrl(viewingPhoto) ? (
+              (() => {
+                const f = allPhotos[currentPhotoIndex];
+                const name = f?.description || "Despiece";
+                const dl = downloadHref(viewingPhoto || "", name) || viewingPhoto || "";
+                return (
+                  <div className="flex flex-col items-center justify-center gap-3 p-10 bg-black text-white text-center min-h-[40vh]">
+                    <FileText className="h-14 w-14 text-red-400" />
+                    <p className="font-semibold">{name}</p>
+                    <div className="flex flex-wrap justify-center gap-2">
+                      <a href={viewingPhoto || ""} target="_blank" rel="noopener noreferrer">
+                        <Button variant="secondary" size="sm">Abrir PDF</Button>
+                      </a>
+                      <a href={dl}>
+                        <Button size="sm">Descargar</Button>
+                      </a>
+                    </div>
+                  </div>
+                );
+              })()
+            ) : (
+              <img 
+                src={viewingPhoto || ""} 
+                alt="Foto del proyecto" 
+                className="w-full h-auto max-h-[80vh] object-contain bg-black"
+              />
+            )}
             {allPhotos.length > 1 && (
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
                 <Button
@@ -772,12 +796,19 @@ function ProjectPhotoCard({
                             className="relative group"
                             onClick={() => onViewPhoto(photo.photoUrl, photos)}
                           >
-                            <LazyImage
-                              src={photo.photoUrl}
-                              alt={`Foto ${stage}`}
-                              aspectRatio="square"
-                              className="rounded-lg"
-                            />
+                            {isPdfUrl(photo.photoUrl) ? (
+                              <div className="aspect-square rounded-lg bg-red-500/10 flex flex-col items-center justify-center gap-1 px-1.5 text-center">
+                                <FileText className="h-8 w-8 text-red-400" />
+                                <span className="text-[11px] leading-tight text-white/85 line-clamp-3 break-words">{photo.description || "PDF"}</span>
+                              </div>
+                            ) : (
+                              <LazyImage
+                                src={photo.photoUrl}
+                                alt={`Foto ${stage}`}
+                                aspectRatio="square"
+                                className="rounded-lg"
+                              />
+                            )}
                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center rounded-lg">
                               <ZoomIn className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                             </div>

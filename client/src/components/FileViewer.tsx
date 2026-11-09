@@ -1,3 +1,4 @@
+import { downloadHref, isPdfUrl } from "@/lib/fileLinks";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useGesture } from "@use-gesture/react";
 import { 
@@ -32,9 +33,7 @@ interface FileViewerProps {
 
 // Detectar si es PDF por la URL o el tipo
 function isPdfFile(file: FileItem): boolean {
-  if (file.type === "pdf") return true;
-  const url = file.url.toLowerCase();
-  return url.endsWith(".pdf") || url.includes("application/pdf");
+  return file.type === "pdf" || isPdfUrl(file.url);
 }
 
 export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileViewerProps) {
@@ -147,6 +146,19 @@ export function FileViewer({ files, initialIndex = 0, isOpen, onClose }: FileVie
   const downloadFile = useCallback(async () => {
     const file = files[currentIndex];
     if (!file) return;
+    const name = file.title || `archivo-${currentIndex + 1}.${isPdfFile(file) ? "pdf" : "jpg"}`;
+
+    // Archivos del almacenamiento del CRM: descarga directa por el servidor (funciona en el iPhone)
+    const href = downloadHref(file.url, name);
+    if (href) {
+      const a = document.createElement("a");
+      a.href = href;
+      a.rel = "noopener";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      return;
+    }
 
     try {
       const response = await fetch(file.url, { mode: 'cors' });

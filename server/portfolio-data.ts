@@ -5,13 +5,14 @@
  */
 import { and, desc, eq, inArray, isNull, or } from "drizzle-orm";
 import {
-  clients, portfolioHidden, portfolioStars, projectMaterials, projectPhotos, projects, projectVideos, quotations,
+  clients, portfolioHidden, portfolioStars, projectMaterials, quotationItems, projectPhotos, projects, projectVideos, quotations,
   socialPublications, technicalVisitPhotos, technicalVisits,
 } from "../drizzle/schema";
 import {
   PORTFOLIO_SUBCATEGORIES, detectCity, isImageUrl, portfolioSectionOf, type PortfolioSection,
 } from "@shared/portfolio";
 import { availablePostTypes, weeksBetween, type SocialPostType } from "@shared/socialPosts";
+import { detectWorks, type WorkKind } from "@shared/workTypes";
 
 export type PortfolioMedia = {
   key: string;                      // "foto-12" | "lev-5"
@@ -34,6 +35,7 @@ export type PortfolioProject = {
   name: string;
   clientName: string;
   workType: string;
+  works: WorkKind[];                // trabajos reales según la cotización (ver shared/workTypes.ts)
   status: string;
   closed: boolean;
   delivered: boolean;               // entregado, cerrado o archivado
@@ -158,6 +160,17 @@ export async function loadPortfolio(
     .where(and(inArray(projectVideos.projectId, ids), isNull(projectVideos.deletedAt)))
     .orderBy(desc(projectVideos.createdAt));
 
+  // Trabajos reales: ítems de la cotización aprobada (o la original)
+  const quoteOf = new Map<number, number>();
+  for (const r of rows as any[]) { const q = r.currentApprovedQuotationId || r.quotationId; if (q) quoteOf.set(r.id, q); }
+  const quoteIds = Array.from(new Set(Array.from(quoteOf.values())));
+  const items = quoteIds.length
+    ? await db.select({ quotationId: quotationItems.quotationId, itemType: quotationItems.itemType, description: quotationItems.description, kitchenConfig: quotationItems.kitchenConfig })
+        .from(quotationItems).where(inArray(quotationItems.quotationId, quoteIds))
+    : [];
+  const itemsOf = new Map<number, any[]>();
+  for (const it of items as any[]) { if (!itemsOf.has(it.quotationId)) itemsOf.set(it.quotationId, []); itemsOf.get(it.quotationId)!.push(it); }
+
   const hiddenRows = await db.select({ projectId: portfolioHidden.projectId }).from(portfolioHidden).where(inArray(portfolioHidden.projectId, ids));
   const hiddenSet = new Set<number>(hiddenRows.map((h: any) => h.projectId));
 
@@ -204,6 +217,7 @@ export async function loadPortfolio(
       name: r.name,
       clientName: r.clientName || "",
       workType: r.workType,
+      works: detectWorks(itemsOf.get(quoteOf.get(r.id) || -1) || [], r.workType),
       status: r.status,
       closed: !!r.accountingClosureId,
       delivered: r.status === "entregado" || !!r.accountingClosureId || r.isArchived === 1 || !!r.deliveredAt,

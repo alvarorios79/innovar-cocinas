@@ -13,7 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Camera, Film, ImageIcon, ImagePlus, Loader2, Megaphone, RotateCcw, Search, Star, Trash2 } from "lucide-react";
-import { PORTFOLIO_SECTIONS, canEditPortfolio, workTypeLabel } from "@shared/portfolio";
+import { PORTFOLIO_SECTIONS, canEditPortfolio } from "@shared/portfolio";
+import { WORK_GROUP_LABELS, worksGroups, worksLabel, type WorkGroup } from "@shared/workTypes";
 import { getProjectStatusLabel } from "@/lib/projectStatus";
 import { confirmAction } from "@/lib/confirm";
 import { formatDate } from "@/lib/format";
@@ -69,16 +70,16 @@ export default function Portafolio() {
   const all = data || [];
   const projects = useMemo(() => all.filter((p) => (view === "eliminadas" ? p.hidden : !p.hidden)), [all, view]);
   const hiddenCount = all.filter((p) => p.hidden).length;
-  const workTypes = useMemo(() => Array.from(new Set(all.map((p) => p.workType))).sort(), [all]);
+  const workGroups = useMemo(() => (Object.keys(WORK_GROUP_LABELS) as WorkGroup[]).filter((g) => all.some((p) => worksGroups(p.works).includes(g))), [all]);
   const cities = useMemo(() => Array.from(new Set(all.map((p) => p.city).filter(Boolean) as string[])).sort(), [all]);
 
   const filtered = useMemo(() => projects.filter((p) => {
-    if (work !== "todos" && p.workType !== work) return false;
+    if (work !== "todos" && !worksGroups(p.works).includes(work as WorkGroup)) return false;
     if (city !== "todas" && p.city !== city) return false;
     if (estado === "entregados" && !p.delivered) return false;
     if (estado === "en_proceso" && p.delivered) return false;
     if (q.trim()) {
-      const hay = norm([p.name, p.clientName, p.woodColor, p.countertop, p.city, workTypeLabel(p.workType)].join(" "));
+      const hay = norm([p.name, p.clientName, p.woodColor, p.countertop, p.city, worksLabel(p.works)].join(" "));
       if (!norm(q).split(/\s+/).every((w) => hay.includes(w))) return false;
     }
     const total = p.counts.antes + p.counts.diseno + p.counts.instalacion + p.counts.despues + p.counts.videos;
@@ -162,7 +163,7 @@ export default function Portafolio() {
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos los trabajos</SelectItem>
-              {workTypes.map((w) => <SelectItem key={w} value={w}>{workTypeLabel(w)}</SelectItem>)}
+              {workGroups.map((g) => <SelectItem key={g} value={g}>{WORK_GROUP_LABELS[g]}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={city} onValueChange={setCity}>
@@ -260,7 +261,7 @@ export default function Portafolio() {
                   <p className="text-sm font-semibold leading-tight line-clamp-1">{p.clientName || p.name}</p>
                   {p.clientName && <p className="text-[11px] text-foreground/80 leading-tight line-clamp-1">{p.name}</p>}
                   <p className="text-[11px] text-muted-foreground line-clamp-1">
-                    {workTypeLabel(p.workType)}{p.city ? ` · ${p.city}` : ""}
+                    {worksLabel(p.works)}{p.city ? ` · ${p.city}` : ""}
                     {p.delivered ? (p.date ? ` · ${formatDate(p.date)}` : "") : ` · ${getProjectStatusLabel(p.status)}`}
                   </p>
                   <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-[10px] text-muted-foreground">

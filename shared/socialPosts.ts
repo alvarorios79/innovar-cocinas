@@ -5,7 +5,7 @@
  * publicaciones casi listas (imagen + texto) y el CRM recuerda el día que toca publicar.
  */
 import { parseWoodColors } from "./primaderaCatalog";
-import { workTypeLabel } from "./portfolio";
+import { WORK_KINDS, detectWorks, worksGroups, worksLabel, type WorkKind } from "./workTypes";
 
 export type SocialPostType = "antes_despues" | "render_vs_real" | "video" | "terminado";
 export type SocialNetwork = "instagram" | "facebook" | "tiktok";
@@ -87,28 +87,31 @@ export function monthStartYmd(now = new Date()): string {
 
 export type CaptionInput = {
   type: SocialPostType;
-  workType?: string | null;
+  workType?: string | null;    // tipo guardado en el proyecto (respaldo)
+  works?: WorkKind[] | null;   // trabajos reales según la cotización (ver shared/workTypes.ts)
   city?: string | null;
   woodColor?: string | null;   // texto de Materiales ("Interior: … · Exterior: …")
   countertop?: string | null;  // nombre del mesón
   weeks?: number | null;       // semanas desde la aprobación del diseño hasta la entrega
 };
 
-const FEMININE = new Set(["cocina", "puertas", "escaleras"]);
-const PLURAL = new Set(["puertas", "escaleras"]);
+/** Trabajos del texto: los reales de la cotización o, si no hay, el tipo guardado. */
+const worksOf = (input: CaptionInput): WorkKind[] => (input.works?.length ? input.works : detectWorks([], input.workType));
 
-/** "esta cocina integral" / "este closet" / "estas puertas". */
-function thisWork(workType?: string | null): string {
-  const w = workType || "";
-  const label = workTypeLabel(w).toLowerCase();
-  if (PLURAL.has(w)) return `estas ${label}`;
-  return `${FEMININE.has(w) ? "esta" : "este"} ${label}`;
+/** Cómo se nombra el trabajo: "esta cocina integral" / "estas puertas" / "este proyecto a medida (isla y closet)". */
+function workPhrase(input: CaptionInput): { text: string; fem: boolean; plural: boolean } {
+  const works = worksOf(input);
+  if (works.length > 1) {
+    return { text: `este proyecto a medida (${worksLabel(works).toLowerCase()})`, fem: false, plural: false };
+  }
+  const k = WORK_KINDS[works[0]];
+  const det = k.plural ? (k.fem ? "estas" : "estos") : (k.fem ? "esta" : "este");
+  return { text: `${det} ${k.label.toLowerCase()}`, fem: k.fem, plural: k.plural };
 }
 /** "entregada" / "entregado" / "entregadas". */
-function done(workType: string | null | undefined, word: string): string {
-  const w = workType || "";
+function done(w: { fem: boolean; plural: boolean }, word: string): string {
   const base = word.slice(0, -1); // "entregado" → "entregad"
-  return `${base}${FEMININE.has(w) ? "a" : "o"}${PLURAL.has(w) ? "s" : ""}`;
+  return `${base}${w.fem ? "a" : "o"}${w.plural ? "s" : ""}`;
 }
 
 /** Nombre sin la marca entre paréntesis: "Humo (Duratex)" → "Humo". */
@@ -136,7 +139,8 @@ const cityTag = (city: string) => `#${city.replace(/\s+/g, "")}`;
 
 export function captionHashtags(input: CaptionInput, max = 10): string[] {
   const tags = [
-    ...(WORK_HASHTAGS[input.workType || ""] || ["#MueblesAMedida"]),
+    ...worksGroups(worksOf(input)).flatMap((g) => WORK_HASHTAGS[g] || []),
+    "#MueblesAMedida",
     ...(input.city ? [cityTag(input.city)] : []),
     "#Pereira", "#EjeCafetero", "#HechoAMedida", "#DiseñoDeInteriores", "#InnovarCocinas",
   ];
@@ -150,20 +154,20 @@ const WEB = "https://cocinasintegralespereira.co/";
 /** Primera línea según el tipo de publicación. */
 function opening(input: CaptionInput): string {
   const where = input.city ? ` en ${input.city}` : "";
-  const work = thisWork(input.workType);
+  const w = workPhrase(input);
+  const work = w.text;
   switch (input.type) {
     case "antes_despues":
       return `✨ Antes y después de ${work}${where}.`;
     case "render_vs_real": {
-      const w = input.workType || "";
-      const pron = `${FEMININE.has(w) ? "la" : "lo"}${PLURAL.has(w) ? "s" : ""}`;
-      const quedo = PLURAL.has(w) ? "quedaron" : "quedó";
+      const pron = `${w.fem ? "la" : "lo"}${w.plural ? "s" : ""}`;
+      const quedo = w.plural ? "quedaron" : "quedó";
       return `🖥️➡️🏠 Así ${pron} diseñamos, así ${quedo}: ${work}${where}. Primero el render 3D para aprobar cada detalle; después, la realidad.`;
     }
     case "video":
-      return `🎥 Recorrido por ${work}${where}, recién ${done(input.workType, "entregado")}.`;
+      return `🎥 Recorrido por ${work}${where}, recién ${done(w, "entregado")}.`;
     default:
-      return `🏡 ${work.charAt(0).toUpperCase()}${work.slice(1)}${where}, ${done(input.workType, "terminado")} y ${done(input.workType, "entregado")}.`;
+      return `🏡 ${work.charAt(0).toUpperCase()}${work.slice(1)}${where}, ${done(w, "terminado")} y ${done(w, "entregado")}.`;
   }
 }
 

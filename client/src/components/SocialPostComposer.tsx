@@ -12,7 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Check, Copy, Download, Loader2, Share2, Star } from "lucide-react";
-import { canEditPortfolio, workTypeLabel } from "@shared/portfolio";
+import { canEditPortfolio } from "@shared/portfolio";
+import { worksLabel } from "@shared/workTypes";
 import {
   SOCIAL_NETWORKS, SOCIAL_NETWORK_KEYS, SOCIAL_POST_TYPES, buildCaption,
   type SocialNetwork, type SocialPostType,
@@ -213,7 +214,7 @@ export function SocialPostComposer({
     if (!data) return;
     setA(pickDefault(slotA));
     setB(pickDefault(slotB, true));
-    const input = { type, workType: data.workType, city: data.city, woodColor: data.woodColor, countertop: data.countertop, weeks: data.weeks };
+    const input = { type, workType: data.workType, works: data.works, city: data.city, woodColor: data.woodColor, countertop: data.countertop, weeks: data.weeks };
     setCaptions({
       instagram: buildCaption(input, "instagram"),
       facebook: buildCaption(input, "facebook"),
@@ -221,7 +222,7 @@ export function SocialPostComposer({
     });
   }, [data?.id, type]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const title = data ? `${workTypeLabel(data.workType)}${data.city ? ` · ${data.city}` : ""}` : "";
+  const title = data ? `${worksLabel(data.works)}${data.city ? ` · ${data.city}` : ""}` : "";
   const twoPhotos = !!LABELS[type];
 
   useEffect(() => {

@@ -24,7 +24,8 @@ import {
   AlertCircle, ArrowLeft, ChevronLeft, ChevronRight, Download, ExternalLink, Film, ImagePlus, Loader2, Megaphone,
   ArrowRightLeft, CheckCircle2, Circle, ListChecks, MoreVertical, RotateCcw, Star, Trash2, Video, X,
 } from "lucide-react";
-import { MAX_VIDEO_BYTES, PORTFOLIO_SECTIONS, canEditPortfolio, formatBytes, workTypeLabel, type PortfolioSection } from "@shared/portfolio";
+import { MAX_VIDEO_BYTES, PORTFOLIO_SECTIONS, canEditPortfolio, formatBytes, type PortfolioSection } from "@shared/portfolio";
+import { worksLabel } from "@shared/workTypes";
 import { SOCIAL_NETWORKS, SOCIAL_POST_TYPES, type SocialNetwork, type SocialPostType } from "@shared/socialPosts";
 import { parseWoodColors, woodColorRows } from "@shared/primaderaCatalog";
 
@@ -283,7 +284,7 @@ export default function PortafolioProyecto() {
         <div className="min-w-0 flex-1">
           <h1 className="text-lg md:text-2xl font-bold leading-tight">{data.clientName || data.name}</h1>
           <p className="text-xs md:text-sm text-muted-foreground leading-snug">
-            {data.clientName ? `${data.name} · ` : ""}{workTypeLabel(data.workType)}{data.city ? ` · ${data.city}` : ""}{data.deliveredAt ? ` · ${formatDate(data.deliveredAt)}` : ""}
+            {data.clientName ? `${data.name} · ` : ""}{worksLabel(data.works)}{data.city ? ` · ${data.city}` : ""}{data.deliveredAt ? ` · ${formatDate(data.deliveredAt)}` : ""}
           </p>
         </div>
         {nav && (

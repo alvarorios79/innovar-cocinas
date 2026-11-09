@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { SocialPostComposer } from "@/components/SocialPostComposer";
 import { formatDate } from "@/lib/format";
 import { CheckCircle2, Clock, ImageIcon, Lightbulb, Loader2, Megaphone } from "lucide-react";
-import { workTypeLabel } from "@shared/portfolio";
+import { worksLabel } from "@shared/workTypes";
 import { SOCIAL_NETWORKS, SOCIAL_POST_TYPES, type SocialNetwork, type SocialPostType } from "@shared/socialPosts";
 
 const dayLabel = (ymd: string) => {
@@ -78,7 +78,7 @@ export default function Redes() {
                   <div className="min-w-0 flex-1">
                     <p className="text-xs font-medium truncate">{p.suggestion.name}</p>
                     <p className="text-[11px] text-muted-foreground truncate">
-                      {p.suggestion.type !== p.type ? `Sin material para este tipo → ${SOCIAL_POST_TYPES[p.suggestion.type as SocialPostType].label}` : `${workTypeLabel(p.suggestion.workType)}${p.suggestion.city ? ` · ${p.suggestion.city}` : ""}`}
+                      {p.suggestion.type !== p.type ? `Sin material para este tipo → ${SOCIAL_POST_TYPES[p.suggestion.type as SocialPostType].label}` : `${worksLabel(p.suggestion.works)}${p.suggestion.city ? ` · ${p.suggestion.city}` : ""}`}
                     </p>
                   </div>
                   <span className="text-xs text-primary font-semibold shrink-0">Preparar</span>
@@ -109,7 +109,7 @@ export default function Redes() {
               </Link>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium truncate">{p.clientName || p.name}{p.clientName && <span className="text-muted-foreground font-normal"> · {p.name}</span>}</p>
-                <p className="text-[11px] text-muted-foreground truncate">{workTypeLabel(p.workType)}{p.city ? ` · ${p.city}` : ""}{p.deliveredAt ? ` · ${formatDate(p.deliveredAt)}` : ""}</p>
+                <p className="text-[11px] text-muted-foreground truncate">{worksLabel(p.works)}{p.city ? ` · ${p.city}` : ""}{p.deliveredAt ? ` · ${formatDate(p.deliveredAt)}` : ""}</p>
                 <div className="flex gap-1 mt-1 overflow-x-auto">
                   {p.pending.map((t) => (
                     <button key={t} type="button" onClick={() => open(p.id, t)} className="shrink-0 px-2 py-0.5 rounded-full text-[11px] border border-primary/40 text-primary hover:bg-primary/10">

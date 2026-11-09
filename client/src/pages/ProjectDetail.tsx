@@ -44,7 +44,8 @@ import {
   EyeOff,
   Lock,
   Unlock,
-  CreditCard
+  CreditCard,
+  Pencil
 } from "lucide-react";
 import { useEffect } from "react";
 import { useFileViewer, FileViewer } from "@/components/FileViewer";
@@ -76,6 +77,18 @@ const WORK_TYPES = {
   puertas: "Puertas",
   centro_tv: "Centro de TV",
 };
+
+/**
+ * Nombre que se guarda para identificar un archivo subido (p. ej. los PDF de despieces):
+ * el nombre original sin extensión. Las fotos del celular (IMG_1234.jpg) no se nombran: no aportan.
+ */
+function fileLabel(name?: string): string {
+  if (!name) return "";
+  if (/\.(jpe?g|png|heic|heif|webp|gif)$/i.test(name)) return "";
+  return name.replace(/\.[a-z0-9]{2,5}$/i, "").replace(/[_]+/g, " ").trim().slice(0, 200);
+}
+
+const isPdfPhoto = (p: any) => !!(p?.photoUrl?.toLowerCase().split("?")[0].endsWith(".pdf") || p?.photoUrl?.includes("application/pdf"));
 
 export default function ProjectDetail() {
   const { user } = useAuth();
@@ -176,6 +189,17 @@ export default function ProjectDetail() {
     onError: (error) => {
       toast.error(error.message || "Error al subir archivo");
     },
+  });
+
+  // Poner nombre a un archivo (p. ej. PDF de despieces) para saber cuál es cuál
+  const [renameTarget, setRenameTarget] = useState<{ id: number; name: string } | null>(null);
+  const renamePhoto = trpc.projectPhotos.rename.useMutation({
+    onSuccess: () => {
+      utils.projects.getById.invalidate({ id: projectId });
+      toast.success("Nombre guardado");
+      setRenameTarget(null);
+    },
+    onError: (error) => toast.error(error.message || "No se pudo guardar el nombre"),
   });
 
   const deletePhoto = trpc.projectPhotos.delete.useMutation({
@@ -1605,10 +1629,15 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                                       idx
                                     )}
                                   >
-                                    {photo.photoUrl?.toLowerCase().endsWith('.pdf') || photo.photoUrl?.includes('application/pdf') ? (
-                                      <div className="w-full h-full bg-red-500/10 flex flex-col items-center justify-center">
-                                        <FileText className="h-10 w-10 text-red-500" />
-                                        <span className="text-xs text-red-400 mt-1 font-medium">PDF</span>
+                                    {isPdfPhoto(photo) ? (
+                                      <div className="w-full h-full bg-red-500/10 flex flex-col items-center justify-center gap-1 px-1.5 text-center">
+                                        <FileText className="h-8 w-8 text-red-500 shrink-0" />
+                                        <span
+                                          className={`text-[11px] leading-tight font-medium break-words line-clamp-3 ${photo.description ? "text-foreground" : "text-red-400/80 italic"}`}
+                                          title={photo.description || "PDF sin nombre"}
+                                        >
+                                          {photo.description || "PDF sin nombre"}
+                                        </span>
                                       </div>
                                     ) : (
                                       <img
@@ -1633,6 +1662,20 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                                         NUEVO
                                       </span>
                                     )}
+                                    {/* Lápiz: poner/cambiar el nombre del PDF */}
+                                    {isPdfPhoto(photo) && (user?.role === "super_admin" || user?.role === "admin" ||
+                                      user?.role === "comercial" || user?.role === "disenador" || photo.uploadedBy === user?.id) && (
+                                      <button
+                                        className="absolute bottom-1 right-1 bg-black/60 hover:bg-black/80 text-white rounded-full p-1.5 z-10"
+                                        title="Poner nombre"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setRenameTarget({ id: photo.id, name: photo.description || "" });
+                                        }}
+                                      >
+                                        <Pencil className="h-3.5 w-3.5" />
+                                      </button>
+                                    )}
                                     {/* Botón eliminar — solo admin/comercial/diseñador en pre-producción; jefe/operario solo ven */}
                                     {(user?.role === "super_admin" || user?.role === "admin" ||
                                       user?.role === "comercial" || user?.role === "disenador") && (
@@ -1644,10 +1687,12 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                                         }}
                                       >
                                         <Trash2 className="h-5 w-5" />
-                                      </button>                                    )})
+                                      </button>
+                                    )}
                                   </div>
                                 );
-                                })})                              </div>
+                                })}
+                              </div>
                               {/* Botón de avanzar etapa - siempre visible para roles permitidos */}
                               {canShowAdvanceButton(subcategory) && (
                                 <div className="mt-3 pt-3 border-t border-dashed border-green-200">
@@ -2234,14 +2279,14 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                 category={photoForm.category as "cotizacion" | "medidas" | "disenos" | "avance" | "instalacion" | "entrega"}
                 maxFiles={10}
                 accept="image/*,application/pdf"
-                onUploadComplete={(urls) => {
+                onUploadComplete={(urls, names) => {
                   // Guardar cada archivo en la base de datos
                   const stage = photoForm.category === "cotizacion" ? "inicial" : 
                                photoForm.category === "medidas" ? "inicial" :
                                photoForm.category === "disenos" ? "diseno" :
                                photoForm.category === "avance" ? "corte" :
                                photoForm.category === "instalacion" ? "final" : "final";
-                  urls.forEach((url) => {
+                  urls.forEach((url, i) => {
                     // Mapear subcategoría a stage correcto para avance
                     let finalStage: "corte" | "enchape" | "ensamble" | "final" | "inicial" | "diseno" = stage as "corte" | "enchape" | "ensamble" | "final" | "inicial" | "diseno";
                     if (photoForm.category === "avance" && photoForm.subcategory) {
@@ -2259,7 +2304,8 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                       category: photoForm.category,
                       subcategory: (photoForm.category === "cotizacion" ? "documento_cotizacion" : photoForm.subcategory || undefined) as "corte" | "enchape" | "fotos_iniciales" | "dibujo" | "renders" | "despieces" | "detalles" | "modelado_3d" | "armado" | "proceso_instalacion" | "fotos_finales" | "documento_cotizacion" | undefined,
                       photoUrl: url,
-                      description: photoForm.description || undefined,
+                      // Nombre del archivo (sin extensión) para identificar los PDF; la descripción escrita, si hay, va primero
+                      description: [photoForm.description.trim(), fileLabel(names?.[i])].filter(Boolean).join(" · ") || undefined,
                     });
                   });
                   setShowPhotoDialog(false);
@@ -2277,6 +2323,35 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
               />
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Poner nombre a un archivo */}
+      <Dialog open={!!renameTarget} onOpenChange={(o) => !o && setRenameTarget(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Nombre del archivo</DialogTitle>
+            <DialogDescription>Para saber cuál es cuál (por ejemplo: "Despiece cocina inferiores").</DialogDescription>
+          </DialogHeader>
+          <form
+            className="space-y-3"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (renameTarget) renamePhoto.mutate({ id: renameTarget.id, name: renameTarget.name });
+            }}
+          >
+            <Input
+              autoFocus
+              value={renameTarget?.name || ""}
+              maxLength={200}
+              onChange={(e) => setRenameTarget((r) => (r ? { ...r, name: e.target.value } : r))}
+              placeholder="Ej.: Despiece closet habitación principal"
+            />
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setRenameTarget(null)}>Cancelar</Button>
+              <Button type="submit" disabled={renamePhoto.isPending}>Guardar</Button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
 

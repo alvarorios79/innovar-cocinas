@@ -1,4 +1,5 @@
 import { COOKIE_NAME } from "@shared/const";
+import { projectWorkTypeFor } from "@shared/workTypes";
 import { getSessionCookieOptions } from "../_core/cookies";
 import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { z } from "zod";
@@ -1251,17 +1252,9 @@ export const quotationsRouter = router({
         
         // CREAR PROYECTO AUTOMÁTICAMENTE
         // Determinar el tipo de trabajo basado en productType de la cotización
-        const workTypeMap: Record<string, "cocina" | "closet" | "puertas" | "centro_tv"> = {
-          cocina: "cocina",
-          closet: "closet",
-          puerta: "puertas",
-          centro_tv: "centro_tv",
-          herrajes: "cocina", // Por defecto
-          mesones: "cocina", // Por defecto
-          otro: "cocina", // Por defecto
-        };
-        
-        const workType = workTypeMap[quotation.productType] || "cocina";
+        // Tipo de trabajo: el de la cotización o, si es "otro"/mezclado, el principal de sus ítems
+        // (antes "otro" quedaba siempre como "cocina" y "puerta" no se reconocía aquí). Ver shared/workTypes.ts
+        const workType = projectWorkTypeFor(quotation.productType, await db.getQuotationItems(quotation.id).catch(() => []));
         const projectName = `${quotation.quotationNumber} - ${clientData?.name || "Cliente"}`;
         
         // Calcular fecha TENTATIVA de instalación: 25 días hábiles desde hoy
@@ -1692,17 +1685,9 @@ export const quotationsRouter = router({
         const clientData = await db.getClientById(quotation.clientId);
 
         // Mapear tipo de producto a tipo de trabajo
-        const workTypeMap: Record<string, "cocina" | "closet" | "puertas" | "centro_tv"> = {
-          cocina: "cocina",
-          closet: "closet",
-          puertas: "puertas",
-          centro_tv: "centro_tv",
-          meson: "cocina",
-          herrajes: "cocina",
-          otro: "cocina",
-        };
-        
-        const workType = workTypeMap[quotation.productType] || "cocina";
+        // Tipo de trabajo: el de la cotización o, si es "otro"/mezclado, el principal de sus ítems
+        // (antes "otro" quedaba siempre como "cocina" y "puerta" no se reconocía aquí). Ver shared/workTypes.ts
+        const workType = projectWorkTypeFor(quotation.productType, await db.getQuotationItems(quotation.id).catch(() => []));
         const projectName = `${quotation.quotationNumber} - ${clientData?.name || "Cliente"}`;
         
         // Calcular fecha TENTATIVA de instalación: 25 días hábiles desde hoy

@@ -29,7 +29,8 @@ interface PhotoUploaderProps {
   projectId?: number;
   stage?: "inicial" | "diseno" | "corte" | "enchape" | "ensamble" | "final";
   category?: "cotizacion" | "medidas" | "disenos" | "avance" | "instalacion" | "entrega";
-  onUploadComplete?: (urls: string[]) => void;
+  /** urls y, en el mismo orden, el nombre original de cada archivo (para identificar los PDF). */
+  onUploadComplete?: (urls: string[], names: string[]) => void;
   maxFiles?: number;
   accept?: string;
   className?: string;
@@ -171,6 +172,7 @@ export function PhotoUploader({
 
     setIsUploading(true);
     const uploadedUrls: string[] = [];
+    const uploadedNames: string[] = [];
 
     for (const photoFile of pendingFiles) {
       try {
@@ -229,6 +231,7 @@ export function PhotoUploader({
         );
 
         uploadedUrls.push(result.url);
+        uploadedNames.push(photoFile.file.name);
       } catch (error: any) {
         setFiles((prev) =>
           prev.map((f) =>
@@ -244,7 +247,7 @@ export function PhotoUploader({
 
     if (uploadedUrls.length > 0) {
       toast.success(`${uploadedUrls.length} foto(s) subida(s) exitosamente`);
-      onUploadComplete?.(uploadedUrls);
+      onUploadComplete?.(uploadedUrls, uploadedNames);
     }
   };
 

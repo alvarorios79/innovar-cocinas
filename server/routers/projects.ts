@@ -2283,6 +2283,23 @@ export const projectPhotosRouter = router({
         await db.deleteProjectPhoto(input.id);
         return { success: true };
       }),
+
+    /** Poner o cambiar el nombre de un archivo (p. ej. los PDF de despieces) para identificarlo. */
+    rename: protectedProcedure
+      .input(z.object({ id: z.number(), name: z.string().max(200) }))
+      .mutation(async ({ ctx, input }) => {
+        const photo = await db.getProjectPhotoById(input.id);
+        if (!photo) throw new TRPCError({ code: "NOT_FOUND", message: "Archivo no encontrado" });
+        const office = ["super_admin", "admin", "comercial", "disenador"].includes(ctx.user.role);
+        if (!office && photo.uploadedBy !== ctx.user.id) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permisos para renombrar este archivo" });
+        }
+        const d = await db.getDb();
+        if (!d) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Base de datos no disponible" });
+        const name = input.name.trim();
+        await d.update(projectPhotos).set({ description: name || null }).where(eq(projectPhotos.id, input.id));
+        return { success: true, name };
+      }),
 });
 
 export const projectDetailsRouter = router({

@@ -114,3 +114,16 @@ export function projectWorkTypeFor(productType: string | null | undefined, items
   }
   return "cocina";
 }
+
+// ── Trabajos históricos del Portafolio (anteriores al CRM) ──────────────────
+
+/** Tipos que se pueden crear como histórico (sin datos del cliente). */
+export const HISTORIC_KINDS: WorkKind[] = ["cocina", "closet", "mueble_bano", "puertas", "centro_tv", "escaleras", "empresas", "isla"];
+
+/** "Cocina histórica 3" / "Closet histórico 1" / "Puertas históricas 2". */
+export function historicName(kind: WorkKind, n: number): string {
+  const k = WORK_KINDS[kind] || WORK_KINDS.cocina;
+  const adj = `históric${k.fem ? "a" : "o"}${k.plural ? "s" : ""}`;
+  const base = kind === "cocina" ? "Cocina" : k.label;
+  return `${base} ${adj} ${n}`;
+}

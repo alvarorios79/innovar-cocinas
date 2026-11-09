@@ -294,4 +294,33 @@ describe("Portafolio y Redes (servidor)", () => {
     expect(moved?.starred).toBe(true);
     await expect(admin.portfolio.moveMedia({ projectId: dest.id, ids: [foto.id], section: "despues", targetProjectId: 999999999 })).rejects.toThrow();
   });
+
+  it("trabajo histórico: solo Portafolio, sin cliente, no sale en Proyectos ni en Clientes", async () => {
+    const admin = caller({ id: adminId, role: "super_admin" });
+    const r = await admin.portfolio.createHistoric({ workKind: "closet" });
+    expect(r.name).toMatch(/^Closet histórico \d+$/);
+    const item = (await admin.portfolio.list()).find((x) => x.id === r.projectId)!;
+    expect(item).toBeTruthy();
+    expect(item.historic).toBe(true);
+    expect(item.clientName).toBe("");
+    expect(item.works).toEqual(["closet"]);
+    expect(item.delivered).toBe(true);
+
+    const projs: any = await admin.projects.list();
+    const arr = Array.isArray(projs) ? projs : projs?.projects || projs?.items || [];
+    expect(arr.find((p: any) => p.id === r.projectId)).toBeUndefined();
+    const cls: any = await admin.clients.list();
+    const carr = Array.isArray(cls) ? cls : cls?.clients || cls?.items || [];
+    expect(carr.find((c: any) => /Trabajos históricos/.test(c.name))).toBeUndefined();
+
+    // se le pueden mover fotos y la segunda cocina lleva el número siguiente
+    const p = await admin.portfolio.get({ projectId });
+    const foto = p.media.despues[0];
+    expect((await admin.portfolio.moveMedia({ projectId, ids: [foto.id], section: "despues", targetProjectId: r.projectId })).moved).toBe(1);
+    expect((await admin.portfolio.get({ projectId: r.projectId })).counts.despues).toBe(1);
+    const c1 = await admin.portfolio.createHistoric({ workKind: "cocina" });
+    const c2 = await admin.portfolio.createHistoric({ workKind: "cocina" });
+    expect(Number(c2.name.split(" ").pop())).toBe(Number(c1.name.split(" ").pop()) + 1);
+    await expect(caller({ id: adminId, role: "disenador" }).portfolio.createHistoric({ workKind: "cocina" })).rejects.toThrow();
+  });
 });

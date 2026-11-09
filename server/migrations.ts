@@ -116,6 +116,11 @@ export async function runMigrations() {
       name: "papelera_fotos_2",
       sql: `CREATE INDEX IF NOT EXISTS "photoTrash_projectId_idx" ON "photoTrash" ("projectId")`,
     },
+    // Trabajos históricos del Portafolio (9 nov 2026)
+    {
+      name: "portafolio_historicos_1",
+      sql: `CREATE TABLE IF NOT EXISTS "portfolioHistoric" ("projectId" integer PRIMARY KEY REFERENCES "projects"("id"), "workKind" varchar(30) NOT NULL, "createdBy" integer NOT NULL REFERENCES "users"("id"), "createdAt" timestamp NOT NULL DEFAULT now())`,
+    },
   ];
 
   for (const m of migrations) {

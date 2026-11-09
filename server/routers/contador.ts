@@ -3,7 +3,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { getDb } from "../db";
 import { taxObligations, taxDocuments, projects, clients, quotations } from "../../drizzle/schema";
-import { eq, and, desc, asc } from "drizzle-orm";
+import { eq, and, desc, asc, isNull } from "drizzle-orm";
 
 const ALLOWED_ROLES = ["super_admin", "admin", "contador"];
 
@@ -259,7 +259,8 @@ export const contadorRouter = router({
         })
         .from(projects)
         .leftJoin(clients, eq(projects.clientId, clients.id))
-        .where(input.status ? eq(projects.status, input.status) : undefined)
+        // Sin proyectos borrados (ni los históricos del Portafolio, que se guardan como borrados)
+        .where(input.status ? and(eq(projects.status, input.status), isNull(projects.deletedAt)) : isNull(projects.deletedAt))
         .orderBy(desc(projects.createdAt))
         .limit(200);
 

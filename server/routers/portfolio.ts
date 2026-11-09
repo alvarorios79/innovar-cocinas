@@ -6,13 +6,14 @@
  */
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, gte, inArray, isNull, lt } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, lt } from "drizzle-orm";
 import { protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import {
-  photoTrash, portfolioHidden, portfolioStars, projectPhotos, projects, projectVideos, socialPublications, technicalVisitPhotos,
+  clients, photoTrash, portfolioHidden, portfolioHistoric, portfolioStars, projectPhotos, projects, projectVideos, socialPublications, technicalVisitPhotos,
 } from "../../drizzle/schema";
 import { SECTION_UPLOAD_TARGET, canEditPortfolio, canViewPortfolio, type PortfolioSection } from "@shared/portfolio";
+import { HISTORIC_KINDS, historicName, projectWorkTypeFor, type WorkKind } from "@shared/workTypes";
 import {
   FALLBACK_POST_TYPE, SOCIAL_NETWORK_KEYS, SOCIAL_POST_TYPE_KEYS, WEEKLY_PLAN,
   bogotaWeekday, bogotaYmd, monthStartYmd, weekStartYmd, type SocialPostType,
@@ -36,7 +37,7 @@ function summary(p: PortfolioProject) {
   const { available, published } = postStatusOf(p);
   return {
     id: p.id, name: p.name, clientName: p.clientName, workType: p.workType, works: p.works, status: p.status, closed: p.closed,
-    delivered: p.delivered, hidden: p.hidden,
+    delivered: p.delivered, hidden: p.hidden, historic: p.historic,
     deliveredAt: p.deliveredAt, date: p.date, city: p.city, woodColor: p.woodColor, countertop: p.countertop,
     cover: coverOf(p), counts: countsOf(p), available, published,
   };
@@ -180,8 +181,10 @@ export const portfolioRouter = router({
       const t = SECTION_UPLOAD_TARGET[input.section as PortfolioSection];
       const target = input.targetProjectId && input.targetProjectId !== input.projectId ? input.targetProjectId : null;
       if (target) {
-        const [p] = await d.select({ id: projects.id }).from(projects).where(and(eq(projects.id, target), isNull(projects.deletedAt)));
-        if (!p) throw new TRPCError({ code: "NOT_FOUND", message: "El proyecto de destino no existe" });
+        // Destino válido: proyecto no borrado, o un histórico del Portafolio
+        const [p] = await d.select({ id: projects.id, deletedAt: projects.deletedAt }).from(projects).where(eq(projects.id, target));
+        const [h] = await d.select({ id: portfolioHistoric.projectId }).from(portfolioHistoric).where(eq(portfolioHistoric.projectId, target));
+        if (!p || (p.deletedAt && !h)) throw new TRPCError({ code: "NOT_FOUND", message: "El proyecto de destino no existe" });
       }
       const res = await d.transaction(async (tx: any) => {
         const moved = await tx.update(projectPhotos)
@@ -241,6 +244,33 @@ export const portfolioRouter = router({
         }
       }
       return { restored, failed: failed.length };
+    }),
+
+  /**
+   * Nuevo trabajo histórico (anterior al CRM): solo se elige qué es (cocina, closet…), sin datos del cliente.
+   * Se guarda como proyecto "solo Portafolio": con deletedAt (ninguna otra pantalla lo muestra) + portfolioHistoric.
+   */
+  createHistoric: protectedProcedure
+    .input(z.object({ workKind: z.enum(HISTORIC_KINDS as [WorkKind, ...WorkKind[]]) }))
+    .mutation(async ({ ctx, input }) => {
+      assertEdit(ctx.user.role);
+      const d = await database();
+      const now = new Date().toISOString();
+      // Cliente oculto para todos los históricos (projects.clientId es obligatorio)
+      const HIST_CLIENT = "Innovar · Trabajos históricos";
+      let [cli] = await d.select({ id: clients.id }).from(clients).where(eq(clients.name, HIST_CLIENT)).limit(1);
+      if (!cli) {
+        [cli] = await d.insert(clients).values({ name: HIST_CLIENT, whatsappPhone: "0", deletedAt: now } as any).returning({ id: clients.id });
+      }
+      const existing = await d.select({ workKind: portfolioHistoric.workKind }).from(portfolioHistoric);
+      const n = existing.filter((e: any) => e.workKind === input.workKind).length + 1;
+      const name = historicName(input.workKind, n);
+      const [proj] = await d.insert(projects).values({
+        clientId: cli.id, name, workType: projectWorkTypeFor(null, [{ itemType: input.workKind === "puertas" ? "puerta" : input.workKind }]),
+        status: "entregado", createdBy: ctx.user.id, deletedAt: now, isArchived: 0,
+      } as any).returning({ id: projects.id });
+      await d.insert(portfolioHistoric).values({ projectId: proj.id, workKind: input.workKind, createdBy: ctx.user.id });
+      return { projectId: proj.id, name };
     }),
 });
 

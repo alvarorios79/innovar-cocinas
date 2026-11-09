@@ -4,7 +4,8 @@
  * "Eliminar galería" la quita del portafolio y de Redes sin borrar fotos (se puede restaurar).
  */
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -12,15 +13,15 @@ import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Camera, Film, ImageIcon, ImagePlus, Loader2, Megaphone, RotateCcw, Search, Star, Trash2 } from "lucide-react";
+import { Camera, Film, ImageIcon, ImagePlus, Loader2, Megaphone, Plus, RotateCcw, Search, Star, Trash2 } from "lucide-react";
 import { PORTFOLIO_SECTIONS, canEditPortfolio } from "@shared/portfolio";
-import { WORK_GROUP_LABELS, worksGroups, worksLabel, type WorkGroup } from "@shared/workTypes";
+import { HISTORIC_KINDS, WORK_GROUP_LABELS, WORK_KINDS, worksGroups, worksLabel, type WorkGroup } from "@shared/workTypes";
 import { getProjectStatusLabel } from "@/lib/projectStatus";
 import { confirmAction } from "@/lib/confirm";
 import { formatDate } from "@/lib/format";
 import { PORTFOLIO_NAV_KEY } from "./PortafolioProyecto";
 
-type Chip = "con_fotos" | "sin_fotos" | "sin_antes" | "antes_despues" | "render" | "video" | "estrella" | "sin_publicar";
+type Chip = "historicos" | "con_fotos" | "sin_fotos" | "sin_antes" | "antes_despues" | "render" | "video" | "estrella" | "sin_publicar";
 const CHIPS: { key: Chip; label: string }[] = [
   { key: "con_fotos", label: "Con fotos" },
   { key: "sin_fotos", label: "Sin fotos" },
@@ -30,6 +31,7 @@ const CHIPS: { key: Chip; label: string }[] = [
   { key: "video", label: "Con video" },
   { key: "estrella", label: "Con estrellas" },
   { key: "sin_publicar", label: "Sin publicar" },
+  { key: "historicos", label: "Históricos" },
 ];
 
 type View = "activas" | "eliminadas";
@@ -67,6 +69,16 @@ export default function Portafolio() {
     onError: (e) => toast.error(e.message),
   });
 
+  const [, navigate] = useLocation();
+  const createHistoric = trpc.portfolio.createHistoric.useMutation({
+    onSuccess: (r) => {
+      utils.portfolio.list.invalidate();
+      toast.success(`Listo: ${r.name}. Ya puedes subir sus fotos`);
+      navigate(`/portafolio/${r.projectId}`);
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
   const all = data || [];
   const projects = useMemo(() => all.filter((p) => (view === "eliminadas" ? p.hidden : !p.hidden)), [all, view]);
   const hiddenCount = all.filter((p) => p.hidden).length;
@@ -92,6 +104,7 @@ export default function Portafolio() {
       if (c === "video" && !p.counts.videos) return false;
       if (c === "estrella" && !p.counts.stars) return false;
       if (c === "sin_publicar" && p.published.length) return false;
+      if (c === "historicos" && !p.historic) return false;
     }
     return true;
   }).sort((a, b) => {
@@ -137,7 +150,24 @@ export default function Portafolio() {
         title="Portafolio"
         subtitle="Alimenta las galerías y deja solo los más bonitos"
         icon={<ImageIcon className="h-5 w-5" />}
-        actions={<Link href="/redes"><Button className="gap-1.5"><Megaphone className="h-4 w-4" />Redes</Button></Link>}
+        actions={
+          <div className="flex gap-2">
+            {canEdit && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="gap-1.5" disabled={createHistoric.isPending}><Plus className="h-4 w-4" />Histórico</Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Trabajo anterior al CRM: ¿qué es?</DropdownMenuLabel>
+                  {HISTORIC_KINDS.map((k) => (
+                    <DropdownMenuItem key={k} onClick={() => createHistoric.mutate({ workKind: k })}>{WORK_KINDS[k].label}</DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+            <Link href="/redes"><Button className="gap-1.5"><Megaphone className="h-4 w-4" />Redes</Button></Link>
+          </div>
+        }
       />
 
       <div className="grid grid-cols-4 gap-2 mb-4">
@@ -245,6 +275,7 @@ export default function Portafolio() {
                     </div>
                   )}
                   <div className="absolute top-1.5 left-1.5 flex gap-1">
+                    {p.historic && <span className="rounded bg-amber-500/90 text-black text-[10px] font-semibold px-1.5 py-0.5">Histórico</span>}
                     {p.counts.antes > 0 && p.counts.despues > 0 && <span className="rounded bg-black/65 text-white text-[10px] px-1.5 py-0.5">Antes/Después</span>}
                     {p.counts.videos > 0 && <span className="rounded bg-black/65 text-white text-[10px] px-1.5 py-0.5 flex items-center gap-0.5"><Film className="h-3 w-3" />{p.counts.videos}</span>}
                   </div>
@@ -270,7 +301,7 @@ export default function Portafolio() {
                   {p.clientName && <p className="text-[11px] text-foreground/80 leading-tight line-clamp-1">{p.name}</p>}
                   <p className="text-[11px] text-muted-foreground line-clamp-1">
                     {worksLabel(p.works)}{p.city ? ` · ${p.city}` : ""}
-                    {p.delivered ? (p.date ? ` · ${formatDate(p.date)}` : "") : ` · ${getProjectStatusLabel(p.status)}`}
+                    {p.historic ? "" : p.delivered ? (p.date ? ` · ${formatDate(p.date)}` : "") : ` · ${getProjectStatusLabel(p.status)}`}
                   </p>
                   <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-[10px] text-muted-foreground">
                     {PORTFOLIO_SECTIONS.map((s) => {

@@ -1005,6 +1005,15 @@ export const photoTrash = pgTable("photoTrash", {
 	index("photoTrash_projectId_idx").on(table.projectId),
 ]);
 
+// Trabajos históricos (anteriores al CRM): proyecto "solo Portafolio". El proyecto se guarda con
+// deletedAt para que ninguna otra pantalla lo muestre; aquí se marca y se guarda qué trabajo es.
+export const portfolioHistoric = pgTable("portfolioHistoric", {
+	projectId: integer().primaryKey().references(() => projects.id),
+	workKind: varchar({ length: 30 }).notNull(),
+	createdBy: integer().notNull().references(() => users.id),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+});
+
 // Registro de lo publicado en redes (para no repetir y llevar la cuenta)
 export const socialPublications = pgTable("socialPublications", {
 	id: serial('id').primaryKey(),

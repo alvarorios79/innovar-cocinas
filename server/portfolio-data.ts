@@ -3,9 +3,9 @@
  * (Antes · Diseño · Instalación · Después), los videos, las estrellas, los materiales
  * y lo ya publicado en redes. Lo usan los routers `portfolio` y `social`.
  */
-import { and, desc, eq, inArray, isNull, or } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import {
-  clients, portfolioHidden, portfolioStars, projectMaterials, quotationItems, projectPhotos, projects, projectVideos, quotations,
+  clients, portfolioHidden, portfolioHistoric, portfolioStars, projectMaterials, quotationItems, projectPhotos, projects, projectVideos, quotations,
   socialPublications, technicalVisitPhotos, technicalVisits,
 } from "../drizzle/schema";
 import {
@@ -39,6 +39,7 @@ export type PortfolioProject = {
   status: string;
   closed: boolean;
   delivered: boolean;               // entregado, cerrado o archivado
+  historic: boolean;                // trabajo histórico (anterior al CRM, solo Portafolio)
   hidden: boolean;                  // galería quitada del portafolio (se puede restaurar)
   deliveredAt: string | null;
   date: string;                     // para ordenar: entrega o, si no hay, creación del proyecto
@@ -73,7 +74,8 @@ export async function loadPortfolio(
   db: any,
   opts: { projectIds?: number[]; includeEmpty?: boolean; includeHidden?: boolean } = {},
 ): Promise<PortfolioProject[]> {
-  const base: any[] = [isNull(projects.deletedAt)];
+  // Los históricos se guardan como proyectos borrados (para que no salgan en el resto del CRM)
+  const base: any[] = [or(isNull(projects.deletedAt), sql`${projects.id} in (select "projectId" from "portfolioHistoric")`)];
   if (opts.projectIds?.length) base.push(inArray(projects.id, opts.projectIds));
 
   const rows = await db
@@ -171,6 +173,10 @@ export async function loadPortfolio(
   const itemsOf = new Map<number, any[]>();
   for (const it of items as any[]) { if (!itemsOf.has(it.quotationId)) itemsOf.set(it.quotationId, []); itemsOf.get(it.quotationId)!.push(it); }
 
+  const historicRows = await db.select({ projectId: portfolioHistoric.projectId, workKind: portfolioHistoric.workKind })
+    .from(portfolioHistoric).where(inArray(portfolioHistoric.projectId, ids));
+  const historicKind = new Map<number, WorkKind>(historicRows.map((h: any) => [h.projectId, h.workKind as WorkKind]));
+
   const hiddenRows = await db.select({ projectId: portfolioHidden.projectId }).from(portfolioHidden).where(inArray(portfolioHidden.projectId, ids));
   const hiddenSet = new Set<number>(hiddenRows.map((h: any) => h.projectId));
 
@@ -215,12 +221,13 @@ export async function loadPortfolio(
     out.push({
       id: r.id,
       name: r.name,
-      clientName: r.clientName || "",
+      clientName: historicKind.has(r.id) ? "" : r.clientName || "",  // los históricos no tienen cliente
       workType: r.workType,
-      works: detectWorks(itemsOf.get(quoteOf.get(r.id) || -1) || [], r.workType),
+      works: historicKind.has(r.id) ? [historicKind.get(r.id)!] : detectWorks(itemsOf.get(quoteOf.get(r.id) || -1) || [], r.workType),
       status: r.status,
       closed: !!r.accountingClosureId,
-      delivered: r.status === "entregado" || !!r.accountingClosureId || r.isArchived === 1 || !!r.deliveredAt,
+      historic: historicKind.has(r.id),
+      delivered: historicKind.has(r.id) || r.status === "entregado" || !!r.accountingClosureId || r.isArchived === 1 || !!r.deliveredAt,
       hidden,
       deliveredAt: r.deliveredAt || null,
       date: r.deliveredAt || r.createdAt || "",

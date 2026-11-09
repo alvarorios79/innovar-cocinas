@@ -301,9 +301,9 @@ export default function PortafolioProyecto() {
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <div className="min-w-0 flex-1">
-          <h1 className="text-lg md:text-2xl font-bold leading-tight">{data.clientName || data.name}</h1>
+          <h1 className="text-lg md:text-2xl font-bold leading-tight">{data.historic ? data.name : data.clientName || data.name}</h1>
           <p className="text-xs md:text-sm text-muted-foreground leading-snug">
-            {data.clientName ? `${data.name} · ` : ""}{worksLabel(data.works)}{data.city ? ` · ${data.city}` : ""}{data.deliveredAt ? ` · ${formatDate(data.deliveredAt)}` : ""}
+            {data.historic ? "Trabajo histórico (anterior al CRM) · " : data.clientName ? `${data.name} · ` : ""}{worksLabel(data.works)}{data.city ? ` · ${data.city}` : ""}{data.deliveredAt ? ` · ${formatDate(data.deliveredAt)}` : ""}
           </p>
         </div>
         {nav && (
@@ -318,7 +318,7 @@ export default function PortafolioProyecto() {
             <Button size="icon" variant="ghost" className="shrink-0" title="Más opciones"><MoreVertical className="h-5 w-5" /></Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => navigate(`/projects/${data.id}`)}><ExternalLink className="h-4 w-4 mr-2" />Abrir el proyecto</DropdownMenuItem>
+            {!data.historic && <DropdownMenuItem onClick={() => navigate(`/projects/${data.id}`)}><ExternalLink className="h-4 w-4 mr-2" />Abrir el proyecto</DropdownMenuItem>}
             {canEdit && <DropdownMenuItem onClick={() => goTo("despues")}><Video className="h-4 w-4 mr-2" />Subir video</DropdownMenuItem>}
             {canEdit && <DropdownMenuItem onClick={() => { setSelecting(true); setSelected(new Set()); }}><ListChecks className="h-4 w-4 mr-2" />Seleccionar fotos</DropdownMenuItem>}
             {canEdit && (

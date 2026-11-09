@@ -50,6 +50,7 @@ import {
 import { useEffect } from "react";
 import { useFileViewer, FileViewer } from "@/components/FileViewer";
 import { ProjectMaterialsPanel } from "@/components/ProjectMaterialsPanel";
+import { ProjectDocsShare } from "@/components/ProjectDocsShare";
 import { ProjectResultCard } from "@/components/ProjectResultCard";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -509,7 +510,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
     dibujo: "Dibujo",
     renders: "Renders",
     despieces: "Despieces",
-    detalles: "Detalles",
+    detalles: "Planos técnicos y detalles",
     modelado_3d: "Modelado 3D",
     corte: "Corte",
     enchape: "Enchape",
@@ -1587,7 +1588,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                               <span className="w-2 h-2 bg-green-500 rounded-full"></span>
                               {subcategoryLabels[subcategory] || subcategory}
                               <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${photos.length > 0 ? 'bg-green-500/15 text-green-300' : 'bg-white/[0.06] text-gray-500'}`}>
-                                {photos.length} {photos.length === 1 ? 'foto' : 'fotos'}
+                                {photos.length} {subcategory === "detalles" || subcategory === "despieces" ? (photos.length === 1 ? 'archivo' : 'archivos') : (photos.length === 1 ? 'foto' : 'fotos')}
                               </span>
                             </h5>
                             {canUploadToFolder(subcategory) && (() => {
@@ -1693,6 +1694,9 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                                 );
                                 })}
                               </div>
+                              {subcategory === "detalles" && (
+                                <ProjectDocsShare projectId={projectDetail.id} files={photos as any[]} role={user?.role} />
+                              )}
                               {/* Botón de avanzar etapa - siempre visible para roles permitidos */}
                               {canShowAdvanceButton(subcategory) && (
                                 <div className="mt-3 pt-3 border-t border-dashed border-green-200">
@@ -2246,7 +2250,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                       <>
                         <SelectItem value="modelado_3d">Modelado</SelectItem>
                         <SelectItem value="renders">Renders</SelectItem>
-                        <SelectItem value="detalles">Detalles</SelectItem>
+                        <SelectItem value="detalles">Planos técnicos y detalles</SelectItem>
                         <SelectItem value="despieces">Despieces</SelectItem>
                       </>
                     )}

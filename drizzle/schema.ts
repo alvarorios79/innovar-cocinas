@@ -1014,6 +1014,25 @@ export const portfolioHistoric = pgTable("portfolioHistoric", {
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 });
 
+// Planos técnicos y detalles enviados al cliente: cuándo, si lo vio y si confirmó "Recibido"
+export const projectDocShares = pgTable("projectDocShares", {
+	id: serial('id').primaryKey(),
+	projectId: integer().notNull().references(() => projects.id),
+	photoId: integer().notNull(),
+	fileName: text(),
+	sentBy: integer().notNull().references(() => users.id),
+	firstSentAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+	lastSentAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+	sendCount: integer().default(1).notNull(),
+	hiddenAt: timestamp({ mode: 'string' }),
+	viewedAt: timestamp({ mode: 'string' }),
+	receivedAt: timestamp({ mode: 'string' }),
+	receivedName: varchar({ length: 120 }),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	index("projectDocShares_projectId_idx").on(table.projectId),
+]);
+
 // Registro de lo publicado en redes (para no repetir y llevar la cuenta)
 export const socialPublications = pgTable("socialPublications", {
 	id: serial('id').primaryKey(),

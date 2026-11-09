@@ -64,7 +64,8 @@ import {
   InsertAccountingClosureOperationalExpense,
   closureAuditLog,
   InsertClosureAuditLog,
-  fixedExpenseConfig
+  fixedExpenseConfig,
+  projectDocShares,
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { randomUUID } from 'crypto';
@@ -2854,7 +2855,12 @@ export async function permanentlyDeleteRecord(tableName: string, id: number) {
   // Solo permite borrado permanente de registros ya en papelera
   switch (tableName) {
     case 'clients': await db.delete(clients).where(and(eq(clients.id, id), isNotNull(clients.deletedAt))); break;
-    case 'projects': await db.delete(projects).where(and(eq(projects.id, id), isNotNull(projects.deletedAt))); break;
+    case 'projects': {
+      const [gone] = await db.select({ id: projects.id }).from(projects).where(and(eq(projects.id, id), isNotNull(projects.deletedAt)));
+      if (gone) await db.delete(projectDocShares).where(eq(projectDocShares.projectId, id));
+      await db.delete(projects).where(and(eq(projects.id, id), isNotNull(projects.deletedAt)));
+      break;
+    }
     case 'quotations': await db.delete(quotations).where(and(eq(quotations.id, id), isNotNull(quotations.deletedAt))); break;
     case 'appointments': await db.delete(appointments).where(and(eq(appointments.id, id), isNotNull(appointments.deletedAt))); break;
     case 'tasks': await db.delete(tasks).where(and(eq(tasks.id, id), isNotNull(tasks.deletedAt))); break;
@@ -4928,7 +4934,8 @@ export async function deleteTestProject(projectId: number) {
       // Eliminar pagos del proyecto
       await tx.delete(payments).where(eq(payments.projectId, projectId));
 
-      // Eliminar fotos del proyecto
+      // Eliminar constancias de documentos enviados y fotos del proyecto
+      await tx.delete(projectDocShares).where(eq(projectDocShares.projectId, projectId));
       await tx.delete(projectPhotos).where(eq(projectPhotos.projectId, projectId));
 
       // Eliminar historial de estado

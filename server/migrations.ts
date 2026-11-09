@@ -126,6 +126,19 @@ export async function runMigrations() {
       name: "portafolio_historicos_2",
       sql: `ALTER TABLE "portfolioHistoric" ALTER COLUMN "workKind" TYPE varchar(200)`,
     },
+    // Planos técnicos y detalles enviados al cliente (9 nov 2026)
+    {
+      name: "documentos_enviados_1",
+      sql: `CREATE TABLE IF NOT EXISTS "projectDocShares" ( "id" serial PRIMARY KEY, "projectId" integer NOT NULL REFERENCES "projects"("id"), "photoId" integer NOT NULL, "fileName" text, "sentBy" integer NOT NULL REFERENCES "users"("id"), "firstSentAt" timestamp NOT NULL DEFAULT now(), "lastSentAt" timestamp NOT NULL DEFAULT now(), "sendCount" integer NOT NULL DEFAULT 1, "hiddenAt" timestamp, "viewedAt" timestamp, "receivedAt" timestamp, "receivedName" varchar(120), "createdAt" timestamp NOT NULL DEFAULT now() )`,
+    },
+    {
+      name: "documentos_enviados_2",
+      sql: `CREATE UNIQUE INDEX IF NOT EXISTS "projectDocShares_photoId_uq" ON "projectDocShares" ("photoId")`,
+    },
+    {
+      name: "documentos_enviados_3",
+      sql: `CREATE INDEX IF NOT EXISTS "projectDocShares_projectId_idx" ON "projectDocShares" ("projectId")`,
+    },
   ];
 
   for (const m of migrations) {

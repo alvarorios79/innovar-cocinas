@@ -146,7 +146,7 @@ export const FOLDER_LABELS: Record<PhotoSubcategory, string> = {
   dibujo: 'Dibujo',
   modelado_3d: 'Modelado 3D',
   renders: 'Renders',
-  detalles: 'Detalles',
+  detalles: 'Planos técnicos y detalles',
   despieces: 'Despieces',
   corte: 'Corte',
   enchape: 'Enchape',

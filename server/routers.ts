@@ -14,6 +14,7 @@ import { pdfRouter } from "./routers/pdf";
 import { hardwareCatalogRouter } from "./routers/hardwareCatalog";
 import { publicGalleryRouter } from "./routers/publicGallery";
 import { portfolioRouter, socialRouter } from "./routers/portfolio";
+import { projectDocsRouter } from "./routers/projectDocs";
 import { pricingRouter } from "./routers/pricing";
 import { whatsappCloudRouter } from "./routers/whatsappCloud";
 import { expensesRouter } from "./routers/expenses";
@@ -56,6 +57,7 @@ export const appRouter = router({
   publicGallery: publicGalleryRouter,
   portfolio: portfolioRouter,
   social: socialRouter,
+  projectDocs: projectDocsRouter,
   pricing: pricingRouter,
   whatsappCloud: whatsappCloudRouter,
   expenses: expensesRouter,

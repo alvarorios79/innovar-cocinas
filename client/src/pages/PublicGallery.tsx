@@ -20,6 +20,7 @@ import { WatermarkedImage, WatermarkedFullscreenImage } from "@/components/Water
 import { toast } from "sonner";
 import { groupByVersion, type DesignVersionInfo } from "@shared/designVersions";
 import { GOOGLE_REVIEW_URL } from "@shared/const";
+import { PublicDocuments } from "@/components/PublicDocuments";
 import { 
   Image as ImageIcon, 
   ZoomIn, 
@@ -48,6 +49,14 @@ const WORK_TYPES: Record<string, string> = {
 };
 
 export default function PublicGallery() {
+  const params = new URLSearchParams(useSearch());
+  if (params.get("type") === "documentos") {
+    return <PublicDocuments projectId={parseInt(params.get("project") || "0")} token={params.get("token") || ""} />;
+  }
+  return <PublicGalleryView />;
+}
+
+function PublicGalleryView() {
   const search = useSearch();
   const params = new URLSearchParams(search);
   const projectId = parseInt(params.get("project") || "0");
@@ -68,6 +77,12 @@ export default function PublicGallery() {
   const { data, isLoading, error } = trpc.publicGallery.getProjectPhotos.useQuery(
     { projectId, token, type: photoType },
     { enabled: projectId > 0 && !!token }
+  );
+
+  // Planos técnicos y detalles enviados (solo para mostrar el acceso en el portal completo)
+  const { data: docsInfo } = trpc.projectDocs.publicCount.useQuery(
+    { projectId, token },
+    { enabled: projectId > 0 && !!token && !photoType, retry: false }
   );
 
   // Consultar estado de aprobación
@@ -308,6 +323,22 @@ export default function PublicGallery() {
 
         {/* ── CONTENIDO ── */}
         <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-8 space-y-8">
+
+          {(docsInfo?.count ?? 0) > 0 && (
+            <a href={`/gallery?project=${projectId}&token=${encodeURIComponent(token)}&type=documentos`}
+              className="flex items-center gap-4 rounded-2xl p-4 transition-opacity hover:opacity-90"
+              style={{ background: "#141414", border: "1px solid rgba(0,188,212,0.35)" }}>
+              <span className="text-2xl">📐</span>
+              <span className="flex-1">
+                <span className="block text-white font-semibold">Planos técnicos y detalles</span>
+                <span className="block text-xs" style={{ color: "#aaa" }}>
+                  {docsInfo!.count === 1 ? "1 documento" : `${docsInfo!.count} documentos`}
+                  {docsInfo!.pending > 0 ? " · falta confirmar Recibido" : " · recibido"}
+                </span>
+              </span>
+              <ChevronRight className="h-5 w-5" style={{ color: "var(--primary)" }} />
+            </a>
+          )}
 
           {/* ENTREGA: gracias + reseña en Google + compartir */}
           {isDelivered && (

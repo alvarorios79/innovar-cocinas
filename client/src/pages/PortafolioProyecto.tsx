@@ -68,6 +68,8 @@ export default function PortafolioProyecto() {
   const [selecting, setSelecting] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [trashOpen, setTrashOpen] = useState(false);
+  // Mover fotos a otro proyecto (cuando se subieron en la galería equivocada)
+  const [moveOther, setMoveOther] = useState<{ q: string; target: number | null; section: PortfolioSection } | null>(null);
   const [composer, setComposer] = useState<{ open: boolean; type?: SocialPostType }>({ open: false });
   const [videoUpload, setVideoUpload] = useState<{ name: string; pct: number } | null>(null);
   const [pending, setPending] = useState<Pending[]>([]);
@@ -197,6 +199,8 @@ export default function PortafolioProyecto() {
   };
 
   const trashQuery = trpc.portfolio.trash.useQuery({ projectId }, { enabled: canEdit && !!projectId });
+  const allProjectsQuery = trpc.portfolio.list.useQuery(undefined, { enabled: canEdit && !!moveOther });
+  const otherProjects = (allProjectsQuery.data || []).filter((p) => p.id !== projectId && !p.hidden);
   const afterChange = () => { refresh(); utils.portfolio.trash.invalidate({ projectId }); };
   const deleteMediaMut = trpc.portfolio.deleteMedia.useMutation({
     onSuccess: (r) => {
@@ -214,8 +218,16 @@ export default function PortafolioProyecto() {
       afterChange();
       setSelected(new Set());
       setSelecting(false);
+      setMoveOther(null);
       const to = PORTFOLIO_SECTIONS.find((x) => x.key === v.section)?.label;
-      toast.success(`${r.moved === 1 ? "Foto movida" : `${r.moved} fotos movidas`} a ${to}`);
+      if (r.targetProjectId) {
+        const dest = otherProjects.find((p) => p.id === r.targetProjectId);
+        toast.success(`${r.moved === 1 ? "Foto movida" : `${r.moved} fotos movidas`} a ${dest?.clientName || "otro proyecto"} (${to})`, {
+          action: { label: "Ver", onClick: () => navigate(`/portafolio/${r.targetProjectId}`) },
+        });
+      } else {
+        toast.success(`${r.moved === 1 ? "Foto movida" : `${r.moved} fotos movidas`} a ${to}`);
+      }
     },
     onError: (e) => toast.error(e.message),
   });
@@ -245,10 +257,17 @@ export default function PortafolioProyecto() {
     deleteMediaMut.mutate({ projectId, items: items.map((m) => ({ source: m.source, id: m.id })) });
   };
 
-  const moveSelected = (section: PortfolioSection) => {
+  const moveSelected = (section: PortfolioSection, targetProjectId?: number) => {
     const fotos = allMedia().filter((m) => selected.has(m.key) && m.source === "foto");
     if (!fotos.length) { toast.error("Las fotos del levantamiento no se pueden mover"); return; }
-    moveMediaMut.mutate({ projectId, ids: fotos.map((m) => m.id), section });
+    moveMediaMut.mutate({ projectId, ids: fotos.map((m) => m.id), section, targetProjectId });
+  };
+
+  /** Bloque donde están las fotos marcadas (si todas están en el mismo); si no, "Después". */
+  const selectedSection = (): PortfolioSection => {
+    if (!data) return "despues";
+    const secs = PORTFOLIO_SECTIONS.filter((s) => (data.media[s.key] as Media[]).some((m) => selected.has(m.key)));
+    return secs.length === 1 ? secs[0].key : "despues";
   };
 
   const goTo = (section: PortfolioSection) => {
@@ -630,6 +649,10 @@ export default function PortafolioProyecto() {
                 {PORTFOLIO_SECTIONS.map((x) => (
                   <DropdownMenuItem key={x.key} onClick={() => moveSelected(x.key)}>Mover a {x.label}</DropdownMenuItem>
                 ))}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setMoveOther({ q: "", target: null, section: selectedSection() })}>
+                  A otro proyecto…
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
             <Button
@@ -644,6 +667,79 @@ export default function PortafolioProyecto() {
           </div>
         </div>
       )}
+
+      {/* Mover a otro proyecto */}
+      <Dialog open={!!moveOther} onOpenChange={(o) => !o && setMoveOther(null)}>
+        <DialogContent className="max-w-lg max-h-[88vh] flex flex-col">
+          <DialogTitle>Mover {selected.size === 1 ? "1 foto" : `${selected.size} fotos`} a otro proyecto</DialogTitle>
+          <p className="text-xs text-muted-foreground -mt-2">Para las fotos que se subieron en la galería equivocada. Se mueven también en las carpetas del proyecto.</p>
+          {moveOther && (
+            <>
+              <input
+                autoFocus
+                value={moveOther.q}
+                onChange={(e) => setMoveOther({ ...moveOther, q: e.target.value })}
+                placeholder="Buscar cliente o proyecto…"
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+              />
+              <div className="flex-1 min-h-[160px] max-h-[40vh] overflow-y-auto rounded-md border border-border divide-y divide-border">
+                {otherProjects
+                  .filter((p) => {
+                    const q = moveOther.q.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+                    if (!q) return true;
+                    return `${p.clientName} ${p.name}`.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().includes(q);
+                  })
+                  .slice(0, 80)
+                  .map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => setMoveOther({ ...moveOther, target: p.id })}
+                      className={`w-full text-left px-3 py-2 flex items-center gap-2 ${moveOther.target === p.id ? "bg-primary/15" : "hover:bg-muted/50"}`}
+                    >
+                      {p.cover ? <img src={p.cover} alt="" className="h-9 w-9 rounded object-cover shrink-0" /> : <div className="h-9 w-9 rounded bg-muted shrink-0" />}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium truncate">{p.clientName || p.name}</p>
+                        <p className="text-[11px] text-muted-foreground truncate">{worksLabel(p.works)}{p.deliveredAt ? ` · ${formatDate(p.deliveredAt)}` : ""}</p>
+                      </div>
+                      {moveOther.target === p.id && <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />}
+                    </button>
+                  ))}
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs text-muted-foreground">Al bloque:</span>
+                {PORTFOLIO_SECTIONS.map((x) => (
+                  <button
+                    key={x.key}
+                    type="button"
+                    onClick={() => setMoveOther({ ...moveOther, section: x.key })}
+                    className={`px-2.5 py-1 rounded-full text-xs border ${moveOther.section === x.key ? "bg-primary text-primary-foreground border-primary" : "border-border"}`}
+                  >
+                    {x.label}
+                  </button>
+                ))}
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setMoveOther(null)}>Cancelar</Button>
+                <Button
+                  disabled={!moveOther.target || moveMediaMut.isPending}
+                  onClick={async () => {
+                    const dest = otherProjects.find((p) => p.id === moveOther.target);
+                    const ok = await confirmAction({
+                      title: `¿Mover ${selected.size === 1 ? "1 foto" : `${selected.size} fotos`} a ${dest?.clientName || "ese proyecto"}?`,
+                      description: `Quedarán en el bloque ${PORTFOLIO_SECTIONS.find((x) => x.key === moveOther.section)?.label} de ese proyecto y saldrán de este.`,
+                      confirmText: "Mover",
+                    });
+                    if (ok) moveSelected(moveOther.section, moveOther.target!);
+                  }}
+                >
+                  Mover
+                </Button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Papelera del proyecto */}
       <Dialog open={trashOpen} onOpenChange={setTrashOpen}>

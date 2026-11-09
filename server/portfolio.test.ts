@@ -277,4 +277,21 @@ describe("Portafolio y Redes (servidor)", () => {
     const [proj] = await db!.select({ status: projects.status }).from(projects).where(eq(projects.id, projectId));
     expect(proj.status).toBe("entregado");
   });
+
+  it("mover fotos a OTRO proyecto (galería equivocada), con su estrella", async () => {
+    const db = await getDb();
+    const admin = caller({ id: adminId, role: "admin" });
+    const [client] = await db!.insert(clients).values({ name: "Cliente destino", whatsappPhone: "3000000009" } as any).returning({ id: clients.id });
+    const [dest] = await db!.insert(projects).values({ clientId: client.id, name: "Destino", workType: "cocina", status: "entregado", createdBy: adminId } as any).returning({ id: projects.id });
+    const p = await admin.portfolio.get({ projectId });
+    const foto = p.media.despues[0];
+    await admin.portfolio.toggleStar({ projectId, source: "foto", mediaId: foto.id });
+
+    const r = await admin.portfolio.moveMedia({ projectId, ids: [foto.id], section: "despues", targetProjectId: dest.id });
+    expect(r.moved).toBe(1);
+    expect((await admin.portfolio.get({ projectId })).media.despues.find((m) => m.id === foto.id)).toBeUndefined();
+    const moved = (await admin.portfolio.get({ projectId: dest.id })).media.despues.find((m) => m.id === foto.id);
+    expect(moved?.starred).toBe(true);
+    await expect(admin.portfolio.moveMedia({ projectId: dest.id, ids: [foto.id], section: "despues", targetProjectId: 999999999 })).rejects.toThrow();
+  });
 });

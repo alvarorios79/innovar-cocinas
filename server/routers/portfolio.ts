@@ -6,7 +6,7 @@
  */
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, gte, inArray, lt } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNull, lt } from "drizzle-orm";
 import { protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import {
@@ -163,22 +163,40 @@ export const portfolioRouter = router({
       return { deleted: moved };
     }),
 
-  /** Mover fotos a otro bloque (cuando se subieron donde no era). Solo fotos del proyecto, no las del levantamiento. */
+  /**
+   * Mover fotos a otro bloque y, si se indica, a OTRO proyecto (cuando se subieron en la galería equivocada).
+   * Solo fotos del proyecto, no las del levantamiento. No cambia la etapa de ningún proyecto.
+   */
   moveMedia: protectedProcedure
     .input(z.object({
       projectId: z.number(),
       ids: z.array(z.number()).min(1).max(300),
       section: z.enum(["antes", "diseno", "instalacion", "despues"]),
+      targetProjectId: z.number().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       assertEdit(ctx.user.role);
       const d = await database();
       const t = SECTION_UPLOAD_TARGET[input.section as PortfolioSection];
-      const res = await d.update(projectPhotos)
-        .set({ stage: t.stage, category: t.category, subcategory: t.subcategory } as any)
-        .where(and(eq(projectPhotos.projectId, input.projectId), inArray(projectPhotos.id, input.ids)))
-        .returning({ id: projectPhotos.id });
-      return { moved: res.length };
+      const target = input.targetProjectId && input.targetProjectId !== input.projectId ? input.targetProjectId : null;
+      if (target) {
+        const [p] = await d.select({ id: projects.id }).from(projects).where(and(eq(projects.id, target), isNull(projects.deletedAt)));
+        if (!p) throw new TRPCError({ code: "NOT_FOUND", message: "El proyecto de destino no existe" });
+      }
+      const res = await d.transaction(async (tx: any) => {
+        const moved = await tx.update(projectPhotos)
+          .set({ stage: t.stage, category: t.category, subcategory: t.subcategory, ...(target ? { projectId: target } : {}) } as any)
+          .where(and(eq(projectPhotos.projectId, input.projectId), inArray(projectPhotos.id, input.ids)))
+          .returning({ id: projectPhotos.id });
+        // Las estrellas se van con la foto
+        if (target && moved.length) {
+          await tx.update(portfolioStars).set({ projectId: target })
+            .where(and(eq(portfolioStars.source, "foto"), inArray(portfolioStars.mediaId, moved.map((m: any) => m.id))));
+        }
+        return moved;
+      });
+      if (target) console.log(`[Portafolio] ${res.length} foto(s) movidas del proyecto ${input.projectId} al ${target} (${input.section}) por ${ctx.user.id}`);
+      return { moved: res.length, targetProjectId: target };
     }),
 
   /** Papelera del proyecto (últimos 30 días). */

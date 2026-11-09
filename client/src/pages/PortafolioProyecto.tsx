@@ -1,35 +1,57 @@
 /**
  * Ficha de un proyecto en el Portafolio: Antes · Diseño · Instalación · Después + videos.
+ * Pensada para alimentarla desde el celular:
+ *  - barra fija con los 4 bloques (tocar = ir al bloque) y cuántas fotos tiene cada uno;
+ *  - casilla grande "+ Agregar" al inicio de cada bloque (abre la galería o la cámara del celular);
+ *  - las fotos aparecen de una vez mientras suben;
+ *  - "Anterior / Siguiente" para pasar al siguiente proyecto de la lista sin volver atrás.
  * Estrellas ⭐ = "de las buenas": portada del proyecto y primeras en las publicaciones de redes.
  */
-import { useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useRoute } from "wouter";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { SocialPostComposer } from "@/components/SocialPostComposer";
 import { confirmAction } from "@/lib/confirm";
 import { formatDate } from "@/lib/format";
 import { downloadMediaUrl, slug, uploadPortfolioPhoto, uploadProjectVideo } from "@/lib/portfolioMedia";
 import {
-  ChevronLeft, ChevronRight, Download, ExternalLink, Film, ImageIcon, ImagePlus, Loader2, Megaphone, RotateCcw, Star, Trash2, Upload,
+  AlertCircle, ArrowLeft, ChevronLeft, ChevronRight, Download, ExternalLink, Film, ImagePlus, Loader2, Megaphone,
+  MoreVertical, RotateCcw, Star, Trash2, Video, X,
 } from "lucide-react";
 import { MAX_VIDEO_BYTES, PORTFOLIO_SECTIONS, canEditPortfolio, formatBytes, workTypeLabel, type PortfolioSection } from "@shared/portfolio";
 import { SOCIAL_NETWORKS, SOCIAL_POST_TYPES, type SocialNetwork, type SocialPostType } from "@shared/socialPosts";
 import { parseWoodColors, woodColorRows } from "@shared/primaderaCatalog";
 
 type Media = { key: string; source: "foto" | "levantamiento"; id: number; url: string; folder: string; createdAt: string; starred: boolean };
+type Pending = { key: string; section: PortfolioSection; preview: string; status: "subiendo" | "error"; error?: string };
+
+/** Lista de proyectos que dejó la pantalla del Portafolio (con sus filtros y orden) para "Anterior / Siguiente". */
+export const PORTFOLIO_NAV_KEY = "portafolio-nav";
 
 const EMPTY_HINT: Record<PortfolioSection, string> = {
-  antes: "Sin fotos del antes. Si las tienes en el celular, súbelas con \"Subir fotos\". Recuérdale al medidor tomarlas en el levantamiento.",
-  diseno: "Sin modelado ni renders.",
-  instalacion: "Sin fotos de la instalación.",
-  despues: "Sin fotos finales. Súbelas aquí o el taller las sube al terminar (Entrega → Fotos finales).",
+  antes: "El espacio como estaba antes de empezar",
+  diseno: "Renders y modelado 3D",
+  instalacion: "Fotos en la obra",
+  despues: "El trabajo terminado",
 };
+
+/** Sube varias fotos, de a 2 a la vez. */
+async function runPool<T>(items: T[], size: number, fn: (item: T) => Promise<void>) {
+  let i = 0;
+  const worker = async () => {
+    while (i < items.length) {
+      const item = items[i++];
+      await fn(item);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(size, items.length) }, worker));
+}
 
 export default function PortafolioProyecto() {
   const [, params] = useRoute("/portafolio/:id");
@@ -37,16 +59,35 @@ export default function PortafolioProyecto() {
   const { user } = useAuth();
   const canEdit = canEditPortfolio(user?.role);
   const utils = trpc.useUtils();
+  const [, navigate] = useLocation();
   const { data, isLoading, error } = trpc.portfolio.get.useQuery({ projectId }, { enabled: !!projectId });
 
   const [viewer, setViewer] = useState<{ list: Media[]; index: number } | null>(null);
   const [composer, setComposer] = useState<{ open: boolean; type?: SocialPostType }>({ open: false });
-  const [upload, setUpload] = useState<{ name: string; pct: number } | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
+  const [videoUpload, setVideoUpload] = useState<{ name: string; pct: number } | null>(null);
+  const [pending, setPending] = useState<Pending[]>([]);
   const photoRef = useRef<HTMLInputElement>(null);
-  const [photoSection, setPhotoSection] = useState<PortfolioSection | null>(null);
-  const [photoUpload, setPhotoUpload] = useState<{ section: PortfolioSection; done: number; total: number } | null>(null);
-  const [, navigate] = useLocation();
+  const videoRef = useRef<HTMLInputElement>(null);
+  const sectionRef = useRef<PortfolioSection>("antes");
+  const touchX = useRef<number | null>(null);
+
+  // Anterior / Siguiente según la lista del Portafolio
+  const nav = useMemo(() => {
+    try {
+      const ids: number[] = JSON.parse(sessionStorage.getItem(PORTFOLIO_NAV_KEY) || "[]");
+      const i = ids.indexOf(projectId);
+      if (i < 0) return null;
+      return { prev: ids[i - 1] ?? null, next: ids[i + 1] ?? null, pos: i + 1, total: ids.length };
+    } catch {
+      return null;
+    }
+  }, [projectId]);
+
+  // Al cambiar de proyecto: arriba y sin pendientes
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+    setPending([]);
+  }, [projectId]);
 
   const refresh = () => {
     utils.portfolio.get.invalidate({ projectId });
@@ -56,25 +97,37 @@ export default function PortafolioProyecto() {
 
   const starMut = trpc.portfolio.toggleStar.useMutation({
     onSuccess: refresh,
-    onError: (e) => toast.error(e.message),
+    onError: (e) => { toast.error(e.message); refresh(); },
   });
   const deleteVideoMut = trpc.portfolio.deleteVideo.useMutation({
     onSuccess: () => { refresh(); toast.success("Video quitado del portafolio"); },
     onError: (e) => toast.error(e.message),
   });
-
   const hideMut = trpc.portfolio.setHidden.useMutation({
     onSuccess: (r) => {
       refresh();
       if (r.hidden) {
         toast.success("Galería quitada del portafolio. Puedes restaurarla desde \"Eliminadas\".");
-        navigate("/portafolio");
+        if (nav?.next) navigate(`/portafolio/${nav.next}`);
+        else navigate("/portafolio");
       } else {
         toast.success("Galería restaurada");
       }
     },
     onError: (e) => toast.error(e.message),
   });
+
+  /** La estrella cambia al instante (sin esperar al servidor). */
+  const toggleStar = (m: Media) => {
+    if (!canEdit) return;
+    utils.portfolio.get.setData({ projectId }, (old: any) => {
+      if (!old) return old;
+      const flip = (list: Media[]) => list.map((x) => (x.key === m.key ? { ...x, starred: !x.starred } : x));
+      return { ...old, media: { antes: flip(old.media.antes), diseno: flip(old.media.diseno), instalacion: flip(old.media.instalacion), despues: flip(old.media.despues) } };
+    });
+    setViewer((v) => v && { ...v, list: v.list.map((x) => (x.key === m.key ? { ...x, starred: !x.starred } : x)) });
+    starMut.mutate({ projectId, source: m.source, mediaId: m.id });
+  };
 
   const askHide = async () => {
     const ok = await confirmAction({
@@ -87,55 +140,59 @@ export default function PortafolioProyecto() {
   };
 
   const pickPhotos = (section: PortfolioSection) => {
-    setPhotoSection(section);
+    sectionRef.current = section;
     photoRef.current?.click();
   };
 
   const onPickPhotos = async (files: FileList | null) => {
-    const section = photoSection;
-    if (!files?.length || !section) return;
-    const list = Array.from(files).filter((f) => f.type.startsWith("image/") || /\.(heic|heif)$/i.test(f.name));
+    const section = sectionRef.current;
+    const list = Array.from(files || []).filter((f) => f.type.startsWith("image/") || /\.(heic|heif)$/i.test(f.name));
+    if (photoRef.current) photoRef.current.value = "";
+    if (!list.length) return;
+    const items = list.map((file, i) => ({
+      file,
+      p: { key: `p-${Date.now()}-${i}`, section, preview: URL.createObjectURL(file), status: "subiendo" as const },
+    }));
+    setPending((ps) => [...ps, ...items.map((x) => x.p)]);
     let ok = 0;
-    setPhotoUpload({ section, done: 0, total: list.length });
-    for (let i = 0; i < list.length; i++) {
-      const file = list[i];
+    await runPool(items, 2, async ({ file, p }) => {
       try {
         await uploadPortfolioPhoto(projectId, section, file);
         ok++;
+        await utils.portfolio.get.invalidate({ projectId });
+        setPending((ps) => ps.filter((x) => x.key !== p.key));
+        URL.revokeObjectURL(p.preview);
       } catch (e: any) {
-        toast.error(`${file.name}: ${e.message}`);
+        setPending((ps) => ps.map((x) => (x.key === p.key ? { ...x, status: "error", error: e.message } : x)));
       }
-      setPhotoUpload({ section, done: i + 1, total: list.length });
-    }
-    setPhotoUpload(null);
-    if (photoRef.current) photoRef.current.value = "";
+    });
     if (ok) toast.success(ok === 1 ? "Foto subida" : `${ok} fotos subidas`);
     refresh();
   };
 
-  const toggleStar = (m: Media) => {
-    if (!canEdit) return;
-    starMut.mutate({ projectId, source: m.source, mediaId: m.id });
-    // reflejar al instante en el visor
-    setViewer((v) => v && { ...v, list: v.list.map((x) => (x.key === m.key ? { ...x, starred: !x.starred } : x)) });
-  };
-
   const onPickVideos = async (files: FileList | null) => {
-    if (!files?.length) return;
-    for (const file of Array.from(files)) {
+    const list = Array.from(files || []);
+    if (videoRef.current) videoRef.current.value = "";
+    for (const file of list) {
       if (!file.type.startsWith("video/")) { toast.error(`${file.name} no es un video`); continue; }
       if (file.size > MAX_VIDEO_BYTES) { toast.error(`${file.name} pesa más de 1 GB`); continue; }
-      setUpload({ name: file.name, pct: 0 });
+      setVideoUpload({ name: file.name, pct: 0 });
       try {
-        await uploadProjectVideo(projectId, file, (pct) => setUpload({ name: file.name, pct }));
+        await uploadProjectVideo(projectId, file, (pct) => setVideoUpload({ name: file.name, pct }));
         toast.success("Video subido");
         refresh();
       } catch (e: any) {
         toast.error(e.message || "No se pudo subir el video");
       }
     }
-    setUpload(null);
-    if (fileRef.current) fileRef.current.value = "";
+    setVideoUpload(null);
+  };
+
+  const goTo = (section: PortfolioSection) => {
+    const el = document.getElementById(`bloque-${section}`);
+    if (!el) return;
+    const offset = window.innerWidth < 768 ? 56 + 64 : 80 + 64; // encabezado + barra de bloques
+    window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - offset, behavior: "smooth" });
   };
 
   if (isLoading) return <div className="py-20 flex justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
@@ -150,39 +207,56 @@ export default function PortafolioProyecto() {
 
   const woodRows = data.woodColor ? woodColorRows(parseWoodColors(data.woodColor)) : [];
   const published = data.publications;
+  const sectionCount = (k: PortfolioSection) =>
+    (data.media[k] as Media[]).length + (k === "despues" ? data.videos.length : 0) + pending.filter((p) => p.section === k).length;
 
   return (
-    <div className="pb-24 md:pb-6">
-      <PageHeader
-        title={data.name}
-        subtitle={`${workTypeLabel(data.workType)}${data.city ? ` · ${data.city}` : ""}${data.deliveredAt ? ` · Entregado ${formatDate(data.deliveredAt)}` : ""}`}
-        showBack
-        icon={<ImageIcon className="h-5 w-5" />}
-        actions={
-          <div className="flex flex-wrap gap-2">
-            {data.available.length > 0 && (
-              <Button className="gap-1.5" onClick={() => setComposer({ open: true })}><Megaphone className="h-4 w-4" />Crear publicación</Button>
-            )}
-            {canEdit && (
-              <Button variant="outline" className="gap-1.5" disabled={!!upload} onClick={() => fileRef.current?.click()}>
-                <Upload className="h-4 w-4" />Subir video
-              </Button>
-            )}
-            <Link href={`/projects/${data.id}`}><Button variant="ghost" className="gap-1.5"><ExternalLink className="h-4 w-4" />Proyecto</Button></Link>
-            {canEdit && !data.hidden && (
-              <Button variant="ghost" className="gap-1.5 text-destructive hover:text-destructive" onClick={askHide} disabled={hideMut.isPending}>
-                <Trash2 className="h-4 w-4" />Eliminar galería
-              </Button>
-            )}
-          </div>
-        }
-      />
-      <input ref={fileRef} type="file" accept="video/*" multiple className="hidden" onChange={(e) => onPickVideos(e.target.files)} />
+    <div className="pb-28 md:pb-8">
       <input ref={photoRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => onPickPhotos(e.target.files)} />
+      <input ref={videoRef} type="file" accept="video/*" multiple className="hidden" onChange={(e) => onPickVideos(e.target.files)} />
+
+      {/* Encabezado compacto */}
+      <div className="flex items-start gap-2 mb-3">
+        <Link href="/portafolio" className="mt-0.5 shrink-0 rounded-lg p-1.5 -ml-1.5 text-muted-foreground hover:text-foreground hover:bg-muted" title="Volver al portafolio">
+          <ArrowLeft className="h-5 w-5" />
+        </Link>
+        <div className="min-w-0 flex-1">
+          <h1 className="text-lg md:text-2xl font-bold leading-tight">{data.clientName || data.name}</h1>
+          <p className="text-xs md:text-sm text-muted-foreground leading-snug">
+            {data.clientName ? `${data.name} · ` : ""}{workTypeLabel(data.workType)}{data.city ? ` · ${data.city}` : ""}{data.deliveredAt ? ` · ${formatDate(data.deliveredAt)}` : ""}
+          </p>
+        </div>
+        {nav && (
+          <div className="hidden md:flex items-center gap-1 shrink-0">
+            <Button size="icon" variant="outline" disabled={!nav.prev} onClick={() => nav.prev && navigate(`/portafolio/${nav.prev}`)} title="Proyecto anterior"><ChevronLeft className="h-4 w-4" /></Button>
+            <span className="text-xs text-muted-foreground w-14 text-center">{nav.pos} de {nav.total}</span>
+            <Button size="icon" variant="outline" disabled={!nav.next} onClick={() => nav.next && navigate(`/portafolio/${nav.next}`)} title="Proyecto siguiente"><ChevronRight className="h-4 w-4" /></Button>
+          </div>
+        )}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button size="icon" variant="ghost" className="shrink-0" title="Más opciones"><MoreVertical className="h-5 w-5" /></Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => navigate(`/projects/${data.id}`)}><ExternalLink className="h-4 w-4 mr-2" />Abrir el proyecto</DropdownMenuItem>
+            {canEdit && <DropdownMenuItem onClick={() => videoRef.current?.click()}><Video className="h-4 w-4 mr-2" />Subir video</DropdownMenuItem>}
+            {canEdit && (
+              <>
+                <DropdownMenuSeparator />
+                {data.hidden ? (
+                  <DropdownMenuItem onClick={() => hideMut.mutate({ projectId, hidden: false })}><RotateCcw className="h-4 w-4 mr-2" />Restaurar galería</DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={askHide}><Trash2 className="h-4 w-4 mr-2" />Eliminar galería</DropdownMenuItem>
+                )}
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
       {data.hidden && (
-        <div className="mb-4 rounded-xl border border-warning/50 bg-warning/10 p-3 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-sm">Esta galería está <b>eliminada del portafolio</b>: no aparece en el Portafolio ni en Redes.</p>
+        <div className="mb-3 rounded-xl border border-warning/50 bg-warning/10 p-3 flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm">Esta galería está <b>eliminada del portafolio</b>.</p>
           {canEdit && (
             <Button size="sm" variant="outline" className="gap-1.5" disabled={hideMut.isPending} onClick={() => hideMut.mutate({ projectId, hidden: false })}>
               <RotateCcw className="h-4 w-4" />Restaurar
@@ -191,79 +265,90 @@ export default function PortafolioProyecto() {
         </div>
       )}
 
-      {photoUpload && (
-        <div className="mb-4 rounded-xl border border-primary/40 bg-primary/5 p-3 space-y-2">
-          <p className="text-sm">Subiendo fotos a <b>{PORTFOLIO_SECTIONS.find((x) => x.key === photoUpload.section)?.label}</b>… {photoUpload.done} de {photoUpload.total}</p>
-          <Progress value={(photoUpload.done / Math.max(1, photoUpload.total)) * 100} />
+      {/* Datos (cortos) y publicaciones */}
+      {(data.countertop || woodRows.length > 0) && (
+        <p className="text-xs text-muted-foreground mb-2 leading-relaxed">
+          {woodRows.length > 0 && <>🪵 {woodRows.map((r) => `${r.label}: ${r.value}`).join(" · ")}</>}
+          {woodRows.length > 0 && data.countertop && <br />}
+          {data.countertop && <>🪨 Mesón: {data.countertop}</>}
+        </p>
+      )}
+      {data.available.length > 0 && (
+        <div className="flex gap-2 mb-3 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden pb-1 -mx-1 px-1">
+          <Button size="sm" className="gap-1.5 shrink-0" onClick={() => setComposer({ open: true })}><Megaphone className="h-4 w-4" />Crear publicación</Button>
+          {data.available.map((t) => {
+            const done = published.filter((p) => p.postType === t);
+            return (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setComposer({ open: true, type: t })}
+                className={`shrink-0 px-2.5 py-1 rounded-full text-xs border ${done.length ? "border-success/50 text-success" : "border-border text-muted-foreground"}`}
+              >
+                {SOCIAL_POST_TYPES[t].emoji} {SOCIAL_POST_TYPES[t].label}
+                {done.length > 0 && ` · ${done.map((d) => SOCIAL_NETWORKS[d.network as SocialNetwork]?.label || d.network).join(", ")}`}
+              </button>
+            );
+          })}
         </div>
       )}
 
-      {upload && (
+      {/* Barra fija de bloques */}
+      <div className="sticky top-14 md:top-20 z-20 -mx-3.5 px-3.5 md:mx-0 md:px-0 py-2 bg-background/95 backdrop-blur border-b border-border mb-4">
+        <div className="grid grid-cols-4 gap-1.5">
+          {PORTFOLIO_SECTIONS.map((s) => {
+            const n = sectionCount(s.key);
+            return (
+              <button
+                key={s.key}
+                type="button"
+                onClick={() => goTo(s.key)}
+                className={`rounded-lg border px-1 py-1.5 text-center transition ${n ? "border-border bg-card" : "border-dashed border-warning/50 bg-warning/5"}`}
+              >
+                <p className="text-[11px] md:text-xs font-semibold leading-none">{s.label}</p>
+                <p className={`text-[11px] mt-1 leading-none ${n ? "text-primary" : "text-warning"}`}>{n ? `${n} ${n === 1 ? "archivo" : "archivos"}` : "Vacío"}</p>
+              </button>
+            );
+          })}
+        </div>
+        {canEdit && <p className="hidden md:block text-[11px] text-muted-foreground mt-1.5">Toca la ⭐ de las mejores fotos: serán la portada y las primeras al crear publicaciones.</p>}
+      </div>
+
+      {videoUpload && (
         <div className="mb-4 rounded-xl border border-primary/40 bg-primary/5 p-3 space-y-2">
-          <p className="text-sm">Subiendo <b>{upload.name}</b>… {upload.pct}% <span className="text-muted-foreground text-xs">(no cierres esta pantalla)</span></p>
-          <Progress value={upload.pct} />
+          <p className="text-sm">Subiendo video <b className="break-all">{videoUpload.name}</b>… {videoUpload.pct}%</p>
+          <Progress value={videoUpload.pct} />
+          <p className="text-[11px] text-muted-foreground">No cierres esta pantalla hasta que termine.</p>
         </div>
       )}
 
-      {/* Datos para el texto de redes */}
-      <div className="mb-4 rounded-xl border border-border bg-card p-3 text-sm grid gap-1 sm:grid-cols-2">
-        <p><span className="text-muted-foreground">Cliente:</span> {data.clientName || "—"}</p>
-        <p><span className="text-muted-foreground">Mesón:</span> {data.countertop || "—"}</p>
-        <p className="sm:col-span-2"><span className="text-muted-foreground">Madera:</span> {woodRows.length ? woodRows.map((r) => `${r.label}: ${r.value}`).join(" · ") : "—"}</p>
-        {data.weeks && <p><span className="text-muted-foreground">Tiempo:</span> {data.weeks} semana{data.weeks === 1 ? "" : "s"} desde la aprobación del diseño</p>}
-        {canEdit && <p className="sm:col-span-2 text-xs text-muted-foreground">Toca la ⭐ de las mejores fotos: serán la portada y las primeras que aparecen al crear publicaciones.</p>}
-      </div>
-
-      {/* Publicaciones hechas y pendientes */}
-      <div className="mb-5 flex flex-wrap gap-1.5">
-        {data.available.map((t) => {
-          const done = published.filter((p) => p.postType === t);
-          return (
-            <button
-              key={t}
-              type="button"
-              onClick={() => setComposer({ open: true, type: t })}
-              className={`px-2.5 py-1 rounded-full text-xs border ${done.length ? "border-success/50 text-success" : "border-border hover:border-primary/60"}`}
-            >
-              {SOCIAL_POST_TYPES[t].emoji} {SOCIAL_POST_TYPES[t].label}
-              {done.length > 0 && ` · ${done.map((d) => SOCIAL_NETWORKS[d.network as SocialNetwork]?.label || d.network).join(", ")}`}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="space-y-6">
+      <div className="space-y-7">
         {PORTFOLIO_SECTIONS.map((s) => {
           const list = data.media[s.key] as Media[];
           const videos = s.key === "despues" ? data.videos : [];
+          const mine = pending.filter((p) => p.section === s.key);
+          const empty = !list.length && !videos.length && !mine.length;
           return (
-            <section key={s.key}>
-              <div className="flex items-center gap-2 mb-2">
-                <div className="flex items-baseline gap-2 min-w-0 flex-1 flex-wrap">
-                  <h2 className="text-base font-semibold">{s.label}</h2>
-                  <span className="text-xs text-muted-foreground">{s.hint} · {list.length} foto{list.length === 1 ? "" : "s"}{videos.length ? ` · ${videos.length} video${videos.length === 1 ? "" : "s"}` : ""}</span>
-                </div>
-                {canEdit && (
-                  <Button size="sm" variant="outline" className="h-8 gap-1.5 shrink-0" disabled={!!photoUpload} onClick={() => pickPhotos(s.key)}>
-                    <ImagePlus className="h-4 w-4" />Subir fotos
-                  </Button>
-                )}
+            <section key={s.key} id={`bloque-${s.key}`}>
+              <div className="flex items-baseline gap-2 mb-2">
+                <h2 className="text-base font-semibold">{s.label}</h2>
+                <span className="text-xs text-muted-foreground truncate">{EMPTY_HINT[s.key]}</span>
               </div>
 
               {videos.length > 0 && (
-                <div className="grid gap-3 sm:grid-cols-2 mb-3">
+                <div className="grid gap-3 sm:grid-cols-2 mb-2">
                   {videos.map((v) => (
                     <div key={v.id} className="rounded-xl overflow-hidden border border-border bg-black">
                       <video src={v.url} controls preload="metadata" playsInline className="w-full max-h-[420px]" />
-                      <div className="flex items-center gap-2 px-3 py-2 bg-card">
+                      <div className="flex items-center gap-2 px-3 py-1.5 bg-card">
                         <Film className="h-4 w-4 text-primary shrink-0" />
-                        <span className="text-xs text-muted-foreground truncate flex-1">{v.fileName || "Video"} · {formatBytes(v.sizeBytes)} · {formatDate(v.createdAt)}</span>
+                        <span className="text-xs text-muted-foreground truncate flex-1">{formatBytes(v.sizeBytes) || "Video"} · {formatDate(v.createdAt)}</span>
                         <a href={downloadMediaUrl(v.url, v.fileName || `innovar-${slug(data.name)}.mp4`)} download title="Descargar">
-                          <Button size="icon" variant="ghost" className="h-7 w-7"><Download className="h-4 w-4" /></Button>
+                          <Button size="icon" variant="ghost" className="h-8 w-8"><Download className="h-4 w-4" /></Button>
                         </a>
                         {canEdit && (
                           <Button
-                            size="icon" variant="ghost" className="h-7 w-7 text-destructive" title="Quitar"
+                            size="icon" variant="ghost" className="h-8 w-8 text-destructive" title="Quitar"
                             onClick={async () => {
                               if (await confirmAction({ title: "¿Quitar este video del portafolio?", confirmText: "Quitar", destructive: true })) deleteVideoMut.mutate({ id: v.id });
                             }}
@@ -275,12 +360,36 @@ export default function PortafolioProyecto() {
                 </div>
               )}
 
-              {list.length === 0 && videos.length === 0 ? (
-                <p className="text-xs text-muted-foreground rounded-lg border border-dashed border-border p-3">{EMPTY_HINT[s.key]}</p>
+              {empty && !canEdit ? (
+                <p className="text-xs text-muted-foreground rounded-lg border border-dashed border-border p-3">Sin fotos.</p>
               ) : (
                 <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-1.5">
+                  {canEdit && (
+                    <button
+                      type="button"
+                      onClick={() => pickPhotos(s.key)}
+                      className="aspect-square rounded-lg border-2 border-dashed border-primary/50 bg-primary/5 text-primary flex flex-col items-center justify-center gap-1 active:scale-95 transition"
+                    >
+                      <ImagePlus className="h-7 w-7" />
+                      <span className="text-xs font-semibold">Agregar</span>
+                      <span className="text-[10px] text-primary/70 leading-none">fotos</span>
+                    </button>
+                  )}
+                  {canEdit && s.key === "despues" && (
+                    <button
+                      type="button"
+                      disabled={!!videoUpload}
+                      onClick={() => videoRef.current?.click()}
+                      className="aspect-square rounded-lg border-2 border-dashed border-info/50 bg-info/5 text-info flex flex-col items-center justify-center gap-1 active:scale-95 transition disabled:opacity-50"
+                    >
+                      <Video className="h-7 w-7" />
+                      <span className="text-xs font-semibold">Agregar</span>
+                      <span className="text-[10px] opacity-70 leading-none">video</span>
+                    </button>
+                  )}
+
                   {list.map((m, i) => (
-                    <div key={m.key} className="relative aspect-square rounded-lg overflow-hidden bg-muted group">
+                    <div key={m.key} className="relative aspect-square rounded-lg overflow-hidden bg-muted">
                       <button type="button" className="h-full w-full" onClick={() => setViewer({ list, index: i })}>
                         <img src={m.url} alt="" loading="lazy" className="h-full w-full object-cover" />
                       </button>
@@ -288,13 +397,33 @@ export default function PortafolioProyecto() {
                         <button
                           type="button"
                           onClick={() => toggleStar(m)}
-                          className={`absolute top-1 right-1 rounded-full p-1 bg-black/45 ${canEdit ? "" : "pointer-events-none"}`}
+                          className={`absolute top-0 right-0 p-1.5 ${canEdit ? "" : "pointer-events-none"}`}
                           title={m.starred ? "Quitar estrella" : "Marcar como de las mejores"}
                         >
-                          <Star className={`h-4 w-4 ${m.starred ? "fill-amber-400 text-amber-400" : "text-white/85"}`} />
+                          <span className="block rounded-full bg-black/50 p-1">
+                            <Star className={`h-4 w-4 ${m.starred ? "fill-amber-400 text-amber-400" : "text-white/90"}`} />
+                          </span>
                         </button>
                       )}
-                      <span className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent text-[9px] text-white/90 px-1.5 pt-3 pb-0.5 truncate">{m.folder}</span>
+                    </div>
+                  ))}
+
+                  {mine.map((p) => (
+                    <div key={p.key} className="relative aspect-square rounded-lg overflow-hidden bg-muted">
+                      <img src={p.preview} alt="" className="h-full w-full object-cover opacity-60" />
+                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/30 text-white">
+                        {p.status === "subiendo" ? (
+                          <><Loader2 className="h-6 w-6 animate-spin" /><span className="text-[10px]">Subiendo…</span></>
+                        ) : (
+                          <>
+                            <AlertCircle className="h-6 w-6 text-red-300" />
+                            <span className="text-[10px] px-1 text-center leading-tight">{p.error || "No subió"}</span>
+                            <button type="button" className="absolute top-1 right-1 rounded-full bg-black/60 p-1" onClick={() => setPending((ps) => ps.filter((x) => x.key !== p.key))}>
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -304,7 +433,20 @@ export default function PortafolioProyecto() {
         })}
       </div>
 
-      {/* Visor de fotos */}
+      {/* Pasar al siguiente proyecto sin volver a la lista */}
+      {nav && (nav.prev || nav.next) && (
+        <div className="mt-8 grid grid-cols-2 gap-2">
+          <Button variant="outline" className="h-12 gap-1.5" disabled={!nav.prev} onClick={() => nav.prev && navigate(`/portafolio/${nav.prev}`)}>
+            <ChevronLeft className="h-4 w-4" />Anterior
+          </Button>
+          <Button className="h-12 gap-1.5" disabled={!nav.next} onClick={() => nav.next && navigate(`/portafolio/${nav.next}`)}>
+            Siguiente<ChevronRight className="h-4 w-4" />
+          </Button>
+          <p className="col-span-2 text-center text-[11px] text-muted-foreground">Proyecto {nav.pos} de {nav.total} de la lista</p>
+        </div>
+      )}
+
+      {/* Visor de fotos (deslizar para pasar) */}
       <Dialog open={!!viewer} onOpenChange={(o) => !o && setViewer(null)}>
         <DialogContent className="max-w-5xl p-2 sm:p-3 bg-black/95 border-border">
           <DialogTitle className="sr-only">Foto</DialogTitle>
@@ -313,8 +455,17 @@ export default function PortafolioProyecto() {
             const go = (d: number) => setViewer({ ...viewer, index: (viewer.index + d + viewer.list.length) % viewer.list.length });
             return (
               <div className="space-y-2">
-                <div className="relative flex items-center justify-center">
-                  <img src={m.url} alt="" className="max-h-[75vh] w-auto object-contain rounded" />
+                <div
+                  className="relative flex items-center justify-center"
+                  onTouchStart={(e) => { touchX.current = e.touches[0].clientX; }}
+                  onTouchEnd={(e) => {
+                    if (touchX.current == null) return;
+                    const dx = e.changedTouches[0].clientX - touchX.current;
+                    touchX.current = null;
+                    if (Math.abs(dx) > 50 && viewer.list.length > 1) go(dx < 0 ? 1 : -1);
+                  }}
+                >
+                  <img src={m.url} alt="" className="max-h-[72vh] w-auto object-contain rounded select-none" draggable={false} />
                   {viewer.list.length > 1 && (
                     <>
                       <button type="button" onClick={() => go(-1)} className="absolute left-1 top-1/2 -translate-y-1/2 rounded-full bg-black/60 p-2 text-white"><ChevronLeft className="h-5 w-5" /></button>
@@ -323,15 +474,15 @@ export default function PortafolioProyecto() {
                   )}
                 </div>
                 <div className="flex items-center justify-between gap-2 px-1 text-white/80 text-xs">
-                  <span>{m.folder} · {formatDate(m.createdAt)} · {viewer.index + 1}/{viewer.list.length}</span>
-                  <div className="flex gap-1.5">
+                  <span className="truncate">{m.folder} · {viewer.index + 1}/{viewer.list.length}</span>
+                  <div className="flex gap-1.5 shrink-0">
                     {canEdit && (
-                      <Button size="sm" variant={m.starred ? "default" : "outline"} className="h-7 gap-1" onClick={() => toggleStar(m)}>
-                        <Star className={`h-3.5 w-3.5 ${m.starred ? "fill-current" : ""}`} />{m.starred ? "Con estrella" : "Estrella"}
+                      <Button size="sm" variant={m.starred ? "default" : "outline"} className="h-9 gap-1" onClick={() => toggleStar(m)}>
+                        <Star className={`h-4 w-4 ${m.starred ? "fill-current" : ""}`} />{m.starred ? "Con estrella" : "Estrella"}
                       </Button>
                     )}
                     <a href={downloadMediaUrl(m.url, `innovar-${slug(data.name)}-${m.key}.jpg`)} download>
-                      <Button size="sm" variant="outline" className="h-7 gap-1"><Download className="h-3.5 w-3.5" />Descargar</Button>
+                      <Button size="sm" variant="outline" className="h-9 gap-1"><Download className="h-4 w-4" /></Button>
                     </a>
                   </div>
                 </div>

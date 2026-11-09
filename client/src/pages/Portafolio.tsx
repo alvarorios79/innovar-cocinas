@@ -3,7 +3,7 @@
  * fotos, para alimentarlos). Cada proyecto: Antes · Diseño · Instalación · Después (+ video).
  * "Eliminar galería" la quita del portafolio y de Redes sin borrar fotos (se puede restaurar).
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "wouter";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
@@ -17,6 +17,7 @@ import { PORTFOLIO_SECTIONS, canEditPortfolio, workTypeLabel } from "@shared/por
 import { getProjectStatusLabel } from "@/lib/projectStatus";
 import { confirmAction } from "@/lib/confirm";
 import { formatDate } from "@/lib/format";
+import { PORTFOLIO_NAV_KEY } from "./PortafolioProyecto";
 
 type Chip = "con_fotos" | "sin_fotos" | "sin_antes" | "antes_despues" | "render" | "video" | "estrella" | "sin_publicar";
 const CHIPS: { key: Chip; label: string }[] = [
@@ -31,6 +32,8 @@ const CHIPS: { key: Chip; label: string }[] = [
 ];
 
 type View = "activas" | "eliminadas";
+type Orden = "nuevo" | "antiguo" | "alfabetico";
+const ORDEN_KEY = "portafolio-orden";
 type Estado = "todos" | "entregados" | "en_proceso";
 
 const norm = (s?: string | null) => (s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
@@ -46,6 +49,13 @@ export default function Portafolio() {
   const [estado, setEstado] = useState<Estado>("todos");
   const [view, setView] = useState<View>("activas");
   const [chips, setChips] = useState<Chip[]>([]);
+  const [orden, setOrdenState] = useState<Orden>(() => {
+    try { return (localStorage.getItem(ORDEN_KEY) as Orden) || "nuevo"; } catch { return "nuevo"; }
+  });
+  const setOrden = (o: Orden) => {
+    setOrdenState(o);
+    try { localStorage.setItem(ORDEN_KEY, o); } catch { /* sin almacenamiento */ }
+  };
 
   const hideMut = trpc.portfolio.setHidden.useMutation({
     onSuccess: (r) => {
@@ -83,7 +93,18 @@ export default function Portafolio() {
       if (c === "sin_publicar" && p.published.length) return false;
     }
     return true;
-  }), [projects, q, work, city, estado, chips]);
+  }).sort((a, b) => {
+    if (orden === "alfabetico") {
+      const an = (a.clientName || a.name).trim(), bn = (b.clientName || b.name).trim();
+      return an.localeCompare(bn, "es", { sensitivity: "base" }) || a.name.localeCompare(b.name, "es");
+    }
+    return orden === "antiguo" ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date);
+  }), [projects, q, work, city, estado, chips, orden]);
+
+  // La ficha usa esta lista (con filtros y orden) para "Anterior / Siguiente"
+  useEffect(() => {
+    try { sessionStorage.setItem(PORTFOLIO_NAV_KEY, JSON.stringify(filtered.map((p) => p.id))); } catch { /* sin almacenamiento */ }
+  }, [filtered]);
 
   const stats = useMemo(() => {
     const active = all.filter((p) => !p.hidden);
@@ -112,7 +133,7 @@ export default function Portafolio() {
     <div className="pb-24 md:pb-6">
       <PageHeader
         title="Portafolio"
-        subtitle="Todos los proyectos: alimenta las galerías y deja solo los más bonitos"
+        subtitle="Alimenta las galerías y deja solo los más bonitos"
         icon={<ImageIcon className="h-5 w-5" />}
         actions={<Link href="/redes"><Button className="gap-1.5"><Megaphone className="h-4 w-4" />Redes</Button></Link>}
       />
@@ -132,8 +153,8 @@ export default function Portafolio() {
       </div>
 
       <div className="space-y-2 mb-4">
-        <div className="grid grid-cols-2 md:grid-cols-[1fr_180px_180px_170px] gap-2">
-          <div className="relative col-span-2 md:col-span-1">
+        <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-[1fr_repeat(4,170px)] gap-2">
+          <div className="relative col-span-2 md:col-span-4 xl:col-span-1">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar cliente, madera, mesón…" className="pl-8" />
           </div>
@@ -152,15 +173,23 @@ export default function Portafolio() {
             </SelectContent>
           </Select>
           <Select value={estado} onValueChange={(v) => setEstado(v as Estado)}>
-            <SelectTrigger className="col-span-2 md:col-span-1"><SelectValue /></SelectTrigger>
+            <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos los estados</SelectItem>
               <SelectItem value="entregados">Entregados / cerrados</SelectItem>
               <SelectItem value="en_proceso">En proceso</SelectItem>
             </SelectContent>
           </Select>
+          <Select value={orden} onValueChange={(v) => setOrden(v as Orden)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="nuevo">Más nuevos primero</SelectItem>
+              <SelectItem value="antiguo">Más antiguos primero</SelectItem>
+              <SelectItem value="alfabetico">Cliente A → Z</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-        <div className="flex gap-1.5 overflow-x-auto pb-1">
+        <div className="flex gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden pb-1">
           {CHIPS.map((c) => (
             <button
               key={c.key}
@@ -228,10 +257,11 @@ export default function Portafolio() {
                   )}
                 </div>
                 <div className="p-2.5 space-y-1">
-                  <p className="text-sm font-semibold leading-tight line-clamp-1">{p.name}</p>
+                  <p className="text-sm font-semibold leading-tight line-clamp-1">{p.clientName || p.name}</p>
+                  {p.clientName && <p className="text-[11px] text-foreground/80 leading-tight line-clamp-1">{p.name}</p>}
                   <p className="text-[11px] text-muted-foreground line-clamp-1">
                     {workTypeLabel(p.workType)}{p.city ? ` · ${p.city}` : ""}
-                    {p.delivered ? (p.deliveredAt ? ` · ${formatDate(p.deliveredAt)}` : "") : ` · ${getProjectStatusLabel(p.status)}`}
+                    {p.delivered ? (p.date ? ` · ${formatDate(p.date)}` : "") : ` · ${getProjectStatusLabel(p.status)}`}
                   </p>
                   <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-[10px] text-muted-foreground">
                     {PORTFOLIO_SECTIONS.map((s) => {

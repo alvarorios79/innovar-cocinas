@@ -39,6 +39,7 @@ export type PortfolioProject = {
   delivered: boolean;               // entregado, cerrado o archivado
   hidden: boolean;                  // galería quitada del portafolio (se puede restaurar)
   deliveredAt: string | null;
+  date: string;                     // para ordenar: entrega o, si no hay, creación del proyecto
   city: string | null;
   woodColor: string | null;
   countertop: string | null;
@@ -81,7 +82,7 @@ export async function loadPortfolio(
       currentApprovedQuotationId: projects.currentApprovedQuotationId,
       rendersApprovedAt: projects.rendersApprovedAt, modeladoApprovedAt: projects.modeladoApprovedAt,
       clientApprovedAt: projects.clientApprovedAt, advanceReceivedAt: projects.advanceReceivedAt,
-      updatedAt: projects.updatedAt,
+      updatedAt: projects.updatedAt, createdAt: projects.createdAt,
       clientName: clients.name, clientAddress: clients.address,
     })
     .from(projects)
@@ -208,6 +209,7 @@ export async function loadPortfolio(
       delivered: r.status === "entregado" || !!r.accountingClosureId || r.isArchived === 1 || !!r.deliveredAt,
       hidden,
       deliveredAt: r.deliveredAt || null,
+      date: r.deliveredAt || r.createdAt || "",
       city: detectCity(visit?.visitCity, visit?.clientAddress || r.clientAddress),
       woodColor: mat?.woodColor || null,
       countertop: mat?.countertopName || null,
@@ -218,9 +220,8 @@ export async function loadPortfolio(
         .map((p) => ({ id: p.id, postType: p.postType, network: p.network, publishedAt: p.publishedAt })),
     });
   }
-  // Más recientes primero (fecha de entrega o, si no hay, última actualización)
-  const dateOf = (p: PortfolioProject) => p.deliveredAt || (rows as any[]).find((r) => r.id === p.id)?.updatedAt || "";
-  out.sort((a, b) => dateOf(b).localeCompare(dateOf(a)));
+  // Más recientes primero (fecha de entrega o, si no hay, de creación)
+  out.sort((a, b) => b.date.localeCompare(a.date));
   return out;
 }
 

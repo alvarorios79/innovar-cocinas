@@ -35,7 +35,7 @@ function summary(p: PortfolioProject) {
   return {
     id: p.id, name: p.name, clientName: p.clientName, workType: p.workType, status: p.status, closed: p.closed,
     delivered: p.delivered, hidden: p.hidden,
-    deliveredAt: p.deliveredAt, city: p.city, woodColor: p.woodColor, countertop: p.countertop,
+    deliveredAt: p.deliveredAt, date: p.date, city: p.city, woodColor: p.woodColor, countertop: p.countertop,
     cover: coverOf(p), counts: countsOf(p), available, published,
   };
 }
@@ -140,7 +140,7 @@ export const socialRouter = router({
       const cands = tray.filter((p) => p.pending.includes(type));
       cands.sort((a, b) => (b.counts.stars > 0 ? 1 : 0) - (a.counts.stars > 0 ? 1 : 0));
       const c = cands[0];
-      return c ? { projectId: c.id, name: c.name, city: c.city, cover: c.cover, workType: c.workType } : null;
+      return c ? { projectId: c.id, name: c.clientName ? `${c.clientName} · ${c.name}` : c.name, city: c.city, cover: c.cover, workType: c.workType } : null;
     };
 
     const plan = WEEKLY_PLAN.map((item) => {

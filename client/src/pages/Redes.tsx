@@ -108,7 +108,7 @@ export default function Redes() {
                 {p.cover ? <img src={p.cover} alt="" loading="lazy" className="h-14 w-14 rounded-lg object-cover" /> : <div className="h-14 w-14 rounded-lg bg-muted" />}
               </Link>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium truncate">{p.name}</p>
+                <p className="text-sm font-medium truncate">{p.clientName || p.name}{p.clientName && <span className="text-muted-foreground font-normal"> · {p.name}</span>}</p>
                 <p className="text-[11px] text-muted-foreground truncate">{workTypeLabel(p.workType)}{p.city ? ` · ${p.city}` : ""}{p.deliveredAt ? ` · ${formatDate(p.deliveredAt)}` : ""}</p>
                 <div className="flex gap-1 mt-1 overflow-x-auto">
                   {p.pending.map((t) => (

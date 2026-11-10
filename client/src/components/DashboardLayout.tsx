@@ -285,8 +285,10 @@ function DashboardLayoutContent({ children, setSidebarWidth, sidebarWidth }: Das
   const profileAvatar = useProfileAvatar();
   const hasAvatar = !!(user as any)?.avatarUrl;
   const [location, setLocation] = useLocation();
-  const { state, toggleSidebar } = useSidebar();
+  const { state, toggleSidebar, setOpenMobile } = useSidebar();
   const isCollapsed = state === "collapsed";
+  // En el celular el menú se cierra solo al cambiar de pantalla (antes quedaba abierto encima)
+  useEffect(() => { setOpenMobile(false); }, [location, setOpenMobile]);
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
@@ -369,7 +371,7 @@ function DashboardLayoutContent({ children, setSidebarWidth, sidebarWidth }: Das
                       <SidebarMenuItem key={item.path}>
                         <SidebarMenuButton
                           isActive={isActive}
-                          onClick={() => setLocation(item.path)}
+                          onClick={() => { setLocation(item.path); setOpenMobile(false); }}
                           tooltip={item.label}
                           className="h-9 rounded-lg font-normal transition-all"
                           style={

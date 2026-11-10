@@ -46,6 +46,40 @@ export async function notifyTeamNewLead(lead: { id: number; name: string; workTy
   }
 }
 
+/**
+ * Guarda un interesado que llega de afuera (página "Pide tu visita" o la página web de Innovar).
+ * Si ya hay uno abierto con ese número, lo actualiza (no se duplica) y vuelve a avisar. Avisa al equipo en segundo plano.
+ */
+export async function saveIncomingLead(input: {
+  name: string; phone: string; workTypes?: string | null; location?: string | null; message?: string | null; source: string;
+}): Promise<{ id: number; repeated: boolean }> {
+  const d = await database();
+  const fields = {
+    name: sanitizeText(input.name),
+    workTypes: input.workTypes || null,
+    location: input.location ? sanitizeText(input.location) : null,
+    message: input.message ? sanitizeText(input.message) : null,
+  };
+  const [open] = input.phone ? await d.select().from(leads).where(and(
+    eq(leads.whatsappPhone, input.phone), isNull(leads.deletedAt), inArray(leads.status, LEAD_OPEN_STATUSES),
+  )).limit(1) : [];
+  if (open) {
+    const message = [open.message, fields.message].filter(Boolean).join("\n— ");
+    const workTypes = fields.workTypes || open.workTypes; // lo nuevo reemplaza (se pudo equivocar); sin dato, queda lo anterior
+    await d.update(leads).set({
+      name: fields.name, workTypes, location: fields.location || open.location, message: message || null,
+      status: "nuevo", updatedAt: new Date().toISOString(),
+    }).where(eq(leads.id, open.id));
+    void notifyTeamNewLead({ id: open.id, name: fields.name, workTypes, location: fields.location || open.location, source: open.source }, true);
+    return { id: open.id, repeated: true };
+  }
+  const [row] = await d.insert(leads).values({
+    ...fields, whatsappPhone: input.phone, source: input.source, status: "nuevo",
+  }).returning({ id: leads.id, source: leads.source });
+  void notifyTeamNewLead({ id: row.id, ...fields, source: row.source });
+  return { id: row.id, repeated: false };
+}
+
 // Límite simple contra spam en la página pública: 5 solicitudes cada 15 min por IP
 const publicHits = new Map<string, number[]>();
 function allowPublicRequest(ip: string): boolean {
@@ -83,29 +117,14 @@ export const leadsRouter = router({
       const phone = normalizeLeadPhone(input.whatsappPhone, input.countryCode);
       if (phone.length < 10 || phone.length > 15) throw new TRPCError({ code: "BAD_REQUEST", message: "Revisa el número de WhatsApp" });
 
-      const d = await database();
-      const fields = {
-        name: sanitizeText(input.name),
+      await saveIncomingLead({
+        name: input.name,
+        phone,
         workTypes: input.workTypes.join(","),
-        location: input.location ? sanitizeText(input.location) : null,
-        message: input.message ? sanitizeText(input.message) : null,
-      };
-
-      // Si ya hay un interesado abierto con ese número, se actualiza (no se duplica)
-      const [open] = await d.select().from(leads).where(and(
-        eq(leads.whatsappPhone, phone), isNull(leads.deletedAt), inArray(leads.status, LEAD_OPEN_STATUSES),
-      )).limit(1);
-      if (open) {
-        const message = [open.message, fields.message].filter(Boolean).join("\n— ");
-        await d.update(leads).set({ ...fields, message: message || null, status: "nuevo", updatedAt: new Date().toISOString() }).where(eq(leads.id, open.id));
-        void notifyTeamNewLead({ id: open.id, ...fields, source: open.source }, true); // en segundo plano
-        return { success: true };
-      }
-
-      const [row] = await d.insert(leads).values({
-        ...fields, whatsappPhone: phone, source: input.origin && input.origin !== "whatsapp" ? input.origin : "web", status: "nuevo",
-      }).returning({ id: leads.id, source: leads.source });
-      void notifyTeamNewLead({ id: row.id, ...fields, source: row.source }); // en segundo plano
+        location: input.location,
+        message: input.message,
+        source: input.origin && input.origin !== "whatsapp" ? input.origin : "web",
+      });
       return { success: true };
     }),
 

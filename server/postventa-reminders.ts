@@ -86,5 +86,14 @@ export function startPostventaReminders(): void {
   };
   setInterval(tick, 30 * 60 * 1000);
   setTimeout(tick, 90 * 1000);
+  // Acomodar una vez los proyectos entregados antes del módulo (seguro de repetir: solo agrega lo que falta)
+  setTimeout(async () => {
+    try {
+      const { runPostventaBackfillOnStart } = await import("./postventa-backfill");
+      await runPostventaBackfillOnStart();
+    } catch (err) {
+      console.error("[Postventa] Error acomodando proyectos entregados:", err);
+    }
+  }, 60 * 1000);
   console.log("[Postventa] Avisos de seguimiento programados (8 a. m. – 6 p. m. Colombia)");
 }

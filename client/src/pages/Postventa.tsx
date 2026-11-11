@@ -23,7 +23,7 @@ import {
 import { toast } from "sonner";
 import { GOOGLE_REVIEW_URL } from "@shared/const";
 import {
-  warrantyInfo, followUp30Message, annualReviewMessage, claimReplyMessage, postventaWaPhone, splitClaimPhotos,
+  warrantyInfo, followUp30Message, annualReviewMessage, claimReplyMessage, postventaWaPhone, splitClaimPhotos, clientPortalUrl,
 } from "@shared/postventa";
 import { useLocation } from "wouter";
 
@@ -94,8 +94,9 @@ function whatsAppFor(rec: any): string | null {
   const phone = postventaWaPhone(rec.client?.whatsappPhone);
   if (!phone) return null;
   const name = rec.client?.name;
-  const msg = rec.type === "seguimiento_30d" ? followUp30Message(name, GOOGLE_REVIEW_URL)
-    : rec.type === "revision_anual" ? annualReviewMessage(name)
+  const portal = clientPortalUrl(window.location.origin, rec.projectId, rec.project?.publicToken);
+  const msg = rec.type === "seguimiento_30d" ? followUp30Message(name, GOOGLE_REVIEW_URL, portal)
+    : rec.type === "revision_anual" ? annualReviewMessage(name, portal)
     : claimReplyMessage(name, String(rec.title || "").replace(/^Reporte del cliente:\s*/, ""));
   return `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
 }

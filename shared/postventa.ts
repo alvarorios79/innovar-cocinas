@@ -38,26 +38,34 @@ export function warrantyInfo(deliveredAt: string | Date | null | undefined, now 
 
 const firstName = (name?: string | null) => (name || "").trim().split(/\s+/)[0] || "";
 
-/** WhatsApp a los 30 días: cómo le ha ido + reseña en Google. */
-export function followUp30Message(clientName: string | null | undefined, reviewUrl: string): string {
+/** WhatsApp a los 30 días: cómo le ha ido + enlace de su proyecto (para reportar ajustes) + reseña en Google. */
+export function followUp30Message(clientName: string | null | undefined, reviewUrl: string, portalUrl?: string | null): string {
   const n = firstName(clientName);
   return (
     `😊 ¡Hola${n ? ` ${n}` : ""}! Te saluda el equipo de INNOVAR Cocinas de Diseño.\n\n` +
     `Ya pasó un mes desde que entregamos tu proyecto y queremos saber cómo te ha ido. ¿Todo funciona bien? ¿Hay algún detalle que debamos ajustar? Estamos para servirte.\n\n` +
+    (portalUrl ? `📲 Aquí tienes todo tu proyecto. Si algo necesita un ajuste, puedes contárnoslo con fotos desde el mismo enlace:\n${portalUrl}\n\n` : "") +
     `⭐ Si estás contento con el resultado, nos ayudarías muchísimo con tu opinión en Google (toma menos de un minuto):\n${reviewUrl}\n\n` +
     `¡Gracias por confiar en nosotros! ✨`
   );
 }
 
-/** WhatsApp al año: revisión de regalo (para ofrecer mantenimiento). */
-export function annualReviewMessage(clientName: string | null | undefined): string {
+/** WhatsApp al año: revisión de regalo (para ofrecer mantenimiento) + enlace de su proyecto. */
+export function annualReviewMessage(clientName: string | null | undefined, portalUrl?: string | null): string {
   const n = firstName(clientName);
   return (
     `🎁 ¡Hola${n ? ` ${n}` : ""}! Hoy se cumple un año de tu proyecto con INNOVAR Cocinas de Diseño y queremos celebrarlo con un regalo:\n\n` +
-    `*una revisión gratuita* de tus muebles: revisamos bisagras, correderas, puertas, cajones y acabados para que todo siga como el primer día.\n\n` +
+    `*una revisión gratuita* de tus muebles: revisamos bisagras, correderas, puertas, cajones y acabados, y te contamos cómo están.\n\n` +
+    `Si encontramos algo que necesite ajuste o mantenimiento, te lo explicamos con calma y te enviamos la cotización para que tú decidas. La revisión no tiene ningún costo ni compromiso. 😊\n\n` +
+    (portalUrl ? `📲 Aquí sigue el recorrido de tu proyecto, desde el diseño hasta la entrega:\n${portalUrl}\n\n` : "") +
     `¿Qué día te queda bien para visitarte? 🏠\n\n` +
     `— INNOVAR Cocinas de Diseño ✨`
   );
+}
+
+/** Enlace del cliente (portal de su proyecto). */
+export function clientPortalUrl(base: string, projectId: number, token?: string | null): string | null {
+  return token ? `${base.replace(/\/$/, "")}/gallery?project=${projectId}&token=${token}` : null;
 }
 
 /** WhatsApp para responder un reporte de problema del cliente. */

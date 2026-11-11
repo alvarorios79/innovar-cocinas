@@ -1,7 +1,7 @@
 /**
  * Avisos de postventa (campanita + push) a super_admin, admin y comercial.
  *
- * - Cada mañana (8 a 12, hora Colombia) se avisa cada seguimiento de 30 días o revisión anual que ya venció
+ * - Cada mañana (8 a 12, hora Colombia) se avisa cada mensaje del mes o revisión anual que ya venció
  *   y sigue pendiente. Un aviso por seguimiento (no se repite: se revisa si ya existe en la campanita).
  * - Cuando alguien lo atiende (Hecho / En revisión / No procede), se BORRA el aviso a todos
  *   (decisión de Álvaro: si Martha o comercial lo hacen, a él se le quita).
@@ -63,7 +63,7 @@ export async function sendDuePostventaReminders(now = new Date()): Promise<numbe
     if (already.has(r.id)) continue;
     const quien = r.clientName || r.projectName;
     if (r.type === "seguimiento_30d") {
-      await notifyPostventa(r.id, `📞 Llamada de 30 días: ${quien}`, `Pregúntale cómo le ha ido con su proyecto y pídele la reseña en Google. Toca para enviarle el WhatsApp.`);
+      await notifyPostventa(r.id, `💬 Mensaje del mes: ${quien}`, `Envíale el WhatsApp de cómo le ha ido con su proyecto (con la reseña en Google). Toca para abrirlo.`);
     } else {
       await notifyPostventa(r.id, `🎁 Revisión de un año: ${quien}`, `Ofrécele la revisión gratuita y aprovecha para proponerle un mantenimiento.`);
     }

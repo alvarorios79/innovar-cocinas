@@ -3,9 +3,9 @@
  *
  * Decisiones de Álvaro (10 nov 2026):
  * - Garantía: 6 meses para todo (madera y herrajes).
- * - A los 30 días: llamada de satisfacción (y pedir reseña en Google).
+ * - A los 30 días: mensaje de WhatsApp de satisfacción (y pedir reseña en Google).
  * - Al año: regalar una revisión para venderle un mantenimiento.
- * - Las llamadas las hacen Martha (admin) y comercial; Álvaro también recibe los avisos,
+ * - Los mensajes los envían Martha (admin) y comercial; Álvaro también recibe los avisos,
  *   y cuando alguno lo hace, el aviso se le borra a todos.
  */
 export const WARRANTY_DAYS = 180;

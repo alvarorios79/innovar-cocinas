@@ -1381,7 +1381,7 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
             const followUp30 = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
             await db.createReclamacion({
               projectId: input.projectId,
-              title: `Llamada de seguimiento — ${project.name}`,
+              title: `Mensaje del mes — ${project.name}`,
               description: "Verificar satisfacción del cliente, revisar si hay ajustes pendientes o inconvenientes post-instalación.",
               type: "seguimiento_30d",
               status: "pendiente",

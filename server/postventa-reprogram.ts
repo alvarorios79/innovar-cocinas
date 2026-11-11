@@ -3,7 +3,7 @@
  *  - Fecha real de entrega = la del calendario de instalaciones (programada > estimada > tentativa) si ya pasó;
  *    si no hay, la registrada. Los proyectos 1–13 se cargaron ya entregados y tienen en el calendario la misma
  *    fecha de relleno (15 abr 2026) → para ellos vale la registrada.
- *  - Llamada del mes: SOLO si todavía no se cumple el mes desde la entrega real (si ya pasó, se espera al año).
+ *  - Mensaje del mes: SOLO si todavía no se cumple el mes desde la entrega real (si ya pasó, se espera al año).
  *  - Revisión del año: escalonada (hay mucho trabajo a fin de año): ninguna antes del 15 ene 2027 (segunda quincena de enero) y a lo sumo
  *    una por día, martes y jueves.
  *  - Se borran TODOS los seguimientos automáticos pendientes (y sus avisos) y se crean de nuevo → quita duplicados.
@@ -60,7 +60,7 @@ export type PlanRow = {
   followUp: string | null; annual: string | null;
 };
 
-/** Plan: llamada del mes (si aplica) y revisión del año escalonada. Puro: sin base de datos. */
+/** Plan: mensaje del mes (si aplica) y revisión del año escalonada. Puro: sin base de datos. */
 export function buildPlan(list: ProjectDates[], now = new Date()): PlanRow[] {
   const withDates = list.map((p) => ({ p, ...realDelivery(p, now) }));
   const taken = new Set<string>();
@@ -119,7 +119,7 @@ export async function runPostventaReprogramOnce(now = new Date()): Promise<null 
     }
     if (r.followUp) {
       await db.createReclamacion({
-        projectId: p.id, title: `Llamada de seguimiento — ${p.name}`,
+        projectId: p.id, title: `Mensaje del mes — ${p.name}`,
         description: "Verificar satisfacción del cliente, revisar si hay ajustes pendientes y pedir la reseña en Google.",
         type: "seguimiento_30d", status: "pendiente", priority: "media", scheduledFor: r.followUp, createdBy: owner.id,
       } as any);
@@ -138,7 +138,7 @@ export async function runPostventaReprogramOnce(now = new Date()): Promise<null 
   console.log(`[Postventa] Reprogramación única: ${JSON.stringify(res)}`);
   try {
     const { createAndSendNotification } = await import("./push-notifications");
-    const body = `Reprogramé la postventa de ${res.proyectos} proyectos entregados: ${llamadas} llamada(s) del mes (solo a quien no ha cumplido el mes) y ${revisiones} revisión(es) del año, escalonadas desde el 15 de enero de 2027.`;
+    const body = `Reprogramé la postventa de ${res.proyectos} proyectos entregados: ${llamadas} mensaje(s) del mes (solo a quien no ha cumplido el mes) y ${revisiones} revisión(es) del año, escalonadas desde el 15 de enero de 2027.`;
     for (const u of await db.getUsersByRole("super_admin")) {
       await createAndSendNotification(u.id, { title: "🛡️ Postventa reprogramada", body, type: "proyecto", referenceType: "postventa_ajuste", url: "/postventa" });
     }

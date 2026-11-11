@@ -63,7 +63,7 @@ const WORK_TYPE_LABELS: Record<string, string> = {
 
 const TYPE_CONFIG: Record<ReclamacionType, { label: string; icon: typeof PhoneCall; color: string }> = {
   reclamacion:    { label: "Reclamación",       icon: Wrench,       color: "#EF4444" },
-  seguimiento_30d:{ label: "Seguimiento 30d",   icon: PhoneCall,    color: "#F59E0B" },
+  seguimiento_30d:{ label: "Mensaje del mes",   icon: MessageCircle,    color: "#F59E0B" },
   revision_anual: { label: "Revisión de un año", icon: CalendarClock,color: "#6366F1" },
 };
 
@@ -295,7 +295,7 @@ export default function Postventa() {
           <SelectContent>
             <SelectItem value="todos">Todos los proyectos</SelectItem>
             <SelectItem value="con_pendientes">Con pendientes</SelectItem>
-            <SelectItem value="seguimientos_due">Seguimientos vencidos</SelectItem>
+            <SelectItem value="seguimientos_due">Mensajes y revisiones pendientes</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -341,7 +341,7 @@ export default function Postventa() {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="reclamacion">Reclamación del cliente</SelectItem>
-                  <SelectItem value="seguimiento_30d">Llamada de seguimiento</SelectItem>
+                  <SelectItem value="seguimiento_30d">Mensaje del mes</SelectItem>
                   <SelectItem value="revision_anual">Revisión anual</SelectItem>
                 </SelectContent>
               </Select>
@@ -560,7 +560,7 @@ function ReclamacionRow({
 
       {/* Contenido */}
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-foreground leading-tight">{rec.title}</p>
+        <p className="text-sm font-medium text-foreground leading-tight">{rec.type === "seguimiento_30d" ? "Mensaje del mes" : rec.type === "revision_anual" ? "Revisión de un año (regalo)" : rec.title}</p>
         {rec.type === "reclamacion" && <ClaimDetail description={rec.description} />}
         <div className="flex flex-wrap gap-2 mt-1">
           <span className="text-[11px] font-medium" style={{ color: typeConf.color }}>{typeConf.label}</span>
@@ -637,7 +637,7 @@ function TodoRow({ rec, onDone, onOpen }: { rec: any; onDone: () => void; onOpen
   const conf = TYPE_CONFIG[rec.type as ReclamacionType] ?? TYPE_CONFIG.reclamacion;
   const Icon = conf.icon;
   const wa = whatsAppFor(rec);
-  const what = rec.type === "seguimiento_30d" ? "Llamada de 30 días: cómo le ha ido + reseña en Google"
+  const what = rec.type === "seguimiento_30d" ? "Mensaje del mes: cómo le ha ido + reseña en Google"
     : rec.type === "revision_anual" ? "Un año: regalarle la revisión y ofrecer mantenimiento"
     : String(rec.title).startsWith("Reporte del cliente")
       ? `🛠️ ${String(rec.description || "").match(/^Reportado por (.+?) desde su enlace/)?.[1] || "El cliente"} reportó un problema desde su enlace`

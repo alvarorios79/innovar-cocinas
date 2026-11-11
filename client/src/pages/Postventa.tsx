@@ -222,6 +222,15 @@ export default function Postventa() {
 
   return (
     <div className="pb-20 md:pb-6">
+      {/* Titila lo que ya toca (mensaje del mes, revisión del año o reporte abierto); para al marcarlo Hecho */}
+      <style>{`
+        @keyframes pvBlink {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(245,158,11,0); border-color: rgba(245,158,11,.35); }
+          50% { box-shadow: 0 0 18px 4px rgba(245,158,11,.55); border-color: rgba(245,158,11,.95); }
+        }
+        .pv-blink { animation: pvBlink 1.2s ease-in-out infinite; }
+        @media (prefers-reduced-motion: reduce) { .pv-blink { animation: none; border-color: rgba(245,158,11,.95); } }
+      `}</style>
       <PageHeader
         title="Postventa"
         icon={<ShieldCheck className="h-5 w-5" />}
@@ -269,7 +278,7 @@ export default function Postventa() {
               <AlertTriangle className="h-4 w-4 text-amber-400" /> Para hacer hoy
               <span className="text-xs font-normal text-muted-foreground">({todo.length})</span>
             </h2>
-            <div className="divide-y divide-white/[0.08]">
+            <div>
               {todo.map((r: any) => <TodoRow key={r.id} rec={r} onDone={() => handleStatusChange(r, "resuelto")}
                 onOpen={() => setLocation(`/projects/${r.projectId}`)} />)}
             </div>
@@ -439,12 +448,13 @@ function ProjectPostventaCard({
     r => r.status === "pendiente" && r.scheduledFor && r.scheduledFor <= today
   );
 
+  const openClaims = project.reclamaciones.filter(r => r.type === "reclamacion" && (r.status === "pendiente" || r.status === "en_revision")).length;
   const deliveredDate = project.deliveredAt
     ? new Date(project.deliveredAt).toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" })
     : null;
 
   return (
-    <Card className="border overflow-hidden" style={{ borderLeftWidth: 3, borderLeftColor: warranty.color }}>
+    <Card className={`border overflow-hidden ${overdueRecs.length > 0 || openClaims > 0 ? "pv-blink" : ""}`} style={{ borderLeftWidth: 3, borderLeftColor: warranty.color }}>
       {/* Header */}
       <CardContent className="p-3">
         <div className="flex items-start gap-3">
@@ -643,7 +653,7 @@ function TodoRow({ rec, onDone, onOpen }: { rec: any; onDone: () => void; onOpen
       ? `🛠️ ${String(rec.description || "").match(/^Reportado por (.+?) desde su enlace/)?.[1] || "El cliente"} reportó un problema desde su enlace`
       : rec.title;
   return (
-    <div className="py-2.5 flex flex-col sm:flex-row sm:items-center gap-2">
+    <div className="pv-blink my-1.5 rounded-lg border px-3 py-2.5 flex flex-col sm:flex-row sm:items-center gap-2">
       <div className="flex items-start gap-2.5 flex-1 min-w-0">
         <Icon className="h-4 w-4 mt-0.5 shrink-0" style={{ color: conf.color }} />
         <div className="min-w-0">

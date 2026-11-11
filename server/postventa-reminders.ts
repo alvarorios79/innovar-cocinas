@@ -8,7 +8,7 @@
  */
 import { and, eq, inArray, lte } from "drizzle-orm";
 import * as db from "./db";
-import { notifications, postventaReclamaciones, projects, clients } from "../drizzle/schema";
+import { notifications, postventaReclamaciones, projects, clients, accountingClosureProjects, accountingClosures } from "../drizzle/schema";
 import { POSTVENTA_NOTIFY_ROLES, POSTVENTA_REF } from "@shared/postventa";
 
 async function teamIds(): Promise<number[]> {
@@ -113,4 +113,15 @@ export async function reopenPostventa(projectId: number): Promise<number> {
     console.log(`[Postventa] Proyecto ${projectId} volvió de Entregado: ${pending.length} seguimiento(s) pendiente(s) quitado(s)`);
   }
   return pending.length;
+}
+
+/** ¿El proyecto ya está en un cierre contable confirmado? (decisión de Álvaro: los cerrados no se tocan). */
+export async function isInConfirmedClosure(projectId: number): Promise<boolean> {
+  const d = await db.getDb();
+  if (!d) return false;
+  const rows = await d.select({ id: accountingClosureProjects.id }).from(accountingClosureProjects)
+    .innerJoin(accountingClosures, eq(accountingClosures.id, accountingClosureProjects.closureId))
+    .where(and(eq(accountingClosureProjects.projectId, projectId), eq(accountingClosures.status, "confirmed")))
+    .limit(1);
+  return rows.length > 0;
 }

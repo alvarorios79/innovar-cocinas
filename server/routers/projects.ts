@@ -792,6 +792,10 @@ export const projectsRouter = router({
         // se quita la fecha y los seguimientos de postventa aún pendientes; se crean de nuevo al entregar de verdad.
         const reopened = project.status === "entregado" && newStatus !== "entregado";
         if (reopened) {
+          const { isInConfirmedClosure } = await import("../postventa-reminders");
+          if (await isInConfirmedClosure(input.projectId)) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: "Este proyecto ya tiene cierre contable: se queda como Entregado." });
+          }
           updateData.deliveredAt = null;
         }
 
@@ -1904,8 +1908,26 @@ ${input.notes || "No se especificaron detalles"}
             });
           }
 
-          // 4. Actualizar estado
-          await db.updateProject(input.id, { status: previousStatus as any });
+          // 4. Actualizar estado. Si sale de "Entregado" (faltaba terminar la instalación), la entrega no ha
+          //    ocurrido: se quita la fecha, se desarchiva y se borran los seguimientos de postventa pendientes.
+          const reopened = project.status === "entregado";
+          if (reopened) {
+            const { isInConfirmedClosure } = await import("../postventa-reminders");
+            if (await isInConfirmedClosure(input.id)) {
+              throw new TRPCError({ code: "BAD_REQUEST", message: "Este proyecto ya tiene cierre contable: se queda como Entregado." });
+            }
+          }
+          await db.updateProject(input.id, reopened
+            ? { status: previousStatus as any, deliveredAt: null, isArchived: 0 } as any
+            : { status: previousStatus as any });
+          if (reopened) {
+            try {
+              const { reopenPostventa } = await import("../postventa-reminders");
+              await reopenPostventa(input.id);
+            } catch (e) {
+              console.error("[Postventa] No se pudieron quitar los seguimientos al retroceder:", e);
+            }
+          }
 
           // 5. Log de auditoria (opcional para auditoría futura)
 

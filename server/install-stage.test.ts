@@ -52,3 +52,41 @@ it("si vuelve de Entregado a Instalando, se quita la fecha de entrega y los segu
   expect(left.map((r) => r.type)).toEqual(["reclamacion"]); // los reportes del cliente no se tocan
   await db.delete(postventaReclamaciones).where(eq(postventaReclamaciones.projectId, p.id));
 });
+
+it("Retroceder desde Entregado lleva a Instalando y quita fecha y seguimientos pendientes", { timeout: 60000 }, async () => {
+  const { postventaReclamaciones } = await import("../drizzle/schema");
+  const db = (await getDb())!;
+  const owner = (await getUsersByRole("super_admin"))[0];
+  const [c] = await db.insert(clients).values({ name: "Cliente Retroceder", whatsappPhone: "3001110002" } as any).returning({ id: clients.id });
+  const [p] = await db.insert(projects).values({
+    clientId: c.id, name: "Proyecto Retroceder", workType: "cocina", status: "entregado", createdBy: owner.id, deliveredAt: new Date().toISOString(), isArchived: 1,
+  } as any).returning({ id: projects.id });
+  await db.insert(postventaReclamaciones).values({ projectId: p.id, title: "Llamada", type: "seguimiento_30d", status: "pendiente", priority: "media", createdBy: owner.id } as any);
+  const caller = appRouter.createCaller({ user: { id: owner.id, role: "super_admin", name: "Álvaro" } as any, req: { headers: { origin: "http://localhost:3000" }, ip: "test" } as any, res: {} as any } as any);
+  const r = await caller.projects.revertStatus({ id: p.id });
+  expect(r.newStatus).toBe("trabajando_instalacion");
+  const [row] = await db.select().from(projects).where(eq(projects.id, p.id));
+  expect(row.deliveredAt).toBeNull();
+  expect(row.isArchived).toBe(0);
+  expect((await db.select().from(postventaReclamaciones).where(eq(postventaReclamaciones.projectId, p.id))).length).toBe(0);
+});
+
+it("un proyecto con cierre contable confirmado no se puede sacar de Entregado", { timeout: 60000 }, async () => {
+  const { accountingClosures, accountingClosureProjects } = await import("../drizzle/schema");
+  const db = (await getDb())!;
+  const owner = (await getUsersByRole("super_admin"))[0];
+  const [c] = await db.insert(clients).values({ name: "Cliente Con Cierre", whatsappPhone: "3001110003" } as any).returning({ id: clients.id });
+  const [p] = await db.insert(projects).values({
+    clientId: c.id, name: "Proyecto Con Cierre", workType: "cocina", status: "entregado", createdBy: owner.id, deliveredAt: new Date().toISOString(),
+  } as any).returning({ id: projects.id });
+  const [cl] = await db.insert(accountingClosures).values({ periodStart: "2026-10-01", periodEnd: "2026-10-31", status: "confirmed", createdBy: owner.id } as any).returning({ id: accountingClosures.id });
+  await db.insert(accountingClosureProjects).values({ closureId: cl.id, projectId: p.id, projectName: "Proyecto Con Cierre", projectValue: "1000", totalPaid: "1000", totalExpenses: "500", profit: "500" } as any);
+  const caller = appRouter.createCaller({ user: { id: owner.id, role: "super_admin", name: "Álvaro" } as any, req: { headers: { origin: "http://localhost:3000" }, ip: "test" } as any, res: {} as any } as any);
+  await expect(caller.projects.revertStatus({ id: p.id })).rejects.toThrow(/cierre contable/);
+  await expect(caller.projects.updateStatus({ projectId: p.id, newStatus: "trabajando_instalacion" })).rejects.toThrow(/cierre contable/);
+  const [row] = await db.select().from(projects).where(eq(projects.id, p.id));
+  expect(row.status).toBe("entregado");
+  expect(row.deliveredAt).toBeTruthy();
+  await db.delete(accountingClosureProjects).where(eq(accountingClosureProjects.closureId, cl.id));
+  await db.delete(accountingClosures).where(eq(accountingClosures.id, cl.id));
+});

@@ -144,6 +144,11 @@ export async function runMigrations() {
       name: "project_status_trabajando_instalacion",
       sql: `ALTER TYPE "project_status" ADD VALUE IF NOT EXISTS 'trabajando_instalacion' AFTER 'listo_instalacion'`,
     },
+    {
+      // Tareas de una sola vez (p. ej. reprogramación de postventa): la fila marca que ya se hizo
+      name: "app_flags",
+      sql: `CREATE TABLE IF NOT EXISTS "appFlags" ( "name" varchar(100) PRIMARY KEY, "doneAt" timestamp NOT NULL DEFAULT now() )`,
+    },
   ];
 
   for (const m of migrations) {

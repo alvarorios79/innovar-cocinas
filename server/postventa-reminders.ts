@@ -86,13 +86,13 @@ export function startPostventaReminders(): void {
   };
   setInterval(tick, 30 * 60 * 1000);
   setTimeout(tick, 90 * 1000);
-  // Acomodar una vez los proyectos entregados antes del módulo (seguro de repetir: solo agrega lo que falta)
+  // Reprogramación ÚNICA de los proyectos entregados (fecha real, sin duplicados, revisiones escalonadas)
   setTimeout(async () => {
     try {
-      const { runPostventaBackfillOnStart } = await import("./postventa-backfill");
-      await runPostventaBackfillOnStart();
+      const { runPostventaReprogramOnce } = await import("./postventa-reprogram");
+      await runPostventaReprogramOnce();
     } catch (err) {
-      console.error("[Postventa] Error acomodando proyectos entregados:", err);
+      console.error("[Postventa] Error en la reprogramación:", err);
     }
   }, 60 * 1000);
   console.log("[Postventa] Avisos de seguimiento programados (8 a. m. – 6 p. m. Colombia)");

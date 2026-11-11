@@ -97,3 +97,20 @@ export function startPostventaReminders(): void {
   }, 60 * 1000);
   console.log("[Postventa] Avisos de seguimiento programados (8 a. m. – 6 p. m. Colombia)");
 }
+
+/** El proyecto volvió de "Entregado": se borran sus seguimientos automáticos aún pendientes (y sus avisos). */
+export async function reopenPostventa(projectId: number): Promise<number> {
+  const d = await db.getDb();
+  if (!d) return 0;
+  const pending = await d.select({ id: postventaReclamaciones.id }).from(postventaReclamaciones).where(and(
+    eq(postventaReclamaciones.projectId, projectId),
+    eq(postventaReclamaciones.status, "pendiente"),
+    inArray(postventaReclamaciones.type, ["seguimiento_30d", "revision_anual"]),
+  ));
+  for (const r of pending) await clearPostventaNotifications(r.id);
+  if (pending.length) {
+    await d.delete(postventaReclamaciones).where(inArray(postventaReclamaciones.id, pending.map((r) => r.id)));
+    console.log(`[Postventa] Proyecto ${projectId} volvió de Entregado: ${pending.length} seguimiento(s) pendiente(s) quitado(s)`);
+  }
+  return pending.length;
+}

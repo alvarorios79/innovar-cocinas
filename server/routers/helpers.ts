@@ -26,7 +26,9 @@ export function validateStatusChange(role: string, currentStatus: string, newSta
   // - corte -> enchape -> ensamble -> listo_instalacion -> entregado
   if (role === "jefe_taller") {
     if (currentStatus === "despiece" && newStatus === "corte") return true;
-    const productionFlow = ["corte", "enchape", "ensamble", "listo_instalacion", "entregado"];
+    // "Instalando" (trabajando_instalacion) entre listo e entregado; se deja también el salto directo listo → entregado
+    if (currentStatus === "listo_instalacion" && newStatus === "entregado") return true;
+    const productionFlow = ["corte", "enchape", "ensamble", "listo_instalacion", "trabajando_instalacion", "entregado"];
     const currentIndex = productionFlow.indexOf(currentStatus);
     const newIndex = productionFlow.indexOf(newStatus);
     if (currentIndex >= 0 && newIndex === currentIndex + 1) return true;

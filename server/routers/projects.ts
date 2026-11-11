@@ -788,6 +788,12 @@ export const projectsRouter = router({
         if (newStatus === "entregado" && !project.deliveredAt) {
           updateData.deliveredAt = new Date();
         }
+        // Vuelve de "Entregado" (p. ej. faltaba terminar la instalación): la entrega no ha ocurrido →
+        // se quita la fecha y los seguimientos de postventa aún pendientes; se crean de nuevo al entregar de verdad.
+        const reopened = project.status === "entregado" && newStatus !== "entregado";
+        if (reopened) {
+          updateData.deliveredAt = null;
+        }
 
         // Sincronizar isArchived con status: solo archivado si es "entregado"
         if (newStatus === "entregado") {
@@ -797,6 +803,14 @@ export const projectsRouter = router({
         }
 
         await db.updateProject(input.projectId, updateData);
+        if (reopened) {
+          try {
+            const { reopenPostventa } = await import("../postventa-reminders");
+            await reopenPostventa(input.projectId);
+          } catch (e) {
+            console.error("[Postventa] No se pudieron quitar los seguimientos al reabrir:", e);
+          }
+        }
 
         // Notificar al diseñador cuando el proyecto pasa a "Cliente Confirmado - Iniciar Diseño"
         if (newStatus === "adelanto_recibido" && project.designerId) {

@@ -139,6 +139,11 @@ export async function runMigrations() {
       name: "documentos_enviados_3",
       sql: `CREATE INDEX IF NOT EXISTS "projectDocShares_projectId_idx" ON "projectDocShares" ("projectId")`,
     },
+    {
+      // La etapa "Instalando" existía en el CRM pero no en la BD: pasar un proyecto a ella fallaba al guardar (10 nov 2026)
+      name: "project_status_trabajando_instalacion",
+      sql: `ALTER TYPE "project_status" ADD VALUE IF NOT EXISTS 'trabajando_instalacion' AFTER 'listo_instalacion'`,
+    },
   ];
 
   for (const m of migrations) {

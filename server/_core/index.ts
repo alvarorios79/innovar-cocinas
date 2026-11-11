@@ -20,6 +20,7 @@ import { startTeamWhatsAppService } from "../whatsapp-team-notifications";
 import { startPeriodicCleanup } from "../tmp-cleanup";
 import { startWhatsAppTokenMonitor } from "../whatsapp-token-monitor";
 import { startLeadsDailySummary } from "../leads-daily-summary";
+import { startPostventaReminders } from "../postventa-reminders";
 import { apiRateLimiter, authRateLimiter, uploadRateLimiter } from "../rate-limiter";
 import cors from "cors";
 import quotationPdfRouter from "../routes/quotation-pdf";
@@ -226,6 +227,7 @@ async function startServer() {
 
     // Resumen diario de interesados (8 a. m. Colombia)
     startLeadsDailySummary();
+    startPostventaReminders();
 
     // Recordatorio de publicar en redes (lunes, miércoles y viernes, 9 a. m. Colombia)
     startSocialReminders();

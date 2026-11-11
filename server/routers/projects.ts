@@ -1376,8 +1376,8 @@ Por favor, realiza el pago del saldo restante para completar tu proyecto.
             const followUp1Year = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
             await db.createReclamacion({
               projectId: input.projectId,
-              title: `Revisión anual gratuita — ${project.name}`,
-              description: "Ofrecer revisión general gratuita al cliente. Si se detectan arreglos o mejoras, se cotizan por separado.",
+              title: `Revisión de un año (regalo) — ${project.name}`,
+              description: "Regalarle una revisión general al cliente para ofrecerle un mantenimiento. Si se detectan arreglos o mejoras, se cotizan por separado.",
               type: "revision_anual",
               status: "pendiente",
               priority: "baja",

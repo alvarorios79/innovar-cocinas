@@ -1,9 +1,23 @@
-import { protectedProcedure, router } from "../_core/trpc";
+import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
+import { randomBytes } from "crypto";
+import { storagePut } from "../storage";
+import { clearPostventaNotifications, notifyPostventa } from "../postventa-reminders";
 import { z } from "zod";
 import * as db from "../db";
 import { TRPCError } from "@trpc/server";
 
 const ADMIN_ROLES = ["admin", "super_admin", "comercial"] as const;
+
+// Límite contra abuso del reporte público: 3 por hora por IP y proyecto
+const reportHits = new Map<string, number[]>();
+function allowReport(key: string): boolean {
+  const now = Date.now(), win = 60 * 60 * 1000;
+  const hits = (reportHits.get(key) || []).filter((t) => now - t < win);
+  if (hits.length >= 3) { reportHits.set(key, hits); return false; }
+  hits.push(now); reportHits.set(key, hits);
+  if (reportHits.size > 5000) reportHits.clear();
+  return true;
+}
 const READ_ROLES = [...ADMIN_ROLES, "jefe_taller"] as const;
 
 export const postventaRouter = router({
@@ -183,6 +197,59 @@ export const postventaRouter = router({
       }
 
       await db.updateReclamacion(id, updateData as any);
+      // Alguien ya lo está atendiendo o lo cerró: se borra el aviso a todo el equipo (también a Álvaro)
+      if (input.status && input.status !== "pendiente") {
+        try { await clearPostventaNotifications(id); } catch (e) { console.error("[Postventa] No se pudo borrar el aviso:", e); }
+      }
+      return { success: true };
+    }),
+
+  // ── El cliente reporta un problema desde su enlace de entrega (sin login: el token es la autenticación) ──
+  publicReport: publicProcedure
+    .input(z.object({
+      projectId: z.number(),
+      token: z.string().min(1),
+      name: z.string().trim().min(2, "Escribe tu nombre").max(120),
+      description: z.string().trim().min(5, "Cuéntanos qué pasó").max(1500),
+      /** Fotos ya reducidas en el navegador (JPEG en base64, data URL). */
+      photos: z.array(z.string().max(6_000_000)).max(3).default([]),
+      website: z.string().optional(), // trampa para robots
+    }))
+    .mutation(async ({ ctx, input }) => {
+      if (input.website) return { success: true };
+      const ip = String((ctx.req as any)?.ip || "desconocida");
+      if (!allowReport(`${ip}:${input.projectId}`)) {
+        throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Ya recibimos tu reporte. Si es urgente, escríbenos al WhatsApp 313 680 2025." });
+      }
+      const project = await db.getProjectByIdPublic(input.projectId);
+      if (!project || !project.publicToken || project.publicToken !== input.token) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Enlace inválido" });
+      }
+      const urls: string[] = [];
+      for (const p of input.photos) {
+        const m = p.match(/^data:image\/(jpeg|png|webp);base64,(.+)$/);
+        if (!m) continue;
+        const buf = Buffer.from(m[2], "base64");
+        if (buf.length > 4_500_000) continue;
+        const { url } = await storagePut(`postventa/${input.projectId}/${Date.now()}-${randomBytes(4).toString("hex")}.${m[1] === "jpeg" ? "jpg" : m[1]}`, buf, `image/${m[1]}`);
+        urls.push(url);
+      }
+      const owner = (await db.getUsersByRole("super_admin"))[0];
+      if (!owner) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "No disponible" });
+      const firstLine = input.description.split("\n")[0].slice(0, 80);
+      const id = await db.createReclamacion({
+        projectId: input.projectId,
+        title: `Reporte del cliente: ${firstLine}`,
+        description: [`Reportado por ${input.name} desde su enlace.`, "", input.description, ...urls.map((u) => `📷 ${u}`)].join("\n"),
+        type: "reclamacion",
+        priority: "alta",
+        status: "pendiente",
+        createdBy: owner.id,
+      } as any);
+      try {
+        await notifyPostventa(Number(id), `🛠️ ${input.name} reportó un problema`, `Proyecto "${project.name}": ${firstLine}`);
+      } catch (e) { console.error("[Postventa] No se pudo avisar el reporte:", e); }
+      console.log(`[Postventa] Reporte del cliente en el proyecto ${input.projectId} (${urls.length} foto(s))`);
       return { success: true };
     }),
 

@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { groupByVersion, type DesignVersionInfo } from "@shared/designVersions";
 import { GOOGLE_REVIEW_URL } from "@shared/const";
 import { PublicDocuments } from "@/components/PublicDocuments";
+import { ReportProblem } from "@/components/ReportProblem";
 import { 
   Image as ImageIcon, 
   ZoomIn, 
@@ -441,6 +442,9 @@ function PublicGalleryView() {
 
           {/* INSTALACIÓN Y ENTREGA (si ya se entregó, va arriba) */}
           {!isDelivered && finalSection}
+
+          {/* POSTVENTA: el cliente reporta un problema (crea el caso en Postventa) */}
+          {isDelivered && <ReportProblem projectId={projectId} token={token} />}
 
           {/* CONTACTO */}
           <section

@@ -18,9 +18,13 @@ import {
   ShieldCheck, Search, User, Truck, AlertTriangle,
   CheckCircle2, Clock, ChevronDown, ChevronUp,
   PhoneCall, CalendarClock, Wrench, Plus, RefreshCw,
-  Circle, ExternalLink,
+  Circle, ExternalLink, MessageCircle, Check,
 } from "lucide-react";
 import { toast } from "sonner";
+import { GOOGLE_REVIEW_URL } from "@shared/const";
+import {
+  warrantyInfo, followUp30Message, annualReviewMessage, claimReplyMessage, postventaWaPhone, splitClaimPhotos,
+} from "@shared/postventa";
 import { useLocation } from "wouter";
 
 // ── Tipos ────────────────────────────────────────────────────────────────────
@@ -60,7 +64,7 @@ const WORK_TYPE_LABELS: Record<string, string> = {
 const TYPE_CONFIG: Record<ReclamacionType, { label: string; icon: typeof PhoneCall; color: string }> = {
   reclamacion:    { label: "Reclamación",       icon: Wrench,       color: "#EF4444" },
   seguimiento_30d:{ label: "Seguimiento 30d",   icon: PhoneCall,    color: "#F59E0B" },
-  revision_anual: { label: "Revisión Anual",    icon: CalendarClock,color: "#6366F1" },
+  revision_anual: { label: "Revisión de un año", icon: CalendarClock,color: "#6366F1" },
 };
 
 const STATUS_CONFIG: Record<ReclamacionStatus, { label: string; color: string; bg: string }> = {
@@ -76,23 +80,24 @@ const PRIORITY_CONFIG = {
   baja:  { label: "Baja",  color: "#6B7280" },
 };
 
-/** Semáforo de garantía:
- * - Madera: 1 año (365 días)
- * - Herrajes: 6 meses (180 días)
- * Mostramos el más conservador (herrajes) para alertas tempranas */
+/** Semáforo de garantía: 6 meses para todo (decisión de Álvaro, shared/postventa.ts). */
 function getWarrantyStatus(deliveredAt: string | null | undefined): {
   color: string; label: string; daysElapsed: number; inWarranty: boolean; nearExpiry: boolean;
 } {
-  if (!deliveredAt) return { color: "#6B7280", label: "Sin fecha", daysElapsed: 0, inWarranty: false, nearExpiry: false };
-  const days = Math.floor((Date.now() - new Date(deliveredAt).getTime()) / (1000 * 60 * 60 * 24));
-  const inHardware = days < 180; // 6 meses herrajes
-  const inWood = days < 365;     // 1 año madera
-  const nearExpiry = inWood && days >= 150; // últimos 30 días antes de vencer herrajes
+  const w = warrantyInfo(deliveredAt);
+  const color = w.status === "vigente" ? "#10B981" : w.status === "por_vencer" ? "#F59E0B" : "#6B7280";
+  return { color, label: w.label, daysElapsed: w.daysElapsed, inWarranty: w.status === "vigente" || w.status === "por_vencer", nearExpiry: w.status === "por_vencer" };
+}
 
-  if (!inWood) return { color: "#6B7280", label: "Garantía vencida", daysElapsed: days, inWarranty: false, nearExpiry: false };
-  if (nearExpiry || !inHardware)
-    return { color: "#F59E0B", label: inHardware ? "Próximo a vencer" : "Herrajes sin garantía", daysElapsed: days, inWarranty: true, nearExpiry: true };
-  return { color: "#10B981", label: "En garantía", daysElapsed: days, inWarranty: true, nearExpiry: false };
+/** Mensaje de WhatsApp listo según el tipo de caso. */
+function whatsAppFor(rec: any): string | null {
+  const phone = postventaWaPhone(rec.client?.whatsappPhone);
+  if (!phone) return null;
+  const name = rec.client?.name;
+  const msg = rec.type === "seguimiento_30d" ? followUp30Message(name, GOOGLE_REVIEW_URL)
+    : rec.type === "revision_anual" ? annualReviewMessage(name)
+    : claimReplyMessage(name, String(rec.title || "").replace(/^Reporte del cliente:\s*/, ""));
+  return `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
 }
 
 // ── Componente principal ──────────────────────────────────────────────────────
@@ -179,6 +184,15 @@ export default function Postventa() {
     r.status === "pendiente" && r.scheduledFor && r.scheduledFor <= new Date().toISOString()
   ).length;
 
+  // Lo que hay que hacer ya: seguimientos vencidos + reportes/reclamaciones abiertos
+  const todo = useMemo(() => {
+    const now = new Date().toISOString();
+    return (allReclamaciones as any[]).filter((r: any) =>
+      ((r.type === "seguimiento_30d" || r.type === "revision_anual") && r.status === "pendiente" && r.scheduledFor && r.scheduledFor <= now) ||
+      (r.type === "reclamacion" && (r.status === "pendiente" || r.status === "en_revision"))
+    ).sort((a: any, b: any) => (a.type === "reclamacion" ? 0 : 1) - (b.type === "reclamacion" ? 0 : 1) || String(a.scheduledFor || a.createdAt).localeCompare(String(b.scheduledFor || b.createdAt)));
+  }, [allReclamaciones]);
+
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newReclamacion || !newForm.title) return;
@@ -246,17 +260,20 @@ export default function Postventa() {
         />
       </KpiGrid>
 
-      {/* Alertas de vencimiento próximas */}
-      {overdueFollowUps > 0 && (
-        <div className="mb-4 rounded-lg border border-amber-500/25 bg-amber-500/10 px-4 py-3 flex items-center gap-3">
-          <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0" />
-          <p className="text-sm text-amber-300">
-            Tienes <strong>{overdueFollowUps}</strong> seguimiento{overdueFollowUps > 1 ? "s" : ""} o revisión{overdueFollowUps > 1 ? "es" : ""} que ya debería{overdueFollowUps > 1 ? "n" : ""} haberse contactado.
-            <button className="underline ml-2 font-semibold" onClick={() => setFilterStatus("seguimientos_due")}>
-              Ver ahora
-            </button>
-          </p>
-        </div>
+      {/* Para hacer hoy */}
+      {todo.length > 0 && (
+        <Card className="mb-4 border-amber-500/30">
+          <CardContent className="p-3 md:p-4">
+            <h2 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-2">
+              <AlertTriangle className="h-4 w-4 text-amber-400" /> Para hacer hoy
+              <span className="text-xs font-normal text-muted-foreground">({todo.length})</span>
+            </h2>
+            <div className="divide-y divide-white/[0.08]">
+              {todo.map((r: any) => <TodoRow key={r.id} rec={r} onDone={() => handleStatusChange(r, "resuelto")}
+                onOpen={() => setLocation(`/projects/${r.projectId}`)} />)}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Filtros */}
@@ -374,12 +391,12 @@ export default function Postventa() {
       <Dialog open={!!resolveDialog} onOpenChange={() => { setResolveDialog(null); setResolveNotes(""); }}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>Marcar como resuelto</DialogTitle>
+            <DialogTitle>{resolveDialog?.type === "reclamacion" ? "Marcar como resuelto" : "Marcar como hecho"}</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground mb-3">{resolveDialog?.title}</p>
           <form onSubmit={handleResolve} className="space-y-3">
             <div className="space-y-1">
-              <Label className="text-xs">¿Cómo se resolvió? <span className="text-gray-400">(opcional)</span></Label>
+              <Label className="text-xs">{resolveDialog?.type === "reclamacion" ? "¿Cómo se resolvió?" : resolveDialog?.type === "revision_anual" ? "¿Qué dijo? ¿Aceptó la revisión o el mantenimiento?" : "¿Qué dijo el cliente?"} <span className="text-gray-400">(opcional)</span></Label>
               <Textarea
                 placeholder="Descripción de lo que se hizo para resolver el caso…"
                 value={resolveNotes}
@@ -543,6 +560,7 @@ function ReclamacionRow({
       {/* Contenido */}
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-foreground leading-tight">{rec.title}</p>
+        {rec.type === "reclamacion" && <ClaimDetail description={rec.description} />}
         <div className="flex flex-wrap gap-2 mt-1">
           <span className="text-[11px] font-medium" style={{ color: typeConf.color }}>{typeConf.label}</span>
           <span className="text-[11px] text-gray-400">·</span>
@@ -586,6 +604,66 @@ function ReclamacionRow({
             </SelectContent>
           </Select>
         )}
+      </div>
+    </div>
+  );
+}
+
+// ── Descripción y fotos de un reporte ────────────────────────────────────────
+function ClaimDetail({ description }: { description?: string | null }) {
+  const parsed = splitClaimPhotos(description);
+  const photos = parsed.photos;
+  const text = parsed.text.replace(/^Reportado por .* desde su enlace\.\s*/, "").trim();
+  if (!text && !photos.length) return null;
+  return (
+    <div className="mt-1 space-y-1.5">
+      {text && <p className="text-xs text-muted-foreground whitespace-pre-line">{text}</p>}
+      {photos.length > 0 && (
+        <div className="flex gap-1.5 flex-wrap">
+          {photos.map((u) => (
+            <a key={u} href={u} target="_blank" rel="noopener noreferrer" className="block h-16 w-16 rounded-md overflow-hidden border border-white/10">
+              <img src={u} alt="Foto del cliente" className="h-full w-full object-cover" loading="lazy" />
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Fila de "Para hacer hoy" ─────────────────────────────────────────────────
+function TodoRow({ rec, onDone, onOpen }: { rec: any; onDone: () => void; onOpen: () => void }) {
+  const conf = TYPE_CONFIG[rec.type as ReclamacionType] ?? TYPE_CONFIG.reclamacion;
+  const Icon = conf.icon;
+  const wa = whatsAppFor(rec);
+  const what = rec.type === "seguimiento_30d" ? "Llamada de 30 días: cómo le ha ido + reseña en Google"
+    : rec.type === "revision_anual" ? "Un año: regalarle la revisión y ofrecer mantenimiento"
+    : String(rec.title).startsWith("Reporte del cliente")
+      ? `🛠️ ${String(rec.description || "").match(/^Reportado por (.+?) desde su enlace/)?.[1] || "El cliente"} reportó un problema desde su enlace`
+      : rec.title;
+  return (
+    <div className="py-2.5 flex flex-col sm:flex-row sm:items-center gap-2">
+      <div className="flex items-start gap-2.5 flex-1 min-w-0">
+        <Icon className="h-4 w-4 mt-0.5 shrink-0" style={{ color: conf.color }} />
+        <div className="min-w-0">
+          <button onClick={onOpen} className="text-sm font-semibold text-foreground hover:underline text-left">
+            {rec.client?.name || rec.project?.name || `Proyecto ${rec.projectId}`}
+          </button>
+          <p className="text-xs text-muted-foreground">{what}</p>
+          {rec.type === "reclamacion" && <ClaimDetail description={rec.description} />}
+        </div>
+      </div>
+      <div className="flex gap-2 shrink-0">
+        {wa ? (
+          <Button asChild size="sm" className="h-8 bg-green-600 hover:bg-green-700 text-white">
+            <a href={wa} target="_blank" rel="noopener noreferrer"><MessageCircle className="h-3.5 w-3.5 mr-1.5" />WhatsApp</a>
+          </Button>
+        ) : (
+          <span className="text-[11px] text-muted-foreground self-center">Sin WhatsApp registrado</span>
+        )}
+        <Button size="sm" variant="outline" className="h-8" onClick={onDone}>
+          <Check className="h-3.5 w-3.5 mr-1.5" />{rec.type === "reclamacion" ? "Resuelto" : "Hecho"}
+        </Button>
       </div>
     </div>
   );

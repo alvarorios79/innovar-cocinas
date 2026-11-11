@@ -100,6 +100,8 @@ export default function ProjectDetail() {
   const fileViewer = useFileViewer();
   
   const [showPhotoDialog, setShowPhotoDialog] = useState(false);
+  // Si se abrió desde una carpeta, el archivo va a ESA carpeta: no se muestran las categorías (evita que se vaya a otra)
+  const [photoFolderLocked, setPhotoFolderLocked] = useState(false);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
   const [showEditDateDialog, setShowEditDateDialog] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
@@ -510,7 +512,8 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
     dibujo: "Dibujo",
     renders: "Renders",
     despieces: "Despieces",
-    detalles: "Planos técnicos y detalles",
+    detalles: "Planos técnicos · Obra civil",
+    medidas_electrodomesticos: "Planos técnicos · Medidas electrodomésticos",
     modelado_3d: "Modelado 3D",
     corte: "Corte",
     enchape: "Enchape",
@@ -529,6 +532,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
       renders: ["super_admin", "admin", "disenador"],
       despieces: ["super_admin", "admin", "disenador"],
       detalles: ["super_admin", "admin", "disenador"],
+      medidas_electrodomesticos: ["super_admin", "admin", "comercial", "disenador"],
       modelado_3d: ["super_admin", "admin", "disenador"],
       // Producción: jefe_taller y operario suben fotos
       corte: ["super_admin", "admin", "jefe_taller", "operario"],
@@ -546,7 +550,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
     const allFolders = {
       cotizacion: ["documento_cotizacion"],
       medidas: ["fotos_iniciales", "dibujo"],
-      disenos: ["modelado_3d", "renders", "detalles", "despieces"],
+      disenos: ["modelado_3d", "renders", "detalles", "medidas_electrodomesticos", "despieces"],
       avance: ["corte", "enchape", "armado"],
       instalacion: ["proceso_instalacion"],
       entrega: ["fotos_finales"],
@@ -568,6 +572,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
           renders: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
           despieces: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
           detalles: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
+          medidas_electrodomesticos: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
           modelado_3d: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
           corte: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
           enchape: ["super_admin", "admin", "comercial", "disenador", "jefe_taller", "operario"],
@@ -697,7 +702,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
             <FileDown className="h-4 w-4 mr-1" />
             {generatingPdf ? "Generando..." : "Exportar PDF"}
           </Button>
-          <Button variant="outline" size="sm" onClick={() => setShowPhotoDialog(true)}>
+          <Button variant="outline" size="sm" onClick={() => { setPhotoFolderLocked(false); setShowPhotoDialog(true); }}>
             <Upload className="h-4 w-4 mr-1" />
             Subir Foto
           </Button>
@@ -1130,7 +1135,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                               const uc = canUploadToStage(subcategory);
                               return (
                                 <Button variant="ghost" size="sm" disabled={!uc.allowed} title={uc.message || "Subir foto"}
-                                  onClick={() => { if (!uc.allowed) { toast.error(uc.message); return; } setPhotoForm({ ...photoForm, category: category as any, subcategory }); setShowPhotoDialog(true); }}>
+                                  onClick={() => { if (!uc.allowed) { toast.error(uc.message); return; } setPhotoForm({ ...photoForm, category: category as any, subcategory }); setPhotoFolderLocked(true); setShowPhotoDialog(true); }}>
                                   <Upload className={`h-4 w-4 ${!uc.allowed ? 'text-gray-300' : ''}`} />
                                 </Button>
                               );
@@ -1588,7 +1593,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                               <span className="w-2 h-2 bg-green-500 rounded-full"></span>
                               {subcategoryLabels[subcategory] || subcategory}
                               <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${photos.length > 0 ? 'bg-green-500/15 text-green-300' : 'bg-white/[0.06] text-gray-500'}`}>
-                                {photos.length} {subcategory === "detalles" || subcategory === "despieces" ? (photos.length === 1 ? 'archivo' : 'archivos') : (photos.length === 1 ? 'foto' : 'fotos')}
+                                {photos.length} {subcategory === "detalles" || subcategory === "medidas_electrodomesticos" || subcategory === "despieces" ? (photos.length === 1 ? 'archivo' : 'archivos') : (photos.length === 1 ? 'foto' : 'fotos')}
                               </span>
                             </h5>
                             {canUploadToFolder(subcategory) && (() => {
@@ -1609,6 +1614,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                                       category: category as any,
                                       subcategory,
                                     });
+                                    setPhotoFolderLocked(true);
                                     setShowPhotoDialog(true);
                                   }}
                                 >
@@ -1953,7 +1959,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                               const uc = canUploadToStage(subcategory);
                               return (
                                 <Button variant="ghost" size="sm" disabled={!uc.allowed} title={uc.message || "Subir foto"}
-                                  onClick={() => { if (!uc.allowed) { toast.error(uc.message); return; } setPhotoForm({ ...photoForm, category: category as any, subcategory }); setShowPhotoDialog(true); }}>
+                                  onClick={() => { if (!uc.allowed) { toast.error(uc.message); return; } setPhotoForm({ ...photoForm, category: category as any, subcategory }); setPhotoFolderLocked(true); setShowPhotoDialog(true); }}>
                                   <Upload className={`h-4 w-4 ${!uc.allowed ? 'text-gray-300' : ''}`} />
                                 </Button>
                               );
@@ -2193,13 +2199,25 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
       </div>
 
       {/* Diálogos */}
-      <Dialog open={showPhotoDialog} onOpenChange={setShowPhotoDialog}>
+      <Dialog open={showPhotoDialog} onOpenChange={(o) => { setShowPhotoDialog(o); if (!o) setPhotoFolderLocked(false); }}>
         <DialogContent className="w-full max-w-[95vw] sm:max-w-[85vw] md:max-w-2xl p-3 sm:p-6">
           <DialogHeader>
             <DialogTitle>Subir Archivos (JPG / PDF)</DialogTitle>
-            <DialogDescription>Agrega fotos o documentos PDF al proyecto</DialogDescription>
+            <DialogDescription>
+              {photoFolderLocked && photoForm.subcategory === "detalles"
+                ? "Planos de obra civil (desagües, agua, gas, tomas…). Se pueden enviar al cliente por WhatsApp."
+                : photoFolderLocked && photoForm.subcategory === "medidas_electrodomesticos"
+                ? "Fichas técnicas y medidas de los electrodomésticos, para que el diseñador las tenga a mano. No se envían al cliente."
+                : "Agrega fotos o documentos PDF al proyecto"}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
+            {photoFolderLocked && (
+              <div className="rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 text-sm">
+                Se guarda en: <b>{subcategoryLabels[photoForm.subcategory] || photoForm.subcategory || photoForm.category}</b>
+              </div>
+            )}
+            {!photoFolderLocked && (
             <div className="space-y-2">
               <Label>Categoría *</Label>
               <Select
@@ -2230,8 +2248,9 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
               </Select>
             </div>
 
+            )}
             {/* Subcategoría según la categoría seleccionada */}
-            {photoForm.category && photoForm.category !== "cotizacion" && (
+            {!photoFolderLocked && photoForm.category && photoForm.category !== "cotizacion" && (
               <div className="space-y-2">
                 <Label>Subcategoría *</Label>
                 <Select
@@ -2250,7 +2269,8 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                       <>
                         <SelectItem value="modelado_3d">Modelado</SelectItem>
                         <SelectItem value="renders">Renders</SelectItem>
-                        <SelectItem value="detalles">Planos técnicos y detalles</SelectItem>
+                        <SelectItem value="detalles">Planos técnicos · Obra civil</SelectItem>
+                        <SelectItem value="medidas_electrodomesticos">Planos técnicos · Medidas electrodomésticos</SelectItem>
                         <SelectItem value="despieces">Despieces</SelectItem>
                       </>
                     )}
@@ -2272,6 +2292,14 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
               </div>
             )}
 
+            <div className="space-y-2">
+              <Label>{photoForm.subcategory === "detalles" || photoForm.subcategory === "medidas_electrodomesticos" ? "Nombre (opcional)" : "Descripción (opcional)"}</Label>
+              <Input
+                value={photoForm.description}
+                onChange={(e) => setPhotoForm({ ...photoForm, description: e.target.value })}
+                placeholder={photoForm.subcategory === "detalles" ? "Ej.: Plano de adecuaciones" : photoForm.subcategory === "medidas_electrodomesticos" ? "Ej.: Ficha técnica horno Haceb" : "Descripción de los archivos..."}
+              />
+            </div>
             {(photoForm.category === "cotizacion" || photoForm.subcategory) && (
               <PhotoUploader
                 projectId={projectId}
@@ -2306,26 +2334,19 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                       projectId: projectId,
                       stage: finalStage as "corte" | "enchape" | "ensamble" | "final" | "inicial" | "diseno",
                       category: photoForm.category,
-                      subcategory: (photoForm.category === "cotizacion" ? "documento_cotizacion" : photoForm.subcategory || undefined) as "corte" | "enchape" | "fotos_iniciales" | "dibujo" | "renders" | "despieces" | "detalles" | "modelado_3d" | "armado" | "proceso_instalacion" | "fotos_finales" | "documento_cotizacion" | undefined,
+                      subcategory: (photoForm.category === "cotizacion" ? "documento_cotizacion" : photoForm.subcategory || undefined) as "corte" | "enchape" | "fotos_iniciales" | "dibujo" | "renders" | "despieces" | "detalles" | "medidas_electrodomesticos" | "modelado_3d" | "armado" | "proceso_instalacion" | "fotos_finales" | "documento_cotizacion" | undefined,
                       photoUrl: url,
                       // Nombre del archivo (sin extensión) para identificar los PDF; la descripción escrita, si hay, va primero
                       description: [photoForm.description.trim(), fileLabel(names?.[i])].filter(Boolean).join(" · ") || undefined,
                     });
                   });
                   setShowPhotoDialog(false);
+                  setPhotoFolderLocked(false);
                   setPhotoForm({ category: "medidas", subcategory: "", photoUrls: [], description: "" });
                 }}
               />
             )}
 
-            <div className="space-y-2">
-              <Label>Descripción (opcional)</Label>
-              <Input
-                value={photoForm.description}
-                onChange={(e) => setPhotoForm({ ...photoForm, description: e.target.value })}
-                placeholder="Descripción de los archivos..."
-              />
-            </div>
           </div>
         </DialogContent>
       </Dialog>

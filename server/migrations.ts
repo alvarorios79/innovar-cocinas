@@ -149,6 +149,11 @@ export async function runMigrations() {
       name: "app_flags",
       sql: `CREATE TABLE IF NOT EXISTS "appFlags" ( "name" varchar(100) PRIMARY KEY, "doneAt" timestamp NOT NULL DEFAULT now() )`,
     },
+    {
+      // Planos técnicos: carpeta nueva "Medidas electrodomésticos" (fichas técnicas para el diseñador; no se envían al cliente)
+      name: "photo_subcategory_medidas_electrodomesticos",
+      sql: `ALTER TYPE "photo_subcategory" ADD VALUE IF NOT EXISTS 'medidas_electrodomesticos' AFTER 'detalles'`,
+    },
   ];
 
   for (const m of migrations) {

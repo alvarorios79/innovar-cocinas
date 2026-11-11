@@ -2124,7 +2124,7 @@ export const projectPhotosRouter = router({
         projectId: z.number(),
         stage: z.enum(["inicial", "diseno", "corte", "enchape", "ensamble", "final"]),
         category: z.enum(["cotizacion", "medidas", "disenos", "avance", "instalacion", "entrega"]).optional().default("medidas"),
-        subcategory: z.enum(["fotos_iniciales", "dibujo", "renders", "despieces", "detalles", "modelado_3d", "corte", "enchape", "armado", "proceso_instalacion", "fotos_finales", "documento_cotizacion"]).optional(),
+        subcategory: z.enum(["fotos_iniciales", "dibujo", "renders", "despieces", "detalles", "medidas_electrodomesticos", "modelado_3d", "corte", "enchape", "armado", "proceso_instalacion", "fotos_finales", "documento_cotizacion"]).optional(),
         photoUrl: z.string(),
         description: z.string().optional(),
       }))

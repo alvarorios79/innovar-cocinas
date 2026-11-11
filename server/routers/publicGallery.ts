@@ -51,7 +51,9 @@ export const publicGalleryRouter = router({
           photos = allPhotos.filter(p => p.subcategory === input.type);
         } else {
           // Portal completo: todas las fotos excepto privadas (stage inicial)
-          photos = allPhotos.filter(p => p.stage !== "inicial");
+          // (ni archivos internos: despieces, planos/detalles —se comparten aparte—, fichas de electrodomésticos, cotización)
+          const INTERNAL = new Set(["despieces", "detalles", "medidas_electrodomesticos", "documento_cotizacion"]);
+          photos = allPhotos.filter(p => p.stage !== "inicial" && !INTERNAL.has(String(p.subcategory)));
         }
 
         return {

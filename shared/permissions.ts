@@ -36,6 +36,7 @@ export type PhotoSubcategory =
   | 'modelado_3d'           // Renombrado de 'modelado'
   | 'renders'
   | 'detalles'
+  | 'medidas_electrodomesticos'
   | 'despieces'
   | 'corte'
   | 'enchape'
@@ -83,22 +84,22 @@ export const ADVANCE_STATUS_PERMISSIONS: Record<UserRole, ProjectStatus[]> = {
  * Carpetas de fotos que cada rol puede ver
  */
 export const VIEW_PHOTO_FOLDERS: Record<UserRole, PhotoSubcategory[]> = {
-  super_admin: ['documento_cotizacion', 'fotos_iniciales', 'dibujo', 'modelado_3d', 'renders', 'detalles', 'despieces', 'corte', 'enchape', 'armado', 'proceso_instalacion', 'fotos_finales'],
-  admin: ['documento_cotizacion', 'fotos_iniciales', 'dibujo', 'modelado_3d', 'renders', 'detalles', 'despieces', 'corte', 'enchape', 'armado', 'proceso_instalacion', 'fotos_finales'],
-  comercial: ['documento_cotizacion', 'fotos_iniciales', 'dibujo', 'modelado_3d', 'renders', 'detalles', 'despieces', 'corte', 'enchape', 'armado', 'proceso_instalacion', 'fotos_finales'],
-  disenador: ['fotos_iniciales', 'dibujo', 'modelado_3d', 'renders', 'detalles', 'despieces', 'corte', 'enchape', 'armado', 'proceso_instalacion', 'fotos_finales'],
-  jefe_taller: ['modelado_3d', 'renders', 'detalles', 'despieces', 'corte', 'enchape', 'armado', 'proceso_instalacion', 'fotos_finales'],
-  operario: ['modelado_3d', 'renders', 'detalles', 'despieces', 'corte', 'enchape', 'armado', 'proceso_instalacion', 'fotos_finales'],
+  super_admin: ['documento_cotizacion', 'fotos_iniciales', 'dibujo', 'modelado_3d', 'renders', 'detalles', 'medidas_electrodomesticos', 'despieces', 'corte', 'enchape', 'armado', 'proceso_instalacion', 'fotos_finales'],
+  admin: ['documento_cotizacion', 'fotos_iniciales', 'dibujo', 'modelado_3d', 'renders', 'detalles', 'medidas_electrodomesticos', 'despieces', 'corte', 'enchape', 'armado', 'proceso_instalacion', 'fotos_finales'],
+  comercial: ['documento_cotizacion', 'fotos_iniciales', 'dibujo', 'modelado_3d', 'renders', 'detalles', 'medidas_electrodomesticos', 'despieces', 'corte', 'enchape', 'armado', 'proceso_instalacion', 'fotos_finales'],
+  disenador: ['fotos_iniciales', 'dibujo', 'modelado_3d', 'renders', 'detalles', 'medidas_electrodomesticos', 'despieces', 'corte', 'enchape', 'armado', 'proceso_instalacion', 'fotos_finales'],
+  jefe_taller: ['modelado_3d', 'renders', 'detalles', 'medidas_electrodomesticos', 'despieces', 'corte', 'enchape', 'armado', 'proceso_instalacion', 'fotos_finales'],
+  operario: ['modelado_3d', 'renders', 'detalles', 'medidas_electrodomesticos', 'despieces', 'corte', 'enchape', 'armado', 'proceso_instalacion', 'fotos_finales'],
 };
 
 /**
  * Carpetas de fotos donde cada rol puede subir
  */
 export const UPLOAD_PHOTO_FOLDERS: Record<UserRole, PhotoSubcategory[]> = {
-  super_admin: ['documento_cotizacion', 'fotos_iniciales', 'dibujo', 'modelado_3d', 'renders', 'detalles', 'despieces', 'corte', 'enchape', 'armado', 'proceso_instalacion', 'fotos_finales'],
-  admin: ['documento_cotizacion', 'fotos_iniciales', 'dibujo', 'modelado_3d', 'renders', 'detalles', 'despieces', 'corte', 'enchape', 'armado', 'proceso_instalacion', 'fotos_finales'],
-  comercial: ['documento_cotizacion', 'fotos_iniciales', 'dibujo'],
-  disenador: ['modelado_3d', 'renders', 'detalles', 'despieces'],
+  super_admin: ['documento_cotizacion', 'fotos_iniciales', 'dibujo', 'modelado_3d', 'renders', 'detalles', 'medidas_electrodomesticos', 'despieces', 'corte', 'enchape', 'armado', 'proceso_instalacion', 'fotos_finales'],
+  admin: ['documento_cotizacion', 'fotos_iniciales', 'dibujo', 'modelado_3d', 'renders', 'detalles', 'medidas_electrodomesticos', 'despieces', 'corte', 'enchape', 'armado', 'proceso_instalacion', 'fotos_finales'],
+  comercial: ['documento_cotizacion', 'fotos_iniciales', 'dibujo', 'medidas_electrodomesticos'],
+  disenador: ['modelado_3d', 'renders', 'detalles', 'medidas_electrodomesticos', 'despieces'],
   jefe_taller: ['corte', 'enchape', 'armado', 'proceso_instalacion', 'fotos_finales'],
   operario: ['corte', 'enchape', 'armado', 'proceso_instalacion', 'fotos_finales'],
 };
@@ -117,6 +118,7 @@ export const FOLDER_TO_CATEGORY: Record<PhotoSubcategory, PhotoCategory> = {
   modelado_3d: 'disenos',
   renders: 'disenos',
   detalles: 'disenos',
+  medidas_electrodomesticos: 'disenos',
   despieces: 'disenos',
   corte: 'avance',
   enchape: 'avance',
@@ -131,7 +133,7 @@ export const FOLDER_TO_CATEGORY: Record<PhotoSubcategory, PhotoCategory> = {
 export const CATEGORY_TO_FOLDERS: Record<PhotoCategory, PhotoSubcategory[]> = {
   cotizacion: ['documento_cotizacion'],
   medidas: ['fotos_iniciales', 'dibujo'],
-  disenos: ['modelado_3d', 'renders', 'detalles', 'despieces'],
+  disenos: ['modelado_3d', 'renders', 'detalles', 'medidas_electrodomesticos', 'despieces'],
   avance: ['corte', 'enchape', 'armado'],
   instalacion: ['proceso_instalacion'],
   entrega: ['fotos_finales'],
@@ -146,7 +148,8 @@ export const FOLDER_LABELS: Record<PhotoSubcategory, string> = {
   dibujo: 'Dibujo',
   modelado_3d: 'Modelado 3D',
   renders: 'Renders',
-  detalles: 'Planos técnicos y detalles',
+  detalles: 'Planos técnicos · Obra civil',
+  medidas_electrodomesticos: 'Planos técnicos · Medidas electrodomésticos',
   despieces: 'Despieces',
   corte: 'Corte',
   enchape: 'Enchape',

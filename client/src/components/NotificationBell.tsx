@@ -485,6 +485,10 @@ export function NotificationBell() {
                             // Avisos de postventa (mensaje del mes, revisión del año, reporte del cliente, resúmenes)
                             setOpen(false);
                             setLocation("/postventa");
+                          } else if ((notification as any).referenceType === "despiece" && notification.referenceId) {
+                            // Despiece enviado al taller: abre el proyecto
+                            setOpen(false);
+                            setLocation(`/projects/${notification.referenceId}`);
                           } else if (String((notification as any).referenceType || "").startsWith("lead")) {
                             setOpen(false);
                             setLocation("/interesados");

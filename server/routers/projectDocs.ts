@@ -13,6 +13,7 @@ import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import * as db from "../db";
 import { projectDocShares, projectPhotos, projects } from "../../drizzle/schema";
+import { workshopFileUrl } from "../file-download-routes";
 
 /** Quién envía documentos al cliente (comunicación con el cliente = oficina). */
 export const DOC_SHARE_ROLES = ["super_admin", "admin", "comercial"];
@@ -50,6 +51,21 @@ export function docsMessage(firstName: string, projectName: string, names: strin
     `🙏 Cuando ${uno ? "lo" : "los"} revises, toca *Recibido* en el enlace; así sabemos que ${uno ? "te llegó" : "te llegaron"} bien.\n\n` +
     `Cualquier duda, con gusto te ayudamos al 313 680 2025.\n\n` +
     `— INNOVAR Cocinas de Diseño ✨`
+  );
+}
+
+/** Quién envía los despieces al taller por WhatsApp (pedido de Álvaro, 12 nov 2026). */
+export const WORKSHOP_SEND_ROLES = ["super_admin", "disenador"];
+
+/** Mensaje de WhatsApp al jefe de taller con los PDF del despiece. */
+export function workshopMessage(firstName: string, projectName: string, files: { name: string; url: string }[], sender: string): string {
+  const uno = files.length === 1;
+  const lista = files.map((f) => `📄 *${f.name}*\n${f.url}`).join("\n\n");
+  return (
+    `🔨 ${firstName ? `Hola ${firstName}!` : "Hola!"} ${uno ? "Ya está listo el despiece" : "Ya están listos los despieces"} del proyecto *"${projectName}"* para pasar a taller.\n\n` +
+    `${lista}\n\n` +
+    `Toca ${uno ? "el enlace" : "cada enlace"} para abrir el PDF (no pide clave) y guárdalo en el celular.\n\n` +
+    `Cualquier duda me escribes.${sender ? `\n— ${sender}` : ""}`
   );
 }
 
@@ -134,6 +150,58 @@ export const projectDocsRouter = router({
         whatsAppLink: phone ? `https://wa.me/${phone}?text=${encodeURIComponent(message)}` : null,
         message,
       };
+    }),
+
+  /**
+   * Despieces → WhatsApp del jefe de taller: enlaces firmados a los PDF (se abren sin iniciar sesión).
+   * Es una consulta (no espera al tocar el botón) para que el enlace de WhatsApp abra directo en el iPhone.
+   */
+  workshopShare: protectedProcedure
+    .input(z.object({ projectId: z.number(), photoIds: z.array(z.number()).min(1).max(30) }))
+    .query(async ({ ctx, input }) => {
+      if (!WORKSHOP_SEND_ROLES.includes(ctx.user.role)) throw new TRPCError({ code: "FORBIDDEN", message: "Solo el diseñador y el super admin envían despieces" });
+      const d = await database();
+      const project = await db.getProjectByIdPublic(input.projectId);
+      if (!project) throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
+      const rows = await d.select({ id: projectPhotos.id, description: projectPhotos.description, url: projectPhotos.photoUrl, subcategory: projectPhotos.subcategory })
+        .from(projectPhotos)
+        .where(and(eq(projectPhotos.projectId, input.projectId), inArray(projectPhotos.id, input.photoIds)));
+      const files = (rows as any[]).filter((r) => r.subcategory === "despieces");
+      if (!files.length) throw new TRPCError({ code: "NOT_FOUND", message: "Esos archivos no están en Despieces" });
+      const baseUrl = process.env.VITE_APP_URL || "https://innovar-cocinas.onrender.com";
+      const list = files.map((f, i) => ({ name: f.description || (files.length === 1 ? "Despiece" : `Despiece ${i + 1}`), url: workshopFileUrl(baseUrl, f.id) }));
+      const sender = (ctx.user.name || "").trim().split(/\s+/)[0] || "";
+      const recipients = (await db.getUsersByRole("jefe_taller") as any[])
+        .filter((u) => !u.deletedAt)
+        .map((u) => {
+          const phone = waPhone(u.phone);
+          const firstName = (u.name || "").trim().split(/\s+/)[0] || "";
+          const message = workshopMessage(firstName, project.name, list, sender);
+          return { id: u.id as number, name: (u.name || "Jefe de taller") as string, whatsAppLink: phone ? `https://wa.me/${phone}?text=${encodeURIComponent(message)}` : null };
+        });
+      const generic = workshopMessage("", project.name, list, sender);
+      return { recipients, message: generic, anyoneLink: `https://wa.me/?text=${encodeURIComponent(generic)}`, files: list };
+    }),
+
+  /** Aviso en la campanita (y push) al jefe de taller cuando se le envía el despiece. */
+  notifyWorkshop: protectedProcedure
+    .input(z.object({ projectId: z.number(), count: z.number().min(1).max(30) }))
+    .mutation(async ({ ctx, input }) => {
+      if (!WORKSHOP_SEND_ROLES.includes(ctx.user.role)) throw new TRPCError({ code: "FORBIDDEN", message: "Sin permisos" });
+      const project = await db.getProjectByIdPublic(input.projectId);
+      if (!project) throw new TRPCError({ code: "NOT_FOUND", message: "Proyecto no encontrado" });
+      console.log(`[Despieces] ${input.count} archivo(s) del proyecto ${input.projectId} enviados al taller por ${ctx.user.id}`);
+      try {
+        const { createAndSendNotification } = await import("../push-notifications");
+        for (const u of await db.getUsersByRole("jefe_taller")) {
+          await createAndSendNotification(u.id, {
+            title: `🔨 Despiece listo: ${project.name}`,
+            body: `Te enviaron ${input.count === 1 ? "el despiece" : `${input.count} archivos de despiece`} por WhatsApp. También está en el proyecto → Diseño → Despieces.`,
+            type: "proyecto", referenceId: input.projectId, referenceType: "despiece", url: `/projects/${input.projectId}`,
+          });
+        }
+      } catch (e) { console.error("[Despieces] No se pudo avisar al taller:", e); }
+      return { success: true };
     }),
 
   /** Dejar de mostrar un archivo al cliente (p. ej. un plano reemplazado). La constancia queda. */

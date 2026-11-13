@@ -12,6 +12,7 @@
  */
 import type { Express, Request, Response } from "express";
 import { Readable } from "stream";
+import { createHmac, timingSafeEqual } from "crypto";
 import { and, eq, isNull } from "drizzle-orm";
 import { sdk } from "./_core/sdk";
 import { getDb } from "./db";
@@ -42,7 +43,7 @@ export function downloadName(name: string, contentType: string | null, url: URL)
 }
 
 /** Pasa el archivo al navegador como descarga (nombre + extensión). */
-async function streamDownload(res: Response, target: URL, rawName: string, logCtx: string) {
+async function streamDownload(res: Response, target: URL, rawName: string, logCtx: string, inline = false) {
   const upstream = await fetch(target.toString());
   if (!upstream.ok) {
     console.warn(`[Descargas] ${logCtx}: el archivo respondió ${upstream.status}`);
@@ -54,10 +55,24 @@ async function streamDownload(res: Response, target: URL, rawName: string, logCt
   const len = upstream.headers.get("content-length");
   if (len) res.setHeader("Content-Length", len);
   const ascii = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\x20-\x7e]/g, "_");
-  res.setHeader("Content-Disposition", `attachment; filename="${ascii}"; filename*=UTF-8''${encodeURIComponent(name)}`);
+  res.setHeader("Content-Disposition", `${inline ? "inline" : "attachment"}; filename="${ascii}"; filename*=UTF-8''${encodeURIComponent(name)}`);
   res.setHeader("Cache-Control", "private, max-age=3600");
   if (!upstream.body) return res.end();
   Readable.fromWeb(upstream.body as any).pipe(res);
+}
+
+/** Subcarpetas que se pueden enviar al taller por WhatsApp con enlace firmado. */
+const WORKSHOP_SUBCATEGORIES = ["despieces"];
+
+/** Firma del enlace de un despiece para el taller (no se puede inventar sin la clave del servidor). */
+export function workshopFileSig(photoId: number): string {
+  const secret = process.env.JWT_SECRET || "innovar-dev";
+  return createHmac("sha256", secret).update(`taller:${photoId}`).digest("hex").slice(0, 32);
+}
+
+/** Enlace permanente para abrir un despiece desde WhatsApp sin iniciar sesión. */
+export function workshopFileUrl(baseUrl: string, photoId: number): string {
+  return `${baseUrl.replace(/\/$/, "")}/api/files/taller?id=${photoId}&s=${workshopFileSig(photoId)}`;
 }
 
 export function registerFileDownloadRoutes(app: Express) {
@@ -90,6 +105,35 @@ export function registerFileDownloadRoutes(app: Express) {
       if (!res.headersSent) res.status(502).send("No se pudo obtener el archivo");
     }
   });
+  /**
+   * GET /api/files/taller?id=PHOTO&s=FIRMA — el jefe de taller abre el PDF del despiece desde WhatsApp.
+   * Sin sesión (en el celular WhatsApp abre otro navegador): la firma del servidor es la autorización.
+   * Solo archivos de la carpeta Despieces.
+   */
+  app.get("/api/files/taller", async (req: Request, res: Response) => {
+    try {
+      const photoId = Number(req.query.id);
+      const sig = String(req.query.s || "");
+      const good = photoId ? workshopFileSig(photoId) : "";
+      if (!photoId || sig.length !== good.length || !timingSafeEqual(Buffer.from(sig), Buffer.from(good))) {
+        return res.status(403).send("Enlace inválido");
+      }
+      const d = await getDb();
+      if (!d) return res.status(500).send("No disponible");
+      const [row] = await d.select({ url: projectPhotos.photoUrl, name: projectPhotos.description, subcategory: projectPhotos.subcategory })
+        .from(projectPhotos).where(eq(projectPhotos.id, photoId));
+      if (!row || !WORKSHOP_SUBCATEGORIES.includes(row.subcategory || "")) return res.status(404).send("El archivo ya no está disponible");
+      if (row.url.startsWith("/")) return res.redirect(row.url); // archivo local (solo en desarrollo)
+      let target: URL;
+      try { target = new URL(row.url); } catch { return res.status(400).send("Archivo no disponible"); }
+      if (target.protocol !== "https:" || !allowedHosts().includes(target.hostname)) return res.redirect(row.url);
+      await streamDownload(res, target, row.name || "Despiece", `taller archivo ${photoId}`, true);
+    } catch (err) {
+      console.error("[Descargas] Error (taller):", err);
+      if (!res.headersSent) res.status(502).send("No se pudo obtener el archivo");
+    }
+  });
+
   app.get("/api/files/download", async (req: Request, res: Response) => {
     let user: any = null;
     try { user = await sdk.authenticateRequest(req); } catch { /* sin sesión */ }

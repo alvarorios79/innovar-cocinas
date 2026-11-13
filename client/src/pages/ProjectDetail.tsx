@@ -51,6 +51,7 @@ import { useEffect } from "react";
 import { useFileViewer, FileViewer } from "@/components/FileViewer";
 import { ProjectMaterialsPanel } from "@/components/ProjectMaterialsPanel";
 import { ProjectDocsShare } from "@/components/ProjectDocsShare";
+import { DespieceShare } from "@/components/DespieceShare";
 import { ProjectResultCard } from "@/components/ProjectResultCard";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -1704,6 +1705,9 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                               </div>
                               {subcategory === "detalles" && (
                                 <ProjectDocsShare projectId={projectDetail.id} files={photos as any[]} role={user?.role} />
+                              )}
+                              {subcategory === "despieces" && (
+                                <DespieceShare projectId={projectDetail.id} files={photos as any[]} role={user?.role} />
                               )}
                               {/* Botón de avanzar etapa - siempre visible para roles permitidos */}
                               {canShowAdvanceButton(subcategory) && (

@@ -363,6 +363,57 @@ function SignaturePad({ onSave, onCancel }: { onSave: (signature: string) => voi
 }
 
 // ── Componente principal ─────────────────────────────────────────────────────
+/** Ubicación del domicilio del cliente: el medidor la captura con un botón, estando dentro del domicilio. */
+function HomeLocationCard({ visitId, geo, capture, onSaved }: {
+  visitId: number;
+  geo: { latitude: number; longitude: number } | null;
+  capture: () => Promise<GeoLocation | null>;
+  onSaved: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const save = trpc.technicalVisits.setLocation.useMutation();
+  const take = async () => {
+    if (geo && !(await confirmAction({ title: "¿Volver a capturar la ubicación?", description: "Se reemplaza por la ubicación donde estás ahora. Hazlo solo si estás dentro del domicilio del cliente.", confirmText: "Capturar" }))) return;
+    setBusy(true);
+    try {
+      const g = await capture();
+      if (!g) { toast.error("No se pudo obtener la ubicación. Revisa que el GPS y el permiso de ubicación estén activos."); return; }
+      await save.mutateAsync({ visitId, latitude: g.latitude, longitude: g.longitude });
+      const acc = (g as any).accuracy as number | undefined;
+      if (acc && acc > 80) toast.warning(`Ubicación guardada, pero con poca precisión (±${Math.round(acc)} m). Si puedes, sal a un lugar abierto y vuelve a capturar.`);
+      else toast.success(`Ubicación del domicilio guardada${acc ? ` (±${Math.round(acc)} m)` : ""}`);
+      onSaved();
+    } catch (e: any) {
+      toast.error(e?.message || "No se pudo guardar la ubicación");
+    } finally {
+      setBusy(false);
+    }
+  };
+  const maps = geo ? `https://www.google.com/maps/search/?api=1&query=${geo.latitude},${geo.longitude}` : null;
+  return (
+    <div className="bg-card border border-primary/20 rounded-lg p-4 space-y-3">
+      <div className="flex items-start gap-3">
+        <Navigation className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-white">Ubicación del domicilio</p>
+          {geo ? (
+            <p className="text-xs text-gray-400">
+              {geo.latitude.toFixed(6)}, {geo.longitude.toFixed(6)} ·{" "}
+              <a href={maps!} target="_blank" rel="noopener noreferrer" className="text-primary underline">Ver en Maps</a>
+            </p>
+          ) : (
+            <p className="text-xs text-amber-300">Aún sin ubicación. Captúrala cuando estés <b>dentro del domicilio</b> del cliente: con ella el equipo llega directo a la obra.</p>
+          )}
+        </div>
+      </div>
+      <Button onClick={take} disabled={busy} className="w-full h-11 bg-primary hover:bg-primary text-white font-semibold">
+        <MapPin className="h-4 w-4 mr-2" />
+        {busy ? "Buscando tu ubicación…" : geo ? "Volver a capturar (estoy en el domicilio)" : "Usar mi ubicación actual"}
+      </Button>
+    </div>
+  );
+}
+
 export default function Medidor() {
   const searchStr = useSearch();
 
@@ -547,10 +598,12 @@ export default function Medidor() {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
             timestamp: new Date().toISOString(),
-          });
+            accuracy: position.coords.accuracy,
+          } as GeoLocation);
         },
         () => resolve(null),
-        { enableHighAccuracy: true, timeout: 5000 }
+        // Precisa y nueva (sin ubicación guardada de antes)
+        { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
       );
     });
   };
@@ -575,8 +628,8 @@ export default function Medidor() {
     const initialNotes = (form.get("initialNotes") as string) || "";
 
     try {
-      const geo = await captureGeoLocation();
-      const { id } = await createVisit.mutateAsync({ ...formData, geoLocation: geo ?? undefined });
+      // La ubicación NO se toma aquí: el medidor la captura con "Usar mi ubicación actual" dentro del domicilio
+      const { id } = await createVisit.mutateAsync({ ...formData });
       // Guardar notas iniciales si se ingresaron
       if (initialNotes.trim()) {
         await updateVisit.mutateAsync({ visitId: id, notes: initialNotes });
@@ -970,7 +1023,6 @@ export default function Medidor() {
             <Button
               onClick={async () => {
                 try {
-                  const geo = await captureGeoLocation().catch(() => null);
                   const workType = (apt.workTypes?.[0] || "cocina") as WorkType;
                   const { id } = await createVisit.mutateAsync({
                     clientName: apt.client?.name || "",
@@ -980,7 +1032,6 @@ export default function Medidor() {
                     workTypes: apt.workTypes || [workType],
                     appointmentId: apt.id,
                     clientId: apt.client?.id ?? undefined,
-                    geoLocation: geo ?? undefined,
                   });
                   setSelectedVisit({ id, clientName: apt.client?.name || "Cargando...", workType, status: "borrador", createdAt: new Date().toISOString() } as any);
                   setView("detail");
@@ -1451,21 +1502,13 @@ export default function Medidor() {
             </div>
           )}
 
-          {/* Geolocalización */}
-          {visit.geoLocation && (
-            <div className="bg-card border border-primary/20 rounded-lg p-4 flex items-center gap-3">
-              <Navigation className="h-5 w-5 text-primary" />
-              <div>
-                <p className="text-sm font-semibold text-white">Ubicación registrada</p>
-                <p className="text-xs text-gray-400">
-                  {visit.geoLocation.latitude.toFixed(6)}, {visit.geoLocation.longitude.toFixed(6)}
-                </p>
-                <p className="text-xs text-gray-400">
-                  {new Date(visit.geoLocation.timestamp).toLocaleString()}
-                </p>
-              </div>
-            </div>
-          )}
+          {/* Ubicación del domicilio: se captura con el botón estando DENTRO del domicilio */}
+          <HomeLocationCard
+            visitId={Number(visit.id)}
+            geo={visit.geoLocation ?? null}
+            capture={captureGeoLocation}
+            onSaved={() => refetchDetail()}
+          />
 
           {/* Datos del cliente */}
           {isEditable && (

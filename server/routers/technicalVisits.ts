@@ -576,6 +576,33 @@ export const technicalVisitsRouter = router({
       return { success: true };
     }),
 
+  // ── Ubicación del domicilio ────────────────────────────────────────────────
+  // El medidor la captura con el botón "Usar mi ubicación actual" estando DENTRO del domicilio.
+  // (Antes se tomaba sola al crear el levantamiento → quedaba donde estuviera el medidor en ese momento.)
+  setLocation: protectedProcedure
+    .input(z.object({
+      visitId: z.coerce.number(),
+      latitude: z.number().min(-90).max(90),
+      longitude: z.number().min(-180).max(180),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB no disponible" });
+      const [visit] = await db.select().from(technicalVisits).where(eq(technicalVisits.id, input.visitId));
+      if (!visit) throw new TRPCError({ code: "NOT_FOUND", message: "Levantamiento no encontrado" });
+      const office = ["super_admin", "admin", "comercial"].includes(ctx.user.role);
+      if (!office && !(ctx.user.role === "medidor" && visit.createdBy === ctx.user.id)) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Sin permisos para cambiar la ubicación" });
+      }
+      // Solo la ubicación: se permite aunque el levantamiento ya tenga cotización (es un dato del sitio)
+      await db.update(technicalVisits).set({
+        latitude: String(input.latitude), longitude: String(input.longitude),
+        updatedAt: new Date().toISOString().replace("T", " ").replace("Z", ""),
+      } as any).where(eq(technicalVisits.id, input.visitId));
+      console.log(`[Levantamientos] Ubicación del domicilio guardada en el levantamiento ${input.visitId} por ${ctx.user.role} ${ctx.user.id}`);
+      return { success: true };
+    }),
+
   // ── Subir foto ─────────────────────────────────────────────────────────────
   addPhoto: protectedProcedure
     .input(z.object({

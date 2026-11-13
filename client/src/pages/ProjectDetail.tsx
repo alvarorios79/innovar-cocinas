@@ -512,7 +512,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
     dibujo: "Dibujo",
     renders: "Renders",
     despieces: "Despieces",
-    detalles: "Planos técnicos · Obra civil",
+    detalles: "Planos técnicos y medidas",
     medidas_electrodomesticos: "Planos técnicos · Medidas electrodomésticos",
     modelado_3d: "Modelado 3D",
     corte: "Corte",
@@ -550,7 +550,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
     const allFolders = {
       cotizacion: ["documento_cotizacion"],
       medidas: ["fotos_iniciales", "dibujo"],
-      disenos: ["modelado_3d", "renders", "detalles", "medidas_electrodomesticos", "despieces"],
+      disenos: ["modelado_3d", "renders", "detalles", "despieces"],
       avance: ["corte", "enchape", "armado"],
       instalacion: ["proceso_instalacion"],
       entrega: ["fotos_finales"],
@@ -1573,7 +1573,9 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                     )}
                     {category !== "medidas" && subcategories.map((subcategory) => {
                       const rawPhotos = projectDetail.photos?.filter(
-                        (p: any) => p.category === category && p.subcategory === subcategory
+                        (p: any) => p.category === category && (p.subcategory === subcategory ||
+                          // Planos técnicos y medidas: una sola carpeta (incluye lo subido como "medidas electrodomésticos")
+                          (subcategory === "detalles" && p.subcategory === "medidas_electrodomesticos"))
                       ) || [];
                       // Renders y modelado: agrupar por versión (la más reciente primero, numeradas),
                       // igual que el enlace del cliente (shared/designVersions.ts)
@@ -2205,9 +2207,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
             <DialogTitle>Subir Archivos (JPG / PDF)</DialogTitle>
             <DialogDescription>
               {photoFolderLocked && photoForm.subcategory === "detalles"
-                ? "Planos de obra civil (desagües, agua, gas, tomas…). Se pueden enviar al cliente por WhatsApp."
-                : photoFolderLocked && photoForm.subcategory === "medidas_electrodomesticos"
-                ? "Fichas técnicas y medidas de los electrodomésticos, para que el diseñador las tenga a mano. No se envían al cliente."
+                ? "Planos de obra civil y fichas/medidas de los electrodomésticos. Al enviar al cliente eliges cuáles le llegan; lo demás solo lo ve el equipo."
                 : "Agrega fotos o documentos PDF al proyecto"}
             </DialogDescription>
           </DialogHeader>
@@ -2269,8 +2269,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                       <>
                         <SelectItem value="modelado_3d">Modelado</SelectItem>
                         <SelectItem value="renders">Renders</SelectItem>
-                        <SelectItem value="detalles">Planos técnicos · Obra civil</SelectItem>
-                        <SelectItem value="medidas_electrodomesticos">Planos técnicos · Medidas electrodomésticos</SelectItem>
+                        <SelectItem value="detalles">Planos técnicos y medidas</SelectItem>
                         <SelectItem value="despieces">Despieces</SelectItem>
                       </>
                     )}
@@ -2297,7 +2296,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
               <Input
                 value={photoForm.description}
                 onChange={(e) => setPhotoForm({ ...photoForm, description: e.target.value })}
-                placeholder={photoForm.subcategory === "detalles" ? "Ej.: Plano de adecuaciones" : photoForm.subcategory === "medidas_electrodomesticos" ? "Ej.: Ficha técnica horno Haceb" : "Descripción de los archivos..."}
+                placeholder={photoForm.subcategory === "detalles" ? "Ej.: Plano de adecuaciones · Ficha técnica horno Haceb" : "Descripción de los archivos..."}
               />
             </div>
             {(photoForm.category === "cotizacion" || photoForm.subcategory) && (

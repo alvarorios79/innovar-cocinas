@@ -282,10 +282,10 @@ export const pricingRouter = router({
 
         const CATALOG = [
           // Cocina Base
-          // Cocinas completas (inf+sup incluido) — precio total por ml
-          { category: "cocina_base", code: "COCINA_ML_ESTANDAR",    name: "Cocina Estándar (inf+sup/ml)",      value: 900000,  unit: "ml",      sortOrder: 1, description: "Precio total por ml incluyendo mueble inferior y superior." },
-          { category: "cocina_base", code: "COCINA_ML_PREMIUM",     name: "Cocina Premium (inf+sup/ml)",       value: 1000000, unit: "ml",      sortOrder: 2, description: "Precio total por ml incluyendo mueble inferior y superior." },
-          { category: "cocina_base", code: "COCINA_ML_DELUXE",      name: "Cocina Deluxe (inf+sup/ml)",        value: 1100000, unit: "ml",      sortOrder: 3, description: "Precio total por ml incluyendo mueble inferior y superior." },
+          // Cocinas completas — precio por ml de CADA lado (inferior y superior se cobran por separado)
+          { category: "cocina_base", code: "COCINA_ML_ESTANDAR",    name: "Cocina Estándar (inf+sup/ml)",      value: 900000,  unit: "ml",      sortOrder: 1, description: "Precio por ml de CADA lado: el mueble inferior y el superior se cobran por separado (2 m de cocina = 2 ml inferiores + 2 ml superiores = 4 ml cobrados)." },
+          { category: "cocina_base", code: "COCINA_ML_PREMIUM",     name: "Cocina Premium (inf+sup/ml)",       value: 1000000, unit: "ml",      sortOrder: 2, description: "Precio por ml de CADA lado: el mueble inferior y el superior se cobran por separado (2 m de cocina = 2 ml inferiores + 2 ml superiores = 4 ml cobrados)." },
+          { category: "cocina_base", code: "COCINA_ML_DELUXE",      name: "Cocina Deluxe (inf+sup/ml)",        value: 1100000, unit: "ml",      sortOrder: 3, description: "Precio por ml de CADA lado: el mueble inferior y el superior se cobran por separado (2 m de cocina = 2 ml inferiores + 2 ml superiores = 4 ml cobrados)." },
           // Muebles sueltos (cliente que solo requiere uno de los dos)
           { category: "cocina_base", code: "MUEBLE_INFERIOR_ML",    name: "Solo Mueble Inferior (por ml)",     value: 900000,  unit: "ml",      sortOrder: 4, description: "Para clientes que ya tienen superiores y solo necesitan inferiores." },
           { category: "cocina_base", code: "MUEBLE_SUPERIOR_ML",    name: "Solo Mueble Superior (por ml)",     value: 900000,  unit: "ml",      sortOrder: 5, description: "Para clientes que ya tienen inferiores y solo necesitan superiores." },

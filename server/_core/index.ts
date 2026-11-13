@@ -28,6 +28,7 @@ import { runMigrations } from "../migrations";
 import { registerPortfolioRoutes } from "../portfolio-routes";
 import { registerFileDownloadRoutes } from "../file-download-routes";
 import { registerWebIntakeRoutes } from "../web-intake-routes";
+import { registerWebPricesRoutes } from "../web-prices-routes";
 import { startSocialReminders } from "../social-reminders";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -58,6 +59,7 @@ async function startServer() {
   // Configure body parser with larger size limit for file uploads
   // Contactos de la página web: va antes de express.json (verifica la firma sobre el cuerpo exacto)
   registerWebIntakeRoutes(app);
+  registerWebPricesRoutes(app);
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   // Trust proxy para obtener IP real detrás de reverse proxy

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildWebPrices, PRECIOS_WEB } from "./web-prices-routes";
+import { buildWebPrices, PRECIOS_WEB, proximosDiasLibres } from "./web-prices-routes";
 
 describe("precios públicos para la página web", () => {
   const filas = [
@@ -24,5 +24,20 @@ describe("precios públicos para la página web", () => {
     const p = buildWebPrices([...filas, { code: "MESON_CUARZO", value: "abc" }, { code: "LED_ML", value: 0 }])!;
     expect(p.mesonCuarzo).toBeUndefined();
     expect(p.ledMl).toBeUndefined();
+  });
+});
+
+describe("días de visita para la página web", () => {
+  // Domingo 15 nov 2026, 10 a. m. en Colombia (15:00 UTC)
+  const ahora = new Date("2026-11-15T15:00:00Z");
+
+  it("empieza mañana y solo ofrece martes, jueves y viernes", async () => {
+    const dias = await proximosDiasLibres(4, async () => 4, ahora);
+    expect(dias).toEqual(["2026-11-17", "2026-11-19", "2026-11-20", "2026-11-24"]); // mar, jue, vie, mar
+  });
+
+  it("salta los días sin horarios libres", async () => {
+    const dias = await proximosDiasLibres(2, async (iso) => (iso === "2026-11-17" ? 0 : 3), ahora);
+    expect(dias).toEqual(["2026-11-19", "2026-11-20"]);
   });
 });

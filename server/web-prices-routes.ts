@@ -10,6 +10,7 @@
  */
 import type { Express, Request, Response } from "express";
 import { getAllPricingConfig } from "./db";
+import { APPOINTMENT_CONFIG, getAvailableTimeSlots } from "./availability";
 
 /** Código del Motor → clave corta que lee la página. */
 export const PRECIOS_WEB: Record<string, string> = {
@@ -34,7 +35,41 @@ export function buildWebPrices(rows: { code: string; value: unknown }[]): Record
   return out.mlEstandar && out.mlPremium && out.mlDeluxe ? out : null;
 }
 
+/** YYYY-MM-DD de «hoy + n días» en hora de Colombia (UTC-5, sin horario de verano). */
+function fechaColombia(sumarDias: number, ahora = new Date()): { iso: string; diaSemana: number } {
+  const d = new Date(ahora.getTime() - 5 * 3600_000 + sumarDias * 86_400_000);
+  const iso = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
+  return { iso, diaSemana: d.getUTCDay() };
+}
+
+/**
+ * Próximos días en que el CRM agenda citas (martes, jueves y viernes) y que todavía tienen al menos un horario libre,
+ * empezando MAÑANA. `libres(fecha)` dice cuántos horarios quedan (en producción: `getAvailableTimeSlots`).
+ */
+export async function proximosDiasLibres(n: number, libres: (iso: string) => Promise<number>, ahora = new Date()): Promise<string[]> {
+  const out: string[] = [];
+  for (let i = 1; i <= 45 && out.length < n; i++) {
+    const { iso, diaSemana } = fechaColombia(i, ahora);
+    if (!APPOINTMENT_CONFIG.allowedDays.includes(diaSemana)) continue;
+    if ((await libres(iso)) > 0) out.push(iso);
+  }
+  return out;
+}
+
 export function registerWebPricesRoutes(app: Express) {
+  // Días de visita para la asistente de la página: los reales del calendario del CRM (sin datos de clientes).
+  app.get("/api/web/dias-visita", async (req: Request, res: Response) => {
+    try {
+      const n = Math.min(6, Math.max(1, Number(req.query.n) || 3));
+      const dias = await proximosDiasLibres(n, async (iso) => (await getAvailableTimeSlots(iso)).length);
+      res.set("Cache-Control", "public, max-age=120");
+      return res.json({ ok: true, dias });
+    } catch (err) {
+      console.error("[Web] No se pudieron calcular los días de visita:", err);
+      return res.status(500).json({ ok: false, codigo: "error" });
+    }
+  });
+
   app.get("/api/web/precios", async (_req: Request, res: Response) => {
     try {
       const precios = buildWebPrices(await getAllPricingConfig());

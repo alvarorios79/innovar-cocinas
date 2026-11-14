@@ -42,6 +42,7 @@ import Medidor from "./pages/Medidor";
 import PideTuVisita from "./pages/PideTuVisita";
 import { ConfirmHost } from "@/lib/confirm";
 import Interesados from "./pages/Interesados";
+import ConocimientoElena from "./pages/ConocimientoElena";
 import VisitasTecnicas from "./pages/VisitasTecnicas";
 
 
@@ -83,6 +84,7 @@ function Router() {
         <Route path={"/visita"} component={PideTuVisita} />
         <Route path={"/agendar"} component={PideTuVisita} />
         <Route path={"/interesados"}><Interesados /></Route>
+        <Route path={"/conocimiento-elena"}><ConocimientoElena /></Route>
         <Route path={"/cita"}><CitaPublica /></Route>
         <Route path={"/cotizacion"}><PublicQuotation /></Route>
         <Route path={"/pricing-config"}><PricingConfig /></Route>

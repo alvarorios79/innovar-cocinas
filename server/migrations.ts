@@ -154,6 +154,11 @@ export async function runMigrations() {
       name: "photo_subcategory_medidas_electrodomesticos",
       sql: `ALTER TYPE "photo_subcategory" ADD VALUE IF NOT EXISTS 'medidas_electrodomesticos' AFTER 'detalles'`,
     },
+    {
+      // «Conocimiento de Elena»: temas que Álvaro edita desde el CRM y que la asistente de la página lee (14 nov 2026)
+      name: "elena_conocimiento_1",
+      sql: `CREATE TABLE IF NOT EXISTS "elenaConocimiento" ("id" serial PRIMARY KEY, "titulo" varchar(200) NOT NULL, "categoria" varchar(40) NOT NULL DEFAULT 'info', "contenido" text NOT NULL, "activo" integer NOT NULL DEFAULT 1, "updatedBy" integer REFERENCES "users"("id"), "createdAt" timestamp NOT NULL DEFAULT now(), "updatedAt" timestamp NOT NULL DEFAULT now())`,
+    },
   ];
 
   for (const m of migrations) {

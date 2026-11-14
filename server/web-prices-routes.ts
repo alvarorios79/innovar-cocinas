@@ -11,6 +11,7 @@
 import type { Express, Request, Response } from "express";
 import { getAllPricingConfig } from "./db";
 import { APPOINTMENT_CONFIG, getAvailableTimeSlots } from "./availability";
+import { temasActivosParaWeb } from "./routers/elena";
 
 /** Código del Motor → clave corta que lee la página. */
 export const PRECIOS_WEB: Record<string, string> = {
@@ -66,6 +67,17 @@ export function registerWebPricesRoutes(app: Express) {
       return res.json({ ok: true, dias });
     } catch (err) {
       console.error("[Web] No se pudieron calcular los días de visita:", err);
+      return res.status(500).json({ ok: false, codigo: "error" });
+    }
+  });
+
+  // Temas de «Conocimiento de Elena» que Álvaro mantiene en el CRM (solo los activos; sin datos de clientes).
+  app.get("/api/web/elena-conocimiento", async (_req: Request, res: Response) => {
+    try {
+      res.set("Cache-Control", "public, max-age=120");
+      return res.json({ ok: true, temas: await temasActivosParaWeb() });
+    } catch (err) {
+      console.error("[Web] No se pudo leer el conocimiento de Elena:", err);
       return res.status(500).json({ ok: false, codigo: "error" });
     }
   });

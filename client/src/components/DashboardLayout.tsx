@@ -49,6 +49,7 @@ import {
   ClipboardCheck,
   Camera,
   Inbox,
+  Sparkles,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -87,6 +88,8 @@ export const menuSections: MenuSection[] = [
     items: [
       { icon: Inbox,         label: "Interesados",   path: "/interesados",
         roles: ["super_admin", "admin", "comercial"], iconColor: "#f59e0b" },
+      { icon: Sparkles,      label: "Elena",         path: "/conocimiento-elena",
+        roles: ["super_admin", "admin"], iconColor: "var(--primary)" },
       { icon: CalendarCheck, label: "Citas",         path: "/appointments-calendar",
         roles: ["super_admin", "admin", "comercial"], iconColor: "#3b82f6" },
       { icon: Users,         label: "Clientes",      path: "/clients",

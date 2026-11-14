@@ -1077,3 +1077,15 @@ export type InsertAccountingClosure = typeof accountingClosures.$inferInsert;
 export type InsertAccountingClosureProject = typeof accountingClosureProjects.$inferInsert;
 export type InsertAccountingClosureOperationalExpense = typeof accountingClosureOperationalExpenses.$inferInsert;
 export type InsertClosureAuditLog = typeof closureAuditLog.$inferInsert;
+
+// Conocimiento de Elena (asistente de la página): temas editables desde el CRM
+export const elenaConocimiento = pgTable("elenaConocimiento", {
+	id: serial('id').primaryKey(),
+	titulo: varchar({ length: 200 }).notNull(),
+	categoria: varchar({ length: 40 }).default('info').notNull(),
+	contenido: text().notNull(),
+	activo: integer().default(1).notNull(),
+	updatedBy: integer().references(() => users.id),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+});

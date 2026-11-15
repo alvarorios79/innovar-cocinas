@@ -69,6 +69,7 @@ export default function PortafolioProyecto() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [trashOpen, setTrashOpen] = useState(false);
   const [kindsEdit, setKindsEdit] = useState<WorkKind[] | null>(null);
+  const [renameText, setRenameText] = useState<string | null>(null);
   // Mover fotos a otro proyecto (cuando se subieron en la galería equivocada)
   const [moveOther, setMoveOther] = useState<{ q: string; target: number | null; section: PortfolioSection } | null>(null);
   const [composer, setComposer] = useState<{ open: boolean; type?: SocialPostType }>({ open: false });
@@ -246,6 +247,11 @@ export default function PortafolioProyecto() {
     onError: (e) => toast.error(e.message),
   });
 
+  const renameMut = trpc.portfolio.renameHistoric.useMutation({
+    onSuccess: () => { refresh(); utils.portfolio.list.invalidate(); setRenameText(null); toast.success("Nombre cambiado"); },
+    onError: (e) => toast.error(e.message),
+  });
+
   const allMedia = (): Media[] => (data ? (Object.values(data.media).flat() as Media[]) : []);
   const toggleSelect = (key: string) =>
     setSelected((s) => { const n = new Set(s); n.has(key) ? n.delete(key) : n.add(key); return n; });
@@ -327,6 +333,9 @@ export default function PortafolioProyecto() {
             {!data.historic && <DropdownMenuItem onClick={() => navigate(`/projects/${data.id}`)}><ExternalLink className="h-4 w-4 mr-2" />Abrir el proyecto</DropdownMenuItem>}
             {canEdit && data.historic && (
               <DropdownMenuItem onClick={() => setKindsEdit(data.works as WorkKind[])}><ListChecks className="h-4 w-4 mr-2" />Qué incluye</DropdownMenuItem>
+            )}
+            {canEdit && data.historic && (
+              <DropdownMenuItem onClick={() => setRenameText(data.name)}><ListChecks className="h-4 w-4 mr-2" />Cambiar nombre</DropdownMenuItem>
             )}
             {canEdit && <DropdownMenuItem onClick={() => goTo("despues")}><Video className="h-4 w-4 mr-2" />Subir video</DropdownMenuItem>}
             {canEdit && <DropdownMenuItem onClick={() => { setSelecting(true); setSelected(new Set()); }}><ListChecks className="h-4 w-4 mr-2" />Seleccionar fotos</DropdownMenuItem>}
@@ -705,6 +714,24 @@ export default function PortafolioProyecto() {
               </div>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Cambiar el nombre de un histórico */}
+      <Dialog open={renameText !== null} onOpenChange={(o) => !o && setRenameText(null)}>
+        <DialogContent className="max-w-md">
+          <DialogTitle>Cambiar nombre</DialogTitle>
+          <input
+            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+            value={renameText ?? ""}
+            maxLength={80}
+            autoFocus
+            onChange={(e) => setRenameText(e.target.value)}
+          />
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setRenameText(null)}>Cancelar</Button>
+            <Button disabled={(renameText ?? "").trim().length < 2 || renameMut.isPending} onClick={() => renameMut.mutate({ projectId, name: (renameText ?? "").trim() })}>Guardar</Button>
+          </div>
         </DialogContent>
       </Dialog>
 

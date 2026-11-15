@@ -285,6 +285,18 @@ export const portfolioRouter = router({
       if (!res.length) throw new TRPCError({ code: "NOT_FOUND", message: "No es un trabajo histórico" });
       return { kinds };
     }),
+
+  /** Cambiar el nombre de un trabajo histórico (ej. agrupar los centros de TV en «Centros de TV»). Solo históricos. */
+  renameHistoric: protectedProcedure
+    .input(z.object({ projectId: z.number(), name: z.string().trim().min(2).max(80) }))
+    .mutation(async ({ ctx, input }) => {
+      assertEdit(ctx.user.role);
+      const d = await database();
+      const [h] = await d.select({ id: portfolioHistoric.projectId }).from(portfolioHistoric).where(eq(portfolioHistoric.projectId, input.projectId));
+      if (!h) throw new TRPCError({ code: "NOT_FOUND", message: "Solo se puede cambiar el nombre de trabajos históricos" });
+      await d.update(projects).set({ name: input.name } as any).where(eq(projects.id, input.projectId));
+      return { name: input.name };
+    }),
 });
 
 export const socialRouter = router({

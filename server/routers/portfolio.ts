@@ -275,7 +275,7 @@ export const portfolioRouter = router({
 
   /** Qué incluye un histórico (uno o varios trabajos: cocina + closet…). El nombre no cambia. */
   setHistoricKinds: protectedProcedure
-    .input(z.object({ projectId: z.number(), kinds: z.array(z.enum(HISTORIC_KINDS as [WorkKind, ...WorkKind[]])).min(1).max(8) }))
+    .input(z.object({ projectId: z.number(), kinds: z.array(z.enum(HISTORIC_KINDS as [WorkKind, ...WorkKind[]])).min(1).max(9) }))
     .mutation(async ({ ctx, input }) => {
       assertEdit(ctx.user.role);
       const d = await database();

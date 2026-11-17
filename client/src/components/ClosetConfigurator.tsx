@@ -27,6 +27,9 @@ export interface ClosetConfig {
   transportCost?: number;
   includeDismantle?: boolean;
   dismantlePrice?: number;
+  incluyeLed?: boolean;   // luz LED interior del closet
+  ledML?: number;         // metros de LED (precio único del Motor: LED_ML)
+  ledPrice?: number;
   accessories?: {
     maletero?: boolean;
     divisor?: boolean;
@@ -81,6 +84,10 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
   const { getPrice } = usePricing();
   const dismantlePriceNow = getPrice("DESMONTE_CLOSET");
   const [includeDismantle, setIncludeDismantle] = useState<boolean>(config?.includeDismantle ?? false);
+  const [incluyeLed, setIncluyeLed] = useState<boolean>(config?.incluyeLed ?? false);
+  const [ledText, setLedText] = useState<string>(config?.ledML ? String(config.ledML) : "");
+  const ledMetros = parseFloat(ledText) || 0;
+  const ledPriceNow = getPrice("LED_ML");
 
   // Accesorios del closet
   const [accMaletero, setAccMaletero] = useState<boolean>(config?.accessories?.maletero ?? false);
@@ -104,6 +111,9 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
     if (includeDismantle) {
       subtotal += dismantlePriceNow;
     }
+    if (incluyeLed) {
+      subtotal += ledMetros * ledPriceNow;
+    }
 
     const newConfig: ClosetConfig = {
       type,
@@ -118,6 +128,9 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
       transportCost,
       includeDismantle,
       dismantlePrice: includeDismantle ? dismantlePriceNow : 0,
+      incluyeLed,
+      ledML: incluyeLed ? ledMetros : 0,
+      ledPrice: incluyeLed ? ledPriceNow : 0,
       accessories: {
         maletero: accMaletero,
         divisor: accDivisor,
@@ -130,7 +143,7 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
     };
 
     onChange(newConfig);
-  }, [type, width, height, doorType, notes, includeTransport, transportCost, includeDismantle, dismantlePriceNow,
+  }, [type, width, height, doorType, notes, includeTransport, transportCost, includeDismantle, dismantlePriceNow, incluyeLed, ledMetros, ledPriceNow,
       accMaletero, accDivisor, accEntrepanos, accDoubleCajonero, accZapatero, accDobleColgadero, accEspejo]);
 
   const squareMeters = (parseFloat(width) || 0) * (parseFloat(height) || 0);
@@ -138,7 +151,8 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
   const baseSubtotal = squareMeters * closetType.price;
   const transport = includeTransport ? transportCost : 0;
   const dismantle = includeDismantle ? dismantlePriceNow : 0;
-  const subtotal = baseSubtotal + transport + dismantle;
+  const ledTotal = incluyeLed ? ledMetros * ledPriceNow : 0;
+  const subtotal = baseSubtotal + transport + dismantle + ledTotal;
 
   return (
     <Card className="mt-4 border-blue-300">
@@ -255,6 +269,23 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
             </div>
           </div>
 
+          {/* Luz LED interior (opcional) */}
+          <div className="bg-white/[0.03] p-4 rounded-lg border border-[rgba(106,207,199,0.12)] space-y-2">
+            <div className="flex items-center gap-3">
+              <Checkbox id="closet-led" className="size-6 border-2" checked={incluyeLed} onCheckedChange={(v) => setIncluyeLed(v === true)} />
+              <Label htmlFor="closet-led" className="cursor-pointer font-medium">
+                Luz LED interior (${ledPriceNow.toLocaleString()}/ml)
+              </Label>
+            </div>
+            {incluyeLed && (
+              <div className="flex items-center gap-2 pl-9">
+                <Label className="text-sm text-white/70">Metros de LED:</Label>
+                <Input type="number" step="0.1" min="0" value={ledText} onChange={(e) => setLedText(e.target.value)} placeholder="0.0" className="h-9 w-24" />
+                <span className="text-sm text-white/60">= ${ledTotal.toLocaleString()}</span>
+              </div>
+            )}
+          </div>
+
           {/* Desmonte de closet existente */}
           <div className="bg-white/[0.03] p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
             <div className="flex items-center gap-3">
@@ -321,6 +352,12 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
                   <span>{closetType.label} ({squareMeters.toFixed(2)} M² × ${closetType.price.toLocaleString()}/M²):</span>
                   <span className="font-medium">${baseSubtotal.toLocaleString()}</span>
                 </div>
+                {incluyeLed && (
+                  <div className="flex justify-between text-blue-300">
+                    <span>+ Luz LED ({ledMetros} ml):</span>
+                    <span className="font-medium">${ledTotal.toLocaleString()}</span>
+                  </div>
+                )}
                 {includeDismantle && (
                   <div className="flex justify-between text-blue-300">
                     <span>+ Desmonte de closet existente:</span>

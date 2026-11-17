@@ -51,6 +51,7 @@ function buildPublicItemDescBase(item: any): string {
     lines.push('• Maletero'); lines.push('• Divisor'); lines.push('• Doble colgadero');
     lines.push('• Entrepaños'); lines.push('• Doble cajonero'); lines.push('• Zapatero');
     if (cc.type === 'empotrado') lines.push('• Espaldar y laterales completos');
+    if (cc.incluyeLed && cc.ledML > 0) lines.push(`• Iluminación LED interior (${cc.ledML} ml)`);
     if (cc.notes?.trim()) { lines.push(''); lines.push('Notas adicionales:'); lines.push(cc.notes.trim()); }
     return lines.join('\n');
   }

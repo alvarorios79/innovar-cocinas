@@ -58,7 +58,7 @@ const PRECIOS_DEFAULT: Record<string, number> = { ...PRECIOS } as any;
 
 import { LavaplatosSelector } from "@/components/LavaplatosSelector";
 import { precioPiedraML, multiplicadorFondoCm, precioLavaplatos, piedraBarra, hierrosBarra, LATERAL_ML, type LavaplatosTipo } from "@shared/mesonPrecios";
-import { CATEGORIAS_PIEZA, DERIVADAS, applyCocinaBase, precioMuebleSuelto, recargoSueltaPct, precioPiezaFija, precioFrentePollo, type CategoriaPieza } from "@shared/piezasCocinaPrecios";
+import { CATEGORIAS_PIEZA, DERIVADAS, applyCocinaBase, precioLedPieza, precioPintadoPieza, precioMuebleSuelto, recargoSueltaPct, precioPiezaFija, precioFrentePollo, type CategoriaPieza } from "@shared/piezasCocinaPrecios";
 export { CATEGORIAS_PIEZA, precioMuebleSuelto, recargoSueltaPct, precioPiezaFija, precioFrentePollo };
 export type { CategoriaPieza };
 
@@ -318,7 +318,7 @@ export function calcularMuebleCocina(cfg: MuebleCocinaConfig): MuebleCocinaConfi
   }
 
   // LED
-  c.subtotalLed = (c.tipoPieza === "mueble_alto" && c.incluyeLed) ? c.ledML * PRECIOS.LED_ML : 0;
+  c.subtotalLed = (c.tipoPieza === "mueble_alto" && c.incluyeLed) ? c.ledML * precioLedPieza() : 0;
 
   // Mesón (piedra): reglas únicas en shared/mesonPrecios.ts
   if (c.incluyeMeson || c.tipoPieza === "barra") {
@@ -377,12 +377,12 @@ export function calcularMuebleCocina(cfg: MuebleCocinaConfig): MuebleCocinaConfi
   if (c.incluyePintado) {
     const p = c.pintadoPuertas;
     c.subtotalPintado =
-      (p.superiores * PRECIOS.PINTADO_SUPERIOR) +
-      (p.inferiores * PRECIOS.PINTADO_INFERIOR) +
-      (p.alacena    * PRECIOS.PINTADO_ALACENA)  +
-      (p.cajon      * PRECIOS.PINTADO_CAJON)    +
-      (p.especiero  * PRECIOS.PINTADO_ESPECIERO) +
-      (p.gola       * PRECIOS.PINTADO_GOLA);
+      (p.superiores * precioPintadoPieza("superior")) +
+      (p.inferiores * precioPintadoPieza("inferior")) +
+      (p.alacena    * precioPintadoPieza("alacena"))  +
+      (p.cajon      * precioPintadoPieza("cajon"))    +
+      (p.especiero  * precioPintadoPieza("especiero")) +
+      (p.gola       * precioPintadoPieza("gola"));
   } else {
     c.subtotalPintado = 0;
   }

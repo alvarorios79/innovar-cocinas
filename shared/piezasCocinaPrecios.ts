@@ -15,13 +15,15 @@ const CODIGO_PIEZA_FIJA: Partial<Record<string, string>> = {
 };
 // Precios que la pieza toma de la COCINA (se refrescan con applyPiezaPrices; valores = Motor 17 nov 2026)
 const COCINA_BASE_DEFAULT: Record<string, number> = {
+  // Luz LED y pintado alto brillo: UN solo precio para cocina y piezas (sin recargo de pieza suelta)
+  LED_ML: 180000, PINTADO_SUP: 120000, PINTADO_INF: 150000, PINTADO_ALACENA: 250000, PINTADO_CAJON: 80000, PINTADO_ESPECIERO: 100000, PINTADO_GOLA: 45000,
   COCINA_ML_ESTANDAR: 900000, COCINA_ML_PREMIUM: 1000000, COCINA_ML_DELUXE: 1100000, COCINA_ML_FRENTE_PLL: 900000,
   NICHO_NEVECON: 1200000, NICHO_NEVERA: 1100000, ALACENA_ENTREPANOS: 1250000, ALACENA_HERRAJE: 900000, TORRE_HORNOS: 1350000,
 };
 const COCINA_BASE: Record<string, number> = { ...COCINA_BASE_DEFAULT };
 const RECARGO = { suelta: 15, fija: 10 };
 // Claves de PRECIOS que ya no se leen de PIEZA_* porque salen de la cocina
-export const DERIVADAS = new Set(["MUEBLE_ALTO_ML", "MUEBLE_ALTO_LED_ML", "MUEBLE_BAJO_ML", "FRENTE_POLLO_ML", "NICHO_NEVECON", "NICHO_NEVERA", "ALACENA_ENTREPANOS", "ALACENA_HERRAJE", "TORRE_HORNOS"]);
+export const DERIVADAS = new Set(["LED_ML", "PINTADO_SUPERIOR", "PINTADO_INFERIOR", "PINTADO_ALACENA", "PINTADO_CAJON", "PINTADO_ESPECIERO", "PINTADO_GOLA", "MUEBLE_ALTO_ML", "MUEBLE_ALTO_LED_ML", "MUEBLE_BAJO_ML", "FRENTE_POLLO_ML", "NICHO_NEVECON", "NICHO_NEVERA", "ALACENA_ENTREPANOS", "ALACENA_HERRAJE", "TORRE_HORNOS"]);
 
 /** Refresca los precios de cocina y los recargos desde el Motor (los que falten usan el valor por defecto). */
 export function applyCocinaBase(getDbPrice: (code: string) => number | undefined) {
@@ -42,5 +44,10 @@ export function recargoSueltaPct(): number { return RECARGO.suelta; }
 export function precioPiezaFija(tipo: string): number | undefined {
   const c = CODIGO_PIEZA_FIJA[tipo];
   return c ? Math.round(COCINA_BASE[c] * (1 + RECARGO.fija / 100)) : undefined;
+}
+export function precioLedPieza(): number { return COCINA_BASE.LED_ML; }
+export function precioPintadoPieza(k: "superior" | "inferior" | "alacena" | "cajon" | "especiero" | "gola"): number {
+  const code = { superior: "PINTADO_SUP", inferior: "PINTADO_INF", alacena: "PINTADO_ALACENA", cajon: "PINTADO_CAJON", especiero: "PINTADO_ESPECIERO", gola: "PINTADO_GOLA" }[k];
+  return COCINA_BASE[code];
 }
 export function precioFrentePollo(): number { return COCINA_BASE.COCINA_ML_FRENTE_PLL; }

@@ -225,8 +225,9 @@ function buildClosetDescription(config: import("@/components/ClosetConfigurator"
   if (config.accessories?.espejo)         parts.push("espejo en puertas");
   const accesText = parts.length > 0 ? ` Incluye: ${parts.join(", ")}.` : "";
   const doorText = config.doorType === "corredizas" ? " Puertas corredizas." : " Puertas batientes.";
+  const ledText = config.incluyeLed && (config.ledML || 0) > 0 ? ` Iluminación LED interior (${config.ledML} ml).` : "";
   const dismantleText = config.includeDismantle ? " Incluye desmonte y desarmado del closet existente (no incluye el retiro de escombros del domicilio)." : "";
-  return `Closet ${typeNames[config.type] || config.type}${dims}. Material aglomerado tipo RH, color a elegir por el cliente.${accesText}${doorText}${dismantleText} (Diseño por definir)`;
+  return `Closet ${typeNames[config.type] || config.type}${dims}. Material aglomerado tipo RH, color a elegir por el cliente.${accesText}${doorText}${ledText}${dismantleText} (Diseño por definir)`;
 }
 
 function buildDoorDescription(config: import("@/components/DoorConfigurator").DoorConfig): string {
@@ -1408,7 +1409,7 @@ export default function Quotations() {
       
       // LED para alacenas
       if (config.ledLighting?.enabled && config.ledLighting.meters > 0) {
-        total += config.ledLighting.meters * getPrice('ACABADO_LED_ML');
+        total += config.ledLighting.meters * getPrice('LED_ML');
       }
     }
     
@@ -1581,7 +1582,7 @@ export default function Quotations() {
       }
       // LED para alacenas (precio desde configuración)
       if (config.specialFinishes.ledLighting?.enabled && config.specialFinishes.ledLighting.meters > 0) {
-        total += config.specialFinishes.ledLighting.meters * getPrice('ACABADO_LED_ML');
+        total += config.specialFinishes.ledLighting.meters * getPrice('LED_ML');
       }
     }
 
@@ -1889,7 +1890,7 @@ export default function Quotations() {
             });
           }
           if (config.specialFinishes.ledLighting?.enabled && config.specialFinishes.ledLighting.meters > 0) {
-            total += config.specialFinishes.ledLighting.meters * getPrice('ACABADO_LED_ML');
+            total += config.specialFinishes.ledLighting.meters * getPrice('LED_ML');
           }
         }
 
@@ -4223,7 +4224,7 @@ export default function Quotations() {
                                       />
                                       <Label htmlFor={`specialLed-${index}`} className="text-xs font-semibold text-amber-300 cursor-pointer">
                                         <Lightbulb className="inline h-3 w-3 mr-1" />
-                                        Luz LED para Alacenas - {formatPrice(getPrice('ACABADO_LED_ML'))}/ml
+                                        Luz LED para Alacenas - {formatPrice(getPrice('LED_ML'))}/ml
                                       </Label>
                                     </div>
                                     {item.kitchenConfig?.specialFinishes?.ledLighting?.enabled && (
@@ -4241,7 +4242,7 @@ export default function Quotations() {
                                           placeholder="0"
                                         />
                                         <span className="text-xs text-amber-400">
-                                          = {formatPrice((item.kitchenConfig?.specialFinishes?.ledLighting?.meters || 0) * getPrice('ACABADO_LED_ML'))}
+                                          = {formatPrice((item.kitchenConfig?.specialFinishes?.ledLighting?.meters || 0) * getPrice('LED_ML'))}
                                         </span>
                                       </div>
                                     )}
@@ -4577,7 +4578,7 @@ export default function Quotations() {
                                 />
                                 <Label htmlFor={`acabados-led-${index}`} className="text-sm font-semibold text-white/85 cursor-pointer flex items-center gap-2">
                                   <Lightbulb className="h-4 w-4 text-amber-500" />
-                                  Luz LED para Alacenas - {formatPrice(getPrice('ACABADO_LED_ML'))}/ml
+                                  Luz LED para Alacenas - {formatPrice(getPrice('LED_ML'))}/ml
                                 </Label>
                               </div>
                               

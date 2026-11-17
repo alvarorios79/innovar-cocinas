@@ -85,6 +85,9 @@ export async function buildQuotationPdfData(quotation: any, client: any, items: 
         if (closetConfig.type === 'empotrado') {
           lines.push('• Espaldar y laterales completos');
         }
+        if (closetConfig.incluyeLed && closetConfig.ledML > 0) {
+          lines.push(`• Iluminación LED interior (${closetConfig.ledML} ml)`);
+        }
         
         // Agregar notas si existen
         if (closetConfig.notes && closetConfig.notes.trim()) {

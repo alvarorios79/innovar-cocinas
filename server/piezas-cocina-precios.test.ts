@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { applyCocinaBase as applyPiezaPrices, precioMuebleSuelto, precioPiezaFija, precioFrentePollo } from "../shared/piezasCocinaPrecios";
+import { applyCocinaBase as applyPiezaPrices, precioLedPieza, precioPintadoPieza, precioMuebleSuelto, precioPiezaFija, precioFrentePollo } from "../shared/piezasCocinaPrecios";
 
 // Precios del Motor (17 nov 2026)
 const MOTOR: Record<string, number> = {
@@ -35,5 +35,15 @@ describe("Piezas de cocina: precio = cocina + recargo", () => {
     applyPiezaPrices((c) => ({ ...MOTOR, COCINA_ML_PREMIUM: 1200000 } as any)[c]);
     expect(precioMuebleSuelto("premium")).toBe(1380000);
     applyPiezaPrices((c) => MOTOR[c]);
+  });
+
+  it("luz LED y pintado: un solo precio (el de la cocina), sin recargo de pieza suelta", () => {
+    applyPiezaPrices((c) => ({ ...MOTOR, LED_ML: 200000, PINTADO_SUP: 130000 } as any)[c]);
+    expect(precioLedPieza()).toBe(200000);
+    expect(precioPintadoPieza("superior")).toBe(130000);
+    applyPiezaPrices((c) => MOTOR[c]);
+    expect(precioLedPieza()).toBe(180000);
+    expect(precioPintadoPieza("inferior")).toBe(150000);
+    expect(precioPintadoPieza("alacena")).toBe(250000);
   });
 });

@@ -420,7 +420,7 @@ function TVCenterConfiguratorV2({ config, onChange }: TVCenterConfiguratorProps)
   const paintDoor = getPrice("PINTADO_INF");
   const paintDrawer = getPrice("PINTADO_CAJON");
   const paintShelf = getPrice("TV2_PINTADO_REPISA");
-  const ledPrice = getPrice("TV_CENTER_LED");
+  const ledPrice = getPrice("LED_ML"); // un solo precio de LED para todo el Motor
   const bracketPrice = getPrice("TV2_SOPORTE_INSTALACION");
   const glassM2Price = getPrice("ACABADO_ALUMINIO_VIDRIO_M2");
   const hingePairPrice = getPrice("ACABADO_BISAGRA_PAR");

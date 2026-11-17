@@ -31,7 +31,6 @@ import { registerWebIntakeRoutes } from "../web-intake-routes";
 import { registerPortfolioExportRoutes } from "../portfolio-export-routes";
 import { registerRedesSubidaRoutes } from "../redes-subida-routes";
 import { registerWebPricesRoutes } from "../web-prices-routes";
-import { startSocialReminders } from "../social-reminders";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -235,8 +234,10 @@ async function startServer() {
     startLeadsDailySummary();
     startPostventaReminders();
 
-    // Recordatorio de publicar en redes (lunes, miércoles y viernes, 9 a. m. Colombia)
-    startSocialReminders();
+    // Recordatorio de publicar en redes: APAGADO desde Deploy #315 (16 nov 2026). Las publicaciones ahora salen solas por
+    // Metricool y el CRM no se entera, así que el aviso «Hoy toca publicar… descarga y publica» ya era engañoso.
+    // El código sigue en server/social-reminders.ts por si se reconecta al registro de Metricool.
+    // startSocialReminders();
     // Copias de seguridad: las hace Render (Point-in-Time Recovery 3 días + Export manual).
     // El scheduler propio (MySQL, de la época Manus) se quitó en Deploy #249: nunca funcionó con PostgreSQL.
   });

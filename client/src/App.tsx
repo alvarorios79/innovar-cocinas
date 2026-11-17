@@ -43,6 +43,7 @@ import PideTuVisita from "./pages/PideTuVisita";
 import { ConfirmHost } from "@/lib/confirm";
 import Interesados from "./pages/Interesados";
 import ConocimientoElena from "./pages/ConocimientoElena";
+import Texturas from "./pages/Texturas";
 import VisitasTecnicas from "./pages/VisitasTecnicas";
 
 
@@ -85,6 +86,7 @@ function Router() {
         <Route path={"/agendar"} component={PideTuVisita} />
         <Route path={"/interesados"}><Interesados /></Route>
         <Route path={"/conocimiento-elena"}><ConocimientoElena /></Route>
+        <Route path={"/texturas"}><Texturas /></Route>
         <Route path={"/cita"}><CitaPublica /></Route>
         <Route path={"/cotizacion"}><PublicQuotation /></Route>
         <Route path={"/pricing-config"}><PricingConfig /></Route>

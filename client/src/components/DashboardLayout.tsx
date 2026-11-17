@@ -39,6 +39,7 @@ import {
   Users,
   KanbanSquare,
   Palette,
+  Layers,
   Wrench,
   Truck,
   Star,
@@ -107,6 +108,8 @@ export const menuSections: MenuSection[] = [
     items: [
       { icon: Palette,       label: "Diseño",        path: "/design",
         roles: ["super_admin", "admin", "disenador", "jefe_taller", "operario"], iconColor: "#ec4899" },
+      { icon: Layers,        label: "Texturas",      path: "/texturas",
+        roles: ["super_admin", "admin", "comercial", "disenador"], iconColor: "#14b8a6" },
       { icon: Wrench,        label: "Producción",    path: "/production",
         roles: ["super_admin", "admin", "disenador", "jefe_taller", "operario"], iconColor: "#f59e0b" },
       { icon: Truck,         label: "Instalaciones", path: "/calendar",

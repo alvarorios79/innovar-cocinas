@@ -29,6 +29,7 @@ import { registerPortfolioRoutes } from "../portfolio-routes";
 import { registerFileDownloadRoutes } from "../file-download-routes";
 import { registerWebIntakeRoutes } from "../web-intake-routes";
 import { registerPortfolioExportRoutes } from "../portfolio-export-routes";
+import { registerRedesSubidaRoutes } from "../redes-subida-routes";
 import { registerWebPricesRoutes } from "../web-prices-routes";
 import { startSocialReminders } from "../social-reminders";
 
@@ -62,6 +63,7 @@ async function startServer() {
   registerWebIntakeRoutes(app);
   registerWebPricesRoutes(app);
   registerPortfolioExportRoutes(app);
+  registerRedesSubidaRoutes(app);
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   // Trust proxy para obtener IP real detrás de reverse proxy

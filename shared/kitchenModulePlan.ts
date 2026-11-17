@@ -131,6 +131,7 @@ export function layoutTramoNames(layout?: string): string[] {
   switch (layout) {
     case "L": return ["Pared A", "Pared B"];
     case "U": return ["Pared A", "Pared B", "Pared C"];
+    case "paralela":
     case "cuadrada": return ["Pared A", "Pared B"];
     default: return ["Pared A"]; // lineal, isla, otra, sin definir
   }

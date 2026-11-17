@@ -56,13 +56,21 @@ const PRECIOS = {
 // creando precios con código PIEZA_<NOMBRE> (ej. PIEZA_MUEBLE_ALTO_ML).
 const PRECIOS_DEFAULT: Record<string, number> = { ...PRECIOS } as any;
 
+import { LavaplatosSelector } from "@/components/LavaplatosSelector";
+import { precioPiedraML, multiplicadorFondoCm, precioLavaplatos, piedraBarra, hierrosBarra, LATERAL_ML, type LavaplatosTipo } from "@shared/mesonPrecios";
+import { CATEGORIAS_PIEZA, DERIVADAS, applyCocinaBase, precioMuebleSuelto, recargoSueltaPct, precioPiezaFija, precioFrentePollo, type CategoriaPieza } from "@shared/piezasCocinaPrecios";
+export { CATEGORIAS_PIEZA, precioMuebleSuelto, recargoSueltaPct, precioPiezaFija, precioFrentePollo };
+export type { CategoriaPieza };
+
 export function applyPiezaPrices(getDbPrice: (code: string) => number | undefined) {
   (Object.keys(PRECIOS_DEFAULT) as string[]).forEach((k) => {
-    if (k.startsWith("RECARGO_")) return;
+    if (k.startsWith("RECARGO_") || DERIVADAS.has(k)) return;
     const v = getDbPrice(`PIEZA_${k}`);
     (PRECIOS as any)[k] = (typeof v === "number" && v > 0) ? v : PRECIOS_DEFAULT[k];
   });
+  applyCocinaBase(getDbPrice);
 }
+
 
 // ── Tipos ────────────────────────────────────────────────────────────────────
 export type TipoPieza =
@@ -112,6 +120,9 @@ export interface ModulosDescriptivos {
 export interface MuebleCocinaConfig {
   tipoPieza: TipoPieza;
 
+  // Categoría de la cocina cuyo precio por ml se toma (+ recargo) en muebles altos/bajos sueltos
+  categoria?: CategoriaPieza;
+
   // Alacena con herraje — precio editable del herraje
   alacenaHerrajePrecio: number;
 
@@ -129,7 +140,8 @@ export interface MuebleCocinaConfig {
   mesonPrecioImportadoML?:   number;        // precio/ml cuando es importado
   mesonML:                   number;
   mesonFondo:                number;
-  mesonIncluyeLaterales:     boolean;
+  mesonIncluyeLaterales:     boolean;       // antiguo: marcada = 2 laterales
+  mesonCantLaterales?:       number;        // isla: 0, 1 o 2 laterales de 0,90 ml
   mesonIncluyeRegrueso:      boolean;
   mesonIncluyeSalpicaderoAlto: boolean;
 
@@ -138,12 +150,15 @@ export interface MuebleCocinaConfig {
   barraAlturaLateral: number;
 
   // Lavaplatos (isla, barra, mesón)
-  incluyeLavaplatos: boolean;
-  lavaprecio:        number;
+  incluyeLavaplatos: boolean;               // antiguo (solo casilla)
+  lavaplatosTipo?:   LavaplatosTipo;        // ninguno · sencillo · doble · otro
+  lavaprecio:        number;                // precio del lavaplatos «otro»
 
   // Barra estructura
-  incluyePedestal: boolean;
-  incluyeHerraje:  boolean;
+  incluyePedestal: boolean;   // pata metálica (por unidad)
+  cantPedestales?: number;
+  incluyeHerraje:  boolean;   // armazón de hierro (marcado por defecto)
+  reglaBarraV2?:   boolean;   // regla de barra del 17 nov 2026
 
   // Módulos descriptivos (sin precio propio)
   modulosDescriptivos: ModulosDescriptivos;
@@ -186,6 +201,7 @@ export interface MuebleCocinaConfig {
 export function defaultMuebleCocinaConfig(tipo: TipoPieza = "isla"): MuebleCocinaConfig {
   return {
     tipoPieza:   tipo,
+    categoria:   "estandar",
     alacenaHerrajePrecio: 0,
     madreraML:   1,
     incluyeLed:  false,
@@ -197,14 +213,18 @@ export function defaultMuebleCocinaConfig(tipo: TipoPieza = "isla"): MuebleCocin
     mesonML:                   1,
     mesonFondo:                0.60,
     mesonIncluyeLaterales:     tipo === "isla",
+    mesonCantLaterales:        tipo === "isla" ? 2 : 0,
     mesonIncluyeRegrueso:      tipo === "isla",
     mesonIncluyeSalpicaderoAlto: false,
     barraTipo:          "con_lateral",
     barraAlturaLateral: 90,
     incluyeLavaplatos: false,
+    lavaplatosTipo:    "ninguno",
     lavaprecio:        0,
-    incluyePedestal: tipo === "barra",
+    incluyePedestal: false,
+    cantPedestales:  1,
     incluyeHerraje:  tipo === "barra",
+    reglaBarraV2:    true,
     modulosDescriptivos: {},
     incluyePintado: false,
     pintadoPuertas: { superiores: 0, inferiores: 0, alacena: 0, cajon: 0, especiero: 0, gola: 0 },
@@ -239,16 +259,8 @@ function precioMesonML(material: MaterialMeson): number {
   return PRECIOS.MESON_CUARZO;
 }
 
-const PRECIO_PIEZA_FIJA: Partial<Record<TipoPieza, number>> = {
-  nicho_nevecon:      PRECIOS.NICHO_NEVECON,
-  nicho_nevera:       PRECIOS.NICHO_NEVERA,
-  alacena_entrepanos: PRECIOS.ALACENA_ENTREPANOS,
-  alacena_herraje:    PRECIOS.ALACENA_HERRAJE,
-  torre_hornos:       PRECIOS.TORRE_HORNOS,
-};
-
 export function esPiezaFija(tipo: TipoPieza): boolean {
-  return tipo in PRECIO_PIEZA_FIJA;
+  return precioPiezaFija(tipo) !== undefined;
 }
 
 // ── Cálculo principal ────────────────────────────────────────────────────────
@@ -264,7 +276,7 @@ export function calcularMuebleCocina(cfg: MuebleCocinaConfig): MuebleCocinaConfi
     c.subtotalPedestal  = 0;
     c.subtotalHerraje   = 0;
     c.subtotalPintado   = 0;
-    const basePrice = PRECIO_PIEZA_FIJA[c.tipoPieza] ?? 0;
+    const basePrice = precioPiezaFija(c.tipoPieza) ?? 0;
     // Alacena herraje: base + precio editable del herraje
     const extraHerraje = (c.tipoPieza === "alacena_herraje" && c.alacenaHerrajePrecio > 0)
       ? c.alacenaHerrajePrecio : 0;
@@ -275,18 +287,20 @@ export function calcularMuebleCocina(cfg: MuebleCocinaConfig): MuebleCocinaConfi
 
   // Compatibilidad: si mesonFondo > 5 asumimos que esta en cm (legacy) y convertimos a metros
   if (c.mesonFondo > 5) c.mesonFondo = c.mesonFondo / 100;
-  const mult     = getMultiplicadorFondo(c.mesonFondo);
+  const esBarraPieza = c.tipoPieza === "barra";
+  // Barra: siempre precio «angosta» y sin recargo de fondo. Isla/otros: recargo por fondo (66–90 cm +30 %, más de 90 cm ×2). Importado = precio escrito a mano.
+  const mult     = esBarraPieza ? 1 : multiplicadorFondoCm(c.mesonFondo * 100);
   const precioMat = (c.mesonEsImportado && c.mesonPrecioImportadoML)
     ? c.mesonPrecioImportadoML
-    : precioMesonML(c.mesonMaterial);
+    : precioPiedraML(c.mesonMaterial, esBarraPieza);
 
   // Madera
   if (c.tipoPieza === "isla") {
     c.subtotalMadera = c.madreraML * PRECIOS.ISLA_MADERA_ML;
   } else if (c.tipoPieza === "mueble_alto") {
-    c.subtotalMadera = c.madreraML * (c.incluyeLed ? PRECIOS.MUEBLE_ALTO_LED_ML : PRECIOS.MUEBLE_ALTO_ML);
+    c.subtotalMadera = c.madreraML * precioMuebleSuelto(c.categoria);
   } else if (c.tipoPieza === "mueble_bajo") {
-    c.subtotalMadera = c.madreraML * PRECIOS.MUEBLE_BAJO_ML;
+    c.subtotalMadera = c.madreraML * precioMuebleSuelto(c.categoria);
   } else if (c.tipoPieza === "frente_cocina") {
     const p = c.puertas || {} as any;
     c.subtotalMadera =
@@ -298,7 +312,7 @@ export function calcularMuebleCocina(cfg: MuebleCocinaConfig): MuebleCocinaConfi
       (p.tapasCarjon   || 0) * PRECIOS.TAPA_CAJON_FC  +
       (p.tapasPequenas || 0) * PRECIOS.TAPA_PEQUENA_FC;
   } else if (c.tipoPieza === "frente_pollo") {
-    c.subtotalMadera = (c.frentePolloML || 0) * PRECIOS.FRENTE_POLLO_ML;
+    c.subtotalMadera = (c.frentePolloML || 0) * precioFrentePollo();
   } else {
     c.subtotalMadera = 0; // barra
   }
@@ -306,21 +320,31 @@ export function calcularMuebleCocina(cfg: MuebleCocinaConfig): MuebleCocinaConfi
   // LED
   c.subtotalLed = (c.tipoPieza === "mueble_alto" && c.incluyeLed) ? c.ledML * PRECIOS.LED_ML : 0;
 
-  // Mesón
+  // Mesón (piedra): reglas únicas en shared/mesonPrecios.ts
   if (c.incluyeMeson || c.tipoPieza === "barra") {
-    let base = c.mesonML * precioMat * mult;
+    const base = c.mesonML * precioMat * mult;
 
     if (c.tipoPieza === "isla") {
-      const lat  = c.mesonIncluyeLaterales ? 1.8 * precioMat * mult : 0;
-      const reg  = c.mesonIncluyeRegrueso  ? 0.9 * precioMat       : 0;
+      // Isla: laterales por separado (0, 1 o 2 de 0,90 ml, con recargo de fondo); regrueso 0,90 ml sin recargo
+      const nLat = typeof c.mesonCantLaterales === "number" ? c.mesonCantLaterales : (c.mesonIncluyeLaterales ? 2 : 0);
+      const lat  = nLat * LATERAL_ML * precioMat * mult;
+      const reg  = c.mesonIncluyeRegrueso ? LATERAL_ML * precioMat : 0;
       c.subtotalMeson = base + lat + reg;
     } else if (c.tipoPieza === "barra") {
-      let lateral = 0;
-      if (c.barraTipo === "con_lateral" && c.barraAlturaLateral > 0) {
-        lateral = (c.barraAlturaLateral / 100) * precioMat * mult;
-      }
       const salp = c.mesonIncluyeSalpicaderoAlto ? base : 0;
-      c.subtotalMeson = base + lateral + salp;
+      if (c.reglaBarraV2) {
+        // Con herraje: largo + lateral + regrueso interior (según la altura); con pedestal solo el mesón superior
+        c.subtotalMeson = piedraBarra({
+          reglaV2: true, countertopType: c.mesonMaterial, meters: c.mesonML, esImportado: c.mesonEsImportado,
+          precioImportadoML: c.mesonPrecioImportadoML, incluyeHerraje: c.incluyeHerraje, barraAlturaLateral: c.barraAlturaLateral,
+        }) + salp;
+      } else {
+        let lateral = 0;
+        if (c.barraTipo === "con_lateral" && c.barraAlturaLateral > 0) {
+          lateral = (c.barraAlturaLateral / 100) * precioMat * mult;
+        }
+        c.subtotalMeson = base + lateral + salp;
+      }
     } else {
       const salp = c.mesonIncluyeSalpicaderoAlto ? base : 0;
       c.subtotalMeson = base + salp;
@@ -329,13 +353,18 @@ export function calcularMuebleCocina(cfg: MuebleCocinaConfig): MuebleCocinaConfi
     c.subtotalMeson = 0;
   }
 
-  // Lavaplatos
-  c.subtotalLavaplatos = c.incluyeLavaplatos ? c.lavaprecio + PRECIOS.PEGADO_LAVAPLATOS : 0;
+  // Lavaplatos: sencillo / doble / otro. Las cotizaciones antiguas (solo casilla) conservan su cálculo.
+  c.subtotalLavaplatos = c.lavaplatosTipo === undefined
+    ? (c.incluyeLavaplatos ? c.lavaprecio + PRECIOS.PEGADO_LAVAPLATOS : 0)
+    : precioLavaplatos(c);
 
   // Barra / Cajonero frente pollo
   if (c.tipoPieza === "barra") {
-    c.subtotalPedestal = c.incluyePedestal ? PRECIOS.BARRA_PEDESTAL : 0;
-    c.subtotalHerraje  = c.incluyeHerraje  ? PRECIOS.BARRA_HERRAJE  : 0;
+    // Hierros: pedestales por unidad + herraje proporcional al largo (cotizaciones antiguas: precio fijo de cada uno)
+    const hierros = hierrosBarra({ reglaV2: c.reglaBarraV2, incluyePedestal: c.incluyePedestal, cantPedestales: c.cantPedestales, incluyeHerraje: false, meters: c.mesonML });
+    const herraje = hierrosBarra({ reglaV2: c.reglaBarraV2, incluyePedestal: false, incluyeHerraje: c.incluyeHerraje, meters: c.mesonML });
+    c.subtotalPedestal = hierros;
+    c.subtotalHerraje  = herraje;
   } else if (c.tipoPieza === "frente_pollo") {
     c.subtotalPedestal = 0;
     c.subtotalHerraje  = c.frentePolloIncluyeCajonero ? (c.frentePolloCajoneroPrecio || 0) : 0;
@@ -504,7 +533,7 @@ export function MuebleCocinaConfigurator({ config, onChange }: Props) {
                   {LABELS_PIEZA[t]}
                   {esPiezaFija(t) && (
                     <span className="block text-[10px] mt-0.5 opacity-70">
-                      {formatPrice(PRECIO_PIEZA_FIJA[t] ?? 0)}
+                      {formatPrice(precioPiezaFija(t) ?? 0)}
                     </span>
                   )}
                 </button>
@@ -524,7 +553,7 @@ export function MuebleCocinaConfigurator({ config, onChange }: Props) {
               <p className="font-semibold text-white">{LABELS_PIEZA[config.tipoPieza]}</p>
               <p className="text-sm text-white/60 mt-0.5">{piezaInfo.desc}</p>
               <p className="text-lg font-bold mt-2" style={{ color: "var(--primary)" }}>
-                {formatPrice(PRECIO_PIEZA_FIJA[config.tipoPieza] ?? 0)}
+                {formatPrice(precioPiezaFija(config.tipoPieza) ?? 0)}
               </p>
             </div>
           </div>
@@ -566,13 +595,24 @@ export function MuebleCocinaConfigurator({ config, onChange }: Props) {
               <div className="h-9 flex items-center px-3 rounded-md text-sm font-semibold"
                 style={{ background: "rgba(29,181,168,0.15)", color: "#6ACFC7" }}>
                 {esIsla
-                  ? formatPrice(1200000)
-                  : esMuebleAlto
-                    ? formatPrice(1000000)
-                    : formatPrice(1100000)}
+                  ? formatPrice(PRECIOS.ISLA_MADERA_ML)
+                  : formatPrice(precioMuebleSuelto(config.categoria))}
               </div>
             </div>
           </div>
+          {tieneMueble && (
+            <div className="space-y-1">
+              <Label className="text-xs text-white/70">Categoría de la cocina (+{recargoSueltaPct()} % por ser pieza suelta)</Label>
+              <Select value={config.categoria || "estandar"} onValueChange={(v) => update("categoria", v)}>
+                <SelectTrigger className="h-9 bg-transparent border-white/15 text-white"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {(Object.keys(CATEGORIAS_PIEZA) as CategoriaPieza[]).map((k) => (
+                    <SelectItem key={k} value={k}>{CATEGORIAS_PIEZA[k]}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* LED para muebles altos */}
           {esMuebleAlto && (
@@ -723,7 +763,7 @@ export function MuebleCocinaConfigurator({ config, onChange }: Props) {
               <Label className="text-xs text-white/70">Precio ML</Label>
               <div className="h-9 flex items-center px-3 rounded-md text-sm font-semibold"
                 style={{ background: "rgba(29,181,168,0.15)", color: "#6ACFC7" }}>
-                {formatPrice(PRECIOS.FRENTE_POLLO_ML)}
+                {formatPrice(precioFrentePollo())}
               </div>
             </div>
           </div>
@@ -801,6 +841,49 @@ export function MuebleCocinaConfigurator({ config, onChange }: Props) {
       {esBarra && (
         <div className="p-3 rounded-lg space-y-3" style={{ background: "rgba(255,255,255,0.04)" }}>
           <p className="text-xs font-semibold text-white/60 uppercase tracking-wide">Estructura de barra</p>
+          {config.reglaBarraV2 ? (
+            <div className="space-y-2">
+              <p className="text-[11px] text-white/45">La barra es angosta (35–45 cm; si es menos de 35 se cobra igual). Con herraje la piedra lleva el largo + lateral + regrueso interior; con pedestal solo el mesón superior.</p>
+              <div className="p-2 rounded-lg space-y-2" style={{ background: "rgba(255,255,255,0.05)" }}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Checkbox id="herraje" checked={config.incluyeHerraje}
+                      onCheckedChange={(v) => update("incluyeHerraje", v === true)} />
+                    <Label htmlFor="herraje" className="text-sm cursor-pointer text-white/80">Herraje de hierro (armazón a pared y suelo)</Label>
+                  </div>
+                  <span className="text-sm font-semibold" style={{ color: "#6ACFC7" }}>{formatPrice(hierrosBarra({ reglaV2: true, incluyeHerraje: true, meters: config.mesonML }))}</span>
+                </div>
+                {config.incluyeHerraje && (
+                  <div className="pl-6 space-y-1">
+                    <Label className="text-xs text-white/70">Altura de la barra (cm)</Label>
+                    <Input type="number" step="1" min="0" value={config.barraAlturaLateral || ""}
+                      onChange={(e) => update("barraAlturaLateral", parseInt(e.target.value) || 0)}
+                      className="h-9 w-28 bg-transparent border-white/15 text-white" />
+                    <p className="text-[10px] text-white/40">El precio del herraje es por 1,20 m y se cobra proporcional a los {config.mesonML} ml de la barra.</p>
+                  </div>
+                )}
+              </div>
+              <div className="p-2 rounded-lg space-y-2" style={{ background: "rgba(255,255,255,0.05)" }}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Checkbox id="pedestal" checked={config.incluyePedestal}
+                      onCheckedChange={(v) => update("incluyePedestal", v === true)} />
+                    <Label htmlFor="pedestal" className="text-sm cursor-pointer text-white/80">Pedestal (pata metálica)</Label>
+                  </div>
+                  <span className="text-sm font-semibold" style={{ color: "#6ACFC7" }}>{formatPrice(hierrosBarra({ reglaV2: true, incluyePedestal: true, cantPedestales: config.cantPedestales || 1, meters: config.mesonML }))}</span>
+                </div>
+                {config.incluyePedestal && (
+                  <div className="pl-6 flex items-center gap-2">
+                    <Label className="text-xs text-white/70">Cantidad</Label>
+                    <Input type="number" step="1" min="1" value={config.cantPedestales || 1}
+                      onChange={(e) => update("cantPedestales", Math.max(1, parseInt(e.target.value) || 1))}
+                      className="h-9 w-24 bg-transparent border-white/15 text-white" />
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <>
           <div className="space-y-1">
             <Label className="text-xs text-white/70">Tipo de barra</Label>
             <Select value={config.barraTipo} onValueChange={(v) => update("barraTipo", v as TipoBarra)}>
@@ -852,6 +935,8 @@ export function MuebleCocinaConfigurator({ config, onChange }: Props) {
               <span className="text-sm font-semibold" style={{ color: "#6ACFC7" }}>{formatPrice(380000)}</span>
             </div>
           </div>
+            </>
+          )}
         </div>
       )}
 
@@ -944,9 +1029,16 @@ export function MuebleCocinaConfigurator({ config, onChange }: Props) {
               {esIsla && (
                 <div className="grid grid-cols-2 gap-2">
                   <div className="flex items-center gap-2 p-2 rounded" style={{ background: "rgba(255,255,255,0.04)" }}>
-                    <Checkbox id="laterales" checked={config.mesonIncluyeLaterales}
-                      onCheckedChange={(v) => update("mesonIncluyeLaterales", v === true)} />
-                    <Label htmlFor="laterales" className="text-xs cursor-pointer text-white/75">Laterales (1.8 ml)</Label>
+                    <Label className="text-xs text-white/75">Laterales (0,9 ml c/u)</Label>
+                    <Select value={String(typeof config.mesonCantLaterales === "number" ? config.mesonCantLaterales : (config.mesonIncluyeLaterales ? 2 : 0))}
+                      onValueChange={(v) => update("mesonCantLaterales", parseInt(v) || 0)}>
+                      <SelectTrigger className="h-8 w-28 bg-transparent border-white/15 text-white text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">Ninguno</SelectItem>
+                        <SelectItem value="1">1 lateral</SelectItem>
+                        <SelectItem value="2">2 laterales</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="flex items-center gap-2 p-2 rounded" style={{ background: "rgba(255,255,255,0.04)" }}>
                     <Checkbox id="regrueso" checked={config.mesonIncluyeRegrueso}
@@ -956,27 +1048,11 @@ export function MuebleCocinaConfigurator({ config, onChange }: Props) {
                 </div>
               )}
 
-              {/* Lavaplatos */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Checkbox id="lavaplatos" checked={config.incluyeLavaplatos}
-                    onCheckedChange={(v) => update("incluyeLavaplatos", v === true)} />
-                  <Label htmlFor="lavaplatos" className="text-xs cursor-pointer text-white/75">
-                    Lavaplatos + pegado ($50.000)
-                  </Label>
-                </div>
-                {config.incluyeLavaplatos && (
-                  <div className="pl-6">
-                    <Label className="text-xs text-white/60">Precio del lavaplatos</Label>
-                    <Input
-                      type="number" step="10000" min="0" placeholder="Ej: 250000"
-                      value={config.lavaprecio || ""}
-                      onChange={(e) => update("lavaprecio", parseInt(e.target.value) || 0)}
-                      className="h-9 mt-1 bg-transparent border-white/15 text-white"
-                    />
-                  </div>
-                )}
-              </div>
+              {/* Lavaplatos: sencillo / doble / otro */}
+              <LavaplatosSelector
+                value={config.lavaplatosTipo === undefined && config.incluyeLavaplatos ? { incluyeLavaplatos: true, lavaprecio: config.lavaprecio } : config as any}
+                onChange={(tipo, precio) => onChange(calcularMuebleCocina({ ...config, lavaplatosTipo: tipo, lavaprecio: precio ?? 0 }))}
+              />
 
               <div className="flex justify-between items-center text-sm pt-1">
                 <span className="text-white/50">Subtotal mesón:</span>

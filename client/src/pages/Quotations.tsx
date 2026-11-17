@@ -9,6 +9,8 @@ import { TVCenterConfigurator, TVCenterConfig } from "@/components/TVCenterConfi
 import type { KitchenConfig } from "@/components/kitchenTypes";
 import { DESCRIPTIVE_UPPER_MODULES, DESCRIPTIVE_LOWER_MODULES } from "@/components/kitchenTypes";
 import { CountertopConfigurator, CountertopConfig, defaultCountertopConfig } from "@/components/CountertopConfigurator";
+import { piedraMesonPrincipal, piedraIsla, piedraBarra, hierrosBarra, precioHerrajeBarra, textoLavaplatos, PIEDRA_NOMBRE, normalizarPiedra, cantLateralesIsla, precioPiedraML } from "@shared/mesonPrecios";
+import { LavaplatosSelector } from "@/components/LavaplatosSelector";
 import { MuebleCocinaConfigurator, MuebleCocinaConfig, defaultMuebleCocinaConfig, calcularMuebleCocina, applyPiezaPrices } from "@/components/MuebleCocinaConfigurator";
 import { BathroomConfigurator, BathroomConfig } from "@/components/BathroomConfigurator";
 import { PDFPreviewBeforeSave } from "@/components/PDFPreviewBeforeSave";
@@ -176,7 +178,8 @@ function buildKitchenDescription(config: KitchenConfig): string {
   if (config.island?.enabled && config.island.meters > 0) {
     const islandCtNames: Record<string, string> = { quarzone: "Quarzone", sinterizado: "sinterizado", granito: "granito" };
     const islandMesonText = config.island.countertopType ? ` con mesón en ${islandCtNames[config.island.countertopType] || config.island.countertopType}` : "";
-    const islandLateralsText = (config.island.incluyeLateralesIsla ?? config.island.hasLaterals) ? " y laterales" : "";
+    const nLat = cantLateralesIsla(config.island);
+    const islandLateralsText = nLat > 0 ? (nLat === 1 ? " y 1 lateral" : " y 2 laterales") : "";
     parts.push(`isla ${config.island.meters}ml${islandMesonText}${islandLateralsText}`);
   }
   if (config.bar?.enabled && config.bar.meters > 0)       parts.push(`barra ${config.bar.meters}ml`);
@@ -195,7 +198,7 @@ function buildKitchenDescription(config: KitchenConfig): string {
     if (ct.incluyeLaterales) mesonExtras.push(`${ct.cantLaterales || 1} lateral${(ct.cantLaterales || 1) > 1 ? 'es' : ''}`);
     if (ct.incluyeRegrueso) mesonExtras.push("regrueso");
     if (ct.incluyeSalpicaderoAlto) mesonExtras.push(`salpicadero alto${ct.cantLateralesSalpicadero ? ` con ${ct.cantLateralesSalpicadero} lateral${ct.cantLateralesSalpicadero > 1 ? 'es' : ''}` : ''}`);
-    if (ct.incluyeLavaplatos) mesonExtras.push("lavaplatos y pegado");
+    { const lv = textoLavaplatos(ct); if (lv) mesonExtras.push(lv.toLowerCase()); }
     if (ct.depthSurcharge === "30percent") mesonExtras.push("fondo 61-90cm (+30%)");
     if (ct.depthSurcharge === "double") mesonExtras.push("fondo 91-120cm (×2)");
     mesonText = ` Mesón en ${mesonNombre}${mesonExtras.length > 0 ? ' con ' + mesonExtras.join(', ') : ''}.`;
@@ -282,10 +285,8 @@ export default function Quotations() {
   const { prices, isLoading: isPricingLoading, getPrice } = usePricing();
   const { data: allPricing } = trpc.pricing.getAll.useQuery();
   // Precios de "Piezas de cocina" (PIEZA_*) vienen del Motor de Cotización; si no existen, se usan los valores por defecto
-  if (allPricing) {
-    const piezaMap = new Map<string, number>((allPricing as any[]).filter((p: any) => p.active !== 0).map((p: any) => [p.code, Number(p.value)]));
-    applyPiezaPrices((code) => piezaMap.get(code));
-  }
+  // (usa los precios públicos del Motor: así también los ve «comercial», que no puede leer pricing.getAll)
+  applyPiezaPrices((code) => prices[code]?.value);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [fromVisitId, setFromVisitId] = useState<number | null>(null);
   const [pendingWaUrl, setPendingWaUrl] = useState<string | null>(null);
@@ -426,7 +427,9 @@ export default function Quotations() {
           hasLateral: false,
           barraAlturaLateral: 90,
           incluyePedestal: false,
-          incluyeHerraje: false,
+          cantPedestales: 1,
+          incluyeHerraje: true, // el herraje de hierro viene marcado en todas las barras
+          reglaV2: true,
           esImportado: false,
           precioImportadoML: undefined,
         },
@@ -818,7 +821,9 @@ export default function Quotations() {
           hasLateral: false,
           barraAlturaLateral: 90,
           incluyePedestal: false,
-          incluyeHerraje: false,
+          cantPedestales: 1,
+          incluyeHerraje: true, // el herraje de hierro viene marcado en todas las barras
+          reglaV2: true,
           esImportado: false,
           precioImportadoML: undefined,
         },
@@ -1069,6 +1074,8 @@ export default function Quotations() {
               hasLateral: item.kitchenConfig.bar?.hasLateral ?? false,
               barraAlturaLateral: item.kitchenConfig.bar?.barraAlturaLateral ?? 90,
               incluyePedestal: item.kitchenConfig.bar?.incluyePedestal ?? false,
+              cantPedestales: (item.kitchenConfig.bar as any)?.cantPedestales ?? 1,
+              reglaV2: (item.kitchenConfig.bar as any)?.reglaV2,
               incluyeHerraje: item.kitchenConfig.bar?.incluyeHerraje ?? false,
               esImportado: item.kitchenConfig.bar?.esImportado ?? false,
               precioImportadoML: item.kitchenConfig.bar?.precioImportadoML ?? undefined,
@@ -1136,7 +1143,9 @@ export default function Quotations() {
               hasLateral: false,
               barraAlturaLateral: 90,
               incluyePedestal: false,
-              incluyeHerraje: false,
+              cantPedestales: 1,
+              incluyeHerraje: true,
+              reglaV2: true,
               esImportado: false,
               precioImportadoML: undefined,
             },
@@ -1217,7 +1226,9 @@ export default function Quotations() {
             hasLateral: false,
             barraAlturaLateral: 90,
             incluyePedestal: false,
-            incluyeHerraje: false,
+            cantPedestales: 1,
+            incluyeHerraje: true,
+            reglaV2: true,
             esImportado: false,
             precioImportadoML: undefined,
           },
@@ -1291,13 +1302,17 @@ export default function Quotations() {
     newItems[index] = { ...newItems[index], kitchenConfig: config };
     
     // Actualizar campo específico usando notación de punto
-    const fields = field.split('.');
-    let current: any = config;
-    for (let i = 0; i < fields.length - 1; i++) {
-      if (current[fields[i]] === undefined || current[fields[i]] === null) current[fields[i]] = {};
-      current = current[fields[i]];
+    // field === '__multi': value es { "ruta.del.campo": valor, ... } (varios cambios en una sola actualización)
+    const entries: Array<[string, any]> = field === '__multi' ? Object.entries(value) : [[field, value]];
+    for (const [fieldPath, fieldValue] of entries) {
+      const fields = fieldPath.split('.');
+      let current: any = config;
+      for (let i = 0; i < fields.length - 1; i++) {
+        if (current[fields[i]] === undefined || current[fields[i]] === null) current[fields[i]] = {};
+        current = current[fields[i]];
+      }
+      current[fields[fields.length - 1]] = fieldValue;
     }
-    current[fields[fields.length - 1]] = value;
 
     // Con el plano de módulos activo, "Muebles que lleva la cocina" (descripción) se arma solo desde el plano
     if (field === 'modulePlan' && value?.enabled) {
@@ -1405,6 +1420,12 @@ export default function Quotations() {
     return total;
   };
 
+  // Solo superiores / solo inferiores: precio por ml de la categoría elegida + recargo de pieza suelta (Motor: RECARGO_PIEZA_SUELTA, 15 %)
+  const mlSuelto = (config: any): number => {
+    const code = ['COCINA_ML_PREMIUM', 'COCINA_ML_DELUXE'].includes(config.mlPriceCode) ? config.mlPriceCode : 'COCINA_ML_ESTANDAR';
+    return getPrice(code) * (1 + getPrice('RECARGO_PIEZA_SUELTA') / 100);
+  };
+
   const calculateKitchenTotal = (index: number, itemsArray: typeof items = items) => {
     const item = itemsArray[index];
     const config = item.kitchenConfig!;
@@ -1439,10 +1460,10 @@ export default function Quotations() {
       }
     } else if (config.shape === 'solo_superiores') {
       // Solo muebles superiores
-      total += config.totalMeters * getPrice('MUEBLE_SUPERIOR_ML');
+      total += config.totalMeters * mlSuelto(config);
     } else if (config.shape === 'solo_inferiores') {
       // Solo muebles inferiores
-      total += config.totalMeters * getPrice('MUEBLE_INFERIOR_ML');
+      total += config.totalMeters * mlSuelto(config);
     } else if (config.shape === 'puertas_tapas') {
       // Puertas y Tapas (solo cambio) - precios dinámicos
       const dc = (config.doorsAndCovers || {}) as any;
@@ -1490,97 +1511,28 @@ export default function Quotations() {
     // 4. Mesón principal (usa metraje resultante automáticamente) - precios dinámicos
     // No aplica para solo_superiores ni puertas_tapas
     if (config.shape !== 'solo_superiores' && config.shape !== 'puertas_tapas' && config.countertop.type) {
-      const basePrice = (config.countertop.esImportado && config.countertop.precioImportadoML)
-                      ? config.countertop.precioImportadoML
-                      : config.countertop.type === "quarzone" ? getPrice('MESON_CUARZO')
-                      : config.countertop.type === "granito"  ? getPrice('MESON_GRANITO')
-                      : getPrice('MESON_SINTERIZADO');
-      let countertopPrice = basePrice;
-      
-      const surchargePercent = getPrice('MESON_RECARGO_FONDO') / 100;
-      if (config.countertop.depthSurcharge === "30percent") {
-        countertopPrice = basePrice * (1 + surchargePercent);
-      } else if (config.countertop.depthSurcharge === "double") {
-        countertopPrice = basePrice * 2;
-      }
-      
-      // Usar metraje resultante automáticamente (o totalMeters para formas especiales)
+      // Metraje resultante automáticamente (o totalMeters para formas especiales)
       const metersForCountertop = isSpecialShape ? config.totalMeters
       : (config.independentMeters && config.lowerMeters !== undefined)
         ? Math.max(0, (config.lowerMeters || 0) - deductions)
         : resultingMeters;
-      total += metersForCountertop * countertopPrice;
-
-      // Extras del mesón: laterales, regrueso, lavaplatos
-      if (config.countertop.incluyeLaterales) {
-        const cantLat = config.countertop.cantLaterales || 1;
-        total += cantLat * 0.9 * countertopPrice;
-      }
-      if (config.countertop.incluyeRegrueso) {
-        total += 0.9 * countertopPrice;
-      }
-      if (config.countertop.incluyeLavaplatos) {
-        total += config.countertop.lavaprecio ?? getPrice('LAVAPLATOS_MESON');
-      }
-      // Salpicadero alto: se cobra de nuevo el metraje del mesón (mismo precio y recargo de fondo)
-      if (config.countertop.incluyeSalpicaderoAlto) {
-        total += metersForCountertop * countertopPrice;
-        // Laterales del salpicadero alto: 0.62 x 0.60 m c/u (0.62 ml a precio base, sin recargo de fondo)
-        total += (config.countertop.cantLateralesSalpicadero || 0) * 0.62 * basePrice;
-      }
+      // Piedra, fondo, laterales, regrueso, lavaplatos y salpicadero: reglas únicas en shared/mesonPrecios.ts
+      total += piedraMesonPrincipal(config.countertop, metersForCountertop);
     }
 
     mark("Mesón principal (incluye salpicadero alto y laterales)");
     // 5. Isla (para cocinas completas y puertas_tapas) - precios dinámicos
     if ((!isSpecialShape || config.shape === 'puertas_tapas') && config.island.enabled && config.island.meters > 0) {
-      // Muebles de isla — usa el mismo precio/ml que la cocina principal
-      const islaMlPriceCode = config.mlPriceCode || (
-        (config.shape === 'premium' || config.shape === 'U')      ? 'COCINA_ML_PREMIUM' :
-        (config.shape === 'deluxe'  || config.shape === 'lineal') ? 'COCINA_ML_DELUXE'  :
-                                                                    'COCINA_ML_ESTANDAR'
-      );
-      total += config.island.meters * getPrice(islaMlPriceCode);
+      // Muebles de isla: la isla siempre lleva cajoneras (más trabajo e insumos), por eso la madera va a un precio propio (Motor: PIEZA_ISLA_MADERA_ML) y no al de la categoría
+      total += config.island.meters * getPrice('PIEZA_ISLA_MADERA_ML');
       
       // LED de isla
       if (config.island.incluyeLedIsla && config.island.ledMLIsla && config.island.ledMLIsla > 0) {
         total += config.island.ledMLIsla * getPrice('LED_ML');
       }
-      
-      // Lavaplatos de isla
-      if (config.island.incluyeLavaplatos) {
-        total += config.island.lavaprecio ?? getPrice('LAVAPLATOS_MESON');
-      }
-      
-      // Mesón superior de isla
-      if (config.island.countertopType) {
-        // Precio base del material (importado o estándar)
-        const islandMatBasePrice = (config.island.esImportado && config.island.precioImportadoML)
-          ? config.island.precioImportadoML
-          : config.island.countertopType === "quarzone" ? getPrice('MESON_CUARZO')
-          : config.island.countertopType === "granito"  ? getPrice('MESON_GRANITO')
-          : getPrice('MESON_SINTERIZADO');
-        
-        // Recargo por fondo
-        const fondoMult = config.island.depthSurcharge === 'double' ? 2
-                        : config.island.depthSurcharge === '40percent' ? 1.4
-                        : config.island.depthSurcharge === '30percent' ? (1 + getPrice('MESON_RECARGO_FONDO') / 100)
-                        : 1;
-        const islandCountertopPrice = islandMatBasePrice * fondoMult;
-        total += config.island.meters * islandCountertopPrice;
-        
-        // Laterales (1.80ml = 0.90×2, CON recargo de fondo)
-        const islaAddLaterales = config.island.incluyeLateralesIsla ?? config.island.hasLaterals;
-        if (islaAddLaterales) total += 1.8 * islandCountertopPrice;
-        
-        // Regrueso (0.90ml, SIN recargo de fondo)
-        const islaAddRegrueso = config.island.incluyeRegrueso ?? config.island.hasLaterals;
-        if (islaAddRegrueso) total += 0.9 * islandMatBasePrice;
-        
-        // Salpicadero alto (metros × precio con fondo)
-        if (config.island.incluyeSalpicaderoAlto) {
-          total += config.island.meters * islandCountertopPrice;
-        }
-      }
+
+      // Piedra de la isla: mesón, laterales (0/1/2), regrueso, salpicadero y lavaplatos (shared/mesonPrecios.ts)
+      total += piedraIsla(config.island);
     }
 
     mark("Isla");
@@ -1589,30 +1541,9 @@ export default function Quotations() {
       // Muebles de barra
       total += config.bar.meters * getPrice('BARRA_ML');
       
-      // Pedestal metálico
-      if (config.bar.incluyePedestal) total += getPrice('BARRA_PEDESTAL');
-      
-      // Herraje de barra
-      if (config.bar.incluyeHerraje) total += getPrice('BARRA_HERRAJE');
-      
-      // Mesón superior de barra
-      if (config.bar.countertopType) {
-        const barBasePrice = (config.bar.esImportado && config.bar.precioImportadoML)
-          ? config.bar.precioImportadoML
-          : config.bar.countertopType === "quarzone" ? getPrice('MESON_CUARZO')
-          : config.bar.countertopType === "granito"  ? getPrice('MESON_GRANITO')
-          : getPrice('MESON_SINTERIZADO');
-        total += config.bar.meters * barBasePrice;
-        
-        // Lateral de barra (altura configurable)
-        if (config.bar.hasLateral) {
-          const lateralML = (config.bar.barraAlturaLateral && config.bar.barraAlturaLateral > 0)
-            ? config.bar.barraAlturaLateral / 100
-            : 0.9;
-          total += lateralML * barBasePrice;
-        }
-      }
-      
+      // Hierros de la barra (pedestales por unidad + herraje proporcional al largo) y piedra angosta (shared/mesonPrecios.ts)
+      total += hierrosBarra(config.bar);
+      total += piedraBarra(config.bar);
     }
 
     mark("Barra");
@@ -1851,10 +1782,10 @@ export default function Quotations() {
           }
         } else if (config.shape === 'solo_superiores') {
           // Solo muebles superiores
-          total += config.totalMeters * getPrice('MUEBLE_SUPERIOR_ML');
+          total += config.totalMeters * mlSuelto(config);
         } else if (config.shape === 'solo_inferiores') {
           // Solo muebles inferiores
-          total += config.totalMeters * getPrice('MUEBLE_INFERIOR_ML');
+          total += config.totalMeters * mlSuelto(config);
         } else if (config.shape === 'puertas_tapas') {
           // Puertas y Tapas (solo cambio) - precios dinámicos
           const dc = (config.doorsAndCovers || {}) as any;
@@ -1897,96 +1828,25 @@ export default function Quotations() {
         // Mesón principal (usa metraje resultante automáticamente) - precios dinámicos
         // No aplica para solo_superiores ni puertas_tapas
         if (config.shape !== 'solo_superiores' && config.shape !== 'puertas_tapas' && config.countertop.type) {
-          const basePrice = (config.countertop.esImportado && config.countertop.precioImportadoML)
-                      ? config.countertop.precioImportadoML
-                      : config.countertop.type === "quarzone" ? getPrice('MESON_CUARZO')
-                      : config.countertop.type === "granito"  ? getPrice('MESON_GRANITO')
-                      : getPrice('MESON_SINTERIZADO');
-          let countertopPrice = basePrice;
-          
-          const surchargePercent = getPrice('MESON_RECARGO_FONDO') / 100;
-          if (config.countertop.depthSurcharge === "30percent") {
-            countertopPrice = basePrice * (1 + surchargePercent);
-          } else if (config.countertop.depthSurcharge === "double") {
-            countertopPrice = basePrice * 2;
-          }
-          
-          // Usar metraje resultante automáticamente (o totalMeters para formas especiales)
           const metersForCountertop = isSpecialShape ? config.totalMeters
       : (config.independentMeters && config.lowerMeters !== undefined)
         ? Math.max(0, (config.lowerMeters || 0) - deductions)
         : resultingMeters;
-          total += metersForCountertop * countertopPrice;
-
-          // Extras del mesón: laterales, regrueso, lavaplatos
-          if (config.countertop.incluyeLaterales) {
-            const cantLat = config.countertop.cantLaterales || 1;
-            total += cantLat * 0.9 * countertopPrice;
-          }
-          if (config.countertop.incluyeRegrueso) {
-            total += 0.9 * countertopPrice;
-          }
-          if (config.countertop.incluyeLavaplatos) {
-            total += config.countertop.lavaprecio ?? getPrice('LAVAPLATOS_MESON');
-          }
-          // Salpicadero alto: se cobra de nuevo el metraje del mesón (mismo precio y recargo de fondo)
-          if (config.countertop.incluyeSalpicaderoAlto) {
-            total += metersForCountertop * countertopPrice;
-            // Laterales del salpicadero alto: 0.62 x 0.60 m c/u (0.62 ml a precio base, sin recargo de fondo)
-            total += (config.countertop.cantLateralesSalpicadero || 0) * 0.62 * basePrice;
-          }
+          total += piedraMesonPrincipal(config.countertop, metersForCountertop);
         }
 
         // Isla (para cocinas completas y puertas_tapas) - precios dinámicos
         if ((!isSpecialShape || config.shape === 'puertas_tapas') && config.island.enabled && config.island.meters > 0) {
-          // Muebles de isla — usa el mismo precio/ml que la cocina principal
-          const islaMlPriceCode2 = config.mlPriceCode || (
-            (config.shape === 'premium' || config.shape === 'U')      ? 'COCINA_ML_PREMIUM' :
-            (config.shape === 'deluxe'  || config.shape === 'lineal') ? 'COCINA_ML_DELUXE'  :
-                                                                        'COCINA_ML_ESTANDAR'
-          );
-          total += config.island.meters * getPrice(islaMlPriceCode2);
+          // Muebles de isla: la isla siempre lleva cajoneras (más trabajo e insumos), por eso la madera va a un precio propio (Motor: PIEZA_ISLA_MADERA_ML) y no al de la categoría
+          total += config.island.meters * getPrice('PIEZA_ISLA_MADERA_ML');
           
           // LED de isla
           if (config.island.incluyeLedIsla && config.island.ledMLIsla && config.island.ledMLIsla > 0) {
             total += config.island.ledMLIsla * getPrice('LED_ML');
           }
-          
-          // Lavaplatos de isla
-          if (config.island.incluyeLavaplatos) {
-            total += config.island.lavaprecio ?? getPrice('LAVAPLATOS_MESON');
-          }
-          
-          // Mesón superior de isla
-          if (config.island.countertopType) {
-            // Precio base del material (importado o estándar)
-            const islandMatBasePrice2 = (config.island.esImportado && config.island.precioImportadoML)
-              ? config.island.precioImportadoML
-              : config.island.countertopType === "quarzone" ? getPrice('MESON_CUARZO')
-              : config.island.countertopType === "granito"  ? getPrice('MESON_GRANITO')
-              : getPrice('MESON_SINTERIZADO');
-            
-            // Recargo por fondo
-            const fondoMult2 = config.island.depthSurcharge === 'double' ? 2
-                            : config.island.depthSurcharge === '40percent' ? 1.4
-                            : config.island.depthSurcharge === '30percent' ? (1 + getPrice('MESON_RECARGO_FONDO') / 100)
-                            : 1;
-            const islandCountertopPrice2 = islandMatBasePrice2 * fondoMult2;
-            total += config.island.meters * islandCountertopPrice2;
-            
-            // Laterales (1.80ml = 0.90×2, CON recargo de fondo)
-            const islaAddLaterales2 = config.island.incluyeLateralesIsla ?? config.island.hasLaterals;
-            if (islaAddLaterales2) total += 1.8 * islandCountertopPrice2;
-            
-            // Regrueso (0.90ml, SIN recargo de fondo)
-            const islaAddRegrueso2 = config.island.incluyeRegrueso ?? config.island.hasLaterals;
-            if (islaAddRegrueso2) total += 0.9 * islandMatBasePrice2;
-            
-            // Salpicadero alto (metros × precio con fondo)
-            if (config.island.incluyeSalpicaderoAlto) {
-              total += config.island.meters * islandCountertopPrice2;
-            }
-          }
+
+          // Piedra de la isla (misma función que calculateKitchenTotal)
+          total += piedraIsla(config.island);
         }
 
         // Barra (para cocinas completas y puertas_tapas) - precios dinámicos
@@ -1994,30 +1854,9 @@ export default function Quotations() {
           // Muebles de barra
           total += config.bar.meters * getPrice('BARRA_ML');
           
-          // Pedestal metálico
-          if (config.bar.incluyePedestal) total += getPrice('BARRA_PEDESTAL');
-          
-          // Herraje de barra
-          if (config.bar.incluyeHerraje) total += getPrice('BARRA_HERRAJE');
-          
-          // Mesón superior de barra
-          if (config.bar.countertopType) {
-            const barBasePrice = (config.bar.esImportado && config.bar.precioImportadoML)
-              ? config.bar.precioImportadoML
-              : config.bar.countertopType === "quarzone" ? getPrice('MESON_CUARZO')
-              : config.bar.countertopType === "granito"  ? getPrice('MESON_GRANITO')
-              : getPrice('MESON_SINTERIZADO');
-            total += config.bar.meters * barBasePrice;
-            
-            // Lateral de barra (altura configurable)
-            if (config.bar.hasLateral) {
-              const lateralML = (config.bar.barraAlturaLateral && config.bar.barraAlturaLateral > 0)
-                ? config.bar.barraAlturaLateral / 100
-                : 0.9;
-              total += lateralML * barBasePrice;
-            }
-          }
-          
+          // Hierros de la barra y piedra angosta (misma función que calculateKitchenTotal)
+          total += hierrosBarra(config.bar);
+          total += piedraBarra(config.bar);
         }
 
         // Luz LED (no aplica para solo_inferiores ni puertas_tapas) - precio dinámico
@@ -2087,12 +1926,13 @@ export default function Quotations() {
       if (item.itemType === "mesones" && item.countertopConfig && item.countertopConfig.mesones) {
         const config = item.countertopConfig;
         const getTipoTexto = (tipo: string) => tipo === "meson" ? "Mesón" : tipo === "isla" ? "Isla" : "Barra";
-        const getMaterialTexto = (material: string) => material === "quarzo" ? "Quarzo" : "Sinterizado";
+        const getMaterialTexto = (material: string) => PIEDRA_NOMBRE[normalizarPiedra(material)];
         
         const descriptions = config.mesones.map((meson, idx) => {
           const parts: string[] = [`${getTipoTexto(meson.tipo)} en ${getMaterialTexto(meson.material)} ${meson.metrosLineales}ML x ${meson.fondo}cm`];
-          if (meson.tipo === "isla" && meson.incluyeLaterales) parts.push("con laterales");
-          if (meson.tipo === "barra" && meson.alturaLateral > 0) parts.push(`lateral ${meson.alturaLateral}cm`);
+          if (meson.tipo === "isla") { const nl = typeof meson.cantLaterales === "number" ? meson.cantLaterales : (meson.incluyeLaterales ? 2 : 0); if (nl > 0) parts.push(nl === 1 ? "con 1 lateral" : "con 2 laterales"); }
+          if (meson.esImportado) parts.push("importado");
+          if (meson.tipo === "barra" && (meson.reglaV2 ? meson.incluyeHerraje : meson.alturaLateral > 0)) parts.push(`lateral ${meson.alturaLateral || 90}cm`);
           if (meson.incluyeSalpicaderoAlto) parts.push("salpicadero alto");
           return parts.join(", ");
         });
@@ -2121,7 +1961,7 @@ export default function Quotations() {
           if (cfg.tipoPieza !== "barra" && cfg.madreraML > 0) parts.push(`${cfg.madreraML}ml madera`);
           if (cfg.incluyeMeson || cfg.tipoPieza === "barra") parts.push(`mesón ${labelMat[cfg.mesonMaterial]} ${cfg.mesonML}ml`);
           if (cfg.tipoPieza === "mueble_alto" && cfg.incluyeLed) parts.push("con LED");
-          if (cfg.incluyeLavaplatos) parts.push("lavaplatos");
+          { const lv = cfg.lavaplatosTipo === undefined ? (cfg.incluyeLavaplatos ? "lavaplatos" : null) : textoLavaplatos(cfg); if (lv) parts.push(lv.toLowerCase()); }
           if (cfg.tipoPieza === "barra") { if (cfg.incluyePedestal) parts.push("pedestal"); if (cfg.incluyeHerraje) parts.push("herraje"); }
           if (cfg.incluyePintado && cfg.subtotalPintado > 0) parts.push("pintado alto brillo");
           // Módulos descriptivos
@@ -2860,14 +2700,34 @@ export default function Quotations() {
                                   <SelectItem value="estandar">Cocina Estándar</SelectItem>
                                   <SelectItem value="premium">Cocina Premium</SelectItem>
                                   <SelectItem value="deluxe">Cocina Deluxe</SelectItem>
-                                  <SelectItem value="frente_pll">Frente PLL ($650,000/ml)</SelectItem>
-                                  <SelectItem value="solo_superiores">Solo Muebles Superiores ($900,000/ml)</SelectItem>
-                                  <SelectItem value="solo_inferiores">Solo Muebles Inferiores ($900,000/ml)</SelectItem>
+                                  <SelectItem value="frente_pll">Frente PLL ({formatPrice(getPrice('COCINA_ML_FRENTE_PLL'))}/ml)</SelectItem>
+                                  <SelectItem value="solo_superiores">Solo Muebles Superiores (categoría + {getPrice('RECARGO_PIEZA_SUELTA')} %)</SelectItem>
+                                  <SelectItem value="solo_inferiores">Solo Muebles Inferiores (categoría + {getPrice('RECARGO_PIEZA_SUELTA')} %)</SelectItem>
                                   <SelectItem value="puertas_tapas">Puertas y Tapas (solo cambio)</SelectItem>
                                   <SelectItem value="solo_acabados">Solo Acabados Especiales (Aluminio/Vidrio/LED)</SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
+
+                            {/* 1a. Categoría para muebles sueltos (solo superiores / solo inferiores) */}
+                            {['solo_superiores', 'solo_inferiores'].includes(item.kitchenConfig?.shape || '') && (
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium text-white/60">Categoría de la cocina (precio por ml + {getPrice('RECARGO_PIEZA_SUELTA')} % por ser mueble suelto)</Label>
+                              <Select
+                                value={['COCINA_ML_PREMIUM', 'COCINA_ML_DELUXE'].includes(item.kitchenConfig?.mlPriceCode || '') ? item.kitchenConfig!.mlPriceCode! : 'COCINA_ML_ESTANDAR'}
+                                onValueChange={(value) => updateKitchenConfig(index, "mlPriceCode", value)}
+                              >
+                                <SelectTrigger className="bg-card border-[rgba(106,207,199,0.18)]">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="COCINA_ML_ESTANDAR">Estándar — {formatPrice(Math.round(mlSuelto({ mlPriceCode: 'COCINA_ML_ESTANDAR' })))}/ml</SelectItem>
+                                  <SelectItem value="COCINA_ML_PREMIUM">Premium — {formatPrice(Math.round(mlSuelto({ mlPriceCode: 'COCINA_ML_PREMIUM' })))}/ml</SelectItem>
+                                  <SelectItem value="COCINA_ML_DELUXE">Deluxe — {formatPrice(Math.round(mlSuelto({ mlPriceCode: 'COCINA_ML_DELUXE' })))}/ml</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            )}
 
                             {/* 1b. Forma física (informativo, no afecta precio) */}
                             {!['puertas_tapas', 'solo_acabados'].includes(item.kitchenConfig?.shape || '') && (
@@ -2884,8 +2744,10 @@ export default function Quotations() {
                                   <SelectItem value="L">En L</SelectItem>
                                   <SelectItem value="U">En U</SelectItem>
                                   <SelectItem value="lineal">Lineal / Recta</SelectItem>
-                                  <SelectItem value="cuadrada">Cuadrada / Paralela</SelectItem>
-                                  <SelectItem value="isla">Con isla central</SelectItem>
+                                  <SelectItem value="paralela">Paralela (dos paredes enfrentadas)</SelectItem>
+                                  {/* Valores antiguos: solo se muestran si la cotización ya los traía (la isla es un extra, no una forma) */}
+                                  {item.kitchenConfig?.layout === "cuadrada" && <SelectItem value="cuadrada">Cuadrada / Paralela (antigua)</SelectItem>}
+                                  {item.kitchenConfig?.layout === "isla" && <SelectItem value="isla">Con isla central (antigua)</SelectItem>}
                                   <SelectItem value="otra">Otra</SelectItem>
                                 </SelectContent>
                               </Select>
@@ -3180,7 +3042,7 @@ export default function Quotations() {
                                     className="h-4 w-4 mt-0.5"
                                   />
                                   <Label htmlFor={`nichoNevecon-${index}`} className="text-xs sm:text-sm font-normal cursor-pointer leading-tight">
-                                    Nicho nevecon (100cm) - $1,200,000
+                                    Nicho nevecon (100cm) - {formatPrice(getPrice('NICHO_NEVECON'))}
                                   </Label>
                                 </div>
                                 <div className="flex items-start space-x-2">
@@ -3194,7 +3056,7 @@ export default function Quotations() {
                                     className="h-4 w-4 mt-0.5"
                                   />
                                   <Label htmlFor={`nichoNevera-${index}`} className="text-xs sm:text-sm font-normal cursor-pointer leading-tight">
-                                    Nicho nevera estándar (75cm) - $1,200,000
+                                    Nicho nevera estándar (75cm) - {formatPrice(getPrice('NICHO_NEVERA'))}
                                   </Label>
                                 </div>
                                 <div className="flex items-start space-x-2">
@@ -3208,7 +3070,7 @@ export default function Quotations() {
                                     className="h-4 w-4 mt-0.5"
                                   />
                                   <Label htmlFor={`alacenaEntrepanos-${index}`} className="text-xs sm:text-sm font-normal cursor-pointer leading-tight">
-                                    Alacena entrepaños (50cm) - $1,250,000
+                                    Alacena entrepaños (50cm) - {formatPrice(getPrice('ALACENA_ENTREPANOS'))}
                                   </Label>
                                 </div>
                                 <div className="flex items-start space-x-2">
@@ -3222,7 +3084,7 @@ export default function Quotations() {
                                     className="h-4 w-4 mt-0.5"
                                   />
                                   <Label htmlFor={`alacenaHerraje-${index}`} className="text-xs sm:text-sm font-normal cursor-pointer leading-tight">
-                                    Alacena herraje (50cm) - $900,000
+                                    Alacena herraje (50cm) - {formatPrice(getPrice('ALACENA_HERRAJE'))}
                                   </Label>
                                 </div>
                                 <div className="flex items-start space-x-2">
@@ -3236,7 +3098,7 @@ export default function Quotations() {
                                     className="h-4 w-4 mt-0.5"
                                   />
                                   <Label htmlFor={`torreHornos-${index}`} className="text-xs sm:text-sm font-normal cursor-pointer leading-tight">
-                                    Torre hornos (70cm) - $1,350,000
+                                    Torre hornos (70cm) - {formatPrice(getPrice('TORRE_HORNOS'))}
                                   </Label>
                                 </div>
                               </div>
@@ -3590,9 +3452,9 @@ export default function Quotations() {
                                       <SelectValue placeholder="Selecciona tipo" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      <SelectItem value="granito">Granito ($750k/ml)</SelectItem>
-                                      <SelectItem value="quarzone">Quarzone ($850k/ml)</SelectItem>
-                                      <SelectItem value="sinterizado">Sinterizado ($1.2M/ml)</SelectItem>
+                                      <SelectItem value="granito">Granito ({formatPrice(precioPiedraML("granito"))}/ml)</SelectItem>
+                                      <SelectItem value="quarzone">Cuarzo ({formatPrice(precioPiedraML("quarzone"))}/ml)</SelectItem>
+                                      <SelectItem value="sinterizado">Sinterizado ({formatPrice(precioPiedraML("sinterizado"))}/ml)</SelectItem>
                                     </SelectContent>
                                   </Select>
                                 </div>
@@ -3675,6 +3537,13 @@ export default function Quotations() {
                                     </div>
                                   )}
                                 </div>
+                              )}
+                              {/* Lavaplatos del mesón principal */}
+                              {item.kitchenConfig?.countertop.type && (
+                                <LavaplatosSelector
+                                  value={item.kitchenConfig?.countertop as any}
+                                  onChange={(tipo, precio) => updateKitchenConfig(index, "__multi", { "countertop.lavaplatosTipo": tipo, "countertop.lavaprecio": precio })}
+                                />
                               )}
                             </div>
                             )}
@@ -3777,11 +3646,18 @@ export default function Quotations() {
                                   {/* Laterales y regrueso separados */}
                                   <div className="grid grid-cols-2 gap-2">
                                     <div className="flex items-center space-x-2">
-                                      <input type="checkbox" id={`islandLaterales-${index}`}
-                                        checked={item.kitchenConfig?.island.incluyeLateralesIsla ?? false}
-                                        onChange={(e) => updateKitchenConfig(index, "island.incluyeLateralesIsla", e.target.checked)}
-                                        className="h-4 w-4" />
-                                      <Label htmlFor={`islandLaterales-${index}`} className="text-sm font-normal cursor-pointer">Laterales (+1.80ml)</Label>
+                                      <Label className="text-sm font-normal">Laterales (0,90 ml c/u):</Label>
+                                      <Select
+                                        value={String(cantLateralesIsla(item.kitchenConfig?.island))}
+                                        onValueChange={(v) => updateKitchenConfig(index, "island.cantLateralesIsla", parseInt(v) || 0)}
+                                      >
+                                        <SelectTrigger className="h-7 w-28 text-xs"><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="0">Ninguno</SelectItem>
+                                          <SelectItem value="1">1 lateral</SelectItem>
+                                          <SelectItem value="2">2 laterales</SelectItem>
+                                        </SelectContent>
+                                      </Select>
                                     </div>
                                     <div className="flex items-center space-x-2">
                                       <input type="checkbox" id={`islandRegrueso-${index}`}
@@ -3799,24 +3675,10 @@ export default function Quotations() {
                                     <Label htmlFor={`islandSalpicadero-${index}`} className="text-sm font-normal cursor-pointer">Salpicadero alto</Label>
                                   </div>
                                   {/* Lavaplatos isla */}
-                                  <div className="space-y-1">
-                                    <div className="flex items-center space-x-2">
-                                      <input type="checkbox" id={`islandLavaplatos-${index}`}
-                                        checked={item.kitchenConfig?.island.incluyeLavaplatos ?? false}
-                                        onChange={(e) => updateKitchenConfig(index, "island.incluyeLavaplatos", e.target.checked)}
-                                        className="h-4 w-4" />
-                                      <Label htmlFor={`islandLavaplatos-${index}`} className="text-sm font-normal cursor-pointer">Lavaplatos</Label>
-                                    </div>
-                                    {item.kitchenConfig?.island.incluyeLavaplatos && (
-                                      <div className="flex items-center gap-2 pl-6">
-                                        <Label className="text-xs text-white/60">Precio:</Label>
-                                        <Input type="number" step="1000"
-                                          value={item.kitchenConfig?.island.lavaprecio ?? ""}
-                                          onChange={(e) => updateKitchenConfig(index, "island.lavaprecio", parseFloat(e.target.value) || undefined)}
-                                          placeholder="130,000" className="h-7 w-28 text-xs" />
-                                      </div>
-                                    )}
-                                  </div>
+                                  <LavaplatosSelector
+                                    value={item.kitchenConfig?.island as any}
+                                    onChange={(tipo, precio) => updateKitchenConfig(index, "__multi", { "island.lavaplatosTipo": tipo, "island.lavaprecio": precio })}
+                                  />
                                   {/* LED isla */}
                                   <div className="space-y-1">
                                     <div className="flex items-center space-x-2">
@@ -3914,59 +3776,68 @@ export default function Quotations() {
                                       </Select>
                                     </div>
                                   </div>
-                                  {/* Lateral con altura configurable */}
+                                  {/* Herraje de hierro: armazón anclado a pared y suelo que sostiene el mesón y el lateral (viene marcado) */}
                                   <div className="space-y-1">
                                     <div className="flex items-center space-x-2">
                                       <input
                                         type="checkbox"
-                                        id={`barLateral-${index}`}
-                                        checked={item.kitchenConfig?.bar.hasLateral || false}
-                                        onChange={(e) => updateKitchenConfig(index, "bar.hasLateral", e.target.checked)}
+                                        id={`barHerraje-${index}`}
+                                        checked={item.kitchenConfig?.bar.incluyeHerraje || false}
+                                        onChange={(e) => updateKitchenConfig(index, "bar.incluyeHerraje", e.target.checked)}
                                         className="h-4 w-4"
                                       />
-                                      <Label htmlFor={`barLateral-${index}`} className="text-sm font-normal cursor-pointer">
-                                        Incluir lateral
+                                      <Label htmlFor={`barHerraje-${index}`} className="text-sm font-normal cursor-pointer">
+                                        Herraje de hierro (armazón a pared y suelo) — {formatPrice(getPrice('BARRA_HERRAJE'))} por 1,20 m (proporcional al largo)
                                       </Label>
                                     </div>
-                                    {item.kitchenConfig?.bar.hasLateral && (
-                                      <div className="flex items-center gap-2 pl-6">
-                                        <Label className="text-sm text-white/70">Altura:</Label>
-                                        <Input
-                                          type="number"
-                                          step="1"
-                                          value={item.kitchenConfig?.bar.barraAlturaLateral ?? 90}
-                                          onChange={(e) => updateKitchenConfig(index, "bar.barraAlturaLateral", parseInt(e.target.value) || 90)}
-                                          className="h-8 w-20"
-                                        />
-                                        <span className="text-sm text-white/60">cm</span>
+                                    {item.kitchenConfig?.bar.incluyeHerraje && (
+                                      <div className="pl-6 space-y-1">
+                                        <div className="flex items-center gap-2">
+                                          <Label className="text-sm text-white/70">Altura de la barra:</Label>
+                                          <Input
+                                            type="number"
+                                            step="1"
+                                            value={item.kitchenConfig?.bar.barraAlturaLateral ?? 90}
+                                            onChange={(e) => updateKitchenConfig(index, "bar.barraAlturaLateral", parseInt(e.target.value) || 90)}
+                                            className="h-8 w-20"
+                                          />
+                                          <span className="text-sm text-white/60">cm</span>
+                                        </div>
+                                        <p className="text-[11px] text-white/45">
+                                          Con herraje la piedra lleva: largo de la barra + lateral + regrueso interior (los dos de la altura indicada).
+                                          Herraje de {item.kitchenConfig?.bar.meters || 0} ml: {formatPrice(precioHerrajeBarra(item.kitchenConfig?.bar.meters || 0))}.
+                                        </p>
                                       </div>
                                     )}
                                   </div>
-                                  {/* Pedestal metálico */}
-                                  <div className="flex items-center space-x-2">
-                                    <input
-                                      type="checkbox"
-                                      id={`barPedestal-${index}`}
-                                      checked={item.kitchenConfig?.bar.incluyePedestal || false}
-                                      onChange={(e) => updateKitchenConfig(index, "bar.incluyePedestal", e.target.checked)}
-                                      className="h-4 w-4"
-                                    />
-                                    <Label htmlFor={`barPedestal-${index}`} className="text-sm font-normal cursor-pointer">
-                                      Pedestal metálico (+$250,000)
-                                    </Label>
-                                  </div>
-                                  {/* Herraje de barra */}
-                                  <div className="flex items-center space-x-2">
-                                    <input
-                                      type="checkbox"
-                                      id={`barHerraje-${index}`}
-                                      checked={item.kitchenConfig?.bar.incluyeHerraje || false}
-                                      onChange={(e) => updateKitchenConfig(index, "bar.incluyeHerraje", e.target.checked)}
-                                      className="h-4 w-4"
-                                    />
-                                    <Label htmlFor={`barHerraje-${index}`} className="text-sm font-normal cursor-pointer">
-                                      Herraje de barra (+$380,000)
-                                    </Label>
+                                  {/* Pedestal: una pata metálica que sostiene la barra; con pedestal solo lleva el mesón superior (sin lateral) */}
+                                  <div className="space-y-1">
+                                    <div className="flex items-center space-x-2">
+                                      <input
+                                        type="checkbox"
+                                        id={`barPedestal-${index}`}
+                                        checked={item.kitchenConfig?.bar.incluyePedestal || false}
+                                        onChange={(e) => updateKitchenConfig(index, "bar.incluyePedestal", e.target.checked)}
+                                        className="h-4 w-4"
+                                      />
+                                      <Label htmlFor={`barPedestal-${index}`} className="text-sm font-normal cursor-pointer">
+                                        Pedestal (pata metálica) — {formatPrice(getPrice('BARRA_PEDESTAL'))} c/u
+                                      </Label>
+                                    </div>
+                                    {item.kitchenConfig?.bar.incluyePedestal && (
+                                      <div className="flex items-center gap-2 pl-6">
+                                        <Label className="text-sm text-white/70">Cantidad:</Label>
+                                        <Input
+                                          type="number" min="1" step="1"
+                                          value={item.kitchenConfig?.bar.cantPedestales ?? 1}
+                                          onChange={(e) => updateKitchenConfig(index, "bar.cantPedestales", Math.max(1, parseInt(e.target.value) || 1))}
+                                          className="h-8 w-20"
+                                        />
+                                      </div>
+                                    )}
+                                    {item.kitchenConfig?.bar.incluyePedestal && !item.kitchenConfig?.bar.incluyeHerraje && (
+                                      <p className="pl-6 text-[11px] text-white/45">Con pedestal y sin herraje la barra lleva solo el mesón superior (sin lateral).</p>
+                                    )}
                                   </div>
                                   {/* Mesón importado */}
                                   {item.kitchenConfig?.bar.countertopType && (

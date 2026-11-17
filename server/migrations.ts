@@ -159,6 +159,38 @@ export async function runMigrations() {
       name: "elena_conocimiento_1",
       sql: `CREATE TABLE IF NOT EXISTS "elenaConocimiento" ("id" serial PRIMARY KEY, "titulo" varchar(200) NOT NULL, "categoria" varchar(40) NOT NULL DEFAULT 'info', "contenido" text NOT NULL, "activo" integer NOT NULL DEFAULT 1, "updatedBy" integer REFERENCES "users"("id"), "createdAt" timestamp NOT NULL DEFAULT now(), "updatedAt" timestamp NOT NULL DEFAULT now())`,
     },
+    {
+      // Mesones y barras (17 nov 2026). SOLO agrega precios que no existen y ajusta UNA vez el granito a $750.000 (decisión de Álvaro).
+      // Nunca pisa un precio que Álvaro edite después: el cambio del granito queda marcado en appFlags.
+      name: "meson_precios_17nov2026",
+      sql: `DO $$ BEGIN
+        IF NOT EXISTS (SELECT 1 FROM "appFlags" WHERE "name" = 'meson_granito_750') THEN
+          UPDATE "pricingConfig" SET "value" = 750000, "updatedAt" = now() WHERE "code" = 'MESON_GRANITO' AND "value" = 700000;
+          INSERT INTO "appFlags" ("name") VALUES ('meson_granito_750');
+        END IF;
+        INSERT INTO "pricingConfig" ("category", "code", "name", "description", "value", "unit", "sortOrder")
+          SELECT 'mesones', 'LAVAPLATOS_SENCILLO', 'Lavaplatos sencillo (incluye pegado)', 'Lavaplatos sencillo con pegado en mesones de piedra.', 180000, 'unidad', 20
+          WHERE NOT EXISTS (SELECT 1 FROM "pricingConfig" WHERE "code" = 'LAVAPLATOS_SENCILLO');
+        INSERT INTO "pricingConfig" ("category", "code", "name", "description", "value", "unit", "sortOrder")
+          SELECT 'mesones', 'LAVAPLATOS_DOBLE', 'Lavaplatos doble (incluye pegado)', 'Lavaplatos doble con pegado en mesones de piedra.', 700000, 'unidad', 21
+          WHERE NOT EXISTS (SELECT 1 FROM "pricingConfig" WHERE "code" = 'LAVAPLATOS_DOBLE');
+        INSERT INTO "pricingConfig" ("category", "code", "name", "description", "value", "unit", "sortOrder")
+          SELECT 'extras', 'BARRA_PEDESTAL', 'Pedestal de barra (pata metálica)', 'Por unidad. Con pedestal la barra lleva solo el mesón superior.', COALESCE((SELECT "value" FROM "pricingConfig" WHERE "code" = 'PIEZA_BARRA_PEDESTAL' LIMIT 1), 250000), 'unidad', 22
+          WHERE NOT EXISTS (SELECT 1 FROM "pricingConfig" WHERE "code" = 'BARRA_PEDESTAL');
+        INSERT INTO "pricingConfig" ("category", "code", "name", "description", "value", "unit", "sortOrder")
+          SELECT 'extras', 'BARRA_HERRAJE', 'Herraje de barra (armazón de hierro) para 1,20 m', 'Se cobra proporcional al largo de la barra. Con herraje la piedra lleva lateral y regrueso interior.', COALESCE((SELECT "value" FROM "pricingConfig" WHERE "code" = 'PIEZA_BARRA_HERRAJE' LIMIT 1), 380000), 'unidad', 23
+          WHERE NOT EXISTS (SELECT 1 FROM "pricingConfig" WHERE "code" = 'BARRA_HERRAJE');
+        INSERT INTO "pricingConfig" ("category", "code", "name", "description", "value", "unit", "sortOrder")
+          SELECT 'extras', 'RECARGO_PIEZA_SUELTA', 'Recargo por mueble suelto (solo superiores / inferiores y Piezas de cocina)', 'Porcentaje sobre el precio por ml de la categoría de la cocina cuando el mueble alto o bajo se vende solo.', 15, '%', 90
+          WHERE NOT EXISTS (SELECT 1 FROM "pricingConfig" WHERE "code" = 'RECARGO_PIEZA_SUELTA');
+        INSERT INTO "pricingConfig" ("category", "code", "name", "description", "value", "unit", "sortOrder")
+          SELECT 'extras', 'RECARGO_PIEZA_FIJA', 'Recargo por nicho / alacena / torre vendidos como pieza sola', 'Porcentaje sobre el precio que tienen dentro de la cocina.', 10, '%', 91
+          WHERE NOT EXISTS (SELECT 1 FROM "pricingConfig" WHERE "code" = 'RECARGO_PIEZA_FIJA');
+        INSERT INTO "pricingConfig" ("category", "code", "name", "description", "value", "unit", "sortOrder")
+          SELECT 'cocina_base', 'PIEZA_ISLA_MADERA_ML', 'Isla: madera por ml (lleva cajoneras)', 'Madera de la isla, dentro de la cocina y como pieza.', 1200000, 'ml', 30
+          WHERE NOT EXISTS (SELECT 1 FROM "pricingConfig" WHERE "code" = 'PIEZA_ISLA_MADERA_ML');
+      END $$`,
+    },
   ];
 
   for (const m of migrations) {

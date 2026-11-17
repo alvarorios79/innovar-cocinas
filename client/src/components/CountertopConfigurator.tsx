@@ -7,36 +7,37 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Layers, Calculator, Plus, Trash2 } from "lucide-react";
 
-// Precios base
-const BASE_PRICES = {
-  quarzo: {
-    standard: 850000,
-    barraAngosta: 600000,
-  },
-  sinterizado: {
-    standard: 1200000,
-    barraAngosta: 1000000,
-  },
-};
+// Precios y reglas: UNA sola fuente en shared/mesonPrecios.ts (piedra, fondo, barra angosta, lavaplatos, laterales, hierros de barra)
+import { precioPiedraML, multiplicadorFondoCm, precioLavaplatos, hierrosBarra, LATERAL_ML, type LavaplatosTipo } from "@shared/mesonPrecios";
+import { LavaplatosSelector } from "@/components/LavaplatosSelector";
 
 // Constantes
-const LAVAPLATOS_COST = 130000; // Solo aplica para mesón estándar
-const ISLA_LATERALES_ML = 1.8;
-const ISLA_REGRUESO_ML = 0.9;
+const LAVAPLATOS_COST_ANTIGUO = 130000; // solo para sub-mesones guardados antes del 17 nov 2026
 
 // Configuración de un sub-mesón individual
 export interface SubMesonConfig {
   id: string;
-  material: "quarzo" | "sinterizado";
+  material: "granito" | "quarzo" | "sinterizado";
   tipo: "meson" | "isla" | "barra";
   metrosLineales: number;
   fondo: number;
   precioML: number;
+  /** Importado: el precio por ml se escribe a mano porque es distinto al del Motor */
+  esImportado?: boolean;
   // Isla
-  incluyeLaterales: boolean;
+  incluyeLaterales: boolean;      // antiguo: marcada = 2 laterales
+  cantLaterales?: number;         // 0, 1 o 2 laterales de 0,90 ml
   incluyeRegrueso: boolean;
-  // Barra
-  alturaLateral: number; // 0, 90, 100, 110
+  // Barra (regla del 17 nov 2026): herraje = lateral + regrueso interior; pedestal = solo mesón superior
+  alturaLateral: number;          // altura de la barra en cm
+  incluyeHerraje?: boolean;
+  incluyePedestal?: boolean;
+  cantPedestales?: number;
+  // Mesón estándar: lavaplatos sencillo / doble / otro
+  lavaplatosTipo?: LavaplatosTipo;
+  lavaprecio?: number;
+  /** true = sub-mesón creado/actualizado con las reglas nuevas; los antiguos conservan su cálculo hasta que se editen */
+  reglaV2?: boolean;
   // Salpicadero alto (duplica metraje)
   incluyeSalpicaderoAlto: boolean;
   // Calculados
@@ -45,6 +46,7 @@ export interface SubMesonConfig {
   subtotalRegrueso: number;
   subtotalLavaplatos: number;
   subtotalSalpicaderoAlto: number;
+  subtotalHierros?: number;
   subtotal: number;
 }
 
@@ -71,106 +73,106 @@ function createDefaultSubMeson(tipo: "meson" | "isla" | "barra" = "meson"): SubM
     material: "quarzo",
     tipo,
     metrosLineales: 1,
-    fondo: 60,
-    precioML: BASE_PRICES.quarzo.standard,
-    incluyeLaterales: tipo === "isla",
+    fondo: tipo === "barra" ? 40 : 60,
+    precioML: precioPiedraML("quarzo", tipo === "barra"),
+    esImportado: false,
+    incluyeLaterales: false,
+    cantLaterales: tipo === "isla" ? 2 : 0,
     incluyeRegrueso: tipo === "isla",
     alturaLateral: tipo === "barra" ? 90 : 0,
+    incluyeHerraje: tipo === "barra",
+    incluyePedestal: false,
+    cantPedestales: 1,
+    lavaplatosTipo: tipo === "meson" ? "sencillo" : "ninguno",
+    lavaprecio: 0,
+    reglaV2: true,
     incluyeSalpicaderoAlto: false,
     subtotalMeson: 0,
     subtotalLaterales: 0,
     subtotalRegrueso: 0,
-    subtotalLavaplatos: tipo === "meson" ? LAVAPLATOS_COST : 0,
+    subtotalLavaplatos: 0,
     subtotalSalpicaderoAlto: 0,
+    subtotalHierros: 0,
     subtotal: 0,
   };
 }
 
+const mesonInicial = calcularSubMeson(createDefaultSubMeson("meson"));
 export const defaultCountertopConfig: CountertopConfig = {
-  mesones: [createDefaultSubMeson("meson")],
-  total: 0,
+  mesones: [mesonInicial],
+  total: mesonInicial.subtotal,
   notes: "",
   includeTransport: false,
   transportCost: 150000,
 };
 
-// Calcular multiplicador por fondo
-function getMultiplicadorFondo(fondo: number, tipo: string): number {
-  if (tipo === "barra" && fondo >= 35 && fondo <= 45) {
-    return 1; // Precio especial para barra angosta, sin multiplicador
-  }
+// ── Cálculo ANTIGUO (sub-mesones guardados antes del 17 nov 2026): se conserva igual hasta que se editen ──
+function multiplicadorFondoAntiguo(fondo: number, tipo: string): number {
+  if (tipo === "barra" && fondo >= 35 && fondo <= 45) return 1;
   if (fondo >= 55 && fondo <= 65) return 1;
   if (fondo >= 66 && fondo <= 90) return 1.3;
   if (fondo >= 91 && fondo <= 120) return 2;
   return 1;
 }
-
-// Obtener precio base según material, tipo y fondo
-function getPrecioBase(material: "quarzo" | "sinterizado", tipo: string, fondo: number): number {
-  if (tipo === "barra" && fondo >= 35 && fondo <= 45) {
-    return BASE_PRICES[material].barraAngosta;
-  }
-  return BASE_PRICES[material].standard;
-}
-
-// Calcular subtotales de un sub-mesón
-function calcularSubMeson(meson: SubMesonConfig): SubMesonConfig {
-  const multiplicador = getMultiplicadorFondo(meson.fondo, meson.tipo);
+function calcularSubMesonAntiguo(meson: SubMesonConfig): SubMesonConfig {
+  const multiplicador = multiplicadorFondoAntiguo(meson.fondo, meson.tipo);
   const precioBase = meson.precioML;
-  
-  // Subtotal mesón principal
   meson.subtotalMeson = meson.metrosLineales * precioBase * multiplicador;
-  
-  // Subtotales para isla
+  meson.subtotalHierros = 0;
   if (meson.tipo === "isla") {
-    if (meson.incluyeLaterales) {
-      meson.subtotalLaterales = ISLA_LATERALES_ML * precioBase * multiplicador;
-    } else {
-      meson.subtotalLaterales = 0;
-    }
-    if (meson.incluyeRegrueso) {
-      meson.subtotalRegrueso = ISLA_REGRUESO_ML * precioBase; // Regrueso siempre a 60cm
-    } else {
-      meson.subtotalRegrueso = 0;
-    }
-    // Isla NO lleva lavaplatos ni salpicadero
+    meson.subtotalLaterales = meson.incluyeLaterales ? 1.8 * precioBase * multiplicador : 0;
+    meson.subtotalRegrueso = meson.incluyeRegrueso ? 0.9 * precioBase : 0;
     meson.subtotalLavaplatos = 0;
     meson.subtotalSalpicaderoAlto = 0;
   } else if (meson.tipo === "barra") {
-    // Barra: lateral si está configurado
-    if (meson.alturaLateral > 0) {
-      const lateralML = meson.alturaLateral / 100;
-      meson.subtotalLaterales = lateralML * precioBase * multiplicador;
-    } else {
-      meson.subtotalLaterales = 0;
-    }
+    meson.subtotalLaterales = meson.alturaLateral > 0 ? (meson.alturaLateral / 100) * precioBase * multiplicador : 0;
     meson.subtotalRegrueso = 0;
-    // Barra NO lleva lavaplatos
     meson.subtotalLavaplatos = 0;
-    // Barra SÍ puede llevar salpicadero alto
-    if (meson.incluyeSalpicaderoAlto) {
-      meson.subtotalSalpicaderoAlto = meson.metrosLineales * precioBase * multiplicador;
-    } else {
-      meson.subtotalSalpicaderoAlto = 0;
-    }
+    meson.subtotalSalpicaderoAlto = meson.incluyeSalpicaderoAlto ? meson.metrosLineales * precioBase * multiplicador : 0;
   } else {
-    // Mesón estándar
     meson.subtotalLaterales = 0;
     meson.subtotalRegrueso = 0;
-    // Mesón estándar SÍ lleva lavaplatos
-    meson.subtotalLavaplatos = LAVAPLATOS_COST;
-    // Mesón estándar puede llevar salpicadero alto
-    if (meson.incluyeSalpicaderoAlto) {
-      meson.subtotalSalpicaderoAlto = meson.metrosLineales * precioBase * multiplicador;
-    } else {
-      meson.subtotalSalpicaderoAlto = 0;
-    }
+    meson.subtotalLavaplatos = LAVAPLATOS_COST_ANTIGUO;
+    meson.subtotalSalpicaderoAlto = meson.incluyeSalpicaderoAlto ? meson.metrosLineales * precioBase * multiplicador : 0;
   }
-  
-  // Subtotal del mesón
   meson.subtotal = meson.subtotalMeson + meson.subtotalLaterales + meson.subtotalRegrueso + meson.subtotalLavaplatos + meson.subtotalSalpicaderoAlto;
-  
   return meson;
+}
+
+// ── Cálculo NUEVO (reglas del 17 nov 2026) ──
+function calcularSubMesonNuevo(meson: SubMesonConfig): SubMesonConfig {
+  const esBarra = meson.tipo === "barra";
+  // Barra: siempre angosta, sin recargo de fondo. Mesón/isla: fondo ≤65 sin recargo · 66–90 +30 % · más de 90 ×2.
+  const mult = esBarra ? 1 : multiplicadorFondoCm(meson.fondo);
+  const precioBase = meson.precioML; // del Motor, o escrito a mano si es importado
+  meson.subtotalMeson = meson.metrosLineales * precioBase * mult;
+  meson.subtotalRegrueso = 0;
+  meson.subtotalLaterales = 0;
+  meson.subtotalLavaplatos = 0;
+  meson.subtotalSalpicaderoAlto = 0;
+  meson.subtotalHierros = 0;
+  if (meson.tipo === "isla") {
+    const nLat = typeof meson.cantLaterales === "number" ? meson.cantLaterales : (meson.incluyeLaterales ? 2 : 0);
+    meson.subtotalLaterales = nLat * LATERAL_ML * precioBase * mult;
+    meson.subtotalRegrueso = meson.incluyeRegrueso ? LATERAL_ML * precioBase : 0;
+  } else if (esBarra) {
+    // Con herraje: lateral + regrueso interior (misma medida = altura de la barra). Con pedestal solo el mesón superior.
+    if (meson.incluyeHerraje) {
+      const alturaM = (meson.alturaLateral > 0 ? meson.alturaLateral : 90) / 100;
+      meson.subtotalLaterales = 2 * alturaM * precioBase;
+    }
+    meson.subtotalSalpicaderoAlto = meson.incluyeSalpicaderoAlto ? meson.metrosLineales * precioBase : 0;
+    meson.subtotalHierros = hierrosBarra({ reglaV2: true, incluyePedestal: meson.incluyePedestal, cantPedestales: meson.cantPedestales, incluyeHerraje: meson.incluyeHerraje, meters: meson.metrosLineales });
+  } else {
+    meson.subtotalLavaplatos = precioLavaplatos(meson);
+    meson.subtotalSalpicaderoAlto = meson.incluyeSalpicaderoAlto ? meson.metrosLineales * precioBase * mult : 0;
+  }
+  meson.subtotal = meson.subtotalMeson + meson.subtotalLaterales + meson.subtotalRegrueso + meson.subtotalLavaplatos + meson.subtotalSalpicaderoAlto + (meson.subtotalHierros || 0);
+  return meson;
+}
+
+function calcularSubMeson(meson: SubMesonConfig): SubMesonConfig {
+  return meson.reglaV2 ? calcularSubMesonNuevo(meson) : calcularSubMesonAntiguo(meson);
 }
 
 export function CountertopConfigurator({ config, onChange }: CountertopConfiguratorProps) {
@@ -184,40 +186,62 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
   };
 
   // Actualizar un sub-mesón específico
-  const handleSubMesonChange = (index: number, field: keyof SubMesonConfig, value: any) => {
+  const handleSubMesonChange = (index: number, field: keyof SubMesonConfig | "lavaplatos", value: any) => {
     const newMesones = [...config.mesones];
-    let meson = { ...newMesones[index], [field]: value };
-    
-    // Actualizar precio base cuando cambia material o tipo
-    if (field === "material" || field === "tipo" || field === "fondo") {
-      const material = field === "material" ? value : meson.material;
-      const tipo = field === "tipo" ? value : meson.tipo;
-      const fondo = field === "fondo" ? value : meson.fondo;
-      meson.precioML = getPrecioBase(material, tipo, fondo);
+    let meson: SubMesonConfig = field === "lavaplatos"
+      ? { ...newMesones[index], lavaplatosTipo: value.tipo, lavaprecio: value.precio }
+      : { ...newMesones[index], [field]: value };
+
+    // Un sub-mesón guardado antes del 17 nov 2026 pasa a las reglas nuevas en cuanto se edita
+    if (!meson.reglaV2) {
+      meson.reglaV2 = true;
+      meson.cantLaterales = meson.cantLaterales ?? (meson.incluyeLaterales ? 2 : 0);
+      meson.lavaplatosTipo = meson.lavaplatosTipo ?? (meson.tipo === "meson" ? "sencillo" : "ninguno");
+      meson.incluyeHerraje = meson.incluyeHerraje ?? (meson.tipo === "barra");
+      meson.cantPedestales = meson.cantPedestales ?? 1;
+      if (meson.tipo === "barra" && !(meson.alturaLateral > 0)) meson.alturaLateral = 90;
+      if (!meson.esImportado) meson.precioML = precioPiedraML(meson.material, meson.tipo === "barra");
     }
-    
-    // Reset valores específicos al cambiar tipo
+
+    // El precio sale del Motor según piedra y tipo; solo se escribe a mano si es importado
+    if ((field === "material" || field === "tipo" || (field === "esImportado" && value === false)) && !meson.esImportado) {
+      meson.precioML = precioPiedraML(meson.material, meson.tipo === "barra");
+    }
+
+    // Valores por defecto al cambiar el tipo
     if (field === "tipo") {
       if (value === "meson") {
-        meson.incluyeLaterales = false;
+        meson.cantLaterales = 0;
         meson.incluyeRegrueso = false;
         meson.alturaLateral = 0;
+        meson.incluyeHerraje = false;
+        meson.incluyePedestal = false;
         meson.incluyeSalpicaderoAlto = false;
+        meson.lavaplatosTipo = "sencillo";
+        if (meson.fondo < 55) meson.fondo = 60;
       } else if (value === "isla") {
-        meson.incluyeLaterales = true;
+        meson.cantLaterales = 2;
         meson.incluyeRegrueso = true;
         meson.alturaLateral = 0;
+        meson.incluyeHerraje = false;
+        meson.incluyePedestal = false;
         meson.incluyeSalpicaderoAlto = false;
+        meson.lavaplatosTipo = "ninguno";
+        if (meson.fondo < 55) meson.fondo = 60;
       } else if (value === "barra") {
-        meson.incluyeLaterales = false;
+        meson.cantLaterales = 0;
         meson.incluyeRegrueso = false;
         meson.alturaLateral = 90;
+        meson.incluyeHerraje = true; // el herraje viene marcado en todas las barras
+        meson.incluyePedestal = false;
         meson.incluyeSalpicaderoAlto = false;
+        meson.lavaplatosTipo = "ninguno";
+        meson.fondo = 40;
       }
     }
-    
+
     newMesones[index] = calcularSubMeson(meson);
-    
+
     onChange({
       ...config,
       mesones: newMesones,
@@ -267,17 +291,20 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
     }
   };
 
-  // Determinar qué incluye cada tipo (considerando salpicadero alto)
+  // Determinar qué incluye cada tipo (considerando salpicadero alto, lavaplatos y soporte de la barra)
   const getIncludedItems = (meson: SubMesonConfig) => {
     if (meson.tipo === "meson") {
+      const nuevo = !!meson.reglaV2;
+      const tieneLav = nuevo ? (meson.lavaplatosTipo && meson.lavaplatosTipo !== "ninguno") : true;
+      const lavTexto = nuevo
+        ? (meson.lavaplatosTipo === "doble" ? "Lavaplatos doble" : meson.lavaplatosTipo === "sencillo" ? "Lavaplatos sencillo 45×37cm" : "Lavaplatos")
+        : "Lavaplatos 45×37cm";
       const items = [
-        { text: `Pegado lavaplatos (${formatPrice(LAVAPLATOS_COST)})`, included: true },
-        { text: "Lavaplatos 45×37cm incluido", included: true },
+        ...(tieneLav ? [{ text: `Pegado de lavaplatos (${formatPrice(meson.subtotalLavaplatos)})`, included: true }, { text: `${lavTexto} incluido`, included: true }] : []),
         { text: "Regrueso en el visto", included: true },
       ];
-      // Solo mostrar salpicadero bajo si NO tiene salpicadero alto
       if (!meson.incluyeSalpicaderoAlto) {
-        items.splice(2, 0, { text: "Salpicadero bajo 10cm", included: true });
+        items.push({ text: "Salpicadero bajo 10cm", included: true });
       }
       return items;
     } else if (meson.tipo === "isla") {
@@ -285,12 +312,16 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
         { text: "Regrueso en el visto", included: true },
       ];
     } else {
-      // Barra: solo mostrar salpicadero bajo si NO tiene salpicadero alto
       const items = [
         { text: "Regrueso en los vistos", included: true },
       ];
       if (!meson.incluyeSalpicaderoAlto) {
         items.unshift({ text: "Salpicadero bajo 10cm", included: true });
+      }
+      if (meson.reglaV2) {
+        if (meson.incluyeHerraje) items.push({ text: `Lateral y regrueso interior de ${meson.alturaLateral || 90} cm + herraje de hierro`, included: true });
+        else items.push({ text: "Solo mesón superior (sin lateral)", included: true });
+        if (meson.incluyePedestal) items.push({ text: `${meson.cantPedestales && meson.cantPedestales > 1 ? meson.cantPedestales + " pedestales" : "Pedestal"} metálico`, included: true });
       }
       return items;
     }
@@ -340,7 +371,7 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
 
       {/* Lista de mesones */}
       {config.mesones.map((meson, index) => {
-        const multiplicador = getMultiplicadorFondo(meson.fondo, meson.tipo);
+        const multiplicador = meson.reglaV2 ? (meson.tipo === "barra" ? 1 : multiplicadorFondoCm(meson.fondo)) : multiplicadorFondoAntiguo(meson.fondo, meson.tipo);
         const multiplicadorTexto = multiplicador === 1 ? "Normal" : multiplicador === 1.3 ? "+30%" : "Doble";
         const includedItems = getIncludedItems(meson);
         const showSalpicaderoAltoOption = meson.tipo === "meson" || meson.tipo === "barra";
@@ -383,12 +414,13 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
 
               <div className="space-y-1">
                 <Label className="text-xs font-medium">Material</Label>
-                <Select value={meson.material} onValueChange={(v) => handleSubMesonChange(index, "material", v as "quarzo" | "sinterizado")}>
+                <Select value={meson.material} onValueChange={(v) => handleSubMesonChange(index, "material", v as "granito" | "quarzo" | "sinterizado")}>
                   <SelectTrigger className="h-9">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="quarzo">Quarzo</SelectItem>
+                    <SelectItem value="granito">Granito</SelectItem>
+                    <SelectItem value="quarzo">Cuarzo</SelectItem>
                     <SelectItem value="sinterizado">Sinterizado</SelectItem>
                   </SelectContent>
                 </Select>
@@ -411,19 +443,26 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
 
               <div className="space-y-1">
                 <Label className="text-xs font-medium">Fondo (cm)</Label>
-                <Input
-                  type="number"
-                  min={meson.tipo === "barra" ? 35 : 55}
-                  max="120"
-                  value={meson.fondo}
-                  onChange={(e) => handleSubMesonChange(index, "fondo", parseInt(e.target.value) || 60)}
-                  className="h-9"
-                />
-                <p className="text-[10px] text-white/45">
-                  {meson.tipo === "barra" && meson.fondo >= 35 && meson.fondo <= 45 
-                    ? "Barra angosta" 
-                    : `Recargo: ${multiplicadorTexto}`}
-                </p>
+                {meson.tipo === "barra" && meson.reglaV2 ? (
+                  <>
+                    <div className="h-9 flex items-center px-2 bg-white/[0.04] rounded-md text-sm text-white/70">35–45 (angosta)</div>
+                    <p className="text-[10px] text-white/45">La barra siempre es angosta; si es menos de 35 cm se cobra igual.</p>
+                  </>
+                ) : (
+                  <>
+                    <Input
+                      type="number"
+                      min="55"
+                      max="120"
+                      value={meson.fondo}
+                      onChange={(e) => handleSubMesonChange(index, "fondo", parseInt(e.target.value) || 60)}
+                      className="h-9"
+                    />
+                    <p className="text-[10px] text-white/45">
+                      {meson.fondo > 120 ? "Más de 120 cm: se cobra ×2; consultar" : `Recargo: ${multiplicadorTexto}`}
+                    </p>
+                  </>
+                )}
               </div>
 
               <div className="space-y-1">
@@ -431,9 +470,18 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
                 <Input
                   type="number"
                   value={meson.precioML}
+                  disabled={!meson.esImportado}
                   onChange={(e) => handleSubMesonChange(index, "precioML", parseInt(e.target.value) || 0)}
                   className="h-9"
                 />
+                <label className="flex items-center gap-1.5 text-[11px] text-white/70 cursor-pointer">
+                  <Checkbox
+                    id={`importado-${meson.id}`}
+                    checked={!!meson.esImportado}
+                    onCheckedChange={(checked) => handleSubMesonChange(index, "esImportado", checked === true)}
+                  />
+                  Importado (precio a mano)
+                </label>
               </div>
 
               <div className="space-y-1">
@@ -450,16 +498,18 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
                 <h5 className="text-xs font-medium text-red-400">Opciones de Isla</h5>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                   <div className="flex items-center gap-2 p-2 bg-card rounded text-sm">
-                    <Checkbox
-                      id={`laterales-${meson.id}`}
-                      checked={meson.incluyeLaterales}
-                      onCheckedChange={(checked) => handleSubMesonChange(index, "incluyeLaterales", checked)}
-                    />
-                    <div className="flex-1">
-                      <Label htmlFor={`laterales-${meson.id}`} className="text-xs cursor-pointer">
-                        Laterales (1.8 ML)
-                      </Label>
-                    </div>
+                    <Label className="text-xs flex-1">Laterales (0,9 ML c/u)</Label>
+                    <Select
+                      value={String(typeof meson.cantLaterales === "number" ? meson.cantLaterales : (meson.incluyeLaterales ? 2 : 0))}
+                      onValueChange={(v) => handleSubMesonChange(index, "cantLaterales", parseInt(v) || 0)}
+                    >
+                      <SelectTrigger className="h-8 w-28 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">Ninguno</SelectItem>
+                        <SelectItem value="1">1 lateral</SelectItem>
+                        <SelectItem value="2">2 laterales</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <span className="font-semibold text-red-400 text-xs">{formatPrice(meson.subtotalLaterales)}</span>
                   </div>
 
@@ -483,35 +533,53 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
             {/* Opciones de Barra */}
             {meson.tipo === "barra" && (
               <div className="p-2 bg-white/[0.04] rounded space-y-2">
-                <h5 className="text-xs font-medium text-red-400">Opciones de Barra</h5>
+                <h5 className="text-xs font-medium text-red-400">Soporte de la barra</h5>
+                <p className="text-[10px] text-white/45">Con herraje la piedra lleva: largo + lateral + regrueso interior (según la altura). Con pedestal solo lleva el mesón superior, sin lateral.</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  <div className="space-y-1">
-                    <Label className="text-xs font-medium">Altura del Lateral</Label>
-                    <Select 
-                      value={meson.alturaLateral.toString()} 
-                      onValueChange={(v) => handleSubMesonChange(index, "alturaLateral", parseInt(v))}
-                    >
-                      <SelectTrigger className="h-9 bg-card">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="0">Sin lateral</SelectItem>
-                        <SelectItem value="90">90 cm</SelectItem>
-                        <SelectItem value="100">100 cm</SelectItem>
-                        <SelectItem value="110">110 cm</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {meson.alturaLateral > 0 && (
-                    <div className="flex items-center gap-2 p-2 bg-card rounded">
-                      <div className="flex-1">
-                        <Label className="text-xs">Lateral ({meson.alturaLateral}cm)</Label>
-                      </div>
-                      <span className="font-semibold text-red-400 text-xs">{formatPrice(meson.subtotalLaterales)}</span>
+                  <div className="p-2 bg-card rounded space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Checkbox id={`herraje-${meson.id}`} checked={!!meson.incluyeHerraje}
+                        onCheckedChange={(c) => handleSubMesonChange(index, "incluyeHerraje", c === true)} />
+                      <Label htmlFor={`herraje-${meson.id}`} className="text-xs cursor-pointer flex-1">Herraje de hierro (armazón a pared y suelo)</Label>
+                      <span className="font-semibold text-red-400 text-xs">{formatPrice(hierrosBarra({ reglaV2: true, incluyeHerraje: !!meson.incluyeHerraje, meters: meson.metrosLineales }))}</span>
                     </div>
-                  )}
+                    {meson.incluyeHerraje && (
+                      <div className="flex items-center gap-2 pl-6">
+                        <Label className="text-xs">Altura de la barra (cm)</Label>
+                        <Input type="number" min="0" step="1" value={meson.alturaLateral || ""}
+                          onChange={(e) => handleSubMesonChange(index, "alturaLateral", parseInt(e.target.value) || 0)}
+                          className="h-8 w-24" />
+                        <span className="font-semibold text-red-400 text-xs">{formatPrice(meson.subtotalLaterales)}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-2 bg-card rounded space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Checkbox id={`pedestal-${meson.id}`} checked={!!meson.incluyePedestal}
+                        onCheckedChange={(c) => handleSubMesonChange(index, "incluyePedestal", c === true)} />
+                      <Label htmlFor={`pedestal-${meson.id}`} className="text-xs cursor-pointer flex-1">Pedestal (pata metálica)</Label>
+                    </div>
+                    {meson.incluyePedestal && (
+                      <div className="flex items-center gap-2 pl-6">
+                        <Label className="text-xs">Cantidad</Label>
+                        <Input type="number" min="1" step="1" value={meson.cantPedestales || 1}
+                          onChange={(e) => handleSubMesonChange(index, "cantPedestales", Math.max(1, parseInt(e.target.value) || 1))}
+                          className="h-8 w-20" />
+                      </div>
+                    )}
+                  </div>
                 </div>
+              </div>
+            )}
+
+            {/* Lavaplatos del mesón estándar: sencillo, doble u otro */}
+            {meson.tipo === "meson" && (
+              <div className="p-2 bg-white/[0.04] rounded">
+                <LavaplatosSelector
+                  value={meson.lavaplatosTipo === undefined ? { lavaplatosTipo: "otro", lavaprecio: LAVAPLATOS_COST_ANTIGUO } : meson}
+                  onChange={(tipo, precio) => handleSubMesonChange(index, "lavaplatos", { tipo, precio })}
+                />
+                <p className="text-[10px] text-white/45 mt-1">Subtotal lavaplatos: {formatPrice(meson.subtotalLavaplatos)}</p>
               </div>
             )}
 
@@ -597,7 +665,7 @@ export function CountertopConfigurator({ config, onChange }: CountertopConfigura
         <div className="space-y-1 text-sm">
           {config.mesones.map((meson, index) => (
             <div key={meson.id} className="flex justify-between">
-              <span>{getTipoNombre(meson.tipo)} #{index + 1} ({meson.metrosLineales} ML {meson.material}):</span>
+              <span>{getTipoNombre(meson.tipo)} #{index + 1} ({meson.metrosLineales} ML {meson.material === "quarzo" ? "cuarzo" : meson.material}{meson.esImportado ? " importado" : ""}):</span>
               <span>{formatPrice(meson.subtotal)}</span>
             </div>
           ))}

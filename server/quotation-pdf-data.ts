@@ -6,6 +6,7 @@ import * as db from "./db";
 import { buildKitchenQuoteDescription, appendHouseStandards, specialFinishesLines } from "./kitchen-description";
 import { buildTVQuoteDescription } from "./tv-description";
 import { buildScheme } from "@shared/kitchenPlanScheme";
+import { lineasSubMeson, textoLavaplatos } from "@shared/mesonPrecios";
 
 const r2 = (n: number) => (Math.round((Number(n) || 0) * 100 + 1e-9) / 100).toFixed(2); // 0.245 -> 0.25
 export async function buildQuotationPdfData(quotation: any, client: any, items: any[]) {
@@ -293,33 +294,7 @@ export async function buildQuotationPdfData(quotation: any, client: any, items: 
           lines.push('');
           
           config.mesones.forEach((meson: any, index: number) => {
-            const tipoTexto = meson.tipo === 'meson' ? 'Mesón Estándar' : meson.tipo === 'isla' ? 'Isla' : 'Barra';
-            const materialTexto = meson.material === 'quarzo' ? 'Quarzo' : 'Sinterizado';
-            
-            lines.push(`${index + 1}. ${tipoTexto.toUpperCase()} EN ${materialTexto.toUpperCase()}`);
-            lines.push(`   ${meson.metrosLineales}ML x ${meson.fondo}cm de fondo`);
-            
-            // Incluidos según tipo
-            if (meson.tipo === 'meson') {
-              lines.push('   Incluye: Regrueso en el visto' + (meson.incluyeSalpicaderoAlto ? ', Salpicadero alto' : ', Salpicadero bajo 10cm'));
-              lines.push('   Pegado lavaplatos + Lavaplatos 45x37cm');
-            } else if (meson.tipo === 'isla') {
-              const extras = [];
-              extras.push('Regrueso en el visto');
-              if (meson.incluyeLaterales) extras.push('Laterales (1.8ML)');
-              if (meson.incluyeRegrueso) extras.push('Regrueso adicional (0.9ML)');
-              lines.push(`   Incluye: ${extras.join(', ')}`);
-            } else if (meson.tipo === 'barra') {
-              const extras = [];
-              extras.push('Regrueso en los vistos');
-              if (!meson.incluyeSalpicaderoAlto) extras.push('Salpicadero bajo 10cm');
-              else extras.push('Salpicadero alto');
-              if (meson.alturaLateral > 0) extras.push(`Lateral ${meson.alturaLateral}cm`);
-              lines.push(`   Incluye: ${extras.join(', ')}`);
-            }
-            
-            lines.push(`   Subtotal: ${formatCurrency(meson.subtotal)}`);
-            lines.push('');
+            lines.push(...lineasSubMeson(meson, index, formatCurrency));
           });
           
           if (config.includeTransport && config.transportCost) {
@@ -440,14 +415,19 @@ export async function buildQuotationPdfData(quotation: any, client: any, items: 
             if (cfg.mesonFondo) { const f = cfg.mesonFondo > 5 ? (cfg.mesonFondo / 100).toFixed(2) : cfg.mesonFondo; mesonParts.push(`fondo ${f}m`); }
             lines.push(mesonParts.join(' — '));
             const mesonExtras: string[] = [];
-            if (cfg.mesonIncluyeLaterales) mesonExtras.push('laterales');
+            { const nl = typeof cfg.mesonCantLaterales === 'number' ? cfg.mesonCantLaterales : (cfg.mesonIncluyeLaterales ? 2 : 0); if (nl > 0) mesonExtras.push(nl === 1 ? '1 lateral' : '2 laterales'); }
             if (cfg.mesonIncluyeRegrueso) mesonExtras.push('regrueso');
             if (cfg.mesonIncluyeSalpicaderoAlto) mesonExtras.push('salpicadero alto');
             if (mesonExtras.length > 0) lines.push(`  Extras mesón: ${mesonExtras.join(', ')}`);
-            if (cfg.incluyeLavaplatos) lines.push(`  Lavaplatos y pegado${cfg.lavaprecio ? ' $' + cfg.lavaprecio.toLocaleString('es-CO') : ''}`);
+            { const lv = cfg.lavaplatosTipo === undefined ? (cfg.incluyeLavaplatos ? 'Lavaplatos y pegado' : null) : textoLavaplatos(cfg); if (lv) lines.push('  ' + lv); }
           }
           if (cfg.incluyeLed && cfg.ledML) {
             lines.push(`LED: ${cfg.ledML}ml`);
+          }
+          if (cfg.tipoPieza === 'barra' && cfg.reglaBarraV2) {
+            if (cfg.incluyeHerraje) lines.push(`Herraje de hierro para barra de ${cfg.mesonML}ml (armazón anclado a pared y suelo); lateral y regrueso interior de ${cfg.barraAlturaLateral || 90} cm`);
+            else lines.push('Solo mesón superior (sin lateral)');
+            if (cfg.incluyePedestal) lines.push(`${cfg.cantPedestales > 1 ? cfg.cantPedestales + ' pedestales metálicos' : 'Pedestal metálico'} (pata de soporte)`);
           }
           if (cfg.incluyePintado) {
             lines.push('Incluye pintado');

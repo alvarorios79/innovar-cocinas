@@ -25,7 +25,7 @@ export interface SchemeData {
   warnings: string[];
 }
 
-const LAYOUT_LABELS: Record<string, string> = { lineal: "Lineal", L: "En L", U: "En U", isla: "Con isla", cuadrada: "Cuadrada", otra: "Otra forma" };
+const LAYOUT_LABELS: Record<string, string> = { lineal: "Lineal", L: "En L", U: "En U", paralela: "Paralela", isla: "Con isla", cuadrada: "Cuadrada", otra: "Otra forma" };
 
 export function buildScheme(rawPlan: any, config: any, title = "Cocina integral"): SchemeData | null {
   if (!rawPlan?.enabled) return null;

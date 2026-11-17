@@ -8,6 +8,7 @@
 //   - "• " = viñeta;  "  - " = sub-viñeta.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { textoLavaplatos, cantLateralesIsla, textoLateralesIsla, textoPiedraBarra, precioHerrajeBarra } from "@shared/mesonPrecios";
 import { computePlan, descriptiveFromPlan, kitchenModulesFromPlan, EXTRA_PAINT } from "@shared/kitchenModulePlan";
 
 const toQty = (v: any): number => (typeof v === "boolean" ? (v ? 1 : 0) : Number(v) || 0);
@@ -25,7 +26,7 @@ const CLASS_LABEL: Record<string, string> = {
 };
 
 const LAYOUT_LABEL: Record<string, string> = {
-  L: "en L", U: "en U", lineal: "lineal / recta", cuadrada: "cuadrada / paralela", isla: "con isla central", otra: "otra",
+  L: "en L", U: "en U", lineal: "lineal / recta", paralela: "paralela (dos paredes enfrentadas)", cuadrada: "cuadrada / paralela", isla: "con isla central", otra: "otra",
 };
 
 const STONE: Record<string, string> = { quarzone: "Quarzone", granito: "Granito", sinterizado: "Porcelanato sinterizado", acero: "Acero inoxidable" };
@@ -204,7 +205,7 @@ export function buildKitchenQuoteDescription(rawConfig: any, manualDescription?:
     }
     if (ct.incluyeLaterales) push(`  - ${ct.cantLaterales || 1} lateral${(ct.cantLaterales || 1) > 1 ? "es" : ""} en piedra (${((ct.cantLaterales || 1) * 0.9).toFixed(2)} ml)`);
     if (ct.incluyeRegrueso) push("  - Regrueso adicional (0.90 ml)");
-    if (ct.incluyeLavaplatos) push("  - Pegado de lavaplatos y lavaplatos");
+    { const lv = textoLavaplatos(ct); if (lv) push(`  - ${lv}`); }
   }
 
   // ── Isla ────────────────────────────────────────────────────────────────
@@ -220,11 +221,11 @@ export function buildKitchenQuoteDescription(rawConfig: any, manualDescription?:
       const d = depthText(isl.depthSurcharge);
       push(`• Mesón de isla en ${stoneName(isl.countertopType, isl.esImportado)}${d ? ` (${d})` : ""}`);
       push(isl.incluyeSalpicaderoAlto ? "  - Salpicadero alto y regrueso en el visto" : "  - Incluye salpicadero de 10 cm y regrueso en el visto");
-      const lat = isl.incluyeLateralesIsla ?? isl.hasLaterals;
-      if (lat) push("  - Laterales en piedra");
+      const latTxt = textoLateralesIsla(cantLateralesIsla(isl));
+      if (latTxt) push(`  - ${latTxt}`);
       if (isl.incluyeRegrueso ?? isl.hasLaterals) push("  - Regrueso adicional");
-      if (isl.incluyeLavaplatos) push("  - Lavaplatos y pegado");
     }
+    { const lv = textoLavaplatos(isl); if (lv) push(`  - ${lv}`); }
     if (isl.incluyeLedIsla && isl.ledMLIsla > 0) push(`• Iluminación LED en isla: ${ml(isl.ledMLIsla)}`);
   }
 
@@ -236,10 +237,13 @@ export function buildKitchenQuoteDescription(rawConfig: any, manualDescription?:
     if (bar.countertopType) {
       push(`• Mesón de barra en ${stoneName(bar.countertopType, bar.esImportado)}`);
       push("  - Incluye salpicadero de 10 cm y regrueso en el visto");
+      textoPiedraBarra(bar).forEach((t) => push(`  - ${t}`));
     }
-    if (bar.hasLateral) push(`  - Lateral en piedra (${bar.barraAlturaLateral ?? 90} cm de alto)`);
-    if (bar.incluyePedestal) push("• Pedestal metálico");
-    if (bar.incluyeHerraje) push("• Herraje de barra");
+    if (bar.incluyeHerraje) push(`• Herraje de hierro para barra de ${ml(bar.meters)} (armazón anclado a pared y suelo)`);
+    if (bar.incluyePedestal) {
+      const n = bar.reglaV2 ? Math.max(1, Math.round(bar.cantPedestales || 1)) : 1;
+      push(`• ${n > 1 ? `${n} pedestales metálicos` : "Pedestal metálico"} (pata de soporte)${bar.reglaV2 && !bar.incluyeHerraje ? " — mesón superior sin lateral" : ""}`);
+    }
   }
 
   // ── Iluminación LED (general) ───────────────────────────────────────────

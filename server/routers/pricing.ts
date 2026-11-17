@@ -16,7 +16,9 @@ import { sanitizeText, sanitizeHtml, sanitizeForEmail, sanitizePhone, sanitizeEm
 
 
 // Precios de pintura alto brillo que el plano de módulos necesita en el Motor. Se crean solos (una vez por arranque) si faltan; nunca se sobrescribe uno existente.
-const PLAN_PAINT_PRICES: Array<[string, string, string, number, number]> = [
+const PLAN_PAINT_PRICES: Array<[string, string, string, number, number, string?]> = [
+  ["RECARGO_PIEZA_SUELTA", "Recargo por mueble suelto (solo superiores / inferiores y Piezas de cocina)", "Porcentaje sobre el precio por ml de la categoría de la cocina cuando el mueble alto o bajo se vende solo.", 15, 90, "%"],
+  ["RECARGO_PIEZA_FIJA", "Recargo por nicho / alacena / torre vendidos como pieza sola", "Porcentaje sobre el precio que tienen dentro de la cocina.", 10, 91, "%"],
   ["PINTADO_LATERAL", "Alto Brillo Lateral grande (nicho / alacena)", "Lateral grande de nicho o alacena de piso a techo.", 200000, 14],
   ["PINTADO_LATERAL_ISLA", "Alto Brillo Lateral de isla", "Solo si la isla no lleva laterales de mesón.", 150000, 15],
   ["PINTADO_PUERTA_ELECTRO", "Alto Brillo Puerta lavavajillas / lavadora integrada", "Bajo pedido.", 180000, 16],
@@ -26,10 +28,10 @@ let planPaintPricesEnsured = false;
 async function ensurePlanPaintPrices() {
   if (planPaintPricesEnsured) return;
   planPaintPricesEnsured = true;
-  for (const [code, name, description, value, sortOrder] of PLAN_PAINT_PRICES) {
+  for (const [code, name, description, value, sortOrder, unit] of PLAN_PAINT_PRICES) {
     try {
       const existing = await db.getPricingByCode(code);
-      if (!existing) await db.createPricingConfig({ category: "puertas_tapas", code, name, description, value, unit: "unidad", sortOrder });
+      if (!existing) await db.createPricingConfig({ category: unit === "%" ? "extras" : "puertas_tapas", code, name, description, value, unit: unit || "unidad", sortOrder });
     } catch (e: any) {
       console.error(`[ensurePlanPaintPrices] ${code}:`, String(e?.cause?.message || e?.message || e));
       planPaintPricesEnsured = false; // reintentar en la próxima carga

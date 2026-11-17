@@ -1,4 +1,6 @@
 import { trpc } from "@/lib/trpc";
+import { applyMesonPrices } from "@shared/mesonPrecios";
+import { applyCocinaBase } from "@shared/piezasCocinaPrecios";
 
 // Precios por defecto (fallback si no se cargan de la BD)
 // Sincronizados con el Motor de Cotización INNOVAR — actualizar via /pricing-config
@@ -18,10 +20,9 @@ const DEFAULT_PRICES: Record<string, { value: number; unit: string | null }> = {
   MUEBLE_INFERIOR_ML:   { value: 900000,  unit: "ml" },
 
   // Mesones — fondo estándar (≤60cm)
-  MESON_GRANITO:        { value: 700000,  unit: "ml" },
+  MESON_GRANITO:        { value: 750000,  unit: "ml" },
   MESON_CUARZO:         { value: 850000,  unit: "ml" },
   MESON_SINTERIZADO:    { value: 1200000, unit: "ml" },
-  MESON_ACERO:          { value: 800000,  unit: "ml" },
   MESON_RECARGO_FONDO:  { value: 30,      unit: "%" },   // +30% fondo 61-90cm; ×2 fondo 91-120cm
 
   // Mesones — fondo angosto (ítem independiente de meson)
@@ -30,23 +31,29 @@ const DEFAULT_PRICES: Record<string, { value: number; unit: string | null }> = {
   MESON_SINTERIZADO_ANGOSTA: { value: 1000000, unit: "ml" },
 
   // Extras de mesón
-  LAVAPLATOS_MESON:     { value: 130000,  unit: "unidad" },
+  LAVAPLATOS_MESON:     { value: 130000,  unit: "unidad" },  // antiguo (cotizaciones viejas)
+  LAVAPLATOS_SENCILLO:  { value: 180000,  unit: "unidad" },
+  LAVAPLATOS_DOBLE:     { value: 700000,  unit: "unidad" },
 
   // Muebles Especiales (descuentan metros lineales al precio base)
   NICHO_NEVECON:        { value: 1200000, unit: "unidad" }, // descuenta 1.0 ml
-  NICHO_NEVERA:         { value: 1200000, unit: "unidad" }, // descuenta 0.75 ml
+  NICHO_NEVERA:         { value: 1100000, unit: "unidad" }, // descuenta 0.75 ml
   ALACENA_ENTREPANOS:   { value: 1250000, unit: "unidad" }, // descuenta 0.5 ml
   ALACENA_HERRAJE:      { value: 900000,  unit: "unidad" }, // descuenta 0.5 ml
   TORRE_HORNOS:         { value: 1350000, unit: "unidad" }, // descuenta 0.7 ml
 
   // Extras
-  ISLA_ML:              { value: 900000,  unit: "ml" },
+  ISLA_ML:              { value: 900000,  unit: "ml" },  // sin uso: la madera de la isla usa PIEZA_ISLA_MADERA_ML
+  PIEZA_ISLA_MADERA_ML: { value: 1200000, unit: "ml" },  // isla con cajoneras: mismo precio dentro de la cocina y como pieza
   ISLA_LATERAL:         { value: 350000,  unit: "unidad" },
   BARRA_ML:             { value: 900000,  unit: "ml" },
   BARRA_LATERAL:        { value: 350000,  unit: "unidad" },
-  BARRA_PEDESTAL:       { value: 250000,  unit: "unidad" },
-  BARRA_HERRAJE:        { value: 380000,  unit: "unidad" },
+  BARRA_PEDESTAL:       { value: 250000,  unit: "unidad" },  // pata metálica, por unidad
+  BARRA_HERRAJE:        { value: 380000,  unit: "unidad" },  // armazón de hierro para 1,20 m; se cobra proporcional al largo
   LED_ML:               { value: 180000,  unit: "ml" },
+  // Recargos de pieza suelta (17 nov 2026): muebles altos/bajos sueltos = categoría +15 %; nichos/alacenas/torre sueltos = precio de cocina +10 %
+  RECARGO_PIEZA_SUELTA: { value: 15,      unit: "%" },
+  RECARGO_PIEZA_FIJA:   { value: 10,      unit: "%" },
   TRANSPORTE_IMPREVISTOS: { value: 600000, unit: "fijo" },
 
   // Puertas y Tapas (para cocinas)
@@ -112,7 +119,7 @@ const DEFAULT_PRICES: Record<string, { value: number; unit: string | null }> = {
 
   // Acabados Especiales
   ACABADO_ALUMINIO_VIDRIO_M2: { value: 1200000, unit: "m2" },
-  ACABADO_BISAGRA_PAR:        { value: 15000,   unit: "par" },
+  ACABADO_BISAGRA_PAR:        { value: 35000,   unit: "par" },
   ACABADO_LED_ML:             { value: 180000,  unit: "ml" },
 
   // Servicios de desmonte (opcionales, el montaje va incluido en el trabajo)
@@ -142,6 +149,9 @@ export function usePricing(): PricingData {
   });
 
   const prices = data || DEFAULT_PRICES;
+  // Mantiene al día las reglas compartidas (mesones y piezas) con los precios del Motor
+  applyMesonPrices((code) => prices[code]?.value ?? DEFAULT_PRICES[code]?.value);
+  applyCocinaBase((code) => prices[code]?.value ?? DEFAULT_PRICES[code]?.value);
 
   const getPrice = (code: string): number => {
     const priceData = prices[code];

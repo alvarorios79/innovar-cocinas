@@ -6,7 +6,7 @@ import type { ModulePlan } from "@shared/kitchenModulePlan";
 export interface KitchenConfig {
   shape: string;
   modulePlan?: ModulePlan; // plano de módulos (siempre activo en cocinas nuevas)
-  layout?: string; // Forma física: L, U, lineal, cuadrada (informativo, no afecta precio)
+  layout?: string; // Forma física: L, U, lineal, paralela (cuadrada/isla = valores antiguos) (informativo, no afecta precio)
   includeLower?: boolean; // Incluir muebles inferiores (default true)
   includeUpper?: boolean; // Incluir muebles superiores (default true)
   totalMeters: number;
@@ -28,8 +28,9 @@ export interface KitchenConfig {
     incluyeLaterales?: boolean;
     cantLaterales?: number;      // cuántos laterales (default 1)
     incluyeRegrueso?: boolean;
-    incluyeLavaplatos?: boolean;
-    lavaprecio?: number;         // precio lavaplatos (default 130000)
+    incluyeLavaplatos?: boolean; // antiguo (solo casilla)
+    lavaplatosTipo?: "ninguno" | "sencillo" | "doble" | "otro";
+    lavaprecio?: number;         // precio del lavaplatos «otro»
     incluyeSalpicaderoAlto?: boolean;   // suma el metraje del mesón otra vez
     cantLateralesSalpicadero?: number;  // 0, 1 o 2 piezas de 0.62 x 0.60 m que cierran el salpicadero alto
   };
@@ -41,7 +42,9 @@ export interface KitchenConfig {
     depthSurcharge?: string;       // none | 30percent | double
     esImportado?: boolean;
     precioImportadoML?: number;
-    incluyeLateralesIsla?: boolean;
+    incluyeLateralesIsla?: boolean; // antiguo: marcada = 2 laterales
+    cantLateralesIsla?: number;     // 0, 1 o 2 laterales de 0,90 ml
+    lavaplatosTipo?: "ninguno" | "sencillo" | "doble" | "otro";
     incluyeRegrueso?: boolean;
     incluyeSalpicaderoAlto?: boolean;
     incluyeLavaplatos?: boolean;
@@ -62,8 +65,10 @@ export interface KitchenConfig {
     countertopType: string;
     hasLateral: boolean;
     barraAlturaLateral?: number;
-    incluyePedestal?: boolean;
-    incluyeHerraje?: boolean;
+    incluyePedestal?: boolean;   // pata metálica (por unidad)
+    cantPedestales?: number;
+    incluyeHerraje?: boolean;    // armazón de hierro (viene marcado)
+    reglaV2?: boolean;           // regla de barra del 17 nov 2026 (herraje = lateral + regrueso; pedestal = solo mesón superior)
     esImportado?: boolean;
     precioImportadoML?: number;
   };

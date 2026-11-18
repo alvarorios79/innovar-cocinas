@@ -277,13 +277,28 @@ function buildBathroomDescription(config: BathroomConfig): string {
   return desc.trim();
 }
 
+// Cotizaciones guardadas antes del 17 nov 2026 podían llevar el transporte DENTRO del closet o de la puerta (y el del closet se multiplicaba
+// por la cantidad). Ahora el transporte se marca una sola vez en la casilla del ítem: se pasa aquí el valor antiguo a esa casilla.
+function migrarTransporteAntiguo(items: any[]): any[] {
+  return items.map((it: any) => {
+    const cfg = it.itemType === "closet" ? it.closetConfig : it.itemType === "puerta" ? it.doorConfig : null;
+    const legT = cfg && cfg.includeTransport ? Number(cfg.transportCost) || 0 : 0;
+    if (!cfg || legT <= 0) return it;
+    const itemT = it.includesFixedCosts ? Number(it.fixedCostsAmount) || 0 : 0;
+    const subtotal = Math.max(0, (Number(cfg.subtotal) || 0) - legT);
+    const qty = it.itemType === "closet" ? Math.max(1, parseInt(it.quantity || "1") || 1) : 1;
+    const amount = itemT + legT;
+    return { ...it, [it.itemType === "closet" ? "closetConfig" : "doorConfig"]: { ...cfg, subtotal, includeTransport: false }, includesFixedCosts: true, fixedCostsAmount: amount, totalPrice: subtotal * qty + amount };
+  });
+}
+
 export default function Quotations() {
   const utils = trpc.useUtils();
   const { user } = useAuth();
   const [location] = useLocation();
   
   // Hook para precios dinámicos desde la base de datos
-  const { prices, isLoading: isPricingLoading, getPrice } = usePricing();
+  const { prices, isLoading: isPricingLoading, isError: isPricingError, missing: missingPrices, getPrice } = usePricing();
   const { data: allPricing } = trpc.pricing.getAll.useQuery();
   // Precios de "Piezas de cocina" (PIEZA_*) vienen del Motor de Cotización; si no existen, se usan los valores por defecto
   // (usa los precios públicos del Motor: así también los ve «comercial», que no puede leer pricing.getAll)
@@ -923,7 +938,7 @@ export default function Quotations() {
         if (hasAutoCalcItems) {
           toast.info("Esta cotización tiene closets, puertas o centros de TV. Si modificas su configuración, el precio se recalculará con las tarifas actuales.");
         }
-        setItems(quotationData.items.map((item: any, idx: number) => ({
+        setItems(migrarTransporteAntiguo(quotationData.items.map((item: any, idx: number) => ({
           _id: `db_${item.id || idx}_${Date.now()}`,
           itemNumber: item.itemNumber,
           itemType: item.itemType || "",
@@ -947,6 +962,9 @@ export default function Quotations() {
             transportCost: item.closetConfig.transportCost ?? 150000,
             includeDismantle: item.closetConfig.includeDismantle ?? false,
             dismantlePrice: item.closetConfig.dismantlePrice ?? 0,
+            incluyeLed: item.closetConfig.incluyeLed ?? false,
+            ledML: item.closetConfig.ledML ?? 0,
+            ledPrice: item.closetConfig.ledPrice ?? 0,
             accessories: {
               maletero: item.closetConfig.accessories?.maletero ?? false,
               divisor: item.closetConfig.accessories?.divisor ?? false,
@@ -1170,7 +1188,7 @@ export default function Quotations() {
           acabadosConfig: item.itemType === 'acabados_especiales' && item.kitchenConfig
             ? item.kitchenConfig as any
             : undefined,
-        })));
+        }))));
       }
       
       setShowCreateDialog(true);
@@ -1274,10 +1292,10 @@ export default function Quotations() {
       let quantity = 0;
       if (field === "quantity") {
         // Extraer número de la cantidad (puede ser "8" o "8 unidades")
-        const quantityStr = (value as string) || "";
+        const quantityStr = ((value as string) || "").replace(",", ".");
         quantity = parseFloat(quantityStr.match(/\d+(\.\d+)?/)?.[0] || "0") || 0;
       } else {
-        const quantityStr = (newItems[index].quantity as string) || "";
+        const quantityStr = ((newItems[index].quantity as string) || "").replace(",", ".");
         quantity = parseFloat(quantityStr.match(/\d+(\.\d+)?/)?.[0] || "0") || 0;
       }
       
@@ -1290,7 +1308,8 @@ export default function Quotations() {
       }
       
       // Calcular total
-      newItems[index].totalPrice = quantity * unitPrice;
+      // El transporte marcado se conserva: total = cantidad × precio + transporte
+      newItems[index].totalPrice = quantity * unitPrice + (newItems[index].includesFixedCosts ? (newItems[index].fixedCostsAmount || 0) : 0);
     }
     
     setItems(newItems);
@@ -1373,6 +1392,54 @@ export default function Quotations() {
 
     // Recalcular automaticamente con el item actualizado
     calculateKitchenTotal(index, newItems);
+  };
+
+  // ── Transporte e imprevistos: UNA sola casilla por ítem (closet, puerta, baño…). Se suma una vez, no se multiplica por la cantidad. ──
+  const baseTotalOf = (it: QuotationItem): number => {
+    if (it.itemType === "closet") return (it.closetConfig?.subtotal || 0) * (Math.max(1, parseInt(it.quantity || "1") || 1));
+    if (it.itemType === "puerta") return it.doorConfig?.subtotal || 0;
+    if (it.itemType === "baño") return it.bathroomConfig?.subtotal || 0;
+    return it.totalPrice;
+  };
+  const setTransporte = (index: number, include: boolean, amount?: number) => {
+    const newItems = [...items];
+    const it = { ...newItems[index] };
+    it.includesFixedCosts = include;
+    if (amount !== undefined) it.fixedCostsAmount = amount;
+    else if (it.fixedCostsAmount === undefined) it.fixedCostsAmount = 600000;
+    it.totalPrice = baseTotalOf(it) + (include ? (it.fixedCostsAmount || 0) : 0);
+    newItems[index] = it;
+    setItems(newItems);
+  };
+  const renderTransporte = (index: number) => {
+    const it = items[index];
+    return (
+      <div className="flex items-center space-x-2 mt-4 flex-wrap gap-2">
+        <input
+          type="checkbox"
+          id={`fixedCosts-${it.itemType}-${index}`}
+          checked={it.includesFixedCosts || false}
+          onChange={(e) => setTransporte(index, e.target.checked)}
+          className="h-4 w-4 rounded border-white/[0.15] text-primary focus:ring-primary"
+        />
+        <Label htmlFor={`fixedCosts-${it.itemType}-${index}`} className="text-sm font-normal cursor-pointer">
+          Incluye transporte e imprevistos
+        </Label>
+        {it.includesFixedCosts && (
+          <>
+            <Input
+              type="number"
+              value={it.fixedCostsAmount ?? 600000}
+              onChange={(e) => setTransporte(index, true, e.target.value === "" ? 0 : parseFloat(e.target.value))}
+              className="w-32 h-8"
+              placeholder="Valor"
+              min="0"
+            />
+            {!(it.fixedCostsAmount && it.fixedCostsAmount > 0) && <span className="text-xs text-red-400">Escribe el valor del transporte (debe ser mayor a 0)</span>}
+          </>
+        )}
+      </div>
+    );
   };
 
   const calculateHardwareTotal = (index: number) => {
@@ -1632,8 +1699,16 @@ export default function Quotations() {
 
     // Bug G fix: validación anterior `item.itemType && !item.itemType` siempre era false (eliminada)
     // Validar campos obligatorios según tipo de item
+    // Solo se validan los ítems con tipo (un renglón vacío ya no impide guardar)
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
+      if (!item.itemType) continue;
+
+      // Transporte: si se marca la casilla, el valor debe ser mayor a 0
+      if (item.includesFixedCosts && !(Number(item.fixedCostsAmount) > 0)) {
+        toast.error(`Item ${i + 1}: escribe el valor del transporte e imprevistos (mayor a 0) o desmarca la casilla`);
+        return;
+      }
       
       if (item.itemType === "cocina") {
         // Para cocinas: validar campos específicos
@@ -1661,9 +1736,18 @@ export default function Quotations() {
         // Mesón es opcional - el cliente puede no necesitar mesón
         // (ya tiene uno o solo quiere la madera)
       } else if (item.itemType === "herrajes") {
-        // Para herrajes: validar que haya al menos un herraje seleccionado
+        // Para herrajes: validar que haya al menos un herraje seleccionado y que el total sea mayor a 0
         if (!item.hardwareSelections || item.hardwareSelections.length === 0) {
           toast.error(`Item ${i + 1}: Selecciona al menos un herraje`);
+          return;
+        }
+        if (item.hardwareSelections.reduce((sum, h) => sum + (h.subtotal || 0), 0) <= 0) {
+          toast.error(`Item ${i + 1}: los herrajes elegidos no tienen precio; ponles precio o quítalos`);
+          return;
+        }
+      } else if (item.itemType === "baño") {
+        if (!item.bathroomConfig || !(item.bathroomConfig.subtotal > 0)) {
+          toast.error(`Item ${i + 1}: Configura el mueble de baño (el total debe ser mayor a 0)`);
           return;
         }
       } else if (item.itemType === "closet") {
@@ -1739,8 +1823,12 @@ export default function Quotations() {
           toast.error(`Item ${i + 1}: Ingresa la descripción`);
           return;
         }
-        if (!item.quantity || Number(item.quantity) <= 0) {
+        if (!item.quantity || (parseFloat(String(item.quantity).replace(",", ".").match(/\d+(\.\d+)?/)?.[0] || "0") || 0) <= 0) {
           toast.error(`Item ${i + 1}: Ingresa la cantidad`);
+          return;
+        }
+        if (!(item.totalPrice > 0)) {
+          toast.error(`Item ${i + 1}: el total debe ser mayor a 0`);
           return;
         }
       }
@@ -1954,12 +2042,14 @@ export default function Quotations() {
           nicho_nevecon: "Nicho Nevecón (100cm)", nicho_nevera: "Nicho Nevera (75cm)",
           alacena_entrepanos: "Alacena Entrepaños (50cm)", alacena_herraje: "Alacena Herraje (50cm)",
           torre_hornos: "Torre de Hornos (70cm)",
+          frente_pollo: "Frente de mesón", frente_cocina: "Frente de cocina (puertas y tapas)",
         };
         const labelMat: Record<string, string> = { granito: "Granito", cuarzo: "Cuarzo", sinterizado: "Sinterizado" };
         const piezasFijas = ["nicho_nevecon","nicho_nevera","alacena_entrepanos","alacena_herraje","torre_hornos"];
         const parts: string[] = [LABELS[cfg.tipoPieza] || cfg.tipoPieza];
         if (!piezasFijas.includes(cfg.tipoPieza)) {
-          if (cfg.tipoPieza !== "barra" && cfg.madreraML > 0) parts.push(`${cfg.madreraML}ml madera`);
+          if (cfg.tipoPieza === "frente_pollo") parts.push(`${cfg.frentePolloML || 0} ml`);
+          else if (cfg.tipoPieza !== "barra" && cfg.tipoPieza !== "frente_cocina" && cfg.madreraML > 0) parts.push(`${cfg.madreraML}ml madera`);
           if (cfg.incluyeMeson || cfg.tipoPieza === "barra") parts.push(`mesón ${labelMat[cfg.mesonMaterial]} ${cfg.mesonML}ml`);
           if (cfg.tipoPieza === "mueble_alto" && cfg.incluyeLed) parts.push("con LED");
           { const lv = cfg.lavaplatosTipo === undefined ? (cfg.incluyeLavaplatos ? "lavaplatos" : null) : textoLavaplatos(cfg); if (lv) parts.push(lv.toLowerCase()); }
@@ -2521,37 +2611,21 @@ export default function Quotations() {
                     <Label className="text-[10px] sm:text-xs font-medium text-red-400 uppercase tracking-wide">Entrega Est.</Label>
                   </div>
                   <p className="text-xs sm:text-sm font-semibold text-white/85">
-                    {(() => {
-                      const COLOMBIA_HOLIDAYS_2025 = [
-                        '2025-01-01', '2025-01-06', '2025-03-24', '2025-04-17', '2025-04-18',
-                        '2025-05-01', '2025-06-02', '2025-06-23', '2025-06-30', '2025-07-20',
-                        '2025-08-07', '2025-08-18', '2025-10-13', '2025-11-03', '2025-11-17',
-                        '2025-12-08', '2025-12-25'
-                      ];
-                      const COLOMBIA_HOLIDAYS_2026 = [
-                        '2026-01-01', '2026-01-12', '2026-03-23', '2026-04-02', '2026-04-03',
-                        '2026-05-01', '2026-05-18', '2026-06-08', '2026-06-15', '2026-06-29',
-                        '2026-07-20', '2026-08-07', '2026-08-17', '2026-10-12', '2026-11-02',
-                        '2026-11-16', '2026-12-08', '2026-12-25'
-                      ];
-                      const holidays = [...COLOMBIA_HOLIDAYS_2025, ...COLOMBIA_HOLIDAYS_2026];
-                      let date = new Date();
-                      let businessDays = 0;
-                      while (businessDays < 25) {
-                        date.setDate(date.getDate() + 1);
-                        const dayOfWeek = date.getDay();
-                        const dateStr = date.toISOString().split('T')[0];
-                        if (dayOfWeek !== 0 && dayOfWeek !== 6 && !holidays.includes(dateStr)) {
-                          businessDays++;
-                        }
-                      }
-                      return date.toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
-                    })()}
+                    25 días hábiles
                   </p>
-                  <span className="text-xs text-red-500">* Tentativa (25 días hábiles)</span>
+                  <span className="text-xs text-red-500">Desde la aprobación del render (sin sábados, domingos ni festivos)</span>
                 </div>
               </div>
             </div>
+
+            {/* Cartel rojo: precios que el Motor no tiene (se usa el respaldo) */}
+            {(isPricingError || missingPrices.length > 0) && (
+              <div className="rounded-lg border border-red-500/50 bg-red-500/10 p-3 text-xs sm:text-sm text-red-200">
+                {isPricingError
+                  ? "No se pudieron cargar los precios del Motor de Cotización: los totales usan valores de respaldo y pueden estar desactualizados. Recarga la página antes de enviar."
+                  : <>Estos precios no están en el Motor de Cotización y se están usando valores de respaldo: <span className="font-mono">{missingPrices.join(", ")}</span>. Revísalos en «Motor de cotización».</>}
+              </div>
+            )}
 
             {/* Sección: Productos */}
             <div className="bg-[rgba(106,207,199,0.05)] rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 border border-[rgba(106,207,199,0.12)] shadow-sm">
@@ -2701,7 +2775,7 @@ export default function Quotations() {
                                   <SelectItem value="estandar">Cocina Estándar</SelectItem>
                                   <SelectItem value="premium">Cocina Premium</SelectItem>
                                   <SelectItem value="deluxe">Cocina Deluxe</SelectItem>
-                                  <SelectItem value="frente_pll">Frente PLL ({formatPrice(getPrice('COCINA_ML_FRENTE_PLL'))}/ml)</SelectItem>
+                                  <SelectItem value="frente_pll">Frente de mesón ({formatPrice(getPrice('COCINA_ML_FRENTE_PLL'))}/ml)</SelectItem>
                                   <SelectItem value="solo_superiores">Solo Muebles Superiores (categoría + {getPrice('RECARGO_PIEZA_SUELTA')} %)</SelectItem>
                                   <SelectItem value="solo_inferiores">Solo Muebles Inferiores (categoría + {getPrice('RECARGO_PIEZA_SUELTA')} %)</SelectItem>
                                   <SelectItem value="puertas_tapas">Puertas y Tapas (solo cambio)</SelectItem>
@@ -4731,54 +4805,7 @@ export default function Quotations() {
                               )}
                             </div>
 
-                            {/* Checkbox de transporte para closets */}
-                            <div className="flex items-center space-x-2 mt-4 flex-wrap gap-2">
-                              <input
-                                type="checkbox"
-                                id={`fixedCosts-closet-${index}`}
-                                checked={item.includesFixedCosts || false}
-                                onChange={(e) => {
-                                  const newItems = [...items];
-                                  const qty = parseInt(newItems[index].quantity || "1") || 1;
-                                  const closetSubtotal = newItems[index].closetConfig?.subtotal || 0;
-                                  const fixedAmount = newItems[index].fixedCostsAmount ?? 600000;
-
-                                  if (e.target.checked) {
-                                    newItems[index].totalPrice = closetSubtotal * qty + fixedAmount;
-                                    if (newItems[index].fixedCostsAmount === undefined) {
-                                      newItems[index].fixedCostsAmount = 600000;
-                                    }
-                                  } else {
-                                    newItems[index].totalPrice = closetSubtotal * qty;
-                                  }
-
-                                  newItems[index].includesFixedCosts = e.target.checked;
-                                  setItems(newItems);
-                                }}
-                                className="h-4 w-4 rounded border-white/[0.15] text-primary focus:ring-primary"
-                              />
-                              <Label htmlFor={`fixedCosts-closet-${index}`} className="text-sm font-normal cursor-pointer">
-                                Incluye transporte e imprevistos
-                              </Label>
-                              {item.includesFixedCosts && (
-                                <Input
-                                  type="number"
-                                  value={item.fixedCostsAmount ?? 600000}
-                                  onChange={(e) => {
-                                    const newItems = [...items];
-                                    const qty = parseInt(newItems[index].quantity || "1") || 1;
-                                    const closetSubtotal = newItems[index].closetConfig?.subtotal || 0;
-                                    const newAmount = e.target.value === '' ? 0 : parseFloat(e.target.value);
-                                    newItems[index].totalPrice = closetSubtotal * qty + newAmount;
-                                    newItems[index].fixedCostsAmount = newAmount;
-                                    setItems(newItems);
-                                  }}
-                                  className="w-32 h-8"
-                                  placeholder="Monto"
-                                  min="0"
-                                />
-                              )}
-                            </div>
+                            {renderTransporte(index)}
 
                             {/* Descripción auto-generada (editable) */}
                             <div className="mt-4">
@@ -4821,52 +4848,7 @@ export default function Quotations() {
                               }}
                             />
 
-                            {/* Checkbox de transporte para puertas */}
-                            <div className="flex items-center space-x-2 mt-4 flex-wrap gap-2">
-                              <input
-                                type="checkbox"
-                                id={`fixedCosts-puerta-${index}`}
-                                checked={item.includesFixedCosts || false}
-                                onChange={(e) => {
-                                  const newItems = [...items];
-                                  const doorTotal = newItems[index].doorConfig?.subtotal || 0;
-                                  const fixedAmount = newItems[index].fixedCostsAmount ?? 600000;
-
-                                  if (e.target.checked) {
-                                    newItems[index].totalPrice = doorTotal + fixedAmount;
-                                    if (newItems[index].fixedCostsAmount === undefined) {
-                                      newItems[index].fixedCostsAmount = 600000;
-                                    }
-                                  } else {
-                                    newItems[index].totalPrice = doorTotal;
-                                  }
-
-                                  newItems[index].includesFixedCosts = e.target.checked;
-                                  setItems(newItems);
-                                }}
-                                className="h-4 w-4 rounded border-white/[0.15] text-primary focus:ring-primary"
-                              />
-                              <Label htmlFor={`fixedCosts-puerta-${index}`} className="text-sm font-normal cursor-pointer">
-                                Incluye transporte e imprevistos
-                              </Label>
-                              {item.includesFixedCosts && (
-                                <Input
-                                  type="number"
-                                  value={item.fixedCostsAmount ?? 600000}
-                                  onChange={(e) => {
-                                    const newItems = [...items];
-                                    const doorTotal = newItems[index].doorConfig?.subtotal || 0;
-                                    const newAmount = e.target.value === '' ? 0 : parseFloat(e.target.value);
-                                    newItems[index].totalPrice = doorTotal + newAmount;
-                                    newItems[index].fixedCostsAmount = newAmount;
-                                    setItems(newItems);
-                                  }}
-                                  className="w-32 h-8"
-                                  placeholder="Monto"
-                                  min="0"
-                                />
-                              )}
-                            </div>
+                            {renderTransporte(index)}
 
                             {/* Descripción auto-generada (editable) */}
                             <div className="mt-4">
@@ -4891,15 +4873,33 @@ export default function Quotations() {
                               config={item.bathroomConfig || null}
                               onChange={(config: BathroomConfig) => {
                                 const newItems = [...items];
-                                newItems[index] = {
-                                  ...newItems[index],
+                                const cur = newItems[index];
+                                // La descripción se regenera sola, salvo que el vendedor la haya editado a mano
+                                const prevAuto = cur.bathroomConfig ? buildBathroomDescription(cur.bathroomConfig) : "";
+                                const keepManual = !!cur.description?.trim() && cur.description !== prevAuto;
+                                const next = {
+                                  ...cur,
                                   bathroomConfig: config,
-                                  totalPrice: config.subtotal,
-                                  description: buildBathroomDescription(config),
+                                  quantity: String(config.quantity || 1),
+                                  description: keepManual ? cur.description : buildBathroomDescription(config),
                                 };
+                                next.totalPrice = config.subtotal + (next.includesFixedCosts ? (next.fixedCostsAmount || 0) : 0);
+                                newItems[index] = next;
                                 setItems(newItems);
                               }}
                             />
+                            {renderTransporte(index)}
+                            <div className="mt-4">
+                              <Label className="text-sm font-medium text-muted-foreground block mb-1">
+                                Descripción del ítem <span className="text-xs text-gray-400 font-normal">(auto-generada — editable)</span>
+                              </Label>
+                              <Textarea
+                                value={item.description}
+                                onChange={(e) => updateItem(index, "description", e.target.value)}
+                                rows={3}
+                                className="text-sm bg-card border-[rgba(106,207,199,0.18)] text-white/85"
+                              />
+                            </div>
                           </>
                         )}
 
@@ -4972,7 +4972,7 @@ export default function Quotations() {
                         )}
 
                         {/* Campos estándar para otros tipos */}
-                        {item.itemType !== "cocina" && item.itemType !== "herrajes" && item.itemType !== "closet" && item.itemType !== "puerta" && item.itemType !== "centro_tv" && item.itemType !== "mesones" && item.itemType !== "mueble_cocina" && item.itemType !== "acabados_especiales" && (
+                        {!!item.itemType && item.itemType !== "cocina" && item.itemType !== "herrajes" && item.itemType !== "baño" && item.itemType !== "closet" && item.itemType !== "puerta" && item.itemType !== "centro_tv" && item.itemType !== "mesones" && item.itemType !== "mueble_cocina" && item.itemType !== "acabados_especiales" && (
                           <>
                             <div>
                               <Label>Descripción *</Label>
@@ -5013,12 +5013,12 @@ export default function Quotations() {
                                 <Label>Total *</Label>
                                 <Input
                                   type="number"
-                                  value={item.totalPrice}
+                                  value={item.totalPrice - (item.includesFixedCosts ? (item.fixedCostsAmount || 0) : 0)}
                                   onChange={(e) =>
                                     updateItem(
                                       index,
                                       "totalPrice",
-                                      parseFloat(e.target.value) || 0
+                                      (parseFloat(e.target.value) || 0) + (item.includesFixedCosts ? (item.fixedCostsAmount || 0) : 0)
                                     )
                                   }
                                   placeholder="0"

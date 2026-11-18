@@ -5,6 +5,7 @@
  */
 
 import * as db from "./db";
+import { festivosColombia } from "@shared/festivosColombia";
 
 // Festivos colombianos 2024-2026 (fechas fijas y móviles)
 // Fuente: Ley 51 de 1983 y decretos reglamentarios
@@ -70,6 +71,13 @@ export const COLOMBIAN_HOLIDAYS: { date: string; name: string }[] = [
   { date: "2026-12-25", name: "Navidad" },
 ];
 
+// Suma los festivos calculados (año anterior y 5 siguientes) para que 2027 en adelante nunca quede sin festivos
+function conCalculados(base: Set<string>): Set<string> {
+  const y = new Date().getFullYear();
+  for (let a = y - 1; a <= y + 5; a++) festivosColombia(a).forEach((d) => base.add(d));
+  return base;
+}
+
 // Cache de festivos en memoria para evitar consultas repetidas a la BD
 let holidaysCache: Set<string> | null = null;
 let holidaysCacheYear: number | null = null;
@@ -90,7 +98,7 @@ async function getHolidaysSet(): Promise<Set<string>> {
     const dbHolidays = await db.getColombianHolidays(currentYear);
     if (dbHolidays.length > 0) {
     // @ts-ignore
-      holidaysCache = new Set(dbHolidays.map((h: { date: Date }) => formatDateKey(new Date(h.date))));
+      holidaysCache = conCalculados(new Set(dbHolidays.map((h: { date: Date }) => formatDateKey(new Date(h.date)))));
       holidaysCacheYear = currentYear;
       return holidaysCache;
     }
@@ -99,7 +107,7 @@ async function getHolidaysSet(): Promise<Set<string>> {
   }
   
   // Usar festivos hardcodeados
-  holidaysCache = new Set(COLOMBIAN_HOLIDAYS.map(h => h.date));
+  holidaysCache = conCalculados(new Set(COLOMBIAN_HOLIDAYS.map(h => h.date)));
   holidaysCacheYear = currentYear;
   return holidaysCache;
 }

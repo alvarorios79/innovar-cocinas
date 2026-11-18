@@ -15,17 +15,26 @@ import * as whatsappCloud from "../whatsapp-cloud";
 import { addBusinessDays, calculateEstimatedDeliveryDate } from "../business-days";
 import { sanitizeText, sanitizeHtml, sanitizeForEmail, sanitizePhone, sanitizeEmail } from "../sanitize";
 import { buildKitchenQuoteDescription, appendHouseStandards, specialFinishesLines } from "../kitchen-description";
-import { buildQuotationPdfData } from "../quotation-pdf-data";
+import { buildQuotationPdfData, appendTransporte } from "../quotation-pdf-data";
 import { buildTVQuoteDescription } from "../tv-description";
 import { sendPushToRole } from "../push-notifications";
 import { lineasSubMeson, textoLavaplatos } from "@shared/mesonPrecios";
+import { lineasCloset } from "@shared/closetTexto";
+import { lineasFrentePieza, lineaPintadoPieza } from "@shared/piezasTexto";
 
+
+// Descripción de respaldo cuando un ítem llega sin texto (antes se guardaba la palabra «Item», que salía suelta en el PDF)
+const TIPO_DESC: Record<string, string> = {
+  cocina: "Cocina integral", closet: "Closet", puerta: "Puertas", "baño": "Mueble de baño", centro_tv: "Centro de TV",
+  mueble_cocina: "Piezas de cocina", mesones: "Mesones en piedra", herrajes: "Herrajes", acabados_especiales: "Acabados especiales", otro: "Producto",
+};
+const descripcionRespaldo = (d: string | undefined | null, tipo: string) => sanitizeText(d || "") || TIPO_DESC[tipo] || "Producto";
 
 // ─── buildPublicItemDesc ─────────────────────────────────────────────────────
 // Builds the full description for each quotation item for the public client link.
 // Replicates the PDF generator logic so clients see the same detail as the PDF.
 function buildPublicItemDesc(item: any): string {
-  return appendHouseStandards(item.itemType, buildPublicItemDescBase(item), item);
+  return appendTransporte(appendHouseStandards(item.itemType, buildPublicItemDescBase(item), item), item);
 }
 function buildPublicItemDescBase(item: any): string {
   const fmtCOP = (n: number) =>
@@ -39,21 +48,7 @@ function buildPublicItemDescBase(item: any): string {
   // ── CLOSET ───────────────────────────────────────────────────────────────
   if (item.itemType === 'closet' && item.closetConfig) {
     const cc = typeof item.closetConfig === 'string' ? JSON.parse(item.closetConfig) : item.closetConfig;
-    const typeLabels: Record<string, string> = { estandar: 'Closet Estándar', especial: 'Closet Especial', empotrado: 'Closet Empotrado' };
-    const doorLabels: Record<string, string> = { corredizas: 'Puertas Corredizas', batientes: 'Puertas Batientes' };
-    const lines: string[] = [];
-    lines.push(typeLabels[cc.type] || (cc.type || 'CLOSET').toUpperCase());
-    lines.push(`Dimensiones: ${cc.width}m (ancho) x ${cc.height}m (alto)`);
-    lines.push(`Profundidad: ${cc.type === 'especial' ? '0.45cm o menos' : '0.60cm'}`);
-    lines.push(`Área: ${(cc.squareMeters || 0).toFixed(2)} M²`);
-    lines.push(doorLabels[cc.doorType] || cc.doorType || '');
-    lines.push(''); lines.push('Incluye:');
-    lines.push('• Maletero'); lines.push('• Divisor'); lines.push('• Doble colgadero');
-    lines.push('• Entrepaños'); lines.push('• Doble cajonero'); lines.push('• Zapatero');
-    if (cc.type === 'empotrado') lines.push('• Espaldar y laterales completos');
-    if (cc.incluyeLed && cc.ledML > 0) lines.push(`• Iluminación LED interior (${cc.ledML} ml)`);
-    if (cc.notes?.trim()) { lines.push(''); lines.push('Notas adicionales:'); lines.push(cc.notes.trim()); }
-    return lines.join('\n');
+    return lineasCloset(cc).join('\n');
   }
 
   // ── HERRAJES ─────────────────────────────────────────────────────────────
@@ -111,7 +106,7 @@ function buildPublicItemDescBase(item: any): string {
     lines.push('Madera aglomerada tipo RH de alta presión, cantos rígidos en puertas y tapas.');
     if (bc.hasExcavado && bc.excavadoMaterial) lines.push(`Excavado en ${bc.excavadoMaterial} — incluye salpicadero de 10cm. Llave/grifo no incluida.`);
     if (bc.hasMeson && bc.mesonMaterial) lines.push(`Mesón en ${bc.mesonMaterial} — incluye salpicadero de 10cm. Llave/grifo no incluida. Lavamanos de sobreponer no incluido.`);
-    lines.push(''); lines.push(`Precio madera: ${fmtCOP(bc.pricePerUnit || 0)} / unidad`);
+    lines.push('');
     if (bc.quantity > 1) lines.push(`Cantidad: ${bc.quantity} unidades`);
     if (bc.notes?.trim()) { lines.push(''); lines.push(`Notas: ${bc.notes.trim()}`); }
     return lines.join('\n');
@@ -176,7 +171,9 @@ function buildPublicItemDescBase(item: any): string {
       };
       const pieceLabel = pieceLabels[cfg.tipoPieza] || cfg.tipoPieza;
       const madStr = cfg.madreraML ? ` — ${cfg.madreraML}ml` : '';
-      lines.push(`${pieceLabel.toUpperCase()} A MEDIDA${madStr}`);
+      const frente = lineasFrentePieza(cfg);
+      if (frente) lines.push(...frente);
+      else lines.push(`${pieceLabel.toUpperCase()} A MEDIDA${madStr}`);
       const moduloLabels: Record<string, string> = {
         esquineroSuperior: 'Esquinero superior', moduloExtractor: 'Módulo extractor',
         moduloMicroondas: 'Módulo microondas', especiero: 'Especiero', botellero: 'Botellero',
@@ -209,7 +206,7 @@ function buildPublicItemDescBase(item: any): string {
         else lines.push('Solo mesón superior (sin lateral)');
         if (cfg.incluyePedestal) lines.push(`${cfg.cantPedestales > 1 ? cfg.cantPedestales + ' pedestales metálicos' : 'Pedestal metálico'} (pata de soporte)`);
       }
-      if (cfg.incluyePintado) lines.push('Incluye pintado');
+      if (cfg.incluyePintado) lines.push(lineaPintadoPieza(cfg) || 'Incluye pintado');
       if (cfg.notas?.trim()) { lines.push(''); lines.push(cfg.notas.trim()); }
       return lines.join('\n');
     }
@@ -374,7 +371,7 @@ export const quotationsRouter = router({
               quotationId: qId,
               itemNumber: item.itemNumber,
               itemType: item.itemType,
-              description: sanitizeText(item.description) || "Item",
+              description: descripcionRespaldo(item.description, item.itemType),
               quantity: item.quantity || "1",
               unitPrice: item.unitPrice || null,
               totalPrice: item.totalPrice.toString(),
@@ -579,7 +576,7 @@ export const quotationsRouter = router({
                 quotationId: id,
                 itemNumber: item.itemNumber,
                 itemType: item.itemType,
-                description: sanitizeText(item.description) ?? "Item",
+                description: descripcionRespaldo(item.description, item.itemType),
                 quantity: item.quantity ?? "1",
                 unitPrice: item.unitPrice ?? null,
                 totalPrice: item.totalPrice.toString(),

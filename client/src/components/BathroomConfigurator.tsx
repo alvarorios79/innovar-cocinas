@@ -67,7 +67,17 @@ export function BathroomConfigurator({ config, onChange }: BathroomConfiguratorP
   const { getPrice } = usePricing();
   const [cfg, setCfg] = useState<BathroomConfig>({ ...DEFAULT_CFG, ...config });
 
-  useEffect(() => { if (config) setCfg({ ...DEFAULT_CFG, ...config }); }, []);
+  useEffect(() => {
+    if (config) { setCfg({ ...DEFAULT_CFG, ...config }); }
+    else {
+      // Recién elegido el tipo: se avisa a la cotización con los valores iniciales (antes quedaba en $0 y sin configuración hasta tocar algo)
+      const first = { ...DEFAULT_CFG };
+      first.pricePerUnit = getBathroomPrice(first.widthRange, first.width);
+      first.subtotal = first.pricePerUnit * first.quantity;
+      setCfg(first);
+      onChange(first);
+    }
+  }, []);
 
   const getBathroomPrice = (range: BathroomConfig["widthRange"], width: number): number => {
     const base = getPrice(PRICE_CODES[range]) || FALLBACK[range] || 750000;

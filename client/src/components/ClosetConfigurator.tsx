@@ -46,6 +46,8 @@ interface ClosetConfiguratorProps {
   onChange: (config: ClosetConfig) => void;
 }
 
+// Los precios por m² salen del Motor de Cotización (códigos CLOSET_*_M2); el valor de aquí es solo la etiqueta y el respaldo.
+const CLOSET_CODES: Record<string, string> = { estandar: "CLOSET_ESTANDAR_M2", premium: "CLOSET_PREMIUM_M2", deluxe: "CLOSET_DELUXE_M2", especial: "CLOSET_ESPECIAL_M2" };
 const CLOSET_TYPES = {
   estandar: {
     label: "Closet Estándar",
@@ -79,8 +81,9 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
   const [height, setHeight] = useState<string>(config?.height?.toString() || "");
   const [doorType, setDoorType] = useState<ClosetConfig["doorType"]>(config?.doorType || "corredizas");
   const [notes, setNotes] = useState<string>(config?.notes || "");
-  const [includeTransport, setIncludeTransport] = useState<boolean>(config?.includeTransport ?? false);
-  const [transportCost, setTransportCost] = useState<number>(config?.transportCost ?? 150000);
+  // El transporte ya NO va aquí: se marca una sola vez en la casilla «Incluye transporte e imprevistos» del ítem (no se multiplica por la cantidad).
+  const includeTransport = false;
+  const transportCost = 0;
   const { getPrice } = usePricing();
   const dismantlePriceNow = getPrice("DESMONTE_CLOSET");
   const [includeDismantle, setIncludeDismantle] = useState<boolean>(config?.includeDismantle ?? false);
@@ -102,7 +105,7 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
     const widthNum = parseFloat(width) || 0;
     const heightNum = parseFloat(height) || 0;
     const squareMeters = widthNum * heightNum;
-    const pricePerSquareMeter = CLOSET_TYPES[type].price;
+    const pricePerSquareMeter = getPrice(CLOSET_CODES[type]) || CLOSET_TYPES[type].price;
     let subtotal = squareMeters * pricePerSquareMeter;
 
     if (includeTransport) {
@@ -143,11 +146,12 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
     };
 
     onChange(newConfig);
-  }, [type, width, height, doorType, notes, includeTransport, transportCost, includeDismantle, dismantlePriceNow, incluyeLed, ledMetros, ledPriceNow,
+  }, [type, width, height, doorType, notes, includeTransport, transportCost, includeDismantle, dismantlePriceNow, incluyeLed, ledMetros, ledPriceNow, getPrice(CLOSET_CODES[type]),
       accMaletero, accDivisor, accEntrepanos, accDoubleCajonero, accZapatero, accDobleColgadero, accEspejo]);
 
   const squareMeters = (parseFloat(width) || 0) * (parseFloat(height) || 0);
-  const closetType = CLOSET_TYPES[type] || CLOSET_TYPES.estandar;
+  const closetBase = CLOSET_TYPES[type] || CLOSET_TYPES.estandar;
+  const closetType = { ...closetBase, price: getPrice(CLOSET_CODES[type]) || closetBase.price };
   const baseSubtotal = squareMeters * closetType.price;
   const transport = includeTransport ? transportCost : 0;
   const dismantle = includeDismantle ? dismantlePriceNow : 0;
@@ -174,7 +178,7 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
               <SelectContent>
                 {Object.entries(CLOSET_TYPES).map(([key, info]) => (
                   <SelectItem key={key} value={key}>
-                    {info.label} - ${(info.price / 1000).toFixed(0)}k/M²
+                    {info.label} - ${((getPrice(CLOSET_CODES[key]) || info.price) / 1000).toFixed(0)}k/M²
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -301,36 +305,6 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
             </div>
           </div>
 
-          {/* Transporte e Imprevistos */}
-          <div className="bg-white/[0.03] p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Checkbox
-                  id="closet-transport"
-                  checked={includeTransport} 
-                  onCheckedChange={(c) => setIncludeTransport(c === true)} 
-                />
-                <div className="flex items-center gap-2">
-                  <Truck className="h-4 w-4 text-white/60" />
-                  <Label htmlFor="closet-transport" className="cursor-pointer font-medium">
-                    Incluir Transporte e Imprevistos
-                  </Label>
-                </div>
-              </div>
-              {includeTransport && (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-white/60">Monto: $</span>
-                  <Input 
-                    type="number" 
-                    value={transportCost} 
-                    onChange={(e) => setTransportCost(parseInt(e.target.value) || 0)} 
-                    className="h-9 w-32 text-right" 
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-
           {/* Notas */}
           <div>
             <Label className="text-sm font-medium text-white/85 block mb-2">Notas Adicionales</Label>
@@ -362,12 +336,6 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
                   <div className="flex justify-between text-blue-300">
                     <span>+ Desmonte de closet existente:</span>
                     <span className="font-medium">${dismantle.toLocaleString()}</span>
-                  </div>
-                )}
-                {includeTransport && (
-                  <div className="flex justify-between text-blue-300">
-                    <span>+ Transporte e imprevistos:</span>
-                    <span className="font-medium">${transport.toLocaleString()}</span>
                   </div>
                 )}
                 <div className="border-t border-blue-400 pt-2 mt-2 flex justify-between">

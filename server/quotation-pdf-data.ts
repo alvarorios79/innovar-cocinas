@@ -7,8 +7,19 @@ import { buildKitchenQuoteDescription, appendHouseStandards, specialFinishesLine
 import { buildTVQuoteDescription } from "./tv-description";
 import { buildScheme } from "@shared/kitchenPlanScheme";
 import { lineasSubMeson, textoLavaplatos } from "@shared/mesonPrecios";
+import { lineasCloset } from "@shared/closetTexto";
+import { lineasFrentePieza, lineaPintadoPieza } from "@shared/piezasTexto";
 
 const r2 = (n: number) => (Math.round((Number(n) || 0) * 100 + 1e-9) / 100).toFixed(2); // 0.245 -> 0.25
+// Si el ítem lleva transporte e imprevistos (casilla del ítem), se dice en el texto con su valor.
+export function appendTransporte(description: string, item: any): string {
+  const valor = Number(item?.fixedCostsAmount);
+  if (!item?.includesFixedCosts || !(valor > 0)) return description;
+  if (/Transporte e imprevistos/i.test(description)) return description;
+  const f = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(valor);
+  return `${description}\nTransporte e imprevistos: ${f}`;
+}
+
 export async function buildQuotationPdfData(quotation: any, client: any, items: any[]) {
   // Preparar datos para el PDF
   // Ordenar items por itemNumber
@@ -57,46 +68,7 @@ export async function buildQuotationPdfData(quotation: any, client: any, items: 
       
       // Si es closet y tiene closetConfig, generar descripción detallada
       if (item.itemType === 'closet' && closetConfig) {
-        const lines: string[] = [];
-        const typeLabels: Record<string, string> = {
-          'estandar': 'Closet Estándar',
-          'especial': 'Closet Especial',
-          'empotrado': 'Closet Empotrado'
-        };
-        const doorLabels: Record<string, string> = {
-          'corredizas': 'Puertas Corredizas',
-          'batientes': 'Puertas Batientes'
-        };
-        
-        lines.push(`${typeLabels[closetConfig.type] || closetConfig.type.toUpperCase()}`);
-        lines.push(`Dimensiones: ${closetConfig.width}m (ancho) x ${closetConfig.height}m (alto)`);
-        lines.push(`Profundidad: ${closetConfig.type === 'especial' ? '0.45cm o menos' : '0.60cm'}`);
-        lines.push(`Área: ${closetConfig.squareMeters.toFixed(2)} M²`);
-        lines.push(`Precio por M²: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(closetConfig.pricePerSquareMeter)}`);
-        lines.push(`${doorLabels[closetConfig.doorType] || closetConfig.doorType}`);
-        lines.push('');
-        lines.push('Incluye:');
-        lines.push('• Maletero');
-        lines.push('• Divisor');
-        lines.push('• Doble colgadero');
-        lines.push('• Entrepaños');
-        lines.push('• Doble cajonero');
-        lines.push('• Zapatero');
-        if (closetConfig.type === 'empotrado') {
-          lines.push('• Espaldar y laterales completos');
-        }
-        if (closetConfig.incluyeLed && closetConfig.ledML > 0) {
-          lines.push(`• Iluminación LED interior (${closetConfig.ledML} ml)`);
-        }
-        
-        // Agregar notas si existen
-        if (closetConfig.notes && closetConfig.notes.trim()) {
-          lines.push('');
-          lines.push('Notas adicionales:');
-          lines.push(closetConfig.notes);
-        }
-        
-        description = lines.join('\n');
+        description = lineasCloset(closetConfig).join('\n');
       }
       // Si es herrajes y tiene hardwareSelections, generar descripción detallada
       else if (item.itemType === 'herrajes' && hardwareSelections && Array.isArray(hardwareSelections) && hardwareSelections.length > 0) {
@@ -219,7 +191,6 @@ export async function buildQuotationPdfData(quotation: any, client: any, items: 
           lines.push(`Mesón en ${bc.mesonMaterial} — incluye salpicadero de 10cm. Llave/grifo no incluida. Lavamanos de sobreponer no incluido.`);
         }
         lines.push('');
-        lines.push(`Precio madera: ${fmtCOP(bc.pricePerUnit)} / unidad`);
         if (bc.quantity > 1) lines.push(`Cantidad: ${bc.quantity} unidades`);
         if (bc.notes && bc.notes.trim()) {
           lines.push('');
@@ -382,7 +353,9 @@ export async function buildQuotationPdfData(quotation: any, client: any, items: 
           };
           const pieceLabel = pieceLabels[cfg.tipoPieza] || cfg.tipoPieza;
           const madreraStr = cfg.madreraML ? ` — ${cfg.madreraML}ml` : '';
-          lines.push(`${pieceLabel.toUpperCase()} A MEDIDA${madreraStr}`);
+          const frente = lineasFrentePieza(cfg);
+          if (frente) lines.push(...frente);
+          else lines.push(`${pieceLabel.toUpperCase()} A MEDIDA${madreraStr}`);
           if (cfg.tipoPieza === 'alacena_herraje' && cfg.alacenaHerrajePrecio > 0) {
             lines.push(`• Precio herraje: $${Number(cfg.alacenaHerrajePrecio).toLocaleString('es-CO')}`);
           }
@@ -433,7 +406,7 @@ export async function buildQuotationPdfData(quotation: any, client: any, items: 
             if (cfg.incluyePedestal) lines.push(`${cfg.cantPedestales > 1 ? cfg.cantPedestales + ' pedestales metálicos' : 'Pedestal metálico'} (pata de soporte)`);
           }
           if (cfg.incluyePintado) {
-            lines.push('Incluye pintado');
+            lines.push(lineaPintadoPieza(cfg) || 'Incluye pintado');
           }
           if (cfg.notas?.trim()) {
             lines.push('');
@@ -456,6 +429,7 @@ export async function buildQuotationPdfData(quotation: any, client: any, items: 
       
       // Usar descripción personalizada si existe
       description = appendHouseStandards(item.itemType, description, item);
+      description = appendTransporte(description, item);
       const customDescriptions = quotation.customDescriptions as Record<number, string> | null;
       const itemIndex = item.itemNumber - 1; // itemNumber es 1-based
       if (customDescriptions && customDescriptions[itemIndex]) {

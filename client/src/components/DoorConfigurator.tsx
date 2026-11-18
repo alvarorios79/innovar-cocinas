@@ -84,8 +84,9 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
       : [createNewDoor(getPrice("PUERTA_BATIENTE_50_85"))]
   );
   const [notes, setNotes] = useState<string>(config?.notes || "");
-  const [includeTransport, setIncludeTransport] = useState<boolean>(config?.includeTransport ?? false);
-  const [transportCost, setTransportCost] = useState<number>(config?.transportCost ?? 150000);
+  // El transporte ya NO va aquí: se marca una sola vez en la casilla «Incluye transporte e imprevistos» del ítem.
+  const includeTransport = false;
+  const transportCost = 0;
 
   useEffect(() => {
     const doorsSubtotal = doors.reduce((sum, door) => sum + door.lineTotal, 0);
@@ -269,36 +270,6 @@ export function DoorConfigurator({ config, onChange }: DoorConfiguratorProps) {
               </div>
             </div>
           ))}
-
-          {/* Transporte e Imprevistos */}
-          <div className="bg-white/[0.03] p-4 rounded-lg border border-[rgba(106,207,199,0.12)]">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Checkbox 
-                  id="door-transport" 
-                  checked={includeTransport} 
-                  onCheckedChange={(c) => setIncludeTransport(c === true)} 
-                />
-                <div className="flex items-center gap-2">
-                  <Truck className="h-4 w-4 text-white/60" />
-                  <Label htmlFor="door-transport" className="cursor-pointer font-medium">
-                    Incluir Transporte e Imprevistos
-                  </Label>
-                </div>
-              </div>
-              {includeTransport && (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-white/60">Monto: $</span>
-                  <Input 
-                    type="number" 
-                    value={transportCost} 
-                    onChange={(e) => setTransportCost(parseInt(e.target.value) || 0)} 
-                    className="h-9 w-32 text-right" 
-                  />
-                </div>
-              )}
-            </div>
-          </div>
 
           {/* Notas generales */}
           <div>

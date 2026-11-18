@@ -191,6 +191,60 @@ export async function runMigrations() {
           WHERE NOT EXISTS (SELECT 1 FROM "pricingConfig" WHERE "code" = 'PIEZA_ISLA_MADERA_ML');
       END $$`,
     },
+    {
+      // Closets: precios por m² Premium y Deluxe en el Motor (antes estaban escritos en el código). Solo agrega si no existen; no pisa nada.
+      name: "closet_precios_17nov2026",
+      sql: `DO $$ BEGIN
+        INSERT INTO "pricingConfig" ("category", "code", "name", "description", "value", "unit", "sortOrder")
+          SELECT 'closets', 'CLOSET_PREMIUM_M2', 'Closet Premium (por m²)', 'Con espaldar y laterales — gama alta.', 900000, 'm2', 11
+          WHERE NOT EXISTS (SELECT 1 FROM "pricingConfig" WHERE "code" = 'CLOSET_PREMIUM_M2');
+        INSERT INTO "pricingConfig" ("category", "code", "name", "description", "value", "unit", "sortOrder")
+          SELECT 'closets', 'CLOSET_DELUXE_M2', 'Closet Deluxe (por m²)', 'Máxima calidad, acabados exclusivos.', 1100000, 'm2', 12
+          WHERE NOT EXISTS (SELECT 1 FROM "pricingConfig" WHERE "code" = 'CLOSET_DELUXE_M2');
+      END $$`,
+    },
+    {
+      // Muebles de baño y desmontes: el cotizador los cobraba con valores de respaldo porque NO estaban en el Motor. Se crean con esos mismos valores (no cambia ningún total).
+      name: "bano_desmonte_precios_17nov2026",
+      sql: `DO $$ BEGIN
+        INSERT INTO "pricingConfig" ("category", "code", "name", "description", "value", "unit", "sortOrder")
+          SELECT 'otros', 'BANO_50_60', 'Mueble de baño 50–60 cm', 'Valor que el cotizador ya usaba como respaldo; ahora editable en el Motor.', 750000, 'unidad', 40
+          WHERE NOT EXISTS (SELECT 1 FROM "pricingConfig" WHERE "code" = 'BANO_50_60');
+        INSERT INTO "pricingConfig" ("category", "code", "name", "description", "value", "unit", "sortOrder")
+          SELECT 'otros', 'BANO_60_80', 'Mueble de baño 60–80 cm', 'Valor que el cotizador ya usaba como respaldo; ahora editable en el Motor.', 900000, 'unidad', 40
+          WHERE NOT EXISTS (SELECT 1 FROM "pricingConfig" WHERE "code" = 'BANO_60_80');
+        INSERT INTO "pricingConfig" ("category", "code", "name", "description", "value", "unit", "sortOrder")
+          SELECT 'otros', 'BANO_80_100', 'Mueble de baño 80–100 cm', 'Valor que el cotizador ya usaba como respaldo; ahora editable en el Motor.', 1200000, 'unidad', 40
+          WHERE NOT EXISTS (SELECT 1 FROM "pricingConfig" WHERE "code" = 'BANO_80_100');
+        INSERT INTO "pricingConfig" ("category", "code", "name", "description", "value", "unit", "sortOrder")
+          SELECT 'otros', 'BANO_100_120', 'Mueble de baño 100–120 cm (más de 120: proporcional)', 'Valor que el cotizador ya usaba como respaldo; ahora editable en el Motor.', 1400000, 'unidad', 40
+          WHERE NOT EXISTS (SELECT 1 FROM "pricingConfig" WHERE "code" = 'BANO_100_120');
+        INSERT INTO "pricingConfig" ("category", "code", "name", "description", "value", "unit", "sortOrder")
+          SELECT 'otros', 'BANO_EXCAVADO_GRANITO', 'Baño: lavamanos excavado en granito (por ml de ancho)', 'Valor que el cotizador ya usaba como respaldo; ahora editable en el Motor.', 1200000, 'ml', 40
+          WHERE NOT EXISTS (SELECT 1 FROM "pricingConfig" WHERE "code" = 'BANO_EXCAVADO_GRANITO');
+        INSERT INTO "pricingConfig" ("category", "code", "name", "description", "value", "unit", "sortOrder")
+          SELECT 'otros', 'BANO_EXCAVADO_CUARZO', 'Baño: lavamanos excavado en cuarzo (por ml de ancho)', 'Valor que el cotizador ya usaba como respaldo; ahora editable en el Motor.', 1500000, 'ml', 40
+          WHERE NOT EXISTS (SELECT 1 FROM "pricingConfig" WHERE "code" = 'BANO_EXCAVADO_CUARZO');
+        INSERT INTO "pricingConfig" ("category", "code", "name", "description", "value", "unit", "sortOrder")
+          SELECT 'otros', 'BANO_EXCAVADO_SINTERIZADO', 'Baño: lavamanos excavado en sinterizado (por ml de ancho)', 'Valor que el cotizador ya usaba como respaldo; ahora editable en el Motor.', 2100000, 'ml', 40
+          WHERE NOT EXISTS (SELECT 1 FROM "pricingConfig" WHERE "code" = 'BANO_EXCAVADO_SINTERIZADO');
+        INSERT INTO "pricingConfig" ("category", "code", "name", "description", "value", "unit", "sortOrder")
+          SELECT 'otros', 'BANO_MESON_GRANITO', 'Baño: mesón en granito (por ml de ancho)', 'Valor que el cotizador ya usaba como respaldo; ahora editable en el Motor.', 820000, 'ml', 40
+          WHERE NOT EXISTS (SELECT 1 FROM "pricingConfig" WHERE "code" = 'BANO_MESON_GRANITO');
+        INSERT INTO "pricingConfig" ("category", "code", "name", "description", "value", "unit", "sortOrder")
+          SELECT 'otros', 'BANO_MESON_CUARZO', 'Baño: mesón en cuarzo (por ml de ancho)', 'Valor que el cotizador ya usaba como respaldo; ahora editable en el Motor.', 1000000, 'ml', 40
+          WHERE NOT EXISTS (SELECT 1 FROM "pricingConfig" WHERE "code" = 'BANO_MESON_CUARZO');
+        INSERT INTO "pricingConfig" ("category", "code", "name", "description", "value", "unit", "sortOrder")
+          SELECT 'otros', 'BANO_MESON_SINTERIZADO', 'Baño: mesón en sinterizado (por ml de ancho)', 'Valor que el cotizador ya usaba como respaldo; ahora editable en el Motor.', 1400000, 'ml', 40
+          WHERE NOT EXISTS (SELECT 1 FROM "pricingConfig" WHERE "code" = 'BANO_MESON_SINTERIZADO');
+        INSERT INTO "pricingConfig" ("category", "code", "name", "description", "value", "unit", "sortOrder")
+          SELECT 'extras', 'DESMONTE_COCINA', 'Desmonte de cocina existente', 'Valor que el cotizador ya usaba como respaldo; ahora editable en el Motor.', 300000, 'servicio', 40
+          WHERE NOT EXISTS (SELECT 1 FROM "pricingConfig" WHERE "code" = 'DESMONTE_COCINA');
+        INSERT INTO "pricingConfig" ("category", "code", "name", "description", "value", "unit", "sortOrder")
+          SELECT 'extras', 'DESMONTE_CLOSET', 'Desmonte de closet existente', 'Valor que el cotizador ya usaba como respaldo; ahora editable en el Motor.', 250000, 'servicio', 40
+          WHERE NOT EXISTS (SELECT 1 FROM "pricingConfig" WHERE "code" = 'DESMONTE_CLOSET');
+      END $$`,
+    },
   ];
 
   for (const m of migrations) {

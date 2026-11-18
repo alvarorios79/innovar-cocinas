@@ -18,7 +18,7 @@ const CLASS_LABEL: Record<string, string> = {
   estandar: "ESTÁNDAR", premium: "PREMIUM", deluxe: "DELUXE",
   // Valores antiguos (cotizaciones anteriores)
   L: "ESTÁNDAR", U: "PREMIUM", lineal: "DELUXE",
-  frente_pll: "FRENTE PLL (SOLO INFERIORES)",
+  frente_pll: "FRENTE DE MESÓN (SOLO INFERIORES)",
   solo_superiores: "SOLO MUEBLES SUPERIORES",
   solo_inferiores: "SOLO MUEBLES INFERIORES",
   puertas_tapas: "PUERTAS Y TAPAS",
@@ -128,7 +128,7 @@ export function buildKitchenQuoteDescription(rawConfig: any, manualDescription?:
   if (!isOnlyFinishes) {
     const mueble: string[] = [];
     if (shape === "frente_pll") {
-      mueble.push(`• Muebles inferiores (frente PLL): ${ml(totalMeters)}`);
+      mueble.push(`• Frente de mesón (muebles inferiores): ${ml(totalMeters)}`);
       if (config.includeUpperModule && config.upperModuleMeters > 0) mueble.push(`• Muebles superiores: ${ml(config.upperModuleMeters)}`);
     } else if (shape === "solo_superiores") {
       mueble.push(`• Muebles superiores: ${ml(totalMeters)}`);
@@ -337,7 +337,7 @@ export function buildKitchenQuoteDescription(rawConfig: any, manualDescription?:
   // Texto manual escrito a mano por el usuario (se conserva), salvo el resumen automático antiguo
   const manual = typeof manualDescription === "string" ? manualDescription.trim() : "";
   const isAutoSummary = /^Cocina integral/i.test(manual) && /color a elegir por el cliente/i.test(manual);
-  if (manual && !isAutoSummary && !manual.startsWith("COCINA INTEGRAL")) {
+  if (manual && manual !== "Item" && !isAutoSummary && !manual.startsWith("COCINA INTEGRAL")) {
     push("");
     push(manual);
   }

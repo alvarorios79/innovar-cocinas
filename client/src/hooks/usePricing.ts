@@ -92,7 +92,9 @@ const DEFAULT_PRICES: Record<string, { value: number; unit: string | null }> = {
   PINTADO_PUERTA_NEVERA: { value: 300000, unit: "unidad" },
 
   // Closets — precio por m²
-  CLOSET_ESTANDAR_M2:   { value: 750000,  unit: "m2" },
+  CLOSET_ESTANDAR_M2:   { value: 800000,  unit: "m2" },
+  CLOSET_PREMIUM_M2:    { value: 900000,  unit: "m2" },
+  CLOSET_DELUXE_M2:     { value: 1100000, unit: "m2" },
   CLOSET_ESPECIAL_M2:   { value: 650000,  unit: "m2" },
   CLOSET_EMPOTRADO_M2:  { value: 900000,  unit: "m2" },
 
@@ -133,10 +135,26 @@ const DEFAULT_PRICES: Record<string, { value: number; unit: string | null }> = {
 
 };
 
+// Precios que el cotizador necesita SÍ o SÍ. Si alguno no está en el Motor se usa el valor de respaldo y se avisa con un cartel rojo
+// (antes un código mal escrito o faltante cobraba $0 o un precio viejo sin avisar).
+export const CODIGOS_NECESARIOS = [
+  "COCINA_ML_ESTANDAR", "COCINA_ML_PREMIUM", "COCINA_ML_DELUXE", "COCINA_ML_FRENTE_PLL", "MUEBLE_SUPERIOR_ML", "MUEBLE_INFERIOR_ML",
+  "MESON_GRANITO", "MESON_CUARZO", "MESON_SINTERIZADO", "MESON_GRANITO_ANGOSTA", "MESON_CUARZO_ANGOSTA", "MESON_SINTERIZADO_ANGOSTA", "MESON_RECARGO_FONDO",
+  "LAVAPLATOS_SENCILLO", "LAVAPLATOS_DOBLE", "LED_ML", "BARRA_ML", "BARRA_PEDESTAL", "BARRA_HERRAJE", "PIEZA_ISLA_MADERA_ML",
+  "RECARGO_PIEZA_SUELTA", "RECARGO_PIEZA_FIJA", "NICHO_NEVECON", "NICHO_NEVERA", "ALACENA_ENTREPANOS", "ALACENA_HERRAJE", "TORRE_HORNOS",
+  "PINTADO_SUP", "PINTADO_INF", "PINTADO_ALACENA", "PINTADO_CAJON", "PINTADO_ESPECIERO", "PINTADO_GOLA", "PINTADO_LATERAL",
+  "CLOSET_ESTANDAR_M2", "CLOSET_PREMIUM_M2", "CLOSET_DELUXE_M2", "CLOSET_ESPECIAL_M2",
+  "PUERTA_BATIENTE_50_85", "PUERTA_BATIENTE_85_110", "PUERTA_CORREDIZA_50_85", "PUERTA_CORREDIZA_85_110",
+  "BANO_50_60", "BANO_60_80", "BANO_80_100", "BANO_100_120", "TV2_BASE", "TV2_PER_20CM",
+  "ACABADO_ALUMINIO_VIDRIO_M2", "ACABADO_BISAGRA_PAR", "DESMONTE_COCINA", "DESMONTE_CLOSET",
+];
+
 export interface PricingData {
   prices: Record<string, { value: number; unit: string | null }>;
   isLoading: boolean;
   isError: boolean;
+  /** Códigos necesarios que NO están en el Motor (se usa el respaldo). Vacío mientras carga. */
+  missing: string[];
   getPrice: (code: string) => number;
   getPriceWithUnit: (code: string) => { value: number; unit: string | null };
 }
@@ -173,10 +191,13 @@ export function usePricing(): PricingData {
     return defaultPrice || { value: 0, unit: null };
   };
 
+  const missing = isLoading || isError || !data ? [] : CODIGOS_NECESARIOS.filter((c) => !data[c]);
+
   return {
     prices,
     isLoading,
     isError,
+    missing,
     getPrice,
     getPriceWithUnit,
   };

@@ -14,6 +14,7 @@ export interface DatosPlano {
   barra?: { ancho: number; profundo: number; alto: number } | null;
 }
 
+const fm = (cm: number) => (Math.round(Number(cm) || 0) / 100).toFixed(2).replace(".", ",");   // 360 → "3,60"
 const cargar = (src: string) => new Promise<HTMLImageElement>((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = src; });
 
 /** Devuelve la hoja lista para la pizarra (JPEG en data URL) con su tamaño. */
@@ -27,16 +28,16 @@ export async function componerPlanoLevantamiento(foto3d: string, d: DatosPlano):
   const filas: string[] = [];
   paredes.forEach((p, i) => {
     const alto = Number(p.alto) || d.altoGeneralCm || 240;
-    filas.push(`Pared ${nombres[i] || i + 1}:  ancho ${anchoMuroCm(p) || "—"} cm  ·  alto ${alto || "—"} cm   |   muebles inferiores ${p.inf ?? 0} cm  ·  superiores ${p.sup ?? 0} cm`);
+    filas.push(`Pared ${nombres[i] || i + 1}:  ancho ${fm(anchoMuroCm(p))} m  ·  alto ${fm(alto)} m   |   muebles inferiores ${fm(p.inf ?? 0)} m  ·  superiores ${fm(p.sup ?? 0)} m`);
   });
   const t = totalesParedes(paredes);
   filas.push(`Total de muebles:  inferiores ${t.infM.toFixed(2)} m   ·   superiores ${t.supM.toFixed(2)} m`);
-  if (d.isla) filas.push(`Isla:  ancho ${d.isla.ancho} cm  ·  profundidad ${d.isla.profundo} cm  ·  altura ${d.isla.alto} cm`);
-  if (d.barra) filas.push(`Barra:  ancho ${d.barra.ancho} cm  ·  profundidad ${d.barra.profundo} cm  ·  altura ${d.barra.alto} cm`);
+  if (d.isla) filas.push(`Isla:  ancho ${fm(d.isla.ancho)} m  ·  profundidad ${fm(d.isla.profundo)} m  ·  altura ${fm(d.isla.alto)} m`);
+  if (d.barra) filas.push(`Barra:  ancho ${fm(d.barra.ancho)} m  ·  profundidad ${fm(d.barra.profundo)} m  ·  altura ${fm(d.barra.alto)} m`);
   ab.forEach((a) => {
-    filas.push(`${a.tipo === "ventana" ? "Ventana" : "Puerta"} en pared ${nombres[a.pared] || a.pared + 1}:  a ${Math.round(a.desde)} cm del inicio  ·  ${a.ancho} × ${a.alto} cm${a.tipo === "ventana" ? `  ·  desde ${a.antepecho} cm del piso` : ""}`);
+    filas.push(`${a.tipo === "ventana" ? "Ventana" : "Puerta"} en pared ${nombres[a.pared] || a.pared + 1}:  a ${fm(a.desde)} m del inicio  ·  ${fm(a.ancho)} × ${fm(a.alto)} m${a.tipo === "ventana" ? `  ·  desde ${fm(a.antepecho)} m del piso` : ""}`);
   });
-  if (d.profundoCm) filas.push(`Profundo de los muebles: ${d.profundoCm} cm`);
+  if (d.profundoCm) filas.push(`Profundo de los muebles: ${fm(d.profundoCm)} m`);
 
   const lh = 40, tituloH = 110, H = tituloH + hFoto + 30 + filas.length * lh + 50;
   const c = document.createElement("canvas"); c.width = W; c.height = H;

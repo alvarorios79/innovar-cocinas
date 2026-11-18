@@ -17,8 +17,9 @@ export function PlanoCocinaLectura({ measurements }: { measurements: Record<stri
   const t = totalesParedes(paredes);
   const techo = Number(m._cocina_alto) || 240;
   const metros = (x: number) => x.toFixed(2).replace(".", ",");
+  const fm = (cm: number) => metros((Number(cm) || 0) / 100);
   const pieza = (base: string, titulo: string) => (Number(m[base]) > 0
-    ? <div key={base} className="flex justify-between gap-3"><span className="text-gray-400">{titulo}</span><span className="text-white font-medium text-right">{m[base]} cm de ancho · {m[base + "_profundo"] || 0} de profundo · {m[base + "_alto"] || 0} de alto</span></div>
+    ? <div key={base} className="flex justify-between gap-3"><span className="text-gray-400">{titulo}</span><span className="text-white font-medium text-right">{fm(m[base])} m de ancho · {fm(m[base + "_profundo"] || 0)} de profundo · {fm(m[base + "_alto"] || 0)} de alto</span></div>
     : null);
 
   return (
@@ -51,20 +52,20 @@ export function PlanoCocinaLectura({ measurements }: { measurements: Record<stri
         {letras.map((l, i) => (
           <div key={l} className="grid grid-cols-5 gap-2 text-white">
             <span className="font-bold">{l}</span>
-            <span>{anchoMuroCm(paredes[i]) || "—"} cm</span>
-            <span>{paredes[i]?.alto || techo} cm</span>
-            <span>{paredes[i]?.inf ?? 0} cm</span>
-            <span>{paredes[i]?.sup ?? 0} cm</span>
+            <span>{fm(anchoMuroCm(paredes[i]))} m</span>
+            <span>{fm(paredes[i]?.alto || techo)} m</span>
+            <span>{fm(paredes[i]?.inf ?? 0)} m</span>
+            <span>{fm(paredes[i]?.sup ?? 0)} m</span>
           </div>
         ))}
         <div className="flex justify-between pt-1 border-t border-primary/20"><span className="text-gray-400">Total de muebles</span><span className="text-white font-semibold">inferiores {metros(t.infM)} m · superiores {metros(t.supM)} m</span></div>
         {pieza("_cocina_isla", "Isla")}
         {pieza("_cocina_barra", "Barra")}
-        {Number(m._cocina_profundo) > 0 && <div className="flex justify-between"><span className="text-gray-400">Profundo de los muebles</span><span className="text-white font-medium">{m._cocina_profundo} cm</span></div>}
+        {Number(m._cocina_profundo) > 0 && <div className="flex justify-between"><span className="text-gray-400">Profundo de los muebles</span><span className="text-white font-medium">{fm(m._cocina_profundo)} m</span></div>}
         {aberturas.map((a) => (
           <div key={a.id} className="flex justify-between gap-3">
             <span className="text-gray-400">{a.tipo === "ventana" ? "Ventana" : "Puerta"} · pared {letras[a.pared] ?? a.pared + 1}</span>
-            <span className="text-white font-medium text-right">a {Math.round(a.desde)} cm del inicio · {a.ancho}×{a.alto} cm{a.tipo === "ventana" ? ` · desde ${a.antepecho} cm del piso` : ""}</span>
+            <span className="text-white font-medium text-right">a {fm(a.desde)} m del inicio · {fm(a.ancho)}×{fm(a.alto)} m{a.tipo === "ventana" ? ` · desde ${fm(a.antepecho)} m del piso` : ""}</span>
           </div>
         ))}
       </div>

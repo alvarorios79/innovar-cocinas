@@ -1,5 +1,6 @@
 // client/src/pages/Medidor.tsx
 import { CocinaParedes } from "@/components/CocinaParedes";
+import { InputM } from "@/components/InputMetros";
 import { componerPlanoLevantamiento } from "@/lib/planoLevantamiento";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useSearch } from "wouter";
@@ -1686,8 +1687,8 @@ export default function Medidor() {
                                 <div className="grid grid-cols-3 gap-2">
                                   {[{ dim: "ancho", label: "Ancho" }, { dim: "alto", label: "Alto" }, { dim: "profundo", label: "Profundo" }].map(({ dim, label }) => (
                                     <div key={dim}>
-                                      <label className="block text-xs font-semibold text-primary mb-1">{label} (cm)</label>
-                                      <Input type="number" value={(unit as any)[dim] ?? ""} onChange={(e) => updateUnidad(wt, uIdx, dim, e.target.value)} placeholder="0" className="bg-background border-primary/20 text-white h-9 text-sm" />
+                                      <label className="block text-xs font-semibold text-primary mb-1">{label} (m)</label>
+                                      <InputM valorCm={(unit as any)[dim]} onCm={(cm) => updateUnidad(wt, uIdx, dim, cm === undefined ? "" : String(cm))} placeholder="0,00" className="bg-background border-primary/20 text-white h-9 text-sm" />
                                     </div>
                                   ))}
                                 </div>

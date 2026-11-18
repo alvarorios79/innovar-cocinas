@@ -373,9 +373,9 @@ export default function VisitasTecnicas() {
                             {Array.isArray((measurements as any)._cocina_paredes) && (
                               <PlanoCocinaLectura measurements={measurements as any} />
                             )}
-                            {!Array.isArray((measurements as any)._cocina_paredes) && ancho && <div className="flex justify-between"><span className="text-gray-400">Ancho</span><span className="text-white font-medium">{ancho} cm</span></div>}
-                            {!Array.isArray((measurements as any)._cocina_paredes) && alto  && <div className="flex justify-between"><span className="text-gray-400">Alto</span><span className="text-white font-medium">{alto} cm</span></div>}
-                            {!Array.isArray((measurements as any)._cocina_paredes) && prof  && <div className="flex justify-between"><span className="text-gray-400">Profundo</span><span className="text-white font-medium">{prof} cm</span></div>}
+                            {!Array.isArray((measurements as any)._cocina_paredes) && ancho && <div className="flex justify-between"><span className="text-gray-400">Ancho</span><span className="text-white font-medium">{(Number(ancho) / 100).toFixed(2).replace(".", ",")} m</span></div>}
+                            {!Array.isArray((measurements as any)._cocina_paredes) && alto  && <div className="flex justify-between"><span className="text-gray-400">Alto</span><span className="text-white font-medium">{(Number(alto) / 100).toFixed(2).replace(".", ",")} m</span></div>}
+                            {!Array.isArray((measurements as any)._cocina_paredes) && prof  && <div className="flex justify-between"><span className="text-gray-400">Profundo</span><span className="text-white font-medium">{(Number(prof) / 100).toFixed(2).replace(".", ",")} m</span></div>}
                             {!forma && !ancho && !alto && !prof && <p className="text-gray-500 text-xs">Sin medidas</p>}
                           </div>
                         </div>
@@ -391,9 +391,9 @@ export default function VisitasTecnicas() {
                               {unidades.length > 1 && <p className="text-primary/70 text-xs font-semibold">#{idx + 1}{unit.descripcion ? ` — ${unit.descripcion}` : ""}</p>}
                               {unidades.length === 1 && unit.descripcion && <p className="text-gray-400 text-xs">{unit.descripcion}</p>}
                               <div className="flex gap-4 flex-wrap">
-                                {unit.ancho   && <span className="text-gray-300">Ancho: <span className="text-white font-medium">{unit.ancho} cm</span></span>}
-                                {unit.alto    && <span className="text-gray-300">Alto: <span className="text-white font-medium">{unit.alto} cm</span></span>}
-                                {unit.profundo && <span className="text-gray-300">Profundo: <span className="text-white font-medium">{unit.profundo} cm</span></span>}
+                                {unit.ancho   && <span className="text-gray-300">Ancho: <span className="text-white font-medium">{(Number(unit.ancho) / 100).toFixed(2).replace(".", ",")} m</span></span>}
+                                {unit.alto    && <span className="text-gray-300">Alto: <span className="text-white font-medium">{(Number(unit.alto) / 100).toFixed(2).replace(".", ",")} m</span></span>}
+                                {unit.profundo && <span className="text-gray-300">Profundo: <span className="text-white font-medium">{(Number(unit.profundo) / 100).toFixed(2).replace(".", ",")} m</span></span>}
                               </div>
                             </div>
                           ))}

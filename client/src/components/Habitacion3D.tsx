@@ -38,6 +38,7 @@ export interface Habitacion3DRef {
 
 const COLOR_PARED = 0x8d9aa0, COLOR_ACTIVA = 0x00bcd4, COLOR_PISO = 0x1f2a2e, COLOR_VIDRIO = 0x7fd4ff, COLOR_PUERTA = 0x8a5a2b;
 const GROSOR = 0.08;
+const fm = (m: number) => (Math.round(m * 100) / 100).toFixed(2).replace(".", ",");   // 3.6 → "3,60"
 
 const Habitacion3D = forwardRef<Habitacion3DRef, Props>(function Habitacion3D({ forma, paredes, separacionCm, altoCm, aberturas, activa, onPickPared, onFalla, altura = 300, profundoCm, isla, barra, vistaPizarra, onFijarVista }, ref) {
   const host = useRef<HTMLDivElement>(null);
@@ -193,24 +194,24 @@ const Habitacion3D = forwardRef<Habitacion3DRef, Props>(function Habitacion3D({ 
         const signo = ((cx - mx) * nzx + (cz - mz) * nzz) >= 0 ? 1 : -1; // hacia el interior de la cocina
         const aMundo = (lx: number, y: number, lz: number): [number, number, number] => [w.x1 + lx * ux + lz * nzx, y, w.z1 + lx * uz + lz * nzz];
         const anchoCm = Math.round(largo * 100), altoCmW = Math.round(alto * 100);
-        contenido.add(medida(`${w.nombre} · ${anchoCm} cm`, ...aMundo(largo / 2, 0.12, -signo * 0.38), activo ? "#00e5ff" : "#ffffff"));
-        contenido.add(medida(`↕ ${altoCmW} cm`, ...aMundo(0, alto / 2, -signo * 0.3), "#ffd54f"));
+        contenido.add(medida(`${w.nombre} · ${fm(largo)} m`, ...aMundo(largo / 2, 0.12, -signo * 0.38), activo ? "#00e5ff" : "#ffffff"));
+        contenido.add(medida(`↕ ${fm(alto)} m`, ...aMundo(0, alto / 2, -signo * 0.3), "#ffd54f"));
         // Filas de muebles (inferiores y superiores) con su medida
         const profBajo = ((p.profundoCm && p.profundoCm > 10 ? p.profundoCm : 60)) / 100, profAlto = 0.35;
         const inf = (Number(par.inf) || 0) / 100, sup = (Number(par.sup) || 0) / 100;
         if (inf > 0.05) {
           const m = new THREE.Mesh(new THREE.BoxGeometry(Math.min(inf, largo), 0.9, profBajo), new THREE.MeshLambertMaterial({ color: 0x26a69a, transparent: true, opacity: 0.6 }));
           m.position.set(Math.min(inf, largo) / 2, 0.45, signo * (GROSOR / 2 + profBajo / 2)); g.add(m);
-          contenido.add(medida(`Inf ${Math.round(inf * 100)}`, ...aMundo(Math.min(inf, largo) / 2, 1.0, signo * (GROSOR / 2 + profBajo / 2)), "#80cbc4"));
+          contenido.add(medida(`Inf ${fm(inf)} m`, ...aMundo(Math.min(inf, largo) / 2, 1.0, signo * (GROSOR / 2 + profBajo / 2)), "#80cbc4"));
         }
         if (sup > 0.05) {
           const m = new THREE.Mesh(new THREE.BoxGeometry(Math.min(sup, largo), 0.7, profAlto), new THREE.MeshLambertMaterial({ color: 0x7e57c2, transparent: true, opacity: 0.55 }));
           m.position.set(Math.min(sup, largo) / 2, Math.min(alto - 0.4, 1.75), signo * (GROSOR / 2 + profAlto / 2)); g.add(m);
-          contenido.add(medida(`Sup ${Math.round(sup * 100)}`, ...aMundo(Math.min(sup, largo) / 2, Math.min(alto - 0.4, 1.75) + 0.5, signo * (GROSOR / 2 + profAlto / 2)), "#b39ddb"));
+          contenido.add(medida(`Sup ${fm(sup)} m`, ...aMundo(Math.min(sup, largo) / 2, Math.min(alto - 0.4, 1.75) + 0.5, signo * (GROSOR / 2 + profAlto / 2)), "#b39ddb"));
         }
         // Ventanas y puertas con sus medidas
         ab.forEach((a) => {
-          const txt = a.tipo === "ventana" ? `${Math.round(a.a * 100)}×${Math.round(a.h * 100)} · piso ${Math.round(a.base * 100)}` : `puerta ${Math.round(a.a * 100)}×${Math.round(a.h * 100)}`;
+          const txt = a.tipo === "ventana" ? `${fm(a.a)}×${fm(a.h)} m · piso ${fm(a.base)} m` : `puerta ${fm(a.a)}×${fm(a.h)} m`;
           contenido.add(medida(txt, ...aMundo(a.d + a.a / 2, a.base + a.h + 0.16, signo * 0.14), a.tipo === "ventana" ? "#81d4fa" : "#ffcc80"));
         });
 
@@ -227,14 +228,14 @@ const Habitacion3D = forwardRef<Habitacion3DRef, Props>(function Habitacion3D({ 
       if (p.isla && p.isla.ancho > 0) {
         const anc = p.isla.ancho / 100, pro = (p.isla.profundo || 90) / 100, alt = (p.isla.alto || 90) / 100;
         caja3(anc, pro, alt, cx, cz, 0xffb74d);
-        contenido.add(medida(`Isla ${p.isla.ancho}×${p.isla.profundo || 0}×${p.isla.alto || 0}`, cx, alt + 0.2, cz, "#ffcc80"));
+        contenido.add(medida(`Isla ${fm(p.isla.ancho / 100)}×${fm((p.isla.profundo || 0) / 100)}×${fm((p.isla.alto || 0) / 100)} m`, cx, alt + 0.2, cz, "#ffcc80"));
         zIsla = cz + pro / 2 + 0.12;
       }
       if (p.barra && p.barra.ancho > 0) {
         const anc = p.barra.ancho / 100, pro = (p.barra.profundo || 40) / 100, alt = (p.barra.alto || 100) / 100;
         const zb = zIsla + pro / 2;
         caja3(anc, pro, alt, cx, zb, 0xef5350);
-        contenido.add(medida(`Barra ${p.barra.ancho}×${p.barra.profundo || 0}×${p.barra.alto || 0}`, cx, alt + 0.2, zb, "#ef9a9a"));
+        contenido.add(medida(`Barra ${fm(p.barra.ancho / 100)}×${fm((p.barra.profundo || 0) / 100)}×${fm((p.barra.alto || 0) / 100)} m`, cx, alt + 0.2, zb, "#ef9a9a"));
       }
 
       encuadre = { cx, cz, r: Math.max(sx, sz, altoMax * 1.4) };

@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactElement
 import {
   CATALOG, CATALOG_BY_KEY, FILL_KEYS, SPECIALS,
   normalizePlan, computePlan, rowItems, rowUsed, activeSpecials, lateralOn, isPainted,
-  addModuleToPlan, removeModuleFromPlan, setModuleWidth, moveModule, moveModuleToTramo, primerHueco, esquinasDeLayout, girarEsquinero, moveTall, dropModule, dropTall, tidyPlan, packRow, setModuleLock, setTypeWidth, alignEnd, rebuildAutoUpper,
+  addModuleToPlan, removeModuleFromPlan, setModuleWidth, moveModule, moveModuleToTramo, primerHueco, esquinasDeLayout, girarEsquinero, espaciosLibres, ampliarMueble, moveTall, dropModule, dropTall, tidyPlan, packRow, setModuleLock, setTypeWidth, alignEnd, rebuildAutoUpper,
   round2,
   specialWidth,
   type ModulePlan, type PlanModule, type PlanRow, type RowItem,
@@ -377,7 +377,8 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
     const mod = arr[idx];
     if (!mod) return null;
     const cat = CATALOG_BY_KEY[mod.key];
-    const adjustable = !cat.locked && mod.autoBase === undefined;
+    const adjustable = !cat.locked;   // también los superiores «amarrados» a un inferior: al cambiarles la medida quedan con la suya
+    const esp = espaciosLibres(plan, sel.t, sel.row, mod.id, config);
     const painted = isPainted(plan, mod, sel.row);
     return (
       <div className={`flex flex-wrap items-center gap-3 rounded border p-2 text-xs ${sel.row === "upper" ? "border-purple-400/40 bg-purple-900/20 text-purple-100" : "border-primary/40 bg-teal-900/20 text-teal-100"}`}>
@@ -393,7 +394,10 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
           <span className="text-amber-300">{mod.width > cat.width ? "+" : ""}{m2(mod.width - cat.width)} vs normal</span>
         )}
         {cat.locked && <span className="text-white/50">🔒 medida fija</span>}
-        {mod.autoBase !== undefined && <span className="text-white/50">automático (sigue a los inferiores)</span>}
+        {(mod.autoBase !== undefined || mod.autoOf) && (mod.anchoManual
+          ? <span className="flex items-center gap-2 text-amber-200">Medida propia
+              <button type="button" className="h-8 px-2 rounded bg-white/10 hover:bg-white/25 text-[11px]" onClick={() => edit(p => { const m0 = p.tramos[sel.t][sel.row].find(x => x.id === mod.id); if (m0) { delete m0.anchoManual; } rebuildAutoUpper(p, sel.t); })}>↺ Volver a automático</button></span>
+          : <span className="text-white/60">Automático: sigue a los inferiores; si le cambias la medida queda con la suya</span>)}
         {mod.key === "moduloRepisa" && (
           <label className="flex items-center gap-1">
             repisas
@@ -449,6 +453,19 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
           )}
           <button type="button" className="h-9 px-2 rounded bg-red-900/40 hover:bg-red-900/70"
           onClick={() => { edit(p => removeModuleFromPlan(p, sel.t, sel.row, mod.id)); setSel(null); }}>✕ Quitar</button>
+        {/* Espacio libre a cada lado (hasta la ventana, el vecino o la pared) y botones para ampliar el mueble hasta allí */}
+        {esp && !cat.locked && (
+          <div className="w-full grid grid-cols-2 gap-2 pt-1">
+            {([["izq", "◀ A la izquierda", esp.izq], ["der", "A la derecha ▶", esp.der]] as const).map(([lado, titulo, e]) => (
+              <div key={lado} className="rounded-lg bg-black/25 border border-white/15 p-2 space-y-1.5">
+                <p className="text-[11px] text-white/60">{titulo}</p>
+                <p className="text-sm text-white">Libre: <b className={e.libre > 0.005 ? "text-amber-300" : "text-white/50"}>{m2(e.libre)} m</b> <span className="text-[11px] text-white/55">hasta {e.hasta}</span></p>
+                <button type="button" disabled={e.libre < 0.01} className="w-full h-9 rounded-lg bg-primary/40 hover:bg-primary/60 disabled:opacity-30 text-xs font-semibold text-white"
+                  onClick={() => edit(p => { ampliarMueble(p, sel.t, sel.row, mod.id, lado, config); })}>Ampliar hasta {e.hasta}</button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     );
   };

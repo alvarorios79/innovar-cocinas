@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { normalizePlan, addModuleToPlan, setModuleWidth, moveModuleToTramo, primerHueco, esquinasDeLayout, girarEsquinero, tidyPlan, dropModule, computePlan, ventanasDeLevantamiento, rowItems } from "../shared/kitchenModulePlan";
+import { normalizePlan, addModuleToPlan, setModuleWidth, moveModuleToTramo, primerHueco, esquinasDeLayout, girarEsquinero, tidyPlan, dropModule, setModuleWidth, espaciosLibres, ampliarMueble, rebuildAutoUpper, computePlan, ventanasDeLevantamiento, rowItems } from "../shared/kitchenModulePlan";
 import { buildKitchenQuoteDescription } from "./kitchen-description";
 
 // ¿El plano de módulos describe de verdad la cocina? Se arma una cocina paralela de 2 paredes (3,0 m y 2,4 m),
@@ -208,6 +208,44 @@ describe("Plano 3D: barra como bloque suelto y mover módulos entre paredes", ()
     const antes2 = posiciones(p, cfg).filter((x) => x.includes(m.m!.id));
     p = agregar(p, cfg, "lower", "moduloLavaplatos").q;
     expect(sinMover(antes2, posiciones(p, cfg))).toBe(true);
+  });
+
+  it("un superior amarrado a un inferior (el que acompaña al esquinero) acepta una medida propia y la conserva", () => {
+    const cfg = base();
+    let p = planA(cfg);
+    p = agregar(p, cfg, "lower", "cajoneroTriple").q;
+    p = agregar(p, cfg, "lower", "esquinero1x1").q;
+    const auto = p.tramos[0].upper.find((m: any) => m.autoRole === "cornerFill" || (m.autoBase !== undefined && m.key === "moduloAlmacSup"))!;
+    expect(auto).toBeTruthy();
+    const q = JSON.parse(JSON.stringify(p));
+    setModuleWidth(q, 0, "upper", auto.id, 1.4, cfg); tidyPlan(q, cfg);
+    expect(q.tramos[0].upper.find((m: any) => m.id === auto.id)).toMatchObject({ width: 1.4, anchoManual: true });
+    // al agregar otro inferior (se recalculan los superiores automáticos) la medida propia se conserva
+    const r = agregar(q, cfg, "lower", "moduloAlmacInf").q;
+    expect(r.tramos[0].upper.find((m: any) => m.id === auto.id).width).toBe(1.4);
+    // «volver a automático»
+    delete r.tramos[0].upper.find((m: any) => m.id === auto.id).anchoManual; rebuildAutoUpper(r, 0);
+    expect(r.tramos[0].upper.find((m: any) => m.id === auto.id).width).not.toBe(1.4);
+  });
+  it("espacio libre hasta la ventana y «ampliar» el mueble a ras de ventana (por la derecha y por la izquierda)", () => {
+    const cfg = base();
+    const v = ventanasDeLevantamiento([{ tipo: "ventana", pared: 0, desde: 150, ancho: 100, alto: 120, antepecho: 100 }], 2)[0];   // ventana de 1,50 a 2,50 m
+    let p = planA(cfg, v);
+    const m = agregar(p, cfg, "upper", "moduloAlmacSup"); p = m.q;                  // cae en el primer hueco: 0,00–0,65
+    const esp = espaciosLibres(p, 0, "upper", m.m!.id, cfg)!;
+    expect(esp.izq.libre).toBe(0);
+    expect(esp.der).toMatchObject({ hasta: "la ventana" });
+    expect(esp.der.libre).toBeCloseTo(1.5 - 0.65, 2);                               // lo que falta hasta la ventana
+    const q = JSON.parse(JSON.stringify(p));
+    expect(ampliarMueble(q, 0, "upper", m.m!.id, "der", cfg)).toBe(true); tidyPlan(q, cfg);
+    const it = rowItems(q, 0, "upper", cfg).find((i) => i.mod?.id === m.m!.id)!;
+    expect(it.start + it.width).toBeCloseTo(1.5, 2);                                // termina justo donde empieza la ventana
+    // por la izquierda: un módulo a la derecha de la ventana se amplía hasta ella
+    let p2 = planA(cfg, v);
+    const m2 = agregar(p2, cfg, "upper", "moduloAlmacSup"); p2 = m2.q;
+    const m3 = agregar(p2, cfg, "upper", "moduloAlmacSup"); p2 = m3.q;              // segundo hueco libre: junto a la ventana (después de 2,50) o antes
+    const e3 = espaciosLibres(p2, 0, "upper", m3.m!.id, cfg)!;
+    expect(e3.izq.libre + e3.der.libre).toBeGreaterThanOrEqual(0);
   });
 });
 

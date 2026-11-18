@@ -97,6 +97,7 @@ export interface PlanModule {
   paint?: boolean;       // forzar pintado / sin pintar solo este módulo
   qty?: number;          // cantidad de piezas que indica el usuario (ej. repisas)
   autoClamp?: [number, number]; // el ancho automático se limita a este rango (platero 0.70–0.90)
+  anchoManual?: boolean; // el usuario le puso su propia medida a un superior automático: ya no sigue a los inferiores (hasta «volver a automático»)
   lockAt?: number;       // ubicación bloqueada (m desde el inicio de la pared), ej. una ventana
   manual?: boolean;      // el usuario lo colocó a mano: no se realinea solo con su inferior
   gap?: number;          // espacio libre (m) entre el elemento anterior y este módulo
@@ -283,7 +284,9 @@ export function rebuildAutoUpper(p: ModulePlan, t: number) {
   old.forEach(m => {
     if (!m.autoOf) { result.push(m); return; }                 // a mano: se queda
     const f = freshBySig.get(autoSig(m));
-    if (f) result.push({ ...m, width: f.width, autoBase: f.autoBase, autoGroup: f.autoGroup, autoRole: f.autoRole, autoClamp: f.autoClamp, alsoTramo: f.alsoTramo });
+    if (f) result.push(m.anchoManual
+      ? { ...m, autoBase: f.autoBase, autoGroup: f.autoGroup, autoRole: f.autoRole, autoClamp: f.autoClamp, alsoTramo: f.alsoTramo }   // medida propia: se conserva
+      : { ...m, width: f.width, autoBase: f.autoBase, autoGroup: f.autoGroup, autoRole: f.autoRole, autoClamp: f.autoClamp, alsoTramo: f.alsoTramo });
   });
   // 2) Los superiores nuevos se insertan detrás del que les antecede en el orden de los inferiores
   fresh.forEach((f, i) => {
@@ -311,7 +314,7 @@ export function syncAuto(p: ModulePlan) {
   p.tramos.forEach(tr => {
     const lowerById = new Map(tr.lower.map(m => [m.id, m]));
     tr.upper = tr.upper.filter(m => {
-      if (m.autoBase === undefined || !m.autoOf) return true;
+      if (m.autoBase === undefined || !m.autoOf || m.anchoManual) return true;
       const sum = m.autoOf.reduce((a, id) => a + (lowerById.get(id)?.width || 0), 0);
       let w = sum - m.autoBase;
       if (m.autoClamp) w = Math.min(m.autoClamp[1], Math.max(m.autoClamp[0], w));
@@ -445,8 +448,45 @@ export function setModuleWidth(p: ModulePlan, t: number, row: PlanRow, id: strin
     const delta = round2(w) - m.width;
     if (next && delta > 0) setElGap(p, row, next, elGap(p, row, next) - delta, config);
   }
-  if (m) m.width = round2(w);
+  if (m) {
+    m.width = round2(w);
+    // Un superior que sale «amarrado» a un inferior toma su medida de los inferiores; si el usuario le cambia la medida, queda con la suya
+    if (m.autoOf || m.autoBase !== undefined) m.anchoManual = true;
+  }
   if (row === "lower") rebuildAutoUpper(p, t);
+}
+
+export interface EspacioLado { libre: number; hasta: string }
+/** Espacio libre a cada lado de un módulo: hasta el vecino (la ventana, otro módulo, el esquinero) o hasta el borde de la pared. */
+export function espaciosLibres(p: ModulePlan, t: number, row: PlanRow, id: string, config: any): { izq: EspacioLado; der: EspacioLado } | null {
+  const items = rowItems(p, t, row, config).slice().sort((a, b) => a.start - b.start);
+  const i = items.findIndex(x => x.kind === "mod" && !x.fromPrev && x.mod?.id === id);
+  if (i < 0) return null;
+  const nombre = (it: RowItem) => it.kind === "tall" ? (it.special?.label || "el módulo alto") : it.key === "ventana" ? "la ventana" : (CATALOG_BY_KEY[it.key]?.short || it.key);
+  const me = items[i], tr = p.tramos[t];
+  const izqFin = i > 0 ? items[i - 1].start + items[i - 1].width : 0;
+  const derIni = i < items.length - 1 ? items[i + 1].start : (tr.length > 0 ? tr.length : me.start + me.width);
+  return {
+    izq: { libre: Math.max(0, round2(me.start - izqFin)), hasta: i > 0 ? nombre(items[i - 1]) : "el borde de la pared" },
+    der: { libre: Math.max(0, round2(derIni - (me.start + me.width))), hasta: i < items.length - 1 ? nombre(items[i + 1]) : "el borde de la pared" },
+  };
+}
+
+/** Amplía un módulo hasta el vecino (la ventana, otro módulo) o la pared del lado elegido. */
+export function ampliarMueble(p: ModulePlan, t: number, row: PlanRow, id: string, lado: "izq" | "der", config: any): boolean {
+  const m = p.tramos[t]?.[row].find(x => x.id === id);
+  const cat = m && CATALOG_BY_KEY[m.key];
+  const esp = espaciosLibres(p, t, row, id, config);
+  if (!m || !cat || cat.locked || !esp) return false;
+  const libre = lado === "der" ? esp.der.libre : esp.izq.libre;
+  if (libre < 0.01) return false;
+  if (lado === "der") { setModuleWidth(p, t, row, id, m.width + libre, config); return true; }
+  const ini = rowItems(p, t, row, config).find(x => x.mod?.id === id)!.start;
+  m.width = round2(m.width + libre);
+  if (m.autoOf || m.autoBase !== undefined) m.anchoManual = true;
+  if (row === "lower") rebuildAutoUpper(p, t);
+  dropModule(p, t, row, id, round2(ini - libre), config, true);
+  return true;
 }
 
 export function moveModule(p: ModulePlan, t: number, row: PlanRow, id: string, toIndex: number) {

@@ -112,9 +112,14 @@ export function setSuperior(p: ParedCocina, valor: number | undefined): ParedCoc
   return { ...p, sup: valor, supManual: true };
 }
 
-// ── ESQUINAS (L y U): los muebles de una pared llegan hasta la esquina y los de la pared que se le junta se acortan por el FONDO de los primeros ──
+// ── ESQUINAS (L y U): la madera (muebles inferiores y superiores) se cobra con el ancho COMPLETO de cada pared.
+//    El descuento de la esquina es SOLO para el MESÓN: la pared que no llega a la esquina se acorta por el fondo del mueble de la otra. ──
 export const FONDO_INFERIOR_CM = 60;   // muebles inferiores: 0,60 m de fondo
 export const FONDO_SUPERIOR_CM = 35;   // muebles superiores: 0,35 m de fondo
+// Alturas (cm desde el piso): inferiores llegan a 0,90; el salpicadero ocupa 0,60 (de 0,90 a 1,50); los superiores van de 1,50 hacia arriba
+export const ALTO_INFERIOR_CM = 90;
+export const ALTO_SALPICADERO_CM = 60;
+export const ARRANQUE_SUPERIOR_CM = ALTO_INFERIOR_CM + ALTO_SALPICADERO_CM;   // 150
 
 /** Esquinas de cada forma: pares de paredes que se juntan (índices). L: A–B. U: A–B y B–C. */
 export function esquinasDeForma(forma?: string): Array<[number, number]> {
@@ -143,19 +148,27 @@ export function descuentosEsquinas(forma: string | undefined, paredes: ParedCoci
   esq.forEach(([a, b], k) => {
     const perdedora = gan[k] === a ? b : a;
     // la pared «a» termina en la esquina (su final) y la «b» empieza en ella (su inicio)
-    if (perdedora === b) { out[b].infIni += fondoInfCm; out[b].supIni += fondoSupCm; }
-    else { out[a].infFin += fondoInfCm; out[a].supFin += fondoSupCm; }
+    // Solo el mesón (inferiores) se descuenta; los superiores y la madera no (el esquinero superior depende del diseño)
+    if (perdedora === b) out[b].infIni += fondoInfCm;
+    else out[a].infFin += fondoInfCm;
   });
+  void fondoSupCm;
   return out;
 }
 
-/** Medidas de muebles que salen solas: ancho de la pared menos lo que se descuenta en las esquinas. */
+/** Descuento de esquinas del MESÓN: por pared y en total (cm). El mesón = metros de inferiores − este descuento − módulos altos. */
+export function descuentoMesonCm(forma: string | undefined, paredes: ParedCocina[] | undefined, fondoInfCm = FONDO_INFERIOR_CM, eleccion?: number[]): { porPared: number[]; totalCm: number } {
+  const porPared = descuentosEsquinas(forma, paredes, fondoInfCm, FONDO_SUPERIOR_CM, eleccion).map((d) => d.infIni + d.infFin);
+  return { porPared, totalCm: porPared.reduce((a, x) => a + x, 0) };
+}
+
+/** Medidas de muebles que salen solas: la madera se cobra plena (ancho completo de cada pared, sin descuento de esquina). */
 export function mueblesSugeridos(forma: string | undefined, paredes: ParedCocina[] | undefined, fondoInfCm = FONDO_INFERIOR_CM, fondoSupCm = FONDO_SUPERIOR_CM, eleccion?: number[]): Array<{ inf: number; sup: number }> {
   const ps = normalizarParedes(forma, paredes);
-  const d = descuentosEsquinas(forma, paredes, fondoInfCm, fondoSupCm, eleccion);
-  return ps.map((p, i) => {
+  void fondoInfCm; void fondoSupCm; void eleccion;
+  return ps.map((p) => {
     const w = anchoMuroCm(p);
-    return { inf: Math.max(0, w - d[i].infIni - d[i].infFin), sup: Math.max(0, w - d[i].supIni - d[i].supFin) };
+    return { inf: w, sup: w };
   });
 }
 
@@ -183,6 +196,7 @@ export function layoutDeForma(forma?: string): "lineal" | "L" | "U" | "paralela"
 export interface CocinaDeLevantamiento {
   layout: "lineal" | "L" | "U" | "paralela" | "";
   paredesM: Array<{ nombre: string; inf: number; sup: number; ancho: number; alto?: number }>;
+  descMesonM: number;      // m que se descuentan del MESÓN por las esquinas (L y U); la madera se cobra plena
   lowerMeters: number;     // m de muebles inferiores
   upperMeters: number;     // m de muebles superiores
   islaM: number;           // m de isla (0 si no hay)
@@ -215,6 +229,7 @@ export function cocinaDeLevantamiento(m: Record<string, any> | null | undefined)
     return {
       layout: layoutDeForma(forma),
       paredesM: paredes.map((p, i) => ({ nombre: nombres[i] || String(i + 1), inf: r2(n(p.inf) / 100), sup: r2(n(p.sup) / 100), ancho: r2(anchoMuroCm(p) / 100), alto: n(p.alto) > 0 ? r2(n(p.alto) / 100) : undefined })),
+      descMesonM: r2(descuentoMesonCm(forma, paredes, n(m._cocina_profundo) || FONDO_INFERIOR_CM, Array.isArray(m._cocina_esquinas) ? m._cocina_esquinas : undefined).totalCm / 100),
       lowerMeters: t.infM, upperMeters: t.supM, islaM: r2(isla),
       altoCm: n(m._cocina_alto) || undefined, profundoCm: n(m._cocina_profundo) || undefined,
       separacionCm: n(m._cocina_separacion) || undefined, isla: piezaDeLevantamiento(m, "_cocina_isla"), barra: piezaDeLevantamiento(m, "_cocina_barra"), aberturas: Array.isArray(m._cocina_aberturas) ? m._cocina_aberturas : [], aproximado: false,
@@ -224,7 +239,7 @@ export function cocinaDeLevantamiento(m: Record<string, any> | null | undefined)
   if (ancho > 0) {
     return {
       layout: layoutDeForma(forma), paredesM: [{ nombre: "A", inf: r2(ancho), sup: r2(ancho), ancho: r2(ancho) }],
-      lowerMeters: r2(ancho), upperMeters: r2(ancho), islaM: r2(isla),
+      descMesonM: 0, lowerMeters: r2(ancho), upperMeters: r2(ancho), islaM: r2(isla),
       altoCm: n(m._cocina_alto) || undefined, profundoCm: n(m._cocina_profundo) || undefined, isla: piezaDeLevantamiento(m, "_cocina_isla"), barra: piezaDeLevantamiento(m, "_cocina_barra"), aberturas: [], aproximado: true,
     };
   }

@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { mueblesSugeridos, aplicarMueblesAutomaticos, descuentosEsquinas, paredGanadoraEsquina, anchoMuroCm, imantarDesde, estadoIman, geometriaParedes, ajustarAbertura, nombresParedes, normalizarParedes, setInferior, setSuperior, totalesParedes, cocinaDeLevantamiento } from "../shared/cocinaParedes";
+import { buildKitchenQuoteDescription } from "./kitchen-description";
+import { descuentoMesonCm, mueblesSugeridos, aplicarMueblesAutomaticos, descuentosEsquinas, paredGanadoraEsquina, anchoMuroCm, imantarDesde, estadoIman, geometriaParedes, ajustarAbertura, nombresParedes, normalizarParedes, setInferior, setSuperior, totalesParedes, cocinaDeLevantamiento } from "../shared/cocinaParedes";
 
 describe("Paredes de la cocina (levantamiento)", () => {
   it("cada forma pide sus paredes: línea 1, L 2, U 3, paralela 2", () => {
@@ -92,37 +93,52 @@ describe("Paredes de la cocina (levantamiento)", () => {
     expect(c.upperMeters).toBe(4.8);
   });
 
-  it("L: la pared más ancha llega a la esquina; la otra se acorta por el fondo (inferiores 0,60 y superiores 0,35)", () => {
+  it("la madera se cobra plena: inferiores y superiores = ancho completo de cada pared (L)", () => {
+    const ps = [{ ancho: 360 }, { ancho: 280 }];
+    expect(mueblesSugeridos("L", ps)).toEqual([{ inf: 360, sup: 360 }, { inf: 280, sup: 280 }]);
+  });
+  it("L: el descuento de esquina es SOLO del mesón: la pared más ancha llega y la otra se acorta 0,60", () => {
     const ps = [{ ancho: 360 }, { ancho: 280 }];
     expect(paredGanadoraEsquina("L", ps)).toEqual([0]);
-    const s = mueblesSugeridos("L", ps);
-    expect(s[0]).toEqual({ inf: 360, sup: 360 });         // A llega completa
-    expect(s[1]).toEqual({ inf: 220, sup: 245 });         // B: 2,80 − 0,60 y 2,80 − 0,35
+    expect(descuentoMesonCm("L", ps)).toEqual({ porPared: [0, 60], totalCm: 60 });
+    const d = descuentosEsquinas("L", ps);
+    expect(d[1]).toMatchObject({ infIni: 60, supIni: 0, supFin: 0 });   // los superiores nunca se descuentan solos
   });
   it("L: se puede elegir cuál pared llega a la esquina", () => {
     const ps = [{ ancho: 360 }, { ancho: 280 }];
-    const s = mueblesSugeridos("L", ps, 60, 35, [1]);
-    expect(s[0]).toEqual({ inf: 300, sup: 325 });         // ahora llega B y A se acorta
-    expect(s[1]).toEqual({ inf: 280, sup: 280 });
+    expect(descuentoMesonCm("L", ps, 60, [1])).toEqual({ porPared: [60, 0], totalCm: 60 });
   });
-  it("U: el fondo (B) llega a las dos esquinas y los lados (A y C) se acortan", () => {
+  it("U: el fondo (B) llega a las dos esquinas y los lados (A y C) pierden 0,60 de mesón cada uno", () => {
     const ps = [{ ancho: 280 }, { ancho: 360 }, { ancho: 280 }];
-    const d = descuentosEsquinas("U", ps);
-    expect(d[0]).toMatchObject({ infFin: 60, supFin: 35 });
-    expect(d[2]).toMatchObject({ infIni: 60, supIni: 35 });
-    expect(d[1]).toMatchObject({ infIni: 0, infFin: 0 });
-    expect(mueblesSugeridos("U", ps).map((m) => m.inf)).toEqual([220, 360, 220]);
+    expect(descuentoMesonCm("U", ps)).toEqual({ porPared: [60, 0, 60], totalCm: 120 });
+    expect(mueblesSugeridos("U", ps).map((m) => m.inf)).toEqual([280, 360, 280]);   // madera plena
   });
   it("lo calculado solo se actualiza; lo escrito a mano no se toca", () => {
     const ps = aplicarMueblesAutomaticos("L", [{ ancho: 360 }, { ancho: 280, inf: 200, infManual: true }]);
     expect(ps[0].inf).toBe(360);
     expect(ps[1].inf).toBe(200);        // manual: queda
-    expect(ps[1].sup).toBe(245);        // automático
+    expect(ps[1].sup).toBe(280);        // automático y pleno
     const cambio = aplicarMueblesAutomaticos("L", [{ ...ps[0], ancho: 400 }, ps[1]]);
     expect(cambio[0].inf).toBe(400);
+  });
+  it("el levantamiento entrega madera plena y el descuento del mesón aparte", () => {
+    const c = cocinaDeLevantamiento({ _cocina_forma: "L", _cocina_paredes: [{ ancho: 360, inf: 360, sup: 360 }, { ancho: 280, inf: 280, sup: 280 }] });
+    expect(c?.lowerMeters).toBe(6.4);
+    expect(c?.upperMeters).toBe(6.4);
+    expect(c?.descMesonM).toBe(0.6);
   });
   it("sin esquinas (línea y paralela) no hay descuento", () => {
     expect(mueblesSugeridos("Lineal", [{ ancho: 360 }])[0]).toEqual({ inf: 360, sup: 360 });
     expect(mueblesSugeridos("Paralela", [{ ancho: 300 }, { ancho: 300 }]).map((m) => m.inf)).toEqual([300, 300]);
+  });
+
+  it("la descripción: madera plena (6,40) y mesón con el descuento de esquina (5,80)", () => {
+    const cfg: any = { shape: "premium", layout: "L", independentMeters: true, lowerMeters: 6.4, upperMeters: 6.4, totalMeters: 12.8, cornerDiscountMeters: 0.6, mlPriceCode: "COCINA_ML_PREMIUM",
+      specialModules: {}, countertop: { type: "granito" }, island: { enabled: false, meters: 0 }, bar: { enabled: false, meters: 0 }, paintedDoors: { enabled: false } };
+    const txt = buildKitchenQuoteDescription(cfg, "");
+    expect(txt).toMatch(/Muebles inferiores: 6[.,]40/);
+    expect(txt).toMatch(/Mesón en [^\n]*5[.,]80/);
+    cfg.cornerDiscountMeters = 0;
+    expect(buildKitchenQuoteDescription(cfg, "")).toMatch(/Mesón en [^\n]*6[.,]40/);
   });
 });

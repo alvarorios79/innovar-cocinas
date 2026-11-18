@@ -31,8 +31,8 @@ export async function componerPlanoLevantamiento(foto3d: string, d: DatosPlano):
   const dsc = descuentosEsquinas(d.forma, paredes, d.profundoCm || FONDO_INFERIOR_CM, d.profundoSupCm || FONDO_SUPERIOR_CM, d.esquinas);
   paredes.forEach((p, i) => {
     const q = dsc[i] || { infIni: 0, infFin: 0, supIni: 0, supFin: 0 };
-    const di = q.infIni + q.infFin, ds = q.supIni + q.supFin;
-    const nota = (di > 0 || ds > 0) && !p.infManual ? `   (descuento de esquina: inferiores − ${fm(di)} m · superiores − ${fm(ds)} m)` : "";
+    const di = q.infIni + q.infFin;
+    const nota = di > 0 ? `   (mesón − ${fm(di)} m por esquina; la madera va plena)` : "";
     const alto = Number(p.alto) || d.altoGeneralCm || 240;
     filas.push(`Pared ${nombres[i] || i + 1}:  ancho ${fm(anchoMuroCm(p))} m  ·  alto ${fm(alto)} m   |   muebles inferiores ${fm(p.inf ?? 0)} m  ·  superiores ${fm(p.sup ?? 0)} m${nota}`);
   });

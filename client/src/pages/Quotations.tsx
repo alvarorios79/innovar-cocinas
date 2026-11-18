@@ -1219,6 +1219,7 @@ export default function Quotations() {
       kc.layout = coc.layout || kc.layout;
       kc.independentMeters = !igual;
       kc.lowerMeters = coc.lowerMeters;
+      kc.cornerDiscountMeters = coc.descMesonM || 0;   // solo el mesón se descuenta en las esquinas L/U
       kc.upperMeters = coc.upperMeters;
       kc.totalMeters = igual ? coc.lowerMeters : coc.lowerMeters + coc.upperMeters;
       if (coc.isla) {
@@ -1238,7 +1239,7 @@ export default function Quotations() {
       const nuevo = { ...base, itemType: "cocina", kitchenConfig: kc };
       return vacio ? [nuevo, ...prev.slice(1)] : [...prev, nuevo];
     });
-    toast.success(`Medidas del levantamiento cargadas: inferiores ${coc.lowerMeters.toFixed(2)} m · superiores ${coc.upperMeters.toFixed(2)} m${coc.aproximado ? " (aproximado: levantamiento antiguo sin paredes)" : ""}. Revísalas y elige el tipo de cocina.`);
+    toast.success(`Medidas del levantamiento cargadas: inferiores ${coc.lowerMeters.toFixed(2)} m · superiores ${coc.upperMeters.toFixed(2)} m${coc.descMesonM > 0 ? ` · mesón −${coc.descMesonM.toFixed(2)} m por esquina` : ""}${coc.aproximado ? " (aproximado: levantamiento antiguo sin paredes)" : ""}. Revísalas y elige el tipo de cocina.`);
   }, [fromVisitId, visitaLevantamiento, editingQuotation]);
 
   const addItem = () => {
@@ -1624,10 +1625,10 @@ export default function Quotations() {
     // No aplica para solo_superiores ni puertas_tapas
     if (config.shape !== 'solo_superiores' && config.shape !== 'puertas_tapas' && config.countertop.type) {
       // Metraje resultante automáticamente (o totalMeters para formas especiales)
-      const metersForCountertop = isSpecialShape ? config.totalMeters
+      const metersForCountertop = Math.max(0, (isSpecialShape ? config.totalMeters
       : (config.independentMeters && config.lowerMeters !== undefined)
         ? Math.max(0, (config.lowerMeters || 0) - deductions)
-        : resultingMeters;
+        : resultingMeters) - (isSpecialShape ? 0 : Math.max(0, Number((config as any).cornerDiscountMeters) || 0))); // descuento de esquinas L/U: solo el mesón (la madera se cobra plena)
       // Piedra, fondo, laterales, regrueso, lavaplatos y salpicadero: reglas únicas en shared/mesonPrecios.ts
       total += piedraMesonPrincipal(config.countertop, metersForCountertop);
     }
@@ -1961,10 +1962,10 @@ export default function Quotations() {
         // Mesón principal (usa metraje resultante automáticamente) - precios dinámicos
         // No aplica para solo_superiores ni puertas_tapas
         if (config.shape !== 'solo_superiores' && config.shape !== 'puertas_tapas' && config.countertop.type) {
-          const metersForCountertop = isSpecialShape ? config.totalMeters
+          const metersForCountertop = Math.max(0, (isSpecialShape ? config.totalMeters
       : (config.independentMeters && config.lowerMeters !== undefined)
         ? Math.max(0, (config.lowerMeters || 0) - deductions)
-        : resultingMeters;
+        : resultingMeters) - (isSpecialShape ? 0 : Math.max(0, Number((config as any).cornerDiscountMeters) || 0))); // descuento de esquinas L/U: solo el mesón (la madera se cobra plena)
           total += piedraMesonPrincipal(config.countertop, metersForCountertop);
         }
 

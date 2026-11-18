@@ -1,7 +1,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { geometriaParedes, descuentosEsquinas, FONDO_INFERIOR_CM, FONDO_SUPERIOR_CM, ALTO_COCINA_POR_DEFECTO, type AberturaCocina, type ParedCocina } from "@shared/cocinaParedes";
+import { geometriaParedes, descuentosEsquinas, ALTO_INFERIOR_CM, ARRANQUE_SUPERIOR_CM, FONDO_INFERIOR_CM, FONDO_SUPERIOR_CM, ALTO_COCINA_POR_DEFECTO, type AberturaCocina, type ParedCocina } from "@shared/cocinaParedes";
 
 // Habitación de la cocina en 3D (solo paredes, ventanas y puertas) para el levantamiento.
 // Hecho para NO pesar: figuras simples (cajas), sin sombras ni texturas, y dibuja SOLO cuando algo cambia (no hay animación continua).
@@ -226,18 +226,19 @@ const Habitacion3D = forwardRef<Habitacion3DRef, Props>(function Habitacion3D({ 
         const fondoI = p.profundoCm && p.profundoCm > 10 ? p.profundoCm : FONDO_INFERIOR_CM, fondoS = p.profundoSupCm && p.profundoSupCm > 10 ? p.profundoSupCm : FONDO_SUPERIOR_CM;
         const profBajo = fondoI / 100, profAlto = fondoS / 100;
         const dsc = descuentosEsquinas(p.forma, p.paredes, fondoI, fondoS, p.esquinas)[w.indice] || { infIni: 0, infFin: 0, supIni: 0, supFin: 0 };
-        const x0i = dsc.infIni / 100, x0s = dsc.supIni / 100;   // los muebles de la pared que NO llega a la esquina empiezan después del fondo del otro
+        void dsc; const x0i = 0, x0s = 0;   // la madera se cobra plena: los muebles cubren todo el ancho de la pared (el descuento de esquina es solo del mesón)
         const inf = (Number(par.inf) || 0) / 100, sup = (Number(par.sup) || 0) / 100;
         if (inf > 0.05) {
-          const m = new THREE.Mesh(new THREE.BoxGeometry(Math.min(inf, largo), 0.9, profBajo), new THREE.MeshLambertMaterial({ color: 0x26a69a, transparent: true, opacity: 0.6 }));
-          m.position.set(x0i + Math.min(inf, largo) / 2, 0.45, signo * (GROSOR / 2 + profBajo / 2)); g.add(m);
+          const m = new THREE.Mesh(new THREE.BoxGeometry(Math.min(inf, largo), ALTO_INFERIOR_CM / 100, profBajo), new THREE.MeshLambertMaterial({ color: 0x26a69a, transparent: true, opacity: 0.6 }));
+          m.position.set(x0i + Math.min(inf, largo) / 2, ALTO_INFERIOR_CM / 200, signo * (GROSOR / 2 + profBajo / 2)); g.add(m);
           if (detalle) cota(aMundo(x0i, 0.03, signo * (GROSOR + profBajo + 0.2)), aMundo(x0i + Math.min(inf, largo), 0.03, signo * (GROSOR + profBajo + 0.2)), `inf ${fm(inf)}`, 0x80cbc4, "#b2dfdb", aTraves, 0.15);
         }
         if (sup > 0.05) {
-          const ySup = Math.min(alto - 0.4, 1.75);
-          const m = new THREE.Mesh(new THREE.BoxGeometry(Math.min(sup, largo), 0.7, profAlto), new THREE.MeshLambertMaterial({ color: 0x7e57c2, transparent: true, opacity: 0.55 }));
+          // Superiores: arrancan a 1,50 m (0,90 de inferiores + 0,60 de salpicadero) y suben hasta el techo
+          const arranque = ARRANQUE_SUPERIOR_CM / 100, altoSup = Math.max(0.3, alto - arranque), ySup = arranque + altoSup / 2;
+          const m = new THREE.Mesh(new THREE.BoxGeometry(Math.min(sup, largo), altoSup, profAlto), new THREE.MeshLambertMaterial({ color: 0x7e57c2, transparent: true, opacity: 0.55 }));
           m.position.set(x0s + Math.min(sup, largo) / 2, ySup, signo * (GROSOR / 2 + profAlto / 2)); g.add(m);
-          if (detalle) cota(aMundo(x0s, ySup + 0.5, signo * (GROSOR + profAlto + 0.1)), aMundo(x0s + Math.min(sup, largo), ySup + 0.5, signo * (GROSOR + profAlto + 0.1)), `sup ${fm(sup)}`, 0xb39ddb, "#d1c4e9", aTraves, 0.15);
+          if (detalle) cota(aMundo(x0s, arranque + altoSup + 0.1, signo * (GROSOR + profAlto + 0.1)), aMundo(x0s + Math.min(sup, largo), arranque + altoSup + 0.1, signo * (GROSOR + profAlto + 0.1)), `sup ${fm(sup)}`, 0xb39ddb, "#d1c4e9", aTraves, 0.15);
         }
 
         // Ventanas y puertas: a cada lado queda tanto, y cuánto mide (cadena de cotas), más la altura desde el piso

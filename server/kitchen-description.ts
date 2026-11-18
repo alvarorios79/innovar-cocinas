@@ -192,7 +192,10 @@ export function buildKitchenQuoteDescription(rawConfig: any, manualDescription?:
   // ── Mesón ───────────────────────────────────────────────────────────────
   const ct = config.countertop;
   if (!isOnlyFinishes && ct && ct.type) {
-    const mesonML = config.independentMeters && config.lowerMeters !== undefined ? Math.max(0, (config.lowerMeters || 0) - deductions) : resulting;
+    const mesonBase = config.independentMeters && config.lowerMeters !== undefined ? Math.max(0, (config.lowerMeters || 0) - deductions) : resulting;
+    // Descuento de esquinas L/U: solo el mesón (la madera se cobra plena). Mismo cálculo que el cotizador.
+    const esEspecial = ['frente_pll', 'solo_superiores', 'solo_inferiores', 'puertas_tapas', 'solo_acabados'].includes(config.shape);
+    const mesonML = Math.max(0, mesonBase - (esEspecial ? 0 : Math.max(0, Number(config.cornerDiscountMeters) || 0)));
     section("MESÓN:");
     const depth = depthText(ct.depthSurcharge);
     push(`• Mesón en ${stoneName(ct.type, ct.esImportado)}: ${ml(mesonML)}${depth ? ` (${depth})` : ""}`);

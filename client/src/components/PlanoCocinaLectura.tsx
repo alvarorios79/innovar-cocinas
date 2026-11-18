@@ -57,8 +57,8 @@ export function PlanoCocinaLectura({ measurements }: { measurements: Record<stri
             <span className="font-bold">{l}</span>
             <span>{fm(anchoMuroCm(paredes[i]))} m</span>
             <span>{fm(paredes[i]?.alto || techo)} m</span>
-            <span>{fm(paredes[i]?.inf ?? 0)} m{(dsc[i]?.infIni + dsc[i]?.infFin) > 0 && !paredes[i]?.infManual && <span className="block text-[10px] text-gray-400">− {fm(dsc[i].infIni + dsc[i].infFin)} esquina</span>}</span>
-            <span>{fm(paredes[i]?.sup ?? 0)} m{(dsc[i]?.supIni + dsc[i]?.supFin) > 0 && !paredes[i]?.supManual && <span className="block text-[10px] text-gray-400">− {fm(dsc[i].supIni + dsc[i].supFin)} esquina</span>}</span>
+            <span>{fm(paredes[i]?.inf ?? 0)} m{(dsc[i]?.infIni + dsc[i]?.infFin) > 0 && <span className="block text-[10px] text-gray-400">mesón − {fm(dsc[i].infIni + dsc[i].infFin)} esquina</span>}</span>
+            <span>{fm(paredes[i]?.sup ?? 0)} m</span>
           </div>
         ))}
         <div className="flex justify-between pt-1 border-t border-primary/20"><span className="text-gray-400">Total de muebles</span><span className="text-white font-semibold">inferiores {metros(t.infM)} m · superiores {metros(t.supM)} m</span></div>

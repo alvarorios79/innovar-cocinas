@@ -478,6 +478,7 @@ export async function buildQuotationPdfData(quotation: any, client: any, items: 
       : undefined,
     total: String(parseFloat(String(quotation.total)) || 0),
     generalNotes: quotation.generalNotes || '',
+    anticipoPercent: (() => { const m = String(quotation.generalNotes || '').match(/(\d{1,3})\s*%\s*anticipo/i); const n = m ? parseInt(m[1], 10) : 0; return n > 0 && n < 100 ? n : undefined; })(),
     versionNumber: quotation.versionNumber || 1,
     baseQuotationNumber: quotation.baseQuotationId ? (await db.getQuotationById(quotation.baseQuotationId))?.quotationNumber : undefined,
   };

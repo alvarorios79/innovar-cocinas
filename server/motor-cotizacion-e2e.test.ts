@@ -74,7 +74,7 @@ describe("Motor de cotización — punta a punta (servidor)", () => {
     const subtotal = ITEMS.reduce((s, i) => s + i.totalPrice, 0);
     const res = await caller().quotations.create({
       clientId, vendorName: "Comercial E2E", productType: "cocina", discountPercent: 10, includeIva: true,
-      generalNotes: "Notas de prueba", items: ITEMS,
+      generalNotes: "Notas de prueba\n\nCondiciones de pago: 60% anticipo — 40% a la entrega de la obra\nTiempo de entrega: 25 días hábiles", items: ITEMS,
     } as any);
     expect(res.success).toBe(true);
     quotationId = res.quotationId;
@@ -93,6 +93,7 @@ describe("Motor de cotización — punta a punta (servidor)", () => {
     const items = await db.getQuotationItems(quotationId);
     const data: any = await buildQuotationPdfData(q, client, items);
     expect(data.items).toHaveLength(ITEMS.length);
+    expect(data.anticipoPercent).toBe(60); // el PDF muestra anticipo 60 % y saldo 40 % en pesos
     for (const it of data.items) {
       expect(String(it.description).trim().length, `ítem ${it.itemNumber} sin descripción`).toBeGreaterThan(5);
       expect(it.description, `ítem ${it.itemNumber}`).not.toMatch(/undefined|NaN|\[object/);

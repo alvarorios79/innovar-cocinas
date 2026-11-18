@@ -35,6 +35,7 @@ interface QuotationData {
   ivaAmount?: string;
   total: string;
   generalNotes?: string;
+  anticipoPercent?: number; // % de anticipo escrito en las condiciones de pago (se muestra su valor en pesos)
   versionNumber?: number;
   baseQuotationNumber?: string;
   schemes?: any[];   // esquemas del plano de módulos de la cocina (última página)
@@ -245,7 +246,7 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
       Y += 8;
 
       // ── TOTALES ────────────────────────────────────────────────────────────
-      if (Y + 95 > PH - 48) { doc.addPage(); Y = 28; }
+      if (Y + 140 > PH - 48) { doc.addPage(); Y = 28; }
 
       const TW = 220, TX = PW - MR - TW;
 
@@ -279,7 +280,24 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
       doc.fontSize(10).fillColor(WHITE).font("Helvetica-Bold").text("TOTAL:", TX + 10, Y + 10);
       doc.fontSize(14).fillColor(WHITE).font("Helvetica-Bold")
          .text(fmt(data.total), TX + 10, Y + 10, { width: TW - 20, align: "right" });
-      Y += 34 + 12;
+      Y += 34;
+
+      // Anticipo y saldo en pesos (el anticipo real se registra al aprobar la cotización; aquí solo se le muestra al cliente el valor)
+      const ap = Number(data.anticipoPercent) || 0;
+      const totalNum = parseFloat(data.total || "0");
+      if (ap > 0 && ap < 100 && totalNum > 0) {
+        const anticipo = Math.round(totalNum * ap / 100);
+        const saldo = Math.round(totalNum) - anticipo;
+        doc.rect(TX, Y, TW, 20).fill(WHITE).stroke(BORDER);
+        doc.fontSize(8.5).fillColor(MGRAY).font("Helvetica").text(`Anticipo ${ap}% (al aprobar):`, TX + 10, Y + 6);
+        doc.fontSize(8.5).fillColor(DGRAY).font("Helvetica-Bold").text(fmt(String(anticipo)), TX + 10, Y + 6, { width: TW - 20, align: "right" });
+        Y += 20;
+        doc.rect(TX, Y, TW, 20).fill(WHITE).stroke(BORDER);
+        doc.fontSize(8.5).fillColor(MGRAY).font("Helvetica").text(`Saldo ${100 - ap}% (a la entrega):`, TX + 10, Y + 6);
+        doc.fontSize(8.5).fillColor(DGRAY).font("Helvetica-Bold").text(fmt(String(saldo)), TX + 10, Y + 6, { width: TW - 20, align: "right" });
+        Y += 20;
+      }
+      Y += 12;
 
       // ── OBSERVACIONES ──────────────────────────────────────────────────────
       if (data.generalNotes && data.generalNotes.trim()) {

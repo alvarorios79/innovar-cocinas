@@ -838,7 +838,7 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
               <Suspense fallback={<div className="h-[420px] rounded-lg bg-black/20 border border-white/10 flex items-center justify-center text-xs text-gray-400">Cargando el plano en 3D…</div>}>
                 <PlanoModulos3D
                   ref={visor3d}
-                  plan={plan} config={config} sel={sel} onSelect={setSel} onEdit={edit} onFalla={() => setVista3d(false)}
+                  plan={plan} config={config} sel={sel} onSelect={(x) => { setSel(x); if (x && typeof (x as any).t === "number") setActivaT((x as any).t); }} onEdit={edit} onFalla={() => setVista3d(false)}
                   activa={tAct} onPickPared={setActivaT}
                   onDeshacer={deshacer} puedeDeshacer={nHistorial > 0}
                   resumen={plan.tramos.map((tt, i) => ({ nombre: tt.name, largo: tt.length, llevaAbajo: rowUsed(plan, i, "lower", config), llevaArriba: tt.isIsland ? null : rowUsed(plan, i, "upper", config), activa: i === tAct }))}

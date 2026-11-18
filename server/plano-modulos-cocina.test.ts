@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { normalizePlan, addModuleToPlan, setModuleWidth, moveModuleToTramo, primerHueco, esquinasDeLayout, girarEsquinero, tidyPlan, dropModule, setModuleWidth, setDefaultWidth, espaciosLibres, ampliarMueble, pegarMueble, rebuildAutoUpper, computePlan, ventanasDeLevantamiento, rowItems } from "../shared/kitchenModulePlan";
+import { removeModuleFromPlan, normalizePlan, addModuleToPlan, setModuleWidth, moveModuleToTramo, primerHueco, esquinasDeLayout, girarEsquinero, tidyPlan, dropModule, setModuleWidth, setDefaultWidth, espaciosLibres, ampliarMueble, pegarMueble, rebuildAutoUpper, computePlan, ventanasDeLevantamiento, rowItems } from "../shared/kitchenModulePlan";
 import { buildKitchenQuoteDescription } from "./kitchen-description";
 
 // ¿El plano de módulos describe de verdad la cocina? Se arma una cocina paralela de 2 paredes (3,0 m y 2,4 m),
@@ -375,6 +375,27 @@ describe("Plano 3D: barra como bloque suelto y mover módulos entre paredes", ()
     expect(plan.tramos[0].upper[0].id).toBe("mano1");                                              // queda el puesto por el usuario
     const lower: any = normalizePlan({ enabled: true, tramos: [{ name: "Pared A", length: 3.6, upper: [], lower: [{ id: "e1", key: "esquinero1x1", width: 1, alsoTramo: 1 }, { id: "e2", key: "esquinero1x1", width: 1, alsoTramo: 1 }] }, { name: "Pared B", length: 2.8, upper: [], lower: [] }], extras: {} }, cfg);
     expect(lower.tramos[0].lower).toHaveLength(1);
+  });
+
+  // ── Línea de tiempo magnética abajo: al sacar o mover un mueble, los demás se corren y no queda un hueco ──
+  it("inferiores: al arrastrar un mueble a otro lugar de la misma pared, los demás se corren y quedan pegados", () => {
+    const cfg = base();
+    const p = planA(cfg);
+    ["cajoneroDoble", "basurero", "moduloAlmacInf"].forEach(k => addModuleToPlan(p, 0, "lower", k, cfg));
+    const [a] = p.tramos[0].lower;
+    dropModule(p, 0, "lower", a.id, 1.2, cfg, true);   // el primero se suelta al final de la fila
+    const it = rowItems(p, 0, "lower", cfg).sort((x: any, y: any) => x.start - y.start);
+    expect(it.map((i: any) => i.start)).toEqual([0, it[0].width, it[0].width + it[1].width]);   // sin huecos
+    expect(it[2].mod.id).toBe(a.id);
+  });
+  it("inferiores: al quitar un mueble los siguientes se corren y no queda hueco", () => {
+    const cfg = base();
+    const p = planA(cfg);
+    ["cajoneroDoble", "basurero", "moduloAlmacInf"].forEach(k => addModuleToPlan(p, 0, "lower", k, cfg));
+    const [, b] = p.tramos[0].lower;
+    removeModuleFromPlan(p, 0, "lower", b.id);
+    const it = rowItems(p, 0, "lower", cfg).sort((x: any, y: any) => x.start - y.start);
+    expect(it[1].start).toBeCloseTo(it[0].width, 2);
   });
 });
 

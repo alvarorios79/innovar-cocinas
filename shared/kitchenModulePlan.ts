@@ -707,7 +707,9 @@ function dropInRow(p: ModulePlan, t: number, row: PlanRow, target: DropTarget, s
   const w = widthOf(el);
   // 1) sacar el elemento: su lugar pasa a ser espacio libre del siguiente
   const next0 = list[idx0 + 1];
-  if (next0) setGap(next0, gapOf(next0) + w + gapOf(el));
+  // Abajo funciona como una línea de tiempo magnética: al sacar un mueble, los siguientes se corren y NO queda un hueco.
+  // Arriba el hueco se conserva (los superiores no siempre están sobre un inferior, y se alinean con lo de abajo).
+  if (next0 && row === "upper") setGap(next0, gapOf(next0) + w + gapOf(el));
   list = list.filter((_, i) => i !== idx0);
   // 2) posiciones actuales de los demás
   const prefix = rowItems(p, t, row, config).filter(i => i.fromPrev).reduce((a, i) => a + i.width, 0);

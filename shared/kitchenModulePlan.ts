@@ -440,14 +440,13 @@ export function tidyPlan(p: ModulePlan, config: any) {
 export function setModuleWidth(p: ModulePlan, t: number, row: PlanRow, id: string, w: number, config?: any) {
   const m = p.tramos[t][row].find(x => x.id === id);
   if (m && config) {
-    // Los vecinos NO se mueven: si crece, se come primero el espacio libre de su vecino; si se achica, queda un espacio libre a su lado
-    // (así el usuario decide de qué lado juntarlo: «Pegar a la izquierda / a la derecha»).
+    // Como una línea de tiempo de video: lo que sigue se mantiene PEGADO. Si el mueble crece, se come primero el espacio libre de su vecino (y si no hay, lo empuja);
+    // si se achica, el vecino se corre y no queda espacio en medio.
     const list = ownList(p, t, row, config);
     const i = list.findIndex(e => e.kind === "mod" && e.mod.id === id);
     const next = list[i + 1];
     const delta = round2(w) - m.width;
     if (next && delta > 0) setElGap(p, row, next, elGap(p, row, next) - delta, config);
-    else if (next && delta < 0) setElGap(p, row, next, elGap(p, row, next) - delta, config);   // delta < 0: el hueco queda donde el vecino estaba
   }
   if (m) {
     m.width = round2(w);

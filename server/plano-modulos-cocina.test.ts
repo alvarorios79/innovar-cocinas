@@ -290,25 +290,35 @@ describe("Plano 3D: barra como bloque suelto y mover módulos entre paredes", ()
     expect(r.defaultWidth.moduloAlmacSup).toBe(0.45);
   });
 
-  it("al achicar un mueble los vecinos no se mueven: queda un espacio y se puede pegar del lado que se quiera", () => {
+  it("como una línea de tiempo: al achicar un mueble el siguiente se corre y queda pegado, sin espacio en medio", () => {
     const cfg = base();
     let p = planA(cfg);
     const a = agregar(p, cfg, "lower", "cajoneroTriple"); p = a.q;
     const b = agregar(p, cfg, "lower", "cajoneroDoble"); p = b.q;
     const c = agregar(p, cfg, "lower", "moduloAlmacInf"); p = c.q;
     const ini = (q: any, id: string) => rowItems(q, 0, "lower", cfg).find((i) => i.mod?.id === id)!;
-    const cAntes = ini(p, c.m!.id).start;                                          // 1,30
-    const q = JSON.parse(JSON.stringify(p)); setModuleWidth(q, 0, "lower", b.m!.id, 0.4, cfg); tidyPlan(q, cfg);   // 0,60 → 0,40
-    expect(ini(q, b.m!.id).start).toBeCloseTo(0.7, 2);                             // B sigue pegado a A…
-    expect(ini(q, c.m!.id).start).toBeCloseTo(cAntes, 2);                          // …y C NO se corrió
-    expect(espaciosLibres(q, 0, "lower", b.m!.id, cfg)!.der.libre).toBeCloseTo(0.2, 2);
-    // pegar a la derecha: B se mueve hasta C (sin cambiar de medida) y el espacio queda del otro lado
-    expect(pegarMueble(q, 0, "lower", b.m!.id, "der", cfg)).toBe(true); tidyPlan(q, cfg);
-    expect(ini(q, b.m!.id).start + ini(q, b.m!.id).width).toBeCloseTo(cAntes, 2);
-    expect(ini(q, b.m!.id).width).toBe(0.4);
-    expect(espaciosLibres(q, 0, "lower", b.m!.id, cfg)!.izq.libre).toBeCloseTo(0.2, 2);
+    const q = JSON.parse(JSON.stringify(p)); setModuleWidth(q, 0, "lower", b.m!.id, 0.55, cfg); tidyPlan(q, cfg);   // 0,60 → 0,55
+    expect(ini(q, b.m!.id).start).toBeCloseTo(0.7, 2);                             // B sigue pegado a A
+    expect(ini(q, c.m!.id).start).toBeCloseTo(1.25, 2);                            // C se corrió 5 cm y quedó pegado a B
+    expect(espaciosLibres(q, 0, "lower", b.m!.id, cfg)!.der.libre).toBe(0);
+    expect(espaciosLibres(q, 0, "lower", a.m!.id, cfg)!.der.libre).toBe(0);
+    // al agrandar pasa lo mismo al revés: C se empuja y sigue pegado
+    const r = JSON.parse(JSON.stringify(q)); setModuleWidth(r, 0, "lower", b.m!.id, 0.7, cfg); tidyPlan(r, cfg);
+    expect(ini(r, c.m!.id).start).toBeCloseTo(1.4, 2);
+    expect(espaciosLibres(r, 0, "lower", b.m!.id, cfg)!.der.libre).toBe(0);
   });
-
+  it("«Pegar» junta un mueble con el vecino cuando quedó un espacio (por ejemplo, soltado lejos)", () => {
+    const cfg = base();
+    let p = planA(cfg);
+    const a = agregar(p, cfg, "lower", "cajoneroTriple"); p = a.q;
+    const b = agregar(p, cfg, "lower", "cajoneroDoble"); p = b.q;
+    const c = agregar(p, cfg, "lower", "moduloAlmacInf"); p = c.q;
+    const ini = (q: any, id: string) => rowItems(q, 0, "lower", cfg).find((i) => i.mod?.id === id)!;
+    const q = JSON.parse(JSON.stringify(p)); dropModule(q, 0, "lower", c.m!.id, 2.4, cfg, true); tidyPlan(q, cfg);   // C queda lejos de B
+    expect(espaciosLibres(q, 0, "lower", c.m!.id, cfg)!.izq.libre).toBeGreaterThan(0.5);
+    expect(pegarMueble(q, 0, "lower", c.m!.id, "izq", cfg)).toBe(true); tidyPlan(q, cfg);
+    expect(ini(q, c.m!.id).start).toBeCloseTo(ini(q, b.m!.id).start + ini(q, b.m!.id).width, 2);
+  });
   it("el esquinero inferior llama a UN solo superior (el esquinero superior): no se arma con un almacenamiento de relleno", () => {
     const cfg = base();
     let p = planA(cfg);

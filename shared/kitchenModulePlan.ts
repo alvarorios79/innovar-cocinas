@@ -174,12 +174,12 @@ export function normalizePlan(raw: any, config: any): ModulePlan {
   });
   if (wantIsland) {
     const prevI = (base.tramos || []).find(t => t.isIsland && !t.isBar);
-    tramos.push(prevI ? { ...prevI, name: "Isla" } : { name: "Isla", length: round2(config.island.meters), isIsland: true, upper: [], lower: [] });
+    tramos.push(prevI ? { ...prevI, name: "Isla", length: round2(config.island.meters) } : { name: "Isla", length: round2(config.island.meters), isIsland: true, upper: [], lower: [] });
   }
   if (wantBar) {
     // La barra se arma igual que la isla: un bloque con sus módulos que se coloca donde vaya (orientativo; su precio sigue siendo el de la barra de la cotización)
     const prevB = (base.tramos || []).find(t => t.isBar);
-    tramos.push(prevB ? { ...prevB, name: "Barra", isIsland: true, isBar: true } : { name: "Barra", length: round2(config.bar.meters), isIsland: true, isBar: true, upper: [], lower: [] });
+    tramos.push(prevB ? { ...prevB, name: "Barra", length: round2(config.bar.meters), isIsland: true, isBar: true } : { name: "Barra", length: round2(config.bar.meters), isIsland: true, isBar: true, upper: [], lower: [] });
   }
   // Los vértices (alsoTramo) deben apuntar a un tramo que exista
   tramos.forEach(t => {

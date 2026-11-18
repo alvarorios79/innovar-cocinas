@@ -397,5 +397,14 @@ describe("Plano 3D: barra como bloque suelto y mover módulos entre paredes", ()
     const it = rowItems(p, 0, "lower", cfg).sort((x: any, y: any) => x.start - y.start);
     expect(it[1].start).toBeCloseTo(it[0].width, 2);
   });
+
+  it("isla: el largo del plano sigue la medida de la isla de la cotización aunque el plano ya estuviera guardado", () => {
+    const cfg: any = { shape: "premium", layout: "lineal", totalMeters: 3, island: { enabled: true, meters: 2 }, bar: { enabled: true, meters: 1.5 }, specialModules: {}, countertop: {}, paintedDoors: { enabled: true } };
+    const viejo: any = normalizePlan({ enabled: true, tramos: [{ name: "Pared A", length: 3, upper: [], lower: [] }], extras: {} }, cfg);
+    cfg.island.meters = 2.4; cfg.bar.meters = 1.8;
+    const nuevo: any = normalizePlan(viejo, cfg);
+    expect(nuevo.tramos.find((t: any) => t.name === "Isla").length).toBe(2.4);
+    expect(nuevo.tramos.find((t: any) => t.name === "Barra").length).toBe(1.8);
+  });
 });
 

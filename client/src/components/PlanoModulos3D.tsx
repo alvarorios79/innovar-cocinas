@@ -252,8 +252,10 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
 
         const sgx = isBloque ? sgI : sg;
         const offX = isBloque ? -largoVisible / 2 : 0;
-        const profInf = FONDO_INFERIOR_CM / 100, profSup = FONDO_SUPERIOR_CM / 100;
-        const arranque = ARRANQUE_SUPERIOR_CM / 100, hInf = ALTO_INFERIOR_CM / 100;
+        // Isla/barra: se dibujan con el profundo y la altura que tomó el medidor (si los hay); si no, con las medidas estándar de los inferiores
+        const pieza = isBloque ? (tr.isBar ? config?.fromLevantamiento?.barra : config?.fromLevantamiento?.isla) : undefined;
+        const profInf = pieza?.profundoCm > 0 ? pieza.profundoCm / 100 : FONDO_INFERIOR_CM / 100, profSup = FONDO_SUPERIOR_CM / 100;
+        const arranque = ARRANQUE_SUPERIOR_CM / 100, hInf = pieza?.altoCm > 0 ? pieza.altoCm / 100 : ALTO_INFERIOR_CM / 100;
 
         // Base de un bloque suelto (isla/barra): se toca para moverlo por el piso
         if (isBloque) {
@@ -261,7 +263,7 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
           losa.position.set(0, 0.02, sgx * profInf / 2);
           losa.userData = { pick: true, kind: "losa", t };
           grp.add(losa); pickables.push(losa);
-          const et = texto(`${tr.name} · ${fm(largoVisible)} m`, "#ffe082", 0.12); et.position.set(0, hInf + 0.3, sgx * profInf / 2); grp.add(et);
+          const et = texto(`${tr.name} · ${fm(largoVisible)} × ${fm(profInf)} m`, "#ffe082", 0.12); et.position.set(0, hInf + 0.3, sgx * profInf / 2); grp.add(et);
         }
 
         // Ventana o puerta bien visible: marco, vidrio con travesaños y, si estorba a los superiores, la zona sin muebles marcada en rojo (su límite)

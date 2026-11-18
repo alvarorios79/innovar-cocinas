@@ -1,7 +1,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { geometriaParedes, descuentosEsquinas, ALTO_INFERIOR_CM, ARRANQUE_SUPERIOR_CM, FONDO_INFERIOR_CM, FONDO_SUPERIOR_CM, ALTO_COCINA_POR_DEFECTO, type AberturaCocina, type ParedCocina } from "@shared/cocinaParedes";
+import { geometriaParedes, anchoMuroCm, descuentosEsquinas, ALTO_INFERIOR_CM, ARRANQUE_SUPERIOR_CM, FONDO_INFERIOR_CM, FONDO_SUPERIOR_CM, ALTO_COCINA_POR_DEFECTO, type AberturaCocina, type ParedCocina } from "@shared/cocinaParedes";
 
 // Habitación de la cocina en 3D (solo paredes, ventanas y puertas) para el levantamiento.
 // Hecho para NO pesar: figuras simples (cajas), sin sombras ni texturas, y dibuja SOLO cuando algo cambia (no hay animación continua).
@@ -231,7 +231,7 @@ const Habitacion3D = forwardRef<Habitacion3DRef, Props>(function Habitacion3D({ 
         const profBajo = fondoI / 100, profAlto = fondoS / 100;
         const dsc = descuentosEsquinas(p.forma, p.paredes, fondoI, fondoS, p.esquinas)[w.indice] || { infIni: 0, infFin: 0, supIni: 0, supFin: 0 };
         void dsc; const x0i = 0, x0s = 0;   // la madera se cobra plena: los muebles cubren todo el ancho de la pared (el descuento de esquina es solo del mesón)
-        const inf = (Number(par.inf) || 0) / 100, sup = (Number(par.sup) || 0) / 100;
+        const inf = (par.inf === undefined || par.inf === null ? anchoMuroCm(par) : Number(par.inf) || 0) / 100, sup = (par.sup === undefined || par.sup === null ? anchoMuroCm(par) : Number(par.sup) || 0) / 100;
         if (inf > 0.05) {
           const m = new THREE.Mesh(new THREE.BoxGeometry(Math.min(inf, largo), ALTO_INFERIOR_CM / 100, profBajo), new THREE.MeshLambertMaterial({ color: 0x26a69a, transparent: true, opacity: 0.6 }));
           m.position.set(x0i + Math.min(inf, largo) / 2, ALTO_INFERIOR_CM / 200, signo * (GROSOR / 2 + profBajo / 2)); g.add(m);

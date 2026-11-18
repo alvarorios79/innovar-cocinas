@@ -909,6 +909,14 @@ export default function Medidor() {
   const handleSubmitVisit = async () => {
     if (!visitDetail) return;
     try {
+      // PRIMERO se guarda todo lo anotado (medidas, 3D, notas, checklist): si no, el levantamiento se enviaba vacío
+      const instantanea = JSON.stringify({ m: localMeasurements, n: localNotes, e: localEvaluation ?? null, o: localCriticalObservations, c: localChecklist });
+      await updateVisit.mutateAsync({
+        visitId: visitDetail.id, measurements: localMeasurements, notes: localNotes, technicalEvaluation: localEvaluation,
+        criticalObservations: localCriticalObservations, checklist: localChecklist,
+      });
+      snapshotRef.current = instantanea; pendienteRef.current = null;
+      try { localStorage.removeItem(`medidor_borrador_${visitDetail.id}`); } catch { /* */ }
       // El plano de la cocina (dibujo 3D + medidas) queda guardado como PDF en el levantamiento para comercial, administrador y diseñador.
       // Si algo falla aquí, el levantamiento se envía igual.
       const mm = localMeasurements as any;

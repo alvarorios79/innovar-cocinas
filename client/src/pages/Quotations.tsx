@@ -47,6 +47,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { ReportExportButtons } from "@/components/ReportExportButtons";
 import { buildQuotationsListReport } from "@shared/businessReports";
 import { KitchenModulePlanner } from "@/components/KitchenModulePlanner";
+import { PlanoCocinaLectura } from "@/components/PlanoCocinaLectura";
 import { descriptiveFromPlan, computePlan, kitchenModulesFromPlan, ventanasDeLevantamiento, EXTRA_PAINT } from "@shared/kitchenModulePlan";
 
 
@@ -1237,7 +1238,10 @@ export default function Quotations() {
         // Las ventanas que marcó el medidor entran al plano en la misma pared y a la misma distancia (bloqueadas)
         tramos: (() => { const vent = ventanasDeLevantamiento(coc.aberturas, coc.paredesM.length); return coc.paredesM.map((p, i) => ({ name: `Pared ${p.nombre}`, length: Math.max(p.inf, p.sup) || p.ancho, upper: vent[i], lower: [] })); })(),
       };
-      kc.fromLevantamiento = { forma: coc.layout, paredes: coc.paredesM, aproximado: coc.aproximado, isla: coc.isla, barra: coc.barra, aberturas: coc.aberturas };
+      // Se guarda también lo medido (paredes, ventanas, isla, barra, alturas) para dibujar el 3D del medidor dentro de la cotización, incluso al editarla después
+      const medidasVisita: Record<string, any> = (visitaLevantamiento as any).measurements || {};
+      const medidasCocina = Object.fromEntries(Object.entries(medidasVisita).filter(([k]) => k === "_tipo_cocina" || k.startsWith("_cocina_")));
+      kc.fromLevantamiento = { forma: coc.layout, paredes: coc.paredesM, aproximado: coc.aproximado, isla: coc.isla, barra: coc.barra, aberturas: coc.aberturas, medidas: medidasCocina };
       const nuevo = { ...base, itemType: "cocina", kitchenConfig: kc };
       return vacio ? [nuevo, ...prev.slice(1)] : [...prev, nuevo];
     });
@@ -3278,6 +3282,14 @@ export default function Quotations() {
                                 })()} ml
                               </p>
                             </div>
+                            )}
+
+                            {/* Levantamiento del medidor: el dibujo 3D y las medidas que tomó, a la vista mientras se arma la cotización */}
+                            {(item.kitchenConfig as any)?.fromLevantamiento?.medidas?._cocina_forma && (
+                              <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-2">
+                                <p className="text-sm font-semibold text-white">Levantamiento del medidor</p>
+                                <PlanoCocinaLectura measurements={(item.kitchenConfig as any).fromLevantamiento.medidas} />
+                              </div>
                             )}
 
                             {/* 3.4 Plano de módulos por tramos (etapa 1: informativo, no cambia el precio) */}

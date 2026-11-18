@@ -58,8 +58,8 @@ export function PlanoCocinaLectura({ measurements }: { measurements: Record<stri
             <span className="font-bold">{l}</span>
             <span>{fm(anchoMuroCm(paredes[i]))} m</span>
             <span>{fm(paredes[i]?.alto || techo)} m</span>
-            <span>{fm(paredes[i]?.inf ?? 0)} m{(dsc[i]?.infIni + dsc[i]?.infFin) > 0 && <span className="block text-[10px] text-gray-400">mesón − {fm(dsc[i].infIni + dsc[i].infFin)} esquina</span>}</span>
-            <span>{fm(paredes[i]?.sup ?? 0)} m</span>
+            <span>{fm(paredes[i]?.inf ?? anchoMuroCm(paredes[i]))} m{(dsc[i]?.infIni + dsc[i]?.infFin) > 0 && <span className="block text-[10px] text-gray-400">mesón − {fm(dsc[i].infIni + dsc[i].infFin)} esquina</span>}</span>
+            <span>{fm(paredes[i]?.sup ?? anchoMuroCm(paredes[i]))} m</span>
           </div>
         ))}
         <div className="flex justify-between pt-1 border-t border-primary/20"><span className="text-gray-400">Total de muebles</span><span className="text-white font-semibold">inferiores {metros(t.infM)} m · superiores {metros(Math.max(0, t.supM - ventSup / 100))} m{ventSup > 0 ? ` (− ${metros(ventSup / 100)} de ventanas)` : ""}</span></div>

@@ -188,9 +188,11 @@ export function aplicarMueblesAutomaticos(forma: string | undefined, paredes: Pa
 const n = (v: any) => (Number.isFinite(Number(v)) ? Number(v) : 0);
 const r2 = (x: number) => Math.round(x * 100) / 100;
 
+/** Metros de madera de una pared: lo escrito, o —si no hay nada escrito— el ancho completo de la pared (la madera se cobra plena). */
+const muebleCm = (v: any, p: ParedCocina) => (v === undefined || v === null || v === "" ? anchoMuroCm(p) : n(v));
 export function totalesParedes(paredes: ParedCocina[] | undefined): { infM: number; supM: number } {
   const p = paredes || [];
-  return { infM: r2(p.reduce((a, x) => a + n(x.inf), 0) / 100), supM: r2(p.reduce((a, x) => a + n(x.sup), 0) / 100) };
+  return { infM: r2(p.reduce((a, x) => a + muebleCm(x.inf, x), 0) / 100), supM: r2(p.reduce((a, x) => a + muebleCm(x.sup, x), 0) / 100) };
 }
 
 /** Ancho (cm) de ventanas que estorban a los superiores, por pared: donde va ventana no va mueble superior. */
@@ -249,7 +251,7 @@ export function cocinaDeLevantamiento(m: Record<string, any> | null | undefined)
     const ventanasSup = r2(ventanasSuperioresCm(forma, paredes, Array.isArray(m._cocina_aberturas) ? m._cocina_aberturas : undefined).reduce((a, x) => a + x, 0) / 100);
     return {
       layout: layoutDeForma(forma),
-      paredesM: paredes.map((p, i) => ({ nombre: nombres[i] || String(i + 1), inf: r2(n(p.inf) / 100), sup: r2(n(p.sup) / 100), ancho: r2(anchoMuroCm(p) / 100), alto: n(p.alto) > 0 ? r2(n(p.alto) / 100) : undefined })),
+      paredesM: paredes.map((p, i) => ({ nombre: nombres[i] || String(i + 1), inf: r2(muebleCm(p.inf, p) / 100), sup: r2(muebleCm(p.sup, p) / 100), ancho: r2(anchoMuroCm(p) / 100), alto: n(p.alto) > 0 ? r2(n(p.alto) / 100) : undefined })),
       descMesonM: r2(descuentoMesonCm(forma, paredes, n(m._cocina_profundo) || FONDO_INFERIOR_CM, Array.isArray(m._cocina_esquinas) ? m._cocina_esquinas : undefined).totalCm / 100),
       ventanasSupM: ventanasSup,
       lowerMeters: t.infM, upperMeters: Math.max(0, r2(t.supM - ventanasSup)), islaM: r2(isla),

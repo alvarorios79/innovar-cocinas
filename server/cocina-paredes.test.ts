@@ -181,5 +181,13 @@ describe("Paredes de la cocina (levantamiento)", () => {
       _cocina_aberturas: [{ id: "v", tipo: "ventana", pared: 0, desde: 50, ancho: 80, alto: 60, antepecho: 90 }, { id: "p", tipo: "puerta", pared: 0, desde: 200, ancho: 90, alto: 210, antepecho: 0 }] };
     expect(cocinaDeLevantamiento(m)!.upperMeters).toBe(3);
   });
+
+  it("si las paredes solo traen el ancho (sin metros de muebles escritos), la madera es el ancho completo", () => {
+    const c = cocinaDeLevantamiento({ _cocina_forma: "L", _cocina_paredes: [{ ancho: 333 }, { ancho: 222 }] })!;
+    expect(c.lowerMeters).toBe(5.55);
+    expect(c.upperMeters).toBe(5.55);
+    // pero un 0 escrito a propósito se respeta
+    expect(cocinaDeLevantamiento({ _cocina_forma: "L", _cocina_paredes: [{ ancho: 333, inf: 0, sup: 0 }, { ancho: 222 }] })!.lowerMeters).toBe(2.22);
+  });
 });
 

@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { InputM, fm } from "@/components/InputMetros";
 import {
   FORMAS_COCINA, nombresParedes, normalizarParedes, setInferior, setSuperior, totalesParedes, ajustarAbertura, imantarDesde, estadoIman, anchoMuroCm,
+  FONDO_INFERIOR_CM, FONDO_SUPERIOR_CM, esquinasDeForma, paredGanadoraEsquina, descuentosEsquinas, aplicarMueblesAutomaticos,
   ABERTURA_POR_DEFECTO, ALTO_COCINA_POR_DEFECTO, SEPARACION_PARALELA_POR_DEFECTO,
   type FormaCocina, type ParedCocina, type AberturaCocina,
 } from "@shared/cocinaParedes";
@@ -121,10 +122,24 @@ export function CocinaParedes({ forma, paredes, medidas, altoCm, profundoCm, sep
   // Largo que se usa para mover una abertura: el ancho de la pared; si aún no se escribió, 300 cm provisionales
   const largoPared = (i: number) => anchoMuroCm(lista[i]) || 300;
 
+  // Fondos de los muebles y qué pared llega a cada esquina (L y U): de aquí salen los muebles de cada pared
+  const fondoInf = Number(medidas?._cocina_profundo) || FONDO_INFERIOR_CM;
+  const fondoSup = Number(medidas?._cocina_profundo_sup) || FONDO_SUPERIOR_CM;
+  const eleccion: number[] | undefined = Array.isArray(medidas?._cocina_esquinas) ? medidas?._cocina_esquinas : undefined;
+  const esquinas = esquinasDeForma(forma);
+  const ganadoras = paredGanadoraEsquina(forma, lista, eleccion);
+  const desc = descuentosEsquinas(forma, lista, fondoInf, fondoSup, eleccion);
+
   const emitir = (nuevas: ParedCocina[], extra: Record<string, any> = {}) => {
-    const t = totalesParedes(nuevas);
+    // Los muebles que no se escribieron a mano se calculan solos: ancho de la pared menos el fondo del mueble que llega a la esquina
+    const conAuto = aplicarMueblesAutomaticos(
+      (extra._cocina_forma as string | undefined) ?? forma, nuevas,
+      (extra._cocina_profundo as number | undefined) ?? fondoInf, (extra._cocina_profundo_sup as number | undefined) ?? fondoSup,
+      (extra._cocina_esquinas as number[] | undefined) ?? eleccion,
+    );
+    const t = totalesParedes(conAuto);
     onChange({
-      _cocina_paredes: nuevas,
+      _cocina_paredes: conAuto,
       // el «ancho» antiguo sigue existiendo: es el total de muebles inferiores (para pantallas viejas)
       _cocina_ancho: t.infM > 0 ? Math.round(t.infM * 100) : undefined,
       ...extra,
@@ -187,7 +202,9 @@ export function CocinaParedes({ forma, paredes, medidas, altoCm, profundoCm, sep
                 onPickPared={setActiva}
                 onFalla={() => setSin3D(true)}
                 altura={pantallaCompleta ? "100%" : 300}
-                profundoCm={profundoCm}
+                profundoCm={fondoInf}
+                profundoSupCm={fondoSup}
+                esquinas={eleccion}
                 isla={Number(medidas?._cocina_isla) > 0 ? { ancho: Number(medidas?._cocina_isla), profundo: Number(medidas?._cocina_isla_profundo) || 0, alto: Number(medidas?._cocina_isla_alto) || 0 } : null}
                 barra={Number(medidas?._cocina_barra) > 0 ? { ancho: Number(medidas?._cocina_barra), profundo: Number(medidas?._cocina_barra_profundo) || 0, alto: Number(medidas?._cocina_barra_alto) || 0 } : null}
                 vistaPizarra={medidas?._cocina_camara ?? null}
@@ -326,32 +343,67 @@ export function CocinaParedes({ forma, paredes, medidas, altoCm, profundoCm, sep
 
           <Seccion titulo="3 · Muebles: inferiores y superiores" abierta={!!abiertas.muebles} onToggle={() => alternar("muebles")}
             resumen={`Inferiores ${metros(tot.infM * 100)} m · Superiores ${metros(tot.supM * 100)} m`}>
-            <p className="text-[11px] text-gray-400">Cuánto mide la fila de muebles en cada pared (puede ser menos que la pared). El superior copia al inferior; si es distinto, escríbelo.</p>
-            {letras.map((letra, i) => (
-              <div key={letra} className={`rounded-lg border p-3 ${activa === i ? "border-primary bg-primary/10" : "border-primary/20 bg-background/40"}`} onClick={() => setActiva(i)}>
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-bold text-white">Pared {letra}</p>
-                  {anchoMuroCm(lista[i]) > 0 && (
-                    <button type="button" className="text-[11px] px-2 py-1.5 rounded border border-primary/40 text-primary min-h-[36px]"
-                      onClick={() => { const nuevas = [...lista]; const w = anchoMuroCm(lista[i]); nuevas[i] = { ...(lista[i] || {}), inf: w, sup: w, supManual: false }; emitir(nuevas); }}>
-                      Igual al ancho de la pared ({fm(anchoMuroCm(lista[i]))} m)
-                    </button>
-                  )}
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-primary mb-1">Inferiores (m)</label>
-                    <InputM placeholder="0,00" valorCm={lista[i]?.inf} onFocus={() => setActiva(i)}
-                      onCm={(v) => { const nuevas = [...lista]; nuevas[i] = setInferior(lista[i] || {}, v); emitir(nuevas); }} className={inputCls} />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-primary mb-1">Superiores (m)</label>
-                    <InputM placeholder="0,00" valorCm={lista[i]?.sup} onFocus={() => setActiva(i)}
-                      onCm={(v) => { const nuevas = [...lista]; nuevas[i] = setSuperior(lista[i] || {}, v); emitir(nuevas); }} className={inputCls} />
-                  </div>
-                </div>
+            <p className="text-[11px] text-gray-400">Salen solos: el ancho de la pared menos el fondo del mueble que llega a la esquina (en L y en U). Si escribes una medida a mano, esa queda fija.</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-primary mb-1">Fondo muebles inferiores (m)</label>
+                <InputM placeholder="0,60" valorCm={medidas?._cocina_profundo ?? FONDO_INFERIOR_CM} onCm={(v) => emitir(lista, { _cocina_profundo: v })} className={inputCls} />
               </div>
-            ))}
+              <div>
+                <label className="block text-xs font-semibold text-primary mb-1">Fondo muebles superiores (m)</label>
+                <InputM placeholder="0,35" valorCm={medidas?._cocina_profundo_sup ?? FONDO_SUPERIOR_CM} onCm={(v) => emitir(lista, { _cocina_profundo_sup: v })} className={inputCls} />
+              </div>
+            </div>
+            {esquinas.length > 0 && (
+              <div className="rounded-lg border border-primary/25 bg-background/40 p-3 space-y-2">
+                <p className="text-xs font-bold text-white">Esquinas: ¿cuál pared llega hasta la esquina?</p>
+                <p className="text-[11px] text-gray-400">La que llega queda completa; la otra se acorta por el fondo de los muebles de la primera.</p>
+                {esquinas.map(([a, b], k) => (
+                  <div key={k} className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs text-gray-300">Esquina {letras[a]}–{letras[b]}:</span>
+                    {[a, b].map((w) => (
+                      <button key={w} type="button" onClick={() => { const nuevo = [...ganadoras]; nuevo[k] = w; emitir(lista, { _cocina_esquinas: nuevo }); }}
+                        className={`px-3 py-2 rounded-lg border text-xs font-semibold min-h-[44px] ${ganadoras[k] === w ? "bg-primary border-primary text-white" : "border-primary/40 text-white"}`}>
+                        Llega la pared {letras[w]}
+                      </button>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            )}
+            {letras.map((letra, i) => {
+              const w = anchoMuroCm(lista[i]);
+              const d = desc[i];
+              const notaInf = [d.infIni > 0 ? `− ${fm(d.infIni)} (esquina al inicio)` : "", d.infFin > 0 ? `− ${fm(d.infFin)} (esquina al final)` : ""].filter(Boolean).join(" ");
+              const notaSup = [d.supIni > 0 ? `− ${fm(d.supIni)}` : "", d.supFin > 0 ? `− ${fm(d.supFin)}` : ""].filter(Boolean).join(" ");
+              return (
+                <div key={letra} className={`rounded-lg border p-3 ${activa === i ? "border-primary bg-primary/10" : "border-primary/20 bg-background/40"}`} onClick={() => setActiva(i)}>
+                  <div className="flex items-center justify-between mb-2 gap-2">
+                    <p className="text-sm font-bold text-white">Pared {letra} {w > 0 && <span className="text-[11px] font-normal text-gray-400">· mide {fm(w)} m</span>}</p>
+                    {(lista[i]?.infManual || lista[i]?.supManual) && w > 0 && (
+                      <button type="button" className="text-[11px] px-2 py-1.5 rounded border border-primary/40 text-primary min-h-[36px]"
+                        onClick={() => { const nuevas = [...lista]; nuevas[i] = { ...(lista[i] || {}), infManual: false, supManual: false }; emitir(nuevas); }}>
+                        Volver a calcular solos
+                      </button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-primary mb-1">Inferiores (m) {!lista[i]?.infManual && w > 0 && <span className="text-emerald-300 font-normal">· automático</span>}</label>
+                      <InputM placeholder="0,00" valorCm={lista[i]?.inf} onFocus={() => setActiva(i)}
+                        onCm={(v) => { const nuevas = [...lista]; nuevas[i] = setInferior(lista[i] || {}, v); emitir(nuevas); }} className={inputCls} />
+                      {w > 0 && !lista[i]?.infManual && <p className="text-[10px] text-gray-400 mt-0.5">{fm(w)} {notaInf || "(sin descuento)"}</p>}
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-primary mb-1">Superiores (m) {!lista[i]?.supManual && w > 0 && <span className="text-emerald-300 font-normal">· automático</span>}</label>
+                      <InputM placeholder="0,00" valorCm={lista[i]?.sup} onFocus={() => setActiva(i)}
+                        onCm={(v) => { const nuevas = [...lista]; nuevas[i] = setSuperior(lista[i] || {}, v); emitir(nuevas); }} className={inputCls} />
+                      {w > 0 && !lista[i]?.supManual && <p className="text-[10px] text-gray-400 mt-0.5">{fm(w)} {notaSup || "(sin descuento)"}</p>}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-lg bg-primary/15 border border-primary/40 p-3 text-center">
                 <p className="text-[11px] text-gray-300">Total inferiores</p>
@@ -361,10 +413,6 @@ export function CocinaParedes({ forma, paredes, medidas, altoCm, profundoCm, sep
                 <p className="text-[11px] text-gray-300">Total superiores</p>
                 <p className="text-xl font-bold text-white">{metros(tot.supM * 100)} m</p>
               </div>
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-primary mb-1">Profundo de los muebles (m)</label>
-              <InputM placeholder="0,00" valorCm={profundoCm} onCm={(v) => onChange({ _cocina_profundo: v })} className={inputCls} />
             </div>
           </Seccion>
 

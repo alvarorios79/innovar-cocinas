@@ -82,7 +82,8 @@ export function estadoIman(a: AberturaCocina, largoParedCm: number, otras: Abert
 export interface ParedCocina {
   inf?: number;        // largo de muebles inferiores (cm)
   sup?: number;        // largo de muebles superiores (cm)
-  supManual?: boolean; // true = el superior se escribió aparte (si no, sigue al inferior)
+  supManual?: boolean; // true = el superior se escribió a mano (si no, se calcula solo desde el ancho de la pared y las esquinas)
+  infManual?: boolean; // true = el inferior se escribió a mano (si no, se calcula solo)
   ancho?: number;      // ANCHO de la pared (cm): lo que mide el muro, aparte de los muebles
   alto?: number;       // ALTO de la pared (cm); si no se escribe, se usa el alto general de la cocina
 }
@@ -103,12 +104,68 @@ export function normalizarParedes(forma: string | undefined, paredes: ParedCocin
   return Array.from({ length: n }, (_, i) => ({ ...(base[i] || {}) }));
 }
 
-/** Al escribir el inferior, el superior lo sigue mientras no se haya escrito aparte. */
+/** Escribir el inferior a mano (queda fijo; ya no se recalcula solo). */
 export function setInferior(p: ParedCocina, valor: number | undefined): ParedCocina {
-  return { ...p, inf: valor, sup: p.supManual ? p.sup : valor };
+  return { ...p, inf: valor, infManual: true };
 }
 export function setSuperior(p: ParedCocina, valor: number | undefined): ParedCocina {
   return { ...p, sup: valor, supManual: true };
+}
+
+// ── ESQUINAS (L y U): los muebles de una pared llegan hasta la esquina y los de la pared que se le junta se acortan por el FONDO de los primeros ──
+export const FONDO_INFERIOR_CM = 60;   // muebles inferiores: 0,60 m de fondo
+export const FONDO_SUPERIOR_CM = 35;   // muebles superiores: 0,35 m de fondo
+
+/** Esquinas de cada forma: pares de paredes que se juntan (índices). L: A–B. U: A–B y B–C. */
+export function esquinasDeForma(forma?: string): Array<[number, number]> {
+  if (forma === "L") return [[0, 1]];
+  if (forma === "U") return [[0, 1], [1, 2]];
+  return [];
+}
+
+/** En cada esquina, ¿cuál pared llega hasta la esquina (la otra se acorta)? Por defecto la más ancha; si el usuario eligió, se respeta. */
+export function paredGanadoraEsquina(forma: string | undefined, paredes: ParedCocina[] | undefined, eleccion?: number[]): number[] {
+  const ps = normalizarParedes(forma, paredes);
+  return esquinasDeForma(forma).map(([a, b], k) => {
+    const e = eleccion?.[k];
+    if (e === a || e === b) return e;
+    return anchoMuroCm(ps[b]) > anchoMuroCm(ps[a]) ? b : a;
+  });
+}
+
+export interface DescuentoPared { infIni: number; infFin: number; supIni: number; supFin: number }
+/** Cuánto se le quita a cada pared (en cm) en su inicio y su final por las esquinas. Se calcula con los fondos de las paredes que sí llegan a la esquina. */
+export function descuentosEsquinas(forma: string | undefined, paredes: ParedCocina[] | undefined, fondoInfCm = FONDO_INFERIOR_CM, fondoSupCm = FONDO_SUPERIOR_CM, eleccion?: number[]): DescuentoPared[] {
+  const ps = normalizarParedes(forma, paredes);
+  const out: DescuentoPared[] = ps.map(() => ({ infIni: 0, infFin: 0, supIni: 0, supFin: 0 }));
+  const esq = esquinasDeForma(forma);
+  const gan = paredGanadoraEsquina(forma, paredes, eleccion);
+  esq.forEach(([a, b], k) => {
+    const perdedora = gan[k] === a ? b : a;
+    // la pared «a» termina en la esquina (su final) y la «b» empieza en ella (su inicio)
+    if (perdedora === b) { out[b].infIni += fondoInfCm; out[b].supIni += fondoSupCm; }
+    else { out[a].infFin += fondoInfCm; out[a].supFin += fondoSupCm; }
+  });
+  return out;
+}
+
+/** Medidas de muebles que salen solas: ancho de la pared menos lo que se descuenta en las esquinas. */
+export function mueblesSugeridos(forma: string | undefined, paredes: ParedCocina[] | undefined, fondoInfCm = FONDO_INFERIOR_CM, fondoSupCm = FONDO_SUPERIOR_CM, eleccion?: number[]): Array<{ inf: number; sup: number }> {
+  const ps = normalizarParedes(forma, paredes);
+  const d = descuentosEsquinas(forma, paredes, fondoInfCm, fondoSupCm, eleccion);
+  return ps.map((p, i) => {
+    const w = anchoMuroCm(p);
+    return { inf: Math.max(0, w - d[i].infIni - d[i].infFin), sup: Math.max(0, w - d[i].supIni - d[i].supFin) };
+  });
+}
+
+/** Rellena inferiores y superiores de las paredes que no se escribieron a mano (según el ancho de la pared y las esquinas). */
+export function aplicarMueblesAutomaticos(forma: string | undefined, paredes: ParedCocina[], fondoInfCm?: number, fondoSupCm?: number, eleccion?: number[]): ParedCocina[] {
+  const sug = mueblesSugeridos(forma, paredes, fondoInfCm, fondoSupCm, eleccion);
+  return normalizarParedes(forma, paredes).map((p, i) => {
+    if (!(anchoMuroCm(p) > 0)) return p;
+    return { ...p, inf: p.infManual ? p.inf : sug[i].inf, sup: p.supManual ? p.sup : sug[i].sup };
+  });
 }
 
 const n = (v: any) => (Number.isFinite(Number(v)) ? Number(v) : 0);

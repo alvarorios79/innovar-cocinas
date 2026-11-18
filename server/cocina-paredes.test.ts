@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { anchoMuroCm, imantarDesde, estadoIman, geometriaParedes, ajustarAbertura, nombresParedes, normalizarParedes, setInferior, setSuperior, totalesParedes, cocinaDeLevantamiento } from "../shared/cocinaParedes";
+import { mueblesSugeridos, aplicarMueblesAutomaticos, descuentosEsquinas, paredGanadoraEsquina, anchoMuroCm, imantarDesde, estadoIman, geometriaParedes, ajustarAbertura, nombresParedes, normalizarParedes, setInferior, setSuperior, totalesParedes, cocinaDeLevantamiento } from "../shared/cocinaParedes";
 
 describe("Paredes de la cocina (levantamiento)", () => {
   it("cada forma pide sus paredes: línea 1, L 2, U 3, paralela 2", () => {
@@ -9,13 +9,10 @@ describe("Paredes de la cocina (levantamiento)", () => {
     expect(nombresParedes("Paralela")).toEqual(["A", "B"]);
     expect(normalizarParedes("U", [{ inf: 300 }])).toHaveLength(3);
   });
-  it("el superior sigue al inferior hasta que se escribe aparte", () => {
-    let p = setInferior({}, 300);
-    expect(p.sup).toBe(300);
-    p = setSuperior(p, 240);          // el superior es menor
-    p = setInferior(p, 320);          // cambia el inferior: el superior ya no lo sigue
-    expect(p.inf).toBe(320);
-    expect(p.sup).toBe(240);
+  it("lo escrito a mano queda fijo (marca de manual)", () => {
+    const p = setInferior({}, 300);
+    expect(p).toMatchObject({ inf: 300, infManual: true });
+    expect(setSuperior(p, 240)).toMatchObject({ sup: 240, supManual: true });
   });
   it("suma inferiores y superiores por separado en metros", () => {
     const t = totalesParedes([{ inf: 300, sup: 300 }, { inf: 240, sup: 180 }]);
@@ -93,5 +90,39 @@ describe("Paredes de la cocina (levantamiento)", () => {
     expect(c.paredesM[0]).toMatchObject({ ancho: 3.6, alto: 2.5, inf: 3, sup: 2.8 });
     expect(c.lowerMeters).toBe(5);
     expect(c.upperMeters).toBe(4.8);
+  });
+
+  it("L: la pared más ancha llega a la esquina; la otra se acorta por el fondo (inferiores 0,60 y superiores 0,35)", () => {
+    const ps = [{ ancho: 360 }, { ancho: 280 }];
+    expect(paredGanadoraEsquina("L", ps)).toEqual([0]);
+    const s = mueblesSugeridos("L", ps);
+    expect(s[0]).toEqual({ inf: 360, sup: 360 });         // A llega completa
+    expect(s[1]).toEqual({ inf: 220, sup: 245 });         // B: 2,80 − 0,60 y 2,80 − 0,35
+  });
+  it("L: se puede elegir cuál pared llega a la esquina", () => {
+    const ps = [{ ancho: 360 }, { ancho: 280 }];
+    const s = mueblesSugeridos("L", ps, 60, 35, [1]);
+    expect(s[0]).toEqual({ inf: 300, sup: 325 });         // ahora llega B y A se acorta
+    expect(s[1]).toEqual({ inf: 280, sup: 280 });
+  });
+  it("U: el fondo (B) llega a las dos esquinas y los lados (A y C) se acortan", () => {
+    const ps = [{ ancho: 280 }, { ancho: 360 }, { ancho: 280 }];
+    const d = descuentosEsquinas("U", ps);
+    expect(d[0]).toMatchObject({ infFin: 60, supFin: 35 });
+    expect(d[2]).toMatchObject({ infIni: 60, supIni: 35 });
+    expect(d[1]).toMatchObject({ infIni: 0, infFin: 0 });
+    expect(mueblesSugeridos("U", ps).map((m) => m.inf)).toEqual([220, 360, 220]);
+  });
+  it("lo calculado solo se actualiza; lo escrito a mano no se toca", () => {
+    const ps = aplicarMueblesAutomaticos("L", [{ ancho: 360 }, { ancho: 280, inf: 200, infManual: true }]);
+    expect(ps[0].inf).toBe(360);
+    expect(ps[1].inf).toBe(200);        // manual: queda
+    expect(ps[1].sup).toBe(245);        // automático
+    const cambio = aplicarMueblesAutomaticos("L", [{ ...ps[0], ancho: 400 }, ps[1]]);
+    expect(cambio[0].inf).toBe(400);
+  });
+  it("sin esquinas (línea y paralela) no hay descuento", () => {
+    expect(mueblesSugeridos("Lineal", [{ ancho: 360 }])[0]).toEqual({ inf: 360, sup: 360 });
+    expect(mueblesSugeridos("Paralela", [{ ancho: 300 }, { ancho: 300 }]).map((m) => m.inf)).toEqual([300, 300]);
   });
 });

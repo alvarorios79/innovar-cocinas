@@ -1,4 +1,4 @@
-import { FORMAS_COCINA, anchoMuroCm, nombresParedes, totalesParedes, type AberturaCocina, type ParedCocina } from "@shared/cocinaParedes";
+import { FORMAS_COCINA, descuentosEsquinas, FONDO_INFERIOR_CM, FONDO_SUPERIOR_CM, anchoMuroCm, nombresParedes, totalesParedes, type AberturaCocina, type ParedCocina } from "@shared/cocinaParedes";
 
 // Hoja del levantamiento de la cocina: foto del dibujo 3D + tabla de medidas. Se pone sola y BLOQUEADA en la pizarra,
 // y es lo que ven el comercial, el administrador y el diseñador al trabajar la cotización.
@@ -10,6 +10,8 @@ export interface DatosPlano {
   aberturas?: AberturaCocina[];
   altoGeneralCm?: number;
   profundoCm?: number;
+  profundoSupCm?: number;
+  esquinas?: number[];
   isla?: { ancho: number; profundo: number; alto: number } | null;
   barra?: { ancho: number; profundo: number; alto: number } | null;
 }
@@ -26,9 +28,13 @@ export async function componerPlanoLevantamiento(foto3d: string, d: DatosPlano):
   const paredes = d.paredes || [];
   const ab = d.aberturas || [];
   const filas: string[] = [];
+  const dsc = descuentosEsquinas(d.forma, paredes, d.profundoCm || FONDO_INFERIOR_CM, d.profundoSupCm || FONDO_SUPERIOR_CM, d.esquinas);
   paredes.forEach((p, i) => {
+    const q = dsc[i] || { infIni: 0, infFin: 0, supIni: 0, supFin: 0 };
+    const di = q.infIni + q.infFin, ds = q.supIni + q.supFin;
+    const nota = (di > 0 || ds > 0) && !p.infManual ? `   (descuento de esquina: inferiores − ${fm(di)} m · superiores − ${fm(ds)} m)` : "";
     const alto = Number(p.alto) || d.altoGeneralCm || 240;
-    filas.push(`Pared ${nombres[i] || i + 1}:  ancho ${fm(anchoMuroCm(p))} m  ·  alto ${fm(alto)} m   |   muebles inferiores ${fm(p.inf ?? 0)} m  ·  superiores ${fm(p.sup ?? 0)} m`);
+    filas.push(`Pared ${nombres[i] || i + 1}:  ancho ${fm(anchoMuroCm(p))} m  ·  alto ${fm(alto)} m   |   muebles inferiores ${fm(p.inf ?? 0)} m  ·  superiores ${fm(p.sup ?? 0)} m${nota}`);
   });
   const t = totalesParedes(paredes);
   filas.push(`Total de muebles:  inferiores ${t.infM.toFixed(2)} m   ·   superiores ${t.supM.toFixed(2)} m`);

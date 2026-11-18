@@ -966,7 +966,7 @@ export default function Medidor() {
         const hoja = await componerPlanoLevantamiento(foto, {
           cliente: visitDetail?.clientName ?? selectedVisit?.clientName ?? "",
           forma: mm._cocina_forma, paredes: mm._cocina_paredes, aberturas: mm._cocina_aberturas,
-          altoGeneralCm: Number(mm._cocina_alto) || undefined, profundoCm: Number(mm._cocina_profundo) || undefined,
+          altoGeneralCm: Number(mm._cocina_alto) || undefined, profundoCm: Number(mm._cocina_profundo) || undefined, profundoSupCm: Number(mm._cocina_profundo_sup) || undefined, esquinas: Array.isArray(mm._cocina_esquinas) ? mm._cocina_esquinas : undefined,
           isla: pieza("_cocina_isla"), barra: pieza("_cocina_barra"),
         });
         pizarraRef.current?.setLockedPhoto({ id: "plano-levantamiento", ...hoja });

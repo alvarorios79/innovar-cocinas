@@ -1,7 +1,7 @@
-import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { geometriaParedes, ALTO_COCINA_POR_DEFECTO, type AberturaCocina, type ParedCocina } from "@shared/cocinaParedes";
+import { geometriaParedes, descuentosEsquinas, FONDO_INFERIOR_CM, FONDO_SUPERIOR_CM, ALTO_COCINA_POR_DEFECTO, type AberturaCocina, type ParedCocina } from "@shared/cocinaParedes";
 
 // Habitación de la cocina en 3D (solo paredes, ventanas y puertas) para el levantamiento.
 // Hecho para NO pesar: figuras simples (cajas), sin sombras ni texturas, y dibuja SOLO cuando algo cambia (no hay animación continua).
@@ -20,9 +20,14 @@ interface Props {
   altura?: number | string;
   /** Profundo de los muebles (cm); sirve para dibujar las filas de muebles */
   profundoCm?: number;
+  /** Fondo de los muebles superiores (cm) y qué pared llega a cada esquina */
+  profundoSupCm?: number;
+  esquinas?: number[];
   /** Isla y barra (ancho, profundo y alto en cm) */
   isla?: { ancho: number; profundo: number; alto: number } | null;
   barra?: { ancho: number; profundo: number; alto: number } | null;
+  /** Mostrar todas las cotas de todas las paredes (la foto de la pizarra las lleva todas) */
+  todo?: boolean;
   /** Posición de cámara elegida para la pizarra (si ya se fijó una) */
   vistaPizarra?: PoseCamara | null;
   /** Si se pasa, aparece el botón «Enviar a la pizarra»: guarda la posición actual de la cámara (null = volver a automática) */
@@ -40,13 +45,16 @@ const COLOR_PARED = 0x8d9aa0, COLOR_ACTIVA = 0x00bcd4, COLOR_PISO = 0x1f2a2e, CO
 const GROSOR = 0.08;
 const fm = (m: number) => (Math.round(m * 100) / 100).toFixed(2).replace(".", ",");   // 3.6 → "3,60"
 
-const Habitacion3D = forwardRef<Habitacion3DRef, Props>(function Habitacion3D({ forma, paredes, separacionCm, altoCm, aberturas, activa, onPickPared, onFalla, altura = 300, profundoCm, isla, barra, vistaPizarra, onFijarVista }, ref) {
+const Habitacion3D = forwardRef<Habitacion3DRef, Props>(function Habitacion3D({ forma, paredes, separacionCm, altoCm, aberturas, activa, onPickPared, onFalla, altura = 300, profundoCm, profundoSupCm, esquinas, isla, barra, vistaPizarra, onFijarVista, todo }, ref) {
+  const [verTodo, setVerTodo] = useState(false);   // botón «Todas las cotas»
+  const verTodoRef = useRef(false);
+  verTodoRef.current = verTodo || !!todo;
   const host = useRef<HTMLDivElement>(null);
   // La escena se arma una vez; los cambios de medidas la reconstruyen (es pequeña) y se vuelve a dibujar una sola vez.
   const api = useRef<{ rebuild: (p: Props) => void; vista: (v: "arriba" | "frente" | "iso") => void; capturar: (pose?: PoseCamara | null) => string | null; pose: () => PoseCamara } | null>(null);
   useImperativeHandle(ref, () => ({ capturar: (pose) => api.current?.capturar(pose) ?? null }), []);
-  const ultimo = useRef<Props>({ forma, paredes, separacionCm, altoCm, aberturas, activa, onPickPared, onFalla, profundoCm, isla, barra });
-  ultimo.current = { forma, paredes, separacionCm, altoCm, aberturas, activa, onPickPared, onFalla, profundoCm, isla, barra };
+  const ultimo = useRef<Props>({ forma, paredes, separacionCm, altoCm, aberturas, activa, onPickPared, onFalla, profundoCm, profundoSupCm, esquinas, isla, barra });
+  ultimo.current = { forma, paredes, separacionCm, altoCm, aberturas, activa, onPickPared, onFalla, profundoCm, profundoSupCm, esquinas, isla, barra };
 
   useEffect(() => {
     const el = host.current;
@@ -104,17 +112,17 @@ const Habitacion3D = forwardRef<Habitacion3DRef, Props>(function Habitacion3D({ 
     };
 
     // Etiqueta de texto con una medida (se dibuja sobre el 3D y también sale en la foto de la pizarra)
-    const medida = (texto: string, x: number, y: number, z: number, color = "#ffffff", fondo = "rgba(15,26,29,0.82)") => {
+    const medida = (texto: string, x: number, y: number, z: number, color = "#ffffff", fondo = "rgba(15,26,29,0.82)", altoM = 0.17) => {
       const c = document.createElement("canvas");
       const g = c.getContext("2d")!;
       g.font = "bold 30px sans-serif";
-      const w = Math.ceil(g.measureText(texto).width) + 26, h = 46;
+      const w = Math.ceil(g.measureText(texto).width) + 20, h = 42;
       c.width = w; c.height = h;
       const g2 = c.getContext("2d")!;
       g2.fillStyle = fondo; g2.beginPath(); g2.roundRect?.(0, 0, w, h, 10); if (!g2.roundRect) g2.rect(0, 0, w, h); g2.fill();
       g2.font = "bold 30px sans-serif"; g2.fillStyle = color; g2.textBaseline = "middle"; g2.textAlign = "center"; g2.fillText(texto, w / 2, h / 2 + 1);
       const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), depthTest: false, transparent: true }));
-      sp.position.set(x, y, z); sp.scale.set(0.27 * (w / h), 0.27, 1);
+      sp.position.set(x, y, z); sp.scale.set(altoM * (w / h), altoM, 1);
       return sp;
     };
 
@@ -186,34 +194,73 @@ const Habitacion3D = forwardRef<Habitacion3DRef, Props>(function Habitacion3D({ 
         caja(cursor, largo, 0, alto, mat, true);
         contenido.add(g);
 
-        // ── Medidas que se van escribiendo, dibujadas en el 3D ──
+        // ── COTAS (estilo plano): líneas con topes y la medida en el centro ──
         const par = p.paredes[w.indice] || {};
         const ux = dx / largo, uz = dz / largo;            // a lo largo de la pared
         const nzx = -uz, nzz = ux;                         // perpendicular
         const mx = w.x1 + dx / 2, mz = w.z1 + dz / 2;
         const signo = ((cx - mx) * nzx + (cz - mz) * nzz) >= 0 ? 1 : -1; // hacia el interior de la cocina
-        const aMundo = (lx: number, y: number, lz: number): [number, number, number] => [w.x1 + lx * ux + lz * nzx, y, w.z1 + lx * uz + lz * nzz];
-        const anchoCm = Math.round(largo * 100), altoCmW = Math.round(alto * 100);
-        contenido.add(medida(`${w.nombre} · ${fm(largo)} m`, ...aMundo(largo / 2, 0.12, -signo * 0.38), activo ? "#00e5ff" : "#ffffff"));
-        contenido.add(medida(`↕ ${fm(alto)} m`, ...aMundo(0, alto / 2, -signo * 0.3), "#ffd54f"));
-        // Filas de muebles (inferiores y superiores) con su medida
-        const profBajo = ((p.profundoCm && p.profundoCm > 10 ? p.profundoCm : 60)) / 100, profAlto = 0.35;
+        const fuera = -signo;                                             // hacia afuera de la cocina
+        type P3 = [number, number, number];
+        const aMundo = (lx: number, y: number, lz: number): P3 => [w.x1 + lx * ux + lz * nzx, y, w.z1 + lx * uz + lz * nzz];
+        // detalle completo: pared elegida, vista de lectura (activa < 0) o cuando se piden todas
+        const detalle = !!p.todo || w.indice === p.activa || p.activa < 0;
+        const cota = (a1: P3, b1: P3, texto: string, color: number, colorTxt: string, tick: P3, escala = 0.2) => {
+          const t = 0.07;
+          const pts = new Float32Array([
+            ...a1, ...b1,
+            a1[0] - tick[0] * t, a1[1] - tick[1] * t, a1[2] - tick[2] * t, a1[0] + tick[0] * t, a1[1] + tick[1] * t, a1[2] + tick[2] * t,
+            b1[0] - tick[0] * t, b1[1] - tick[1] * t, b1[2] - tick[2] * t, b1[0] + tick[0] * t, b1[1] + tick[1] * t, b1[2] + tick[2] * t,
+          ]);
+          const gg = new THREE.BufferGeometry(); gg.setAttribute("position", new THREE.BufferAttribute(pts, 3));
+          const ln = new THREE.LineSegments(gg, new THREE.LineBasicMaterial({ color, depthTest: false, transparent: true, opacity: 0.95 }));
+          ln.renderOrder = 5; contenido.add(ln);
+          contenido.add(medida(texto, (a1[0] + b1[0]) / 2, (a1[1] + b1[1]) / 2 + 0.0, (a1[2] + b1[2]) / 2, colorTxt, "rgba(15,26,29,0.78)", escala));
+        };
+        const alLargo: P3 = [ux, 0, uz], aTraves: P3 = [nzx, 0, nzz], vertical: P3 = [0, 1, 0];
+        // Ancho total de la pared (cota exterior) y alto
+        cota(aMundo(0, 0.03, fuera * 0.55), aMundo(largo, 0.03, fuera * 0.55), `${fm(largo)} m`, activo ? 0x00e5ff : 0xcfd8dc, activo ? "#80f0ff" : "#ffffff", aTraves);
+        if (detalle) cota(aMundo(0, 0, fuera * 0.35), aMundo(0, alto, fuera * 0.35), `${fm(alto)} m`, 0xffd54f, "#ffe082", alLargo);
+
+        // Muebles: cajas y su cota
+        const fondoI = p.profundoCm && p.profundoCm > 10 ? p.profundoCm : FONDO_INFERIOR_CM, fondoS = p.profundoSupCm && p.profundoSupCm > 10 ? p.profundoSupCm : FONDO_SUPERIOR_CM;
+        const profBajo = fondoI / 100, profAlto = fondoS / 100;
+        const dsc = descuentosEsquinas(p.forma, p.paredes, fondoI, fondoS, p.esquinas)[w.indice] || { infIni: 0, infFin: 0, supIni: 0, supFin: 0 };
+        const x0i = dsc.infIni / 100, x0s = dsc.supIni / 100;   // los muebles de la pared que NO llega a la esquina empiezan después del fondo del otro
         const inf = (Number(par.inf) || 0) / 100, sup = (Number(par.sup) || 0) / 100;
         if (inf > 0.05) {
           const m = new THREE.Mesh(new THREE.BoxGeometry(Math.min(inf, largo), 0.9, profBajo), new THREE.MeshLambertMaterial({ color: 0x26a69a, transparent: true, opacity: 0.6 }));
-          m.position.set(Math.min(inf, largo) / 2, 0.45, signo * (GROSOR / 2 + profBajo / 2)); g.add(m);
-          contenido.add(medida(`Inf ${fm(inf)} m`, ...aMundo(Math.min(inf, largo) / 2, 1.0, signo * (GROSOR / 2 + profBajo / 2)), "#80cbc4"));
+          m.position.set(x0i + Math.min(inf, largo) / 2, 0.45, signo * (GROSOR / 2 + profBajo / 2)); g.add(m);
+          if (detalle) cota(aMundo(x0i, 0.03, signo * (GROSOR + profBajo + 0.2)), aMundo(x0i + Math.min(inf, largo), 0.03, signo * (GROSOR + profBajo + 0.2)), `inf ${fm(inf)}`, 0x80cbc4, "#b2dfdb", aTraves, 0.15);
         }
         if (sup > 0.05) {
+          const ySup = Math.min(alto - 0.4, 1.75);
           const m = new THREE.Mesh(new THREE.BoxGeometry(Math.min(sup, largo), 0.7, profAlto), new THREE.MeshLambertMaterial({ color: 0x7e57c2, transparent: true, opacity: 0.55 }));
-          m.position.set(Math.min(sup, largo) / 2, Math.min(alto - 0.4, 1.75), signo * (GROSOR / 2 + profAlto / 2)); g.add(m);
-          contenido.add(medida(`Sup ${fm(sup)} m`, ...aMundo(Math.min(sup, largo) / 2, Math.min(alto - 0.4, 1.75) + 0.5, signo * (GROSOR / 2 + profAlto / 2)), "#b39ddb"));
+          m.position.set(x0s + Math.min(sup, largo) / 2, ySup, signo * (GROSOR / 2 + profAlto / 2)); g.add(m);
+          if (detalle) cota(aMundo(x0s, ySup + 0.5, signo * (GROSOR + profAlto + 0.1)), aMundo(x0s + Math.min(sup, largo), ySup + 0.5, signo * (GROSOR + profAlto + 0.1)), `sup ${fm(sup)}`, 0xb39ddb, "#d1c4e9", aTraves, 0.15);
         }
-        // Ventanas y puertas con sus medidas
-        ab.forEach((a) => {
-          const txt = a.tipo === "ventana" ? `${fm(a.a)}×${fm(a.h)} m · piso ${fm(a.base)} m` : `puerta ${fm(a.a)}×${fm(a.h)} m`;
-          contenido.add(medida(txt, ...aMundo(a.d + a.a / 2, a.base + a.h + 0.16, signo * 0.14), a.tipo === "ventana" ? "#81d4fa" : "#ffcc80"));
-        });
+
+        // Ventanas y puertas: a cada lado queda tanto, y cuánto mide (cadena de cotas), más la altura desde el piso
+        if (detalle && ab.length) {
+          const quiebres: Array<{ de: number; a: number; tipo: "hueco" | "ventana" | "puerta" }> = [];
+          let cur = 0;
+          ab.forEach((x) => {
+            if (x.d - cur > 0.02) quiebres.push({ de: cur, a: x.d, tipo: "hueco" });
+            quiebres.push({ de: x.d, a: x.d + x.a, tipo: x.tipo });
+            cur = x.d + x.a;
+          });
+          if (largo - cur > 0.02) quiebres.push({ de: cur, a: largo, tipo: "hueco" });
+          quiebres.forEach((q) => {
+            const col = q.tipo === "hueco" ? 0xffffff : q.tipo === "ventana" ? 0x4fc3f7 : 0xffb74d;
+            const txt = q.tipo === "hueco" ? "#ffffff" : q.tipo === "ventana" ? "#b3e5fc" : "#ffe0b2";
+            cota(aMundo(q.de, 0.03, fuera * 0.9), aMundo(q.a, 0.03, fuera * 0.9), fm(q.a - q.de), col, txt, aTraves, 0.15);
+          });
+          ab.forEach((x) => {
+            const lx = x.d + x.a + 0.1, col = x.tipo === "ventana" ? 0x4fc3f7 : 0xffb74d, tx = x.tipo === "ventana" ? "#b3e5fc" : "#ffe0b2";
+            if (x.base > 0.02) cota(aMundo(lx, 0, fuera * 0.12), aMundo(lx, x.base, fuera * 0.12), fm(x.base), 0xffffff, "#ffffff", alLargo, 0.14);
+            cota(aMundo(lx, x.base, fuera * 0.12), aMundo(lx, x.base + x.h, fuera * 0.12), fm(x.h), col, tx, alLargo, 0.14);
+          });
+        }
 
         // Etiqueta A/B/C encima de la mitad de la pared
         contenido.add(etiqueta(w.nombre, w.x1 + dx / 2, alto + 0.35, w.z1 + dz / 2, activo));
@@ -228,7 +275,7 @@ const Habitacion3D = forwardRef<Habitacion3DRef, Props>(function Habitacion3D({ 
       if (p.isla && p.isla.ancho > 0) {
         const anc = p.isla.ancho / 100, pro = (p.isla.profundo || 90) / 100, alt = (p.isla.alto || 90) / 100;
         caja3(anc, pro, alt, cx, cz, 0xffb74d);
-        contenido.add(medida(`Isla ${fm(p.isla.ancho / 100)}×${fm((p.isla.profundo || 0) / 100)}×${fm((p.isla.alto || 0) / 100)} m`, cx, alt + 0.2, cz, "#ffcc80"));
+        contenido.add(medida(`Isla ${fm(p.isla.ancho / 100)}×${fm((p.isla.profundo || 0) / 100)}×${fm((p.isla.alto || 0) / 100)} m`, cx, alt + 0.2, cz, "#ffcc80", "rgba(15,26,29,0.82)", 0.15));
         zIsla = cz + pro / 2 + 0.12;
       }
       if (p.barra && p.barra.ancho > 0) {
@@ -290,6 +337,7 @@ const Habitacion3D = forwardRef<Habitacion3DRef, Props>(function Habitacion3D({ 
       const posAnt = camera.position.clone(), tarAnt = controls.target.clone(), aspAnt = camera.aspect;
       const tam = new THREE.Vector2(); renderer.getSize(tam); const pr = renderer.getPixelRatio();
       try {
+        construir({ ...ultimo.current, todo: true });   // la foto de la pizarra lleva todas las cotas
         renderer.setPixelRatio(1); renderer.setSize(1280, 800, false);
         camera.aspect = 1.6; camera.updateProjectionMatrix();
         if (pose) { camera.position.set(...pose.p); controls.target.set(...pose.t); controls.update(); }
@@ -298,6 +346,7 @@ const Habitacion3D = forwardRef<Habitacion3DRef, Props>(function Habitacion3D({ 
         return renderer.domElement.toDataURL("image/jpeg", 0.88);
       } catch { return null; }
       finally {
+        construir({ ...ultimo.current, todo: verTodoRef.current });
         renderer.setPixelRatio(pr); renderer.setSize(tam.x, tam.y, false);
         camera.aspect = aspAnt; camera.updateProjectionMatrix();
         camera.position.copy(posAnt); controls.target.copy(tarAnt); controls.update(); dibujar();
@@ -305,7 +354,7 @@ const Habitacion3D = forwardRef<Habitacion3DRef, Props>(function Habitacion3D({ 
     };
     api.current = { rebuild: construir, vista, capturar, pose: poseActual };
     ajustar();
-    construir(ultimo.current);
+    construir({ ...ultimo.current, todo: verTodoRef.current });
     vista("iso");
 
     return () => {
@@ -325,8 +374,8 @@ const Habitacion3D = forwardRef<Habitacion3DRef, Props>(function Habitacion3D({ 
 
   // Cada cambio de medidas reconstruye la escena (pequeña) y dibuja una vez
   useEffect(() => {
-    api.current?.rebuild({ forma, paredes, separacionCm, altoCm, aberturas, activa, onPickPared, onFalla, profundoCm, isla, barra });
-  }, [forma, JSON.stringify(paredes), separacionCm, altoCm, JSON.stringify(aberturas), activa, profundoCm, JSON.stringify(isla), JSON.stringify(barra)]);
+    api.current?.rebuild({ forma, paredes, separacionCm, altoCm, aberturas, activa, onPickPared, onFalla, profundoCm, profundoSupCm, esquinas, isla, barra, todo: verTodo || !!todo });
+  }, [forma, JSON.stringify(paredes), separacionCm, altoCm, JSON.stringify(aberturas), activa, profundoCm, profundoSupCm, JSON.stringify(esquinas), JSON.stringify(isla), JSON.stringify(barra), verTodo, todo]);
 
   return (
     <div className="relative" style={{ height: altura === "100%" ? "100%" : undefined }}>
@@ -345,6 +394,7 @@ const Habitacion3D = forwardRef<Habitacion3DRef, Props>(function Habitacion3D({ 
         </div>
       )}
       <div className="absolute top-2 right-2 flex gap-1">
+        <button type="button" onClick={() => setVerTodo((v) => !v)} className={`px-2.5 py-1.5 rounded text-xs font-semibold border min-h-[32px] ${verTodo ? "bg-primary text-white border-primary" : "bg-black/50 text-white border-white/20"}`} title="Mostrar las cotas de todas las paredes">Todas las cotas</button>
         {([["iso", "3D"], ["arriba", "Arriba"], ["frente", "Frente"]] as const).map(([v, t]) => (
           <button key={v} type="button" onClick={() => api.current?.vista(v)} className="px-2.5 py-1.5 rounded bg-black/50 text-white text-xs font-semibold border border-white/20 min-h-[32px]">{t}</button>
         ))}

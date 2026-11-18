@@ -1,6 +1,6 @@
 import { lazy, Suspense, useState } from "react";
 import { Maximize2, X } from "lucide-react";
-import { FORMAS_COCINA, anchoMuroCm, nombresParedes, totalesParedes, type AberturaCocina, type ParedCocina } from "@shared/cocinaParedes";
+import { FORMAS_COCINA, descuentosEsquinas, FONDO_INFERIOR_CM, FONDO_SUPERIOR_CM, anchoMuroCm, nombresParedes, totalesParedes, type AberturaCocina, type ParedCocina } from "@shared/cocinaParedes";
 
 const Habitacion3D = lazy(() => import("./Habitacion3D"));
 
@@ -15,6 +15,9 @@ export function PlanoCocinaLectura({ measurements }: { measurements: Record<stri
   const aberturas: AberturaCocina[] = Array.isArray(m._cocina_aberturas) ? m._cocina_aberturas : [];
   const letras = nombresParedes(forma);
   const t = totalesParedes(paredes);
+  const fondoInf = Number(m._cocina_profundo) || FONDO_INFERIOR_CM, fondoSup = Number(m._cocina_profundo_sup) || FONDO_SUPERIOR_CM;
+  const esq: number[] | undefined = Array.isArray(m._cocina_esquinas) ? m._cocina_esquinas : undefined;
+  const dsc = descuentosEsquinas(forma, paredes, fondoInf, fondoSup, esq);
   const techo = Number(m._cocina_alto) || 240;
   const metros = (x: number) => x.toFixed(2).replace(".", ",");
   const fm = (cm: number) => metros((Number(cm) || 0) / 100);
@@ -38,7 +41,7 @@ export function PlanoCocinaLectura({ measurements }: { measurements: Record<stri
         <Suspense fallback={<div className="h-[300px] rounded-lg bg-black/20 border border-white/10 flex items-center justify-center text-xs text-gray-400">Cargando vista 3D…</div>}>
           <Habitacion3D forma={forma} paredes={paredes} separacionCm={Number(m._cocina_separacion) || undefined} altoCm={Number(m._cocina_alto) || undefined}
             aberturas={aberturas} activa={-1} onFalla={() => setSin3D(true)} altura={grande ? "100%" : 300}
-            profundoCm={Number(m._cocina_profundo) || undefined}
+            profundoCm={fondoInf} profundoSupCm={fondoSup} esquinas={esq}
             isla={Number(m._cocina_isla) > 0 ? { ancho: Number(m._cocina_isla), profundo: Number(m._cocina_isla_profundo) || 0, alto: Number(m._cocina_isla_alto) || 0 } : null}
             barra={Number(m._cocina_barra) > 0 ? { ancho: Number(m._cocina_barra), profundo: Number(m._cocina_barra_profundo) || 0, alto: Number(m._cocina_barra_alto) || 0 } : null} />
         </Suspense>
@@ -54,8 +57,8 @@ export function PlanoCocinaLectura({ measurements }: { measurements: Record<stri
             <span className="font-bold">{l}</span>
             <span>{fm(anchoMuroCm(paredes[i]))} m</span>
             <span>{fm(paredes[i]?.alto || techo)} m</span>
-            <span>{fm(paredes[i]?.inf ?? 0)} m</span>
-            <span>{fm(paredes[i]?.sup ?? 0)} m</span>
+            <span>{fm(paredes[i]?.inf ?? 0)} m{(dsc[i]?.infIni + dsc[i]?.infFin) > 0 && !paredes[i]?.infManual && <span className="block text-[10px] text-gray-400">− {fm(dsc[i].infIni + dsc[i].infFin)} esquina</span>}</span>
+            <span>{fm(paredes[i]?.sup ?? 0)} m{(dsc[i]?.supIni + dsc[i]?.supFin) > 0 && !paredes[i]?.supManual && <span className="block text-[10px] text-gray-400">− {fm(dsc[i].supIni + dsc[i].supFin)} esquina</span>}</span>
           </div>
         ))}
         <div className="flex justify-between pt-1 border-t border-primary/20"><span className="text-gray-400">Total de muebles</span><span className="text-white font-semibold">inferiores {metros(t.infM)} m · superiores {metros(t.supM)} m</span></div>

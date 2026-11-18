@@ -26,7 +26,7 @@ export async function componerPlanoLevantamiento(foto3d: string, d: DatosPlano):
   const ab = d.aberturas || [];
   const filas: string[] = [];
   paredes.forEach((p, i) => {
-    const alto = Number(p.alto) || d.altoGeneralCm || 0;
+    const alto = Number(p.alto) || d.altoGeneralCm || 240;
     filas.push(`Pared ${nombres[i] || i + 1}:  ancho ${anchoMuroCm(p) || "—"} cm  ·  alto ${alto || "—"} cm   |   muebles inferiores ${p.inf ?? 0} cm  ·  superiores ${p.sup ?? 0} cm`);
   });
   const t = totalesParedes(paredes);

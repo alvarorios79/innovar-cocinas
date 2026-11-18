@@ -26,7 +26,7 @@ interface Props {
   /** Devuelve las medidas a guardar en el levantamiento (claves _cocina_*) */
   onChange: (cambios: Record<string, any>) => void;
   /** Aquí queda una función que toma la foto del 3D (para ponerla sola y bloqueada en la pizarra) */
-  capturaRef?: MutableRefObject<(() => string | null) | null>;
+  capturaRef?: MutableRefObject<((pose?: any) => string | null) | null>;
   /** Cliente / otros datos no necesarios aquí */
 }
 
@@ -88,11 +88,18 @@ export function CocinaParedes({ forma, paredes, medidas, altoCm, profundoCm, sep
   const [activa, setActiva] = useState(0);
   const [sin3D, setSin3D] = useState(false); // si el equipo no puede dibujar 3D se muestra el dibujo plano de siempre
   const [pantallaCompleta, setPantallaCompleta] = useState(false);
+  const [avisoVista, setAvisoVista] = useState("");
   // Pestañas: lo primero son las ventanas y las puertas
   const [abiertas, setAbiertas] = useState<Record<string, boolean>>({ aberturas: true });
   const alternar = (k: string) => setAbiertas((a) => ({ ...a, [k]: !a[k] }));
   const h3d = useRef<Habitacion3DRef>(null);
-  useEffect(() => { if (capturaRef) capturaRef.current = () => h3d.current?.capturar() ?? null; return () => { if (capturaRef) capturaRef.current = null; }; }, [capturaRef]);
+  useEffect(() => {
+    if (!pantallaCompleta) return;
+    const previo = document.body.style.overflow;
+    document.body.style.overflow = "hidden"; // la página de fondo no se mueve
+    return () => { document.body.style.overflow = previo; };
+  }, [pantallaCompleta]);
+  useEffect(() => { if (capturaRef) capturaRef.current = (pose) => h3d.current?.capturar(pose) ?? null; return () => { if (capturaRef) capturaRef.current = null; }; }, [capturaRef]);
   const lista0 = aberturas || [];
 
   const lista = normalizarParedes(forma, paredes);
@@ -142,7 +149,9 @@ export function CocinaParedes({ forma, paredes, medidas, altoCm, profundoCm, sep
       </div>
 
       {forma && (
-        <div className={pantallaCompleta ? "fixed inset-0 z-[60] bg-background overflow-y-auto p-3 space-y-3" : "space-y-3"}>
+        <div className={pantallaCompleta ? "fixed inset-0 z-[60] bg-background flex flex-col [@media(orientation:landscape)]:flex-row" : "space-y-3"}>
+          {/* ARRIBA (o a la izquierda): el dibujo queda FIJO, no se mueve al hacer scroll */}
+          <div className={pantallaCompleta ? "shrink-0 h-[44dvh] [@media(orientation:landscape)]:h-full [@media(orientation:landscape)]:w-[56%] flex flex-col gap-2 p-3 border-b [@media(orientation:landscape)]:border-b-0 [@media(orientation:landscape)]:border-r border-primary/30" : "space-y-3"}>
           {/* 2. Dibujo 3D (se puede abrir en pantalla completa, como la pizarra) */}
           <div className="flex items-center justify-between">
             <p className="text-sm font-bold text-white">Dibujo de la cocina</p>
@@ -150,6 +159,7 @@ export function CocinaParedes({ forma, paredes, medidas, altoCm, profundoCm, sep
               {pantallaCompleta ? <><X className="h-4 w-4" /> Cerrar</> : <><Maximize2 className="h-4 w-4" /> Pantalla completa</>}
             </button>
           </div>
+          <div className={pantallaCompleta ? "flex-1 min-h-0" : ""}>
           {sin3D ? (
             <Grafico forma={forma as FormaCocina} activa={activa} onPick={setActiva} />
           ) : (
@@ -164,11 +174,21 @@ export function CocinaParedes({ forma, paredes, medidas, altoCm, profundoCm, sep
                 activa={activa}
                 onPickPared={setActiva}
                 onFalla={() => setSin3D(true)}
-                altura={pantallaCompleta ? "52vh" : 300}
+                altura={pantallaCompleta ? "100%" : 300}
+                profundoCm={profundoCm}
+                isla={Number(medidas?._cocina_isla) > 0 ? { ancho: Number(medidas?._cocina_isla), profundo: Number(medidas?._cocina_isla_profundo) || 0, alto: Number(medidas?._cocina_isla_alto) || 0 } : null}
+                barra={Number(medidas?._cocina_barra) > 0 ? { ancho: Number(medidas?._cocina_barra), profundo: Number(medidas?._cocina_barra_profundo) || 0, alto: Number(medidas?._cocina_barra_alto) || 0 } : null}
+                vistaPizarra={medidas?._cocina_camara ?? null}
+                onFijarVista={(pose) => { onChange({ _cocina_camara: pose ?? undefined }); setAvisoVista(pose ? "Vista enviada a la pizarra ✓ — la hoja se actualiza sola con cada medida nueva, desde este mismo ángulo." : "Vista automática: la pizarra usa el ángulo estándar."); }}
               />
             </Suspense>
           )}
+          </div>
+          </div>
 
+          {/* ABAJO (o a la derecha): aquí se escribe; solo esta parte se desplaza */}
+          <div className={pantallaCompleta ? "flex-1 min-h-0 overflow-y-auto p-3 space-y-3" : "space-y-3"}>
+          {avisoVista && <p className="text-[11px] text-emerald-300">{avisoVista}</p>}
           {/* Paralela: distancia entre las dos paredes */}
           {forma === "Paralela" && (
             <div>
@@ -355,6 +375,7 @@ export function CocinaParedes({ forma, paredes, medidas, altoCm, profundoCm, sep
               </div>
             ))}
           </Seccion>
+          </div>
         </div>
       )}
     </div>

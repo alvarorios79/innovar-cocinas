@@ -22,7 +22,8 @@ export function PlanoCocinaLectura({ measurements }: { measurements: Record<stri
     : null);
 
   return (
-    <div className={grande ? "fixed inset-0 z-[60] bg-background overflow-y-auto p-3 space-y-3" : "space-y-3"}>
+    <div className={grande ? "fixed inset-0 z-[60] bg-background flex flex-col [@media(orientation:landscape)]:flex-row" : "space-y-3"}>
+      <div className={grande ? "shrink-0 h-[46dvh] [@media(orientation:landscape)]:h-full [@media(orientation:landscape)]:w-[56%] flex flex-col gap-2 p-3 border-b [@media(orientation:landscape)]:border-b-0 [@media(orientation:landscape)]:border-r border-primary/30" : "space-y-3"}>
       <div className="flex items-center justify-between">
         <p className="text-sm font-bold text-white">Cocina {FORMAS_COCINA.find((f) => f.key === forma)?.label ?? forma}</p>
         {!sin3D && (
@@ -31,13 +32,19 @@ export function PlanoCocinaLectura({ measurements }: { measurements: Record<stri
           </button>
         )}
       </div>
+      <div className={grande ? "flex-1 min-h-0" : ""}>
       {!sin3D && forma && (
         <Suspense fallback={<div className="h-[300px] rounded-lg bg-black/20 border border-white/10 flex items-center justify-center text-xs text-gray-400">Cargando vista 3D…</div>}>
           <Habitacion3D forma={forma} paredes={paredes} separacionCm={Number(m._cocina_separacion) || undefined} altoCm={Number(m._cocina_alto) || undefined}
-            aberturas={aberturas} activa={-1} onFalla={() => setSin3D(true)} altura={grande ? "60vh" : 300} />
+            aberturas={aberturas} activa={-1} onFalla={() => setSin3D(true)} altura={grande ? "100%" : 300}
+            profundoCm={Number(m._cocina_profundo) || undefined}
+            isla={Number(m._cocina_isla) > 0 ? { ancho: Number(m._cocina_isla), profundo: Number(m._cocina_isla_profundo) || 0, alto: Number(m._cocina_isla_alto) || 0 } : null}
+            barra={Number(m._cocina_barra) > 0 ? { ancho: Number(m._cocina_barra), profundo: Number(m._cocina_barra_profundo) || 0, alto: Number(m._cocina_barra_alto) || 0 } : null} />
         </Suspense>
       )}
-      <div className="space-y-1 text-sm">
+      </div>
+      </div>
+      <div className={grande ? "flex-1 min-h-0 overflow-y-auto p-3 space-y-1 text-sm" : "space-y-1 text-sm"}>
         <div className="grid grid-cols-5 gap-2 text-[11px] text-gray-400 font-semibold border-b border-primary/20 pb-1">
           <span>Pared</span><span>Ancho</span><span>Alto</span><span>Inferiores</span><span>Superiores</span>
         </div>

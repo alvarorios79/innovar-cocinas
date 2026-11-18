@@ -458,7 +458,7 @@ export default function Medidor() {
   const [pizarraHasContent, setPizarraHasContent] = useState<boolean | null>(null);
   const [pizarraFullscreen, setPizarraFullscreen] = useState(false);
   // Plano 3D del levantamiento → hoja automática y BLOQUEADA en la pizarra (la ven comercial, admin y diseñador)
-  const captura3DRef = useRef<(() => string | null) | null>(null);
+  const captura3DRef = useRef<((pose?: any) => string | null) | null>(null);
   const [pizarraListo, setPizarraListo] = useState(false);
   // Callback estable para evitar que el useEffect de Pizarra.tsx se re-ejecute en cada render
   const onPizarraStatus = useCallback((s: PizarraStatus) => setPizarraHasContent(s.hasContent), []);
@@ -952,14 +952,14 @@ export default function Medidor() {
     (localMeasurements as any)._cocina_aberturas, (localMeasurements as any)._cocina_alto, (localMeasurements as any)._cocina_profundo,
     (localMeasurements as any)._cocina_separacion, (localMeasurements as any)._cocina_isla, (localMeasurements as any)._cocina_isla_profundo,
     (localMeasurements as any)._cocina_isla_alto, (localMeasurements as any)._cocina_barra, (localMeasurements as any)._cocina_barra_profundo,
-    (localMeasurements as any)._cocina_barra_alto,
+    (localMeasurements as any)._cocina_barra_alto, (localMeasurements as any)._cocina_camara,
   ]);
   useEffect(() => {
     const mm = localMeasurements as any;
     if (!canUsePizarra || !pizarraListo || !mm._tipo_cocina || !mm._cocina_forma) return;
     const t = setTimeout(async () => {
       try {
-        const foto = captura3DRef.current?.();
+        const foto = captura3DRef.current?.(mm._cocina_camara ?? null);
         if (!foto) return;
         const pieza = (base: string) => (Number(mm[base]) > 0 ? { ancho: Number(mm[base]), profundo: Number(mm[base + "_profundo"]) || 0, alto: Number(mm[base + "_alto"]) || 0 } : null);
         const hoja = await componerPlanoLevantamiento(foto, {

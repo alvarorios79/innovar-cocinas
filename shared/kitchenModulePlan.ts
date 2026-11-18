@@ -2,6 +2,8 @@
 // Etapa 1: solo calcula módulos, metros y piezas de pintura. NO cambia precios ni el PDF.
 // Se guarda en kitchenConfig.modulePlan (JSON). Si no existe o enabled=false, no afecta nada.
 
+import { ventanaEstorbaSuperiores } from "./cocinaParedes";
+
 export type PlanRow = "upper" | "lower";
 
 export interface Pieces {
@@ -922,3 +924,20 @@ export function kitchenModulesFromPlan(plan: any, config: any): Record<string, n
   if ((ex.latInf || 0) > 0) out.lateralMuebleInferior = ex.latInf;
   return out;
 }
+
+// Ventanas del levantamiento → plano de módulos: cada ventana entra bloqueada en la MISMA pared y a la MISMA distancia que marcó el medidor.
+// Solo estorban a los superiores las ventanas cuyo borde de arriba pasa de 1,50 m (donde arrancan los superiores: 0,90 inferiores + 0,60 salpicadero).
+// No cambian el precio: la ventana es un módulo «sin mueble» (noPieces). Las puertas no entran como módulo.
+export function ventanasDeLevantamiento(aberturas: any, nTramos: number): PlanModule[][] {
+  const out: PlanModule[][] = Array.from({ length: Math.max(0, nTramos) }, () => []);
+  (Array.isArray(aberturas) ? aberturas : []).forEach((a: any) => {
+    if (a?.tipo !== "ventana") return;
+    const t = Number(a.pared);
+    const ancho = round2((Number(a.ancho) || 0) / 100), desde = round2((Number(a.desde) || 0) / 100);
+    if (!(t >= 0 && t < nTramos) || ancho <= 0 || !ventanaEstorbaSuperiores(a)) return;
+    out[t].push({ id: newId(), key: "ventana", width: ancho, lockAt: desde });
+  });
+  out.forEach(l => l.sort((x, y) => (x.lockAt || 0) - (y.lockAt || 0)));
+  return out;
+}
+

@@ -44,7 +44,7 @@ export function drawSchemePages(doc: any, schemes: SchemeData[], g: Geo, newPage
   doc.fontSize(10).fillColor(WHITE).font("Helvetica-Bold").text("ESQUEMA DE LA COCINA", ML + 12, Y + 6, { width: CW - 20, lineBreak: false });
   Y += 30;
   doc.fontSize(7.5).fillColor(MGRAY).font("Helvetica")
-    .text("Distribución de los módulos que lleva su proyecto, vista de frente. Muebles superiores arriba e inferiores abajo; los módulos de piso a techo cruzan ambas líneas. Medidas en metros.", ML, Y, { width: CW });
+    .text("Distribución de los módulos que lleva su proyecto, vista de frente. Muebles superiores arriba e inferiores abajo; los módulos de piso a techo cruzan ambas líneas. Medidas de cada módulo en metros.", ML, Y, { width: CW });
   Y += 22;
 
   schemes.forEach(sc => {
@@ -58,7 +58,7 @@ export function drawSchemePages(doc: any, schemes: SchemeData[], g: Geo, newPage
       const H = lanes * lane + (lanes - 1) * gap;
       need(H + 44);
       doc.fontSize(8).fillColor(DGRAY).font("Helvetica-Bold")
-        .text(`${w.name}${w.length > 0 ? ` · ${w.length.toFixed(2)} m` : ""}${w.isIsland ? " (isla)" : ""}`, ML, Y, { width: CW, lineBreak: false });
+        .text(`${w.name}${w.isIsland ? " (isla)" : ""}`, ML, Y, { width: CW, lineBreak: false });   // sin el largo de la pared: solo los módulos llevan medida
       const top = Y + 12;
       const lowerY = top + (w.isIsland ? 0 : lane + gap);
       if (!w.isIsland) doc.rect(ML, top, w.extent * s, lane).lineWidth(0.4).strokeColor(BORDER).stroke();
@@ -66,15 +66,7 @@ export function drawSchemePages(doc: any, schemes: SchemeData[], g: Geo, newPage
       w.blocks.filter(b => b.lane === "upper").forEach(b => drawBlock(doc, b, ML, top, lane, s));
       w.blocks.filter(b => b.lane === "lower").forEach(b => drawBlock(doc, b, ML, lowerY, lane, s));
       w.blocks.filter(b => b.lane === "tall").forEach(b => drawBlock(doc, b, ML, top, H, s));
-      // regla
-      const ry = top + H + 4;
-      doc.moveTo(ML, ry).lineTo(ML + w.extent * s, ry).lineWidth(0.4).strokeColor(MGRAY).stroke();
-      for (let m = 0; m <= w.extent + 0.001; m += 0.5) {
-        const tx = ML + m * s;
-        doc.moveTo(tx, ry).lineTo(tx, ry + (m % 1 === 0 ? 4 : 2.5)).stroke();
-        if (m % 1 === 0) doc.fontSize(6).fillColor(MGRAY).font("Helvetica").text(`${m} m`, tx - 10, ry + 5, { width: 20, align: "center", lineBreak: false });
-      }
-      Y = ry + 20;
+      Y = top + H + 14;   // sin regla: la medida de la pared no va en el PDF
     });
     Y += 4;
   });

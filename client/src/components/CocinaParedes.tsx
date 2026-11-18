@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { InputM, fm } from "@/components/InputMetros";
 import {
   FORMAS_COCINA, nombresParedes, normalizarParedes, setInferior, setSuperior, totalesParedes, ajustarAbertura, imantarDesde, estadoIman, anchoMuroCm,
-  FONDO_INFERIOR_CM, FONDO_SUPERIOR_CM, esquinasDeForma, paredGanadoraEsquina, descuentosEsquinas, aplicarMueblesAutomaticos,
+  FONDO_INFERIOR_CM, FONDO_SUPERIOR_CM, ventanasSuperioresCm, esquinasDeForma, paredGanadoraEsquina, descuentosEsquinas, aplicarMueblesAutomaticos,
   ABERTURA_POR_DEFECTO, ALTO_COCINA_POR_DEFECTO, SEPARACION_PARALELA_POR_DEFECTO,
   type FormaCocina, type ParedCocina, type AberturaCocina,
 } from "@shared/cocinaParedes";
@@ -117,6 +117,7 @@ export function CocinaParedes({ forma, paredes, medidas, altoCm, profundoCm, sep
   const lista = normalizarParedes(forma, paredes);
   const letras = nombresParedes(forma);
   const tot = totalesParedes(lista);
+  const ventSupCm = ventanasSuperioresCm(forma, lista, lista0).reduce((a, x) => a + x, 0);   // donde va ventana no va mueble superior
   const techo = altoCm || ALTO_COCINA_POR_DEFECTO;
   const num = (v: string) => (v === "" ? undefined : Math.max(0, parseFloat(v)));
   // Largo que se usa para mover una abertura: el ancho de la pared; si aún no se escribió, 300 cm provisionales
@@ -410,7 +411,8 @@ export function CocinaParedes({ forma, paredes, medidas, altoCm, profundoCm, sep
               </div>
               <div className="rounded-lg bg-primary/15 border border-primary/40 p-3 text-center">
                 <p className="text-[11px] text-gray-300">Total superiores</p>
-                <p className="text-xl font-bold text-white">{metros(tot.supM * 100)} m</p>
+                <p className="text-xl font-bold text-white">{metros(Math.max(0, tot.supM * 100 - ventSupCm))} m</p>
+                {ventSupCm > 0 && <p className="text-[10px] text-gray-400">{metros(tot.supM * 100)} − {metros(ventSupCm)} de ventanas</p>}
               </div>
             </div>
           </Seccion>

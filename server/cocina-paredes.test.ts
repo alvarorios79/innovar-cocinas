@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { buildKitchenQuoteDescription } from "./kitchen-description";
-import { descuentoMesonCm, mueblesSugeridos, aplicarMueblesAutomaticos, descuentosEsquinas, paredGanadoraEsquina, anchoMuroCm, imantarDesde, estadoIman, geometriaParedes, ajustarAbertura, nombresParedes, normalizarParedes, setInferior, setSuperior, totalesParedes, cocinaDeLevantamiento } from "../shared/cocinaParedes";
+import { ventanasSuperioresCm, descuentoMesonCm, mueblesSugeridos, aplicarMueblesAutomaticos, descuentosEsquinas, paredGanadoraEsquina, anchoMuroCm, imantarDesde, estadoIman, geometriaParedes, ajustarAbertura, nombresParedes, normalizarParedes, setInferior, setSuperior, totalesParedes, cocinaDeLevantamiento } from "../shared/cocinaParedes";
 
 describe("Paredes de la cocina (levantamiento)", () => {
   it("cada forma pide sus paredes: línea 1, L 2, U 3, paralela 2", () => {
@@ -165,6 +165,21 @@ describe("Paredes de la cocina (levantamiento)", () => {
     expect(txt).toMatch(/Muebles inferiores: 3[.,]50/);
     expect(txt).toMatch(/Muebles superiores: 3[.,]50/);
     expect(txt).toMatch(/Mesón en [^\n]*3[.,]50/);
+  });
+
+  it("muro de 3 m con ventana de 1,20 a 0,50 m: superiores 0,50 + 1,30 = 1,80 (donde va ventana no va mueble)", () => {
+    const m: any = { _cocina_forma: "Lineal", _cocina_paredes: [{ ancho: 300, inf: 300, sup: 300 }],
+      _cocina_aberturas: [{ id: "v", tipo: "ventana", pared: 0, desde: 50, ancho: 120, alto: 120, antepecho: 100 }] };
+    expect(ventanasSuperioresCm("Lineal", m._cocina_paredes, m._cocina_aberturas)).toEqual([120]);
+    const c = cocinaDeLevantamiento(m)!;
+    expect(c.lowerMeters).toBe(3);        // los inferiores no cambian
+    expect(c.upperMeters).toBe(1.8);
+    expect(c.ventanasSupM).toBe(1.2);
+  });
+  it("una ventana baja (en el salpicadero, hasta 1,50 m) y las puertas no restan de los superiores", () => {
+    const m: any = { _cocina_forma: "Lineal", _cocina_paredes: [{ ancho: 300, inf: 300, sup: 300 }],
+      _cocina_aberturas: [{ id: "v", tipo: "ventana", pared: 0, desde: 50, ancho: 80, alto: 60, antepecho: 90 }, { id: "p", tipo: "puerta", pared: 0, desde: 200, ancho: 90, alto: 210, antepecho: 0 }] };
+    expect(cocinaDeLevantamiento(m)!.upperMeters).toBe(3);
   });
 });
 

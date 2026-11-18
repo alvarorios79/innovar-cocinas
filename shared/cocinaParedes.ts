@@ -117,6 +117,10 @@ export function setSuperior(p: ParedCocina, valor: number | undefined): ParedCoc
 export const FONDO_INFERIOR_CM = 60;   // muebles inferiores: 0,60 m de fondo
 export const FONDO_SUPERIOR_CM = 35;   // muebles superiores: 0,35 m de fondo
 // Alturas (cm desde el piso): inferiores llegan a 0,90; el salpicadero ocupa 0,60 (de 0,90 a 1,50); los superiores van de 1,50 hacia arriba
+/** ¿La ventana estorba a los muebles superiores? Sí si su borde de arriba pasa de 1,50 m (ahí donde no va mueble). Una ventana baja, en el salpicadero, no. */
+export function ventanaEstorbaSuperiores(a: { tipo?: string; antepecho?: number; alto?: number }): boolean {
+  return a?.tipo === "ventana" && (Number(a.antepecho) || 0) + (Number(a.alto) || 0) > ARRANQUE_SUPERIOR_CM + 0.5;
+}
 export const ALTO_INFERIOR_CM = 90;
 export const ALTO_SALPICADERO_CM = 60;
 export const ARRANQUE_SUPERIOR_CM = ALTO_INFERIOR_CM + ALTO_SALPICADERO_CM;   // 150
@@ -189,6 +193,21 @@ export function totalesParedes(paredes: ParedCocina[] | undefined): { infM: numb
   return { infM: r2(p.reduce((a, x) => a + n(x.inf), 0) / 100), supM: r2(p.reduce((a, x) => a + n(x.sup), 0) / 100) };
 }
 
+/** Ancho (cm) de ventanas que estorban a los superiores, por pared: donde va ventana no va mueble superior. */
+export function ventanasSuperioresCm(forma: string | undefined, paredes: ParedCocina[] | undefined, aberturas: AberturaCocina[] | undefined): number[] {
+  const ps = normalizarParedes(forma, paredes);
+  const out = ps.map(() => 0);
+  (Array.isArray(aberturas) ? aberturas : []).forEach((a) => {
+    const i = Number(a?.pared);
+    if (!(i >= 0 && i < ps.length) || !ventanaEstorbaSuperiores(a)) return;
+    const largo = anchoMuroCm(ps[i]);
+    const desde = Math.max(0, n(a.desde));
+    const ancho = largo > 0 ? Math.max(0, Math.min(n(a.ancho), largo - desde)) : n(a.ancho);
+    out[i] += ancho;
+  });
+  return out;
+}
+
 export function layoutDeForma(forma?: string): "lineal" | "L" | "U" | "paralela" | "" {
   return forma === "Lineal" ? "lineal" : forma === "L" ? "L" : forma === "U" ? "U" : forma === "Paralela" ? "paralela" : "";
 }
@@ -197,6 +216,7 @@ export interface CocinaDeLevantamiento {
   layout: "lineal" | "L" | "U" | "paralela" | "";
   paredesM: Array<{ nombre: string; inf: number; sup: number; ancho: number; alto?: number }>;
   descMesonM: number;      // m que se descuentan del MESÓN por las esquinas (L y U); la madera se cobra plena
+  ventanasSupM: number;    // m de ventanas que estorban a los superiores (ya restados de upperMeters: donde va ventana no va mueble)
   lowerMeters: number;     // m de muebles inferiores
   upperMeters: number;     // m de muebles superiores
   islaM: number;           // m de isla (0 si no hay)
@@ -226,11 +246,13 @@ export function cocinaDeLevantamiento(m: Record<string, any> | null | undefined)
   const isla = n(m._cocina_isla) / 100;
   if (paredes && paredes.some((p) => n(p.inf) > 0 || n(p.sup) > 0 || n(p.ancho) > 0)) {
     const t = totalesParedes(paredes);
+    const ventanasSup = r2(ventanasSuperioresCm(forma, paredes, Array.isArray(m._cocina_aberturas) ? m._cocina_aberturas : undefined).reduce((a, x) => a + x, 0) / 100);
     return {
       layout: layoutDeForma(forma),
       paredesM: paredes.map((p, i) => ({ nombre: nombres[i] || String(i + 1), inf: r2(n(p.inf) / 100), sup: r2(n(p.sup) / 100), ancho: r2(anchoMuroCm(p) / 100), alto: n(p.alto) > 0 ? r2(n(p.alto) / 100) : undefined })),
       descMesonM: r2(descuentoMesonCm(forma, paredes, n(m._cocina_profundo) || FONDO_INFERIOR_CM, Array.isArray(m._cocina_esquinas) ? m._cocina_esquinas : undefined).totalCm / 100),
-      lowerMeters: t.infM, upperMeters: t.supM, islaM: r2(isla),
+      ventanasSupM: ventanasSup,
+      lowerMeters: t.infM, upperMeters: Math.max(0, r2(t.supM - ventanasSup)), islaM: r2(isla),
       altoCm: n(m._cocina_alto) || undefined, profundoCm: n(m._cocina_profundo) || undefined,
       separacionCm: n(m._cocina_separacion) || undefined, isla: piezaDeLevantamiento(m, "_cocina_isla"), barra: piezaDeLevantamiento(m, "_cocina_barra"), aberturas: Array.isArray(m._cocina_aberturas) ? m._cocina_aberturas : [], aproximado: false,
     };
@@ -239,7 +261,7 @@ export function cocinaDeLevantamiento(m: Record<string, any> | null | undefined)
   if (ancho > 0) {
     return {
       layout: layoutDeForma(forma), paredesM: [{ nombre: "A", inf: r2(ancho), sup: r2(ancho), ancho: r2(ancho) }],
-      descMesonM: 0, lowerMeters: r2(ancho), upperMeters: r2(ancho), islaM: r2(isla),
+      descMesonM: 0, ventanasSupM: 0, lowerMeters: r2(ancho), upperMeters: r2(ancho), islaM: r2(isla),
       altoCm: n(m._cocina_alto) || undefined, profundoCm: n(m._cocina_profundo) || undefined, isla: piezaDeLevantamiento(m, "_cocina_isla"), barra: piezaDeLevantamiento(m, "_cocina_barra"), aberturas: [], aproximado: true,
     };
   }

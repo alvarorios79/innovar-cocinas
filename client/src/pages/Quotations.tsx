@@ -47,7 +47,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { ReportExportButtons } from "@/components/ReportExportButtons";
 import { buildQuotationsListReport } from "@shared/businessReports";
 import { KitchenModulePlanner } from "@/components/KitchenModulePlanner";
-import { descriptiveFromPlan, computePlan, kitchenModulesFromPlan, EXTRA_PAINT } from "@shared/kitchenModulePlan";
+import { descriptiveFromPlan, computePlan, kitchenModulesFromPlan, ventanasDeLevantamiento, EXTRA_PAINT } from "@shared/kitchenModulePlan";
 
 
 import { confirmAction } from "@/lib/confirm";
@@ -1234,13 +1234,14 @@ export default function Quotations() {
       }
       kc.modulePlan = {
         ...(kc.modulePlan || { paintAll: false }), enabled: true,
-        tramos: coc.paredesM.map((p) => ({ name: `Pared ${p.nombre}`, length: Math.max(p.inf, p.sup) || p.ancho, upper: [], lower: [] })),
+        // Las ventanas que marcó el medidor entran al plano en la misma pared y a la misma distancia (bloqueadas)
+        tramos: (() => { const vent = ventanasDeLevantamiento(coc.aberturas, coc.paredesM.length); return coc.paredesM.map((p, i) => ({ name: `Pared ${p.nombre}`, length: Math.max(p.inf, p.sup) || p.ancho, upper: vent[i], lower: [] })); })(),
       };
-      kc.fromLevantamiento = { forma: coc.layout, paredes: coc.paredesM, aproximado: coc.aproximado, isla: coc.isla, barra: coc.barra };
+      kc.fromLevantamiento = { forma: coc.layout, paredes: coc.paredesM, aproximado: coc.aproximado, isla: coc.isla, barra: coc.barra, aberturas: coc.aberturas };
       const nuevo = { ...base, itemType: "cocina", kitchenConfig: kc };
       return vacio ? [nuevo, ...prev.slice(1)] : [...prev, nuevo];
     });
-    toast.success(`Medidas del levantamiento cargadas: inferiores ${coc.lowerMeters.toFixed(2)} m · superiores ${coc.upperMeters.toFixed(2)} m${coc.descMesonM > 0 ? ` · mesón −${coc.descMesonM.toFixed(2)} m por esquina` : ""}${coc.aproximado ? " (aproximado: levantamiento antiguo sin paredes)" : ""}. Revísalas y elige el tipo de cocina.`);
+    toast.success(`Medidas del levantamiento cargadas: inferiores ${coc.lowerMeters.toFixed(2)} m · superiores ${coc.upperMeters.toFixed(2)} m${coc.ventanasSupM > 0 ? ` (ya sin ${coc.ventanasSupM.toFixed(2)} m de ventanas)` : ""}${coc.descMesonM > 0 ? ` · mesón −${coc.descMesonM.toFixed(2)} m por esquina` : ""}${coc.aproximado ? " (aproximado: levantamiento antiguo sin paredes)" : ""}. Revísalas y elige el tipo de cocina.`);
   }, [fromVisitId, visitaLevantamiento, editingQuotation]);
 
   const addItem = () => {

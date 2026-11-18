@@ -1,6 +1,6 @@
 import { lazy, Suspense, useState } from "react";
 import { Maximize2, X } from "lucide-react";
-import { FORMAS_COCINA, descuentosEsquinas, FONDO_INFERIOR_CM, FONDO_SUPERIOR_CM, anchoMuroCm, nombresParedes, totalesParedes, type AberturaCocina, type ParedCocina } from "@shared/cocinaParedes";
+import { FORMAS_COCINA, ventanasSuperioresCm, descuentosEsquinas, FONDO_INFERIOR_CM, FONDO_SUPERIOR_CM, anchoMuroCm, nombresParedes, totalesParedes, type AberturaCocina, type ParedCocina } from "@shared/cocinaParedes";
 
 const Habitacion3D = lazy(() => import("./Habitacion3D"));
 
@@ -15,6 +15,7 @@ export function PlanoCocinaLectura({ measurements }: { measurements: Record<stri
   const aberturas: AberturaCocina[] = Array.isArray(m._cocina_aberturas) ? m._cocina_aberturas : [];
   const letras = nombresParedes(forma);
   const t = totalesParedes(paredes);
+  const ventSup = ventanasSuperioresCm(forma, paredes, aberturas).reduce((a, x) => a + x, 0);
   const fondoInf = Number(m._cocina_profundo) || FONDO_INFERIOR_CM, fondoSup = Number(m._cocina_profundo_sup) || FONDO_SUPERIOR_CM;
   const esq: number[] | undefined = Array.isArray(m._cocina_esquinas) ? m._cocina_esquinas : undefined;
   const dsc = descuentosEsquinas(forma, paredes, fondoInf, fondoSup, esq);
@@ -61,7 +62,7 @@ export function PlanoCocinaLectura({ measurements }: { measurements: Record<stri
             <span>{fm(paredes[i]?.sup ?? 0)} m</span>
           </div>
         ))}
-        <div className="flex justify-between pt-1 border-t border-primary/20"><span className="text-gray-400">Total de muebles</span><span className="text-white font-semibold">inferiores {metros(t.infM)} m · superiores {metros(t.supM)} m</span></div>
+        <div className="flex justify-between pt-1 border-t border-primary/20"><span className="text-gray-400">Total de muebles</span><span className="text-white font-semibold">inferiores {metros(t.infM)} m · superiores {metros(Math.max(0, t.supM - ventSup / 100))} m{ventSup > 0 ? ` (− ${metros(ventSup / 100)} de ventanas)` : ""}</span></div>
         {pieza("_cocina_isla", "Isla")}
         {pieza("_cocina_barra", "Barra")}
         {Number(m._cocina_profundo) > 0 && <div className="flex justify-between"><span className="text-gray-400">Profundo de los muebles</span><span className="text-white font-medium">{fm(m._cocina_profundo)} m</span></div>}

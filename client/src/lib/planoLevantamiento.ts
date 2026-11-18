@@ -1,4 +1,4 @@
-import { FORMAS_COCINA, descuentosEsquinas, FONDO_INFERIOR_CM, FONDO_SUPERIOR_CM, anchoMuroCm, nombresParedes, totalesParedes, type AberturaCocina, type ParedCocina } from "@shared/cocinaParedes";
+import { FORMAS_COCINA, ventanasSuperioresCm, descuentosEsquinas, FONDO_INFERIOR_CM, FONDO_SUPERIOR_CM, anchoMuroCm, nombresParedes, totalesParedes, type AberturaCocina, type ParedCocina } from "@shared/cocinaParedes";
 
 // Hoja del levantamiento de la cocina: foto del dibujo 3D + tabla de medidas. Se pone sola y BLOQUEADA en la pizarra,
 // y es lo que ven el comercial, el administrador y el diseñador al trabajar la cotización.
@@ -37,7 +37,8 @@ export async function componerPlanoLevantamiento(foto3d: string, d: DatosPlano):
     filas.push(`Pared ${nombres[i] || i + 1}:  ancho ${fm(anchoMuroCm(p))} m  ·  alto ${fm(alto)} m   |   muebles inferiores ${fm(p.inf ?? 0)} m  ·  superiores ${fm(p.sup ?? 0)} m${nota}`);
   });
   const t = totalesParedes(paredes);
-  filas.push(`Total de muebles:  inferiores ${t.infM.toFixed(2)} m   ·   superiores ${t.supM.toFixed(2)} m`);
+  const vs = ventanasSuperioresCm(d.forma, paredes, ab).reduce((a, x) => a + x, 0);
+  filas.push(`Total de muebles:  inferiores ${t.infM.toFixed(2)} m   ·   superiores ${Math.max(0, t.supM - vs / 100).toFixed(2)} m${vs > 0 ? `  (${t.supM.toFixed(2)} − ${(vs / 100).toFixed(2)} de ventanas: donde va ventana no va mueble)` : ""}`);
   if (d.isla) filas.push(`Isla:  ancho ${fm(d.isla.ancho)} m  ·  profundidad ${fm(d.isla.profundo)} m  ·  altura ${fm(d.isla.alto)} m`);
   if (d.barra) filas.push(`Barra:  ancho ${fm(d.barra.ancho)} m  ·  profundidad ${fm(d.barra.profundo)} m  ·  altura ${fm(d.barra.alto)} m`);
   ab.forEach((a) => {

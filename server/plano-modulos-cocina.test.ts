@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { normalizePlan, addModuleToPlan, computePlan } from "../shared/kitchenModulePlan";
+import { normalizePlan, addModuleToPlan, setModuleWidth, computePlan, ventanasDeLevantamiento, rowItems } from "../shared/kitchenModulePlan";
 import { buildKitchenQuoteDescription } from "./kitchen-description";
 
 // ¿El plano de módulos describe de verdad la cocina? Se arma una cocina paralela de 2 paredes (3,0 m y 2,4 m),
@@ -62,3 +62,40 @@ describe("Plano de módulos → descripción de la cocina", () => {
     expect(res.warnings.filter((w) => /Isla/.test(w))).toEqual([]);  // caben en la isla
   });
 });
+
+describe("Ventanas del levantamiento → plano de módulos", () => {
+  const ab = [
+    { id: "1", tipo: "ventana", pared: 0, desde: 50, ancho: 120, alto: 120, antepecho: 100 },     // arriba = 2,20 m → estorba a los superiores
+    { id: "2", tipo: "ventana", pared: 1, desde: 30, ancho: 80, alto: 60, antepecho: 90 },        // arriba = 1,50 m → queda en el salpicadero, no estorba
+    { id: "3", tipo: "puerta", pared: 0, desde: 250, ancho: 90, alto: 210, antepecho: 0 },        // las puertas no entran
+  ];
+  it("entra bloqueada en la misma pared y a la misma distancia; el salpicadero y las puertas no", () => {
+    const v = ventanasDeLevantamiento(ab, 2);
+    expect(v[0]).toHaveLength(1);
+    expect(v[0][0]).toMatchObject({ key: "ventana", width: 1.2, lockAt: 0.5 });
+    expect(v[1]).toHaveLength(0);
+  });
+  it("no cambia el precio de pintura ni las piezas del plano (la ventana no tiene piezas)", () => {
+    const cfg: any = { shape: "premium", layout: "L", totalMeters: 6.4, specialModules: {}, countertop: {}, island: { enabled: false, meters: 0 }, bar: { enabled: false, meters: 0 }, paintedDoors: { enabled: false } };
+    const v = ventanasDeLevantamiento(ab, 2);
+    const base: any = { enabled: true, tramos: [{ name: "Pared A", length: 3.6, upper: [], lower: [] }, { name: "Pared B", length: 2.8, upper: [], lower: [] }], extras: {} };
+    const con: any = { enabled: true, tramos: [{ name: "Pared A", length: 3.6, upper: v[0], lower: [] }, { name: "Pared B", length: 2.8, upper: v[1], lower: [] }], extras: {} };
+    expect(computePlan(con, cfg).priced).toEqual(computePlan(base, cfg).priced);
+    expect(computePlan(con, cfg).pieces).toEqual(computePlan(base, cfg).pieces);
+    const np: any = normalizePlan(con, cfg);
+    const it = rowItems(np, 0, "upper", cfg).find((i) => i.key === "ventana");
+    expect(it?.start).toBe(0.5);   // queda en el lugar que marcó el medidor
+  });
+
+  it("en el plano la pared de 3 m con la ventana queda con superiores de 0,50 y 1,30", () => {
+    const cfg: any = { shape: "premium", layout: "lineal", totalMeters: 3, specialModules: {}, countertop: {}, island: { enabled: false, meters: 0 }, bar: { enabled: false, meters: 0 }, paintedDoors: { enabled: false } };
+    const v = ventanasDeLevantamiento([{ tipo: "ventana", pared: 0, desde: 50, ancho: 120, alto: 120, antepecho: 100 }], 1);
+    const plan: any = normalizePlan({ enabled: true, tramos: [{ name: "Pared A", length: 3, upper: v[0], lower: [] }], extras: {} }, cfg);
+    const m1 = addModuleToPlan(plan, 0, "upper", "moduloAlmacSup", cfg)!;   // 0,65 no cabe en los 0,50 de la izquierda: cae a la derecha de la ventana
+    setModuleWidth(plan, 0, "upper", m1.id, 1.3, cfg);                        // el espacio de la derecha mide 1,30
+    expect(rowItems(plan, 0, "upper", cfg).find((i) => i.mod?.id === m1.id)).toMatchObject({ start: 1.7, width: 1.3 });
+    expect(rowItems(plan, 0, "upper", cfg).find((i) => i.key === "ventana")).toMatchObject({ start: 0.5, width: 1.2 });
+    expect(computePlan(plan, cfg).warnings.filter((w) => /ventana/i.test(w))).toHaveLength(0);
+  });
+});
+

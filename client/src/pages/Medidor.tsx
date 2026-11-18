@@ -516,6 +516,11 @@ export default function Medidor() {
   const [localEvaluation, setLocalEvaluation] = useState<TechnicalEvaluation | undefined>();
   const [localCriticalObservations, setLocalCriticalObservations] = useState("");
   const [localChecklist, setLocalChecklist] = useState<TechnicalChecklist>({});
+  // Guardado automático: lo anotado se guarda solo (y queda copia en la tablet) para no perderlo si el medidor se sale
+  const [listoAuto, setListoAuto] = useState<number | string | null>(null);   // id del levantamiento cuyos datos ya se cargaron en pantalla
+  const [autoEstado, setAutoEstado] = useState<"" | "guardando" | "guardado" | "local">("");
+  const snapshotRef = useRef<string>("");                                         // lo último que ya está guardado en el servidor
+  const pendienteRef = useRef<{ key: string; snap: string; body: any } | null>(null);
 
   // Queries
   const { data: visits = [], refetch: refetchVisits } = trpc.technicalVisits.list.useQuery(undefined, {
@@ -583,11 +588,28 @@ export default function Medidor() {
   // Efecto para inicializar datos
   useEffect(() => {
     if (visitDetail) {
-      setLocalMeasurements(visitDetail.measurements || {});
-      setLocalNotes(visitDetail.notes || "");
-      setLocalEvaluation(visitDetail.technicalEvaluation);
-      setLocalCriticalObservations(visitDetail.criticalObservations || "");
-      setLocalChecklist(visitDetail.checklist || {});
+      const delServidor = { m: visitDetail.measurements || {}, n: visitDetail.notes || "", e: visitDetail.technicalEvaluation ?? null, o: visitDetail.criticalObservations || "", c: visitDetail.checklist || {} };
+      snapshotRef.current = JSON.stringify(delServidor);
+      pendienteRef.current = null;
+      let d = delServidor;
+      // Si quedó algo anotado sin guardar (se salió, se cayó la señal…), se recupera de la copia de la tablet
+      try {
+        const raw = localStorage.getItem(`medidor_borrador_${visitDetail.id}`);
+        const b = raw ? JSON.parse(raw) : null;
+        if (b?.d && b.snap && b.snap !== snapshotRef.current && (visitDetail.status === "borrador" || visitDetail.status === "enviada")) {
+          d = b.d;
+          toast.info("Recuperé lo que habías anotado y no se había guardado");
+        }
+      } catch { /* sin copia local: se usa lo del servidor */ }
+      setLocalMeasurements(d.m || {});
+      setLocalNotes(d.n || "");
+      setLocalEvaluation(d.e ?? undefined);
+      setLocalCriticalObservations(d.o || "");
+      setLocalChecklist(d.c || {});
+      setAutoEstado("");
+      setListoAuto(visitDetail.id);
+    } else {
+      setListoAuto(null);
     }
   }, [visitDetail?.id]);
 
@@ -717,6 +739,10 @@ export default function Medidor() {
         criticalObservations: localCriticalObservations,
         checklist: localChecklist,
       });
+      snapshotRef.current = JSON.stringify({ m: localMeasurements, n: localNotes, e: localEvaluation ?? null, o: localCriticalObservations, c: localChecklist });
+      pendienteRef.current = null;
+      try { localStorage.removeItem(`medidor_borrador_${visitDetail.id}`); } catch { /* */ }
+      setAutoEstado("guardado");
       toast.success("Cambios actualizados en levantamiento");
     } catch (error) {
       toast.error("Error al guardar cambios");
@@ -946,6 +972,42 @@ export default function Medidor() {
   const canAddMaterial = isEditable || canComplement;
   // La pizarra queda activa siempre (también con cotización): cada PDF exportado es una captura nueva que no toca los anteriores
   const canUsePizarra = !!visit && (isEditable || canComplement || user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial" || (user?.role === "medidor" && (visit as any).createdBy === user?.id));
+
+  // ── GUARDADO AUTOMÁTICO del levantamiento ──
+  // Cada cambio se guarda solo a los 1,5 s (y siempre queda una copia en la tablet, por si no hay señal). Al salir de la pantalla o minimizar la app se guarda de inmediato.
+  const guardarAuto = useCallback(async () => {
+    const pend = pendienteRef.current;
+    if (!pend || pend.snap === snapshotRef.current) return;
+    setAutoEstado("guardando");
+    try {
+      await updateVisit.mutateAsync(pend.body);
+      snapshotRef.current = pend.snap;
+      if (pendienteRef.current?.snap === pend.snap) { pendienteRef.current = null; try { localStorage.removeItem(pend.key); } catch { /* */ } }
+      setAutoEstado("guardado");
+    } catch {
+      setAutoEstado("local");   // sin señal o error: queda la copia en la tablet y se reintenta
+    }
+  }, [updateVisit]);
+  const guardarAutoRef = useRef(guardarAuto);
+  guardarAutoRef.current = guardarAuto;
+  useEffect(() => {
+    if (!visitDetail || !isEditable || listoAuto !== visitDetail.id) return;
+    const snap = JSON.stringify({ m: localMeasurements, n: localNotes, e: localEvaluation ?? null, o: localCriticalObservations, c: localChecklist });
+    if (snap === snapshotRef.current) return;
+    const key = `medidor_borrador_${visitDetail.id}`;
+    pendienteRef.current = { key, snap, body: { visitId: visitDetail.id, measurements: localMeasurements, notes: localNotes, technicalEvaluation: localEvaluation, criticalObservations: localCriticalObservations, checklist: localChecklist } };
+    try { localStorage.setItem(key, JSON.stringify({ ts: Date.now(), snap, d: { m: localMeasurements, n: localNotes, e: localEvaluation ?? null, o: localCriticalObservations, c: localChecklist } })); } catch { /* tablet sin espacio: igual se guarda en el servidor */ }
+    const t = setTimeout(() => { void guardarAutoRef.current(); }, 1500);
+    return () => clearTimeout(t);
+  }, [localMeasurements, localNotes, localEvaluation, localCriticalObservations, localChecklist, visitDetail?.id, isEditable, listoAuto]);
+  useEffect(() => {
+    const salir = () => { void guardarAutoRef.current(); };
+    const alOcultar = () => { if (document.visibilityState === "hidden") salir(); };
+    document.addEventListener("visibilitychange", alOcultar);
+    window.addEventListener("pagehide", salir);
+    window.addEventListener("online", salir);
+    return () => { document.removeEventListener("visibilitychange", alOcultar); window.removeEventListener("pagehide", salir); window.removeEventListener("online", salir); salir(); };   // al salir de la pantalla también se guarda
+  }, [visitDetail?.id]);
 
   // Cada vez que cambian las medidas de la cocina, la hoja del levantamiento (foto 3D + medidas) se pone sola y BLOQUEADA en la pizarra
   const claveCocina = JSON.stringify([
@@ -1779,6 +1841,11 @@ export default function Medidor() {
                 placeholder="Notas adicionales..."
                 className="bg-background border-primary/20 text-white min-h-[100px]"
               />
+              {autoEstado && (
+                <p className={`text-xs text-center ${autoEstado === "local" ? "text-amber-300" : "text-emerald-300"}`}>
+                  {autoEstado === "guardando" ? "Guardando…" : autoEstado === "guardado" ? "✓ Guardado automáticamente" : "Sin señal: lo anotado queda en la tablet y se guarda cuando vuelva la conexión"}
+                </p>
+              )}
               <Button onClick={handleSaveMeasurements} className="w-full bg-primary hover:bg-primary text-white">
                 <Save className="h-4 w-4 mr-2" />
                 Guardar medidas

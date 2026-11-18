@@ -385,7 +385,7 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
       return best as { w: Wall; s: number; dist: number } | null;
     };
 
-    let arrastrando: null | { obj: THREE.Object3D; d: any; x0: number; y0: number; grab: number; mundo0: THREE.Vector3; pos0: THREE.Vector3; planoY: number; bloque?: THREE.Object3D; bloquePos0?: THREE.Vector3 } = null;
+    let arrastrando: null | { obj: THREE.Object3D; d: any; x0: number; y0: number; grab: number; mundo0: THREE.Vector3; pos0: THREE.Vector3; planoY: number; bloque?: THREE.Object3D; bloquePos0?: THREE.Vector3; grupoMod?: THREE.Object3D; grupoPos0?: THREE.Vector3; loc0?: THREE.Vector3 } = null;
     // El grupo de la isla/barra (para moverla entera) a partir de una de sus piezas
     const grupoBloque = (o: THREE.Object3D | null): THREE.Object3D | undefined => { let x = o; while (x) { if (x.userData && x.userData.bloque !== undefined) return x; x = x.parent; } return undefined; };
     const alBajar = (e: PointerEvent) => {
@@ -406,9 +406,11 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
         }
       }
       controls.enabled = false;
-      cv.setPointerCapture(e.pointerId);
-      const gb = grupoBloque(hit.object);   // arrastrar cualquier parte de la isla/barra mueve TODO el bloque (los módulos se reordenan con ◀ ▶)
-      arrastrando = { obj: hit.object, d, x0: e.clientX, y0: e.clientY, grab, mundo0: p0, pos0: hit.object.position.clone(), planoY, bloque: gb, bloquePos0: gb?.position.clone() };
+      try { cv.setPointerCapture(e.pointerId); } catch { /* sin captura el arrastre igual funciona */ }
+      const gb = grupoBloque(hit.object);
+      // El mueble se mueve COMPLETO (cuerpo, puertas, gavetas, losa…): se mueve su grupo, no solo la pieza tocada
+      const gm = d.kind === "mod" || d.kind === "tall" ? hit.object.parent ?? undefined : undefined;   // arrastrar cualquier parte de la isla/barra mueve TODO el bloque (los módulos se reordenan con ◀ ▶)
+      arrastrando = { obj: hit.object, d, x0: e.clientX, y0: e.clientY, grab, mundo0: p0, pos0: hit.object.position.clone(), planoY, bloque: gb, bloquePos0: gb?.position.clone(), grupoMod: gm, grupoPos0: gm?.position.clone(), loc0: gm?.parent ? gm.parent.worldToLocal(p0.clone()) : undefined };
     };
     let paredToque: null | { t: number; x: number; y: number } = null;
     const alMover = (e: PointerEvent) => {
@@ -422,7 +424,11 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
       const par = arrastrando.obj.parent!;
       if (arrastrando.bloque && arrastrando.bloquePos0) { arrastrando.bloque.position.set(arrastrando.bloquePos0.x + (P.x - arrastrando.mundo0.x), 0, arrastrando.bloquePos0.z + (P.z - arrastrando.mundo0.z)); }
       else if (d.kind === "losa") { par.position.set(P.x - 0, 0, P.z - 0); }
-      else { const loc = par.worldToLocal(P.clone()); arrastrando.obj.position.x = loc.x - arrastrando.grab + d.w / 2 + (par.userData?.bloque !== undefined ? -(ultimo.current.plan.tramos[d.t].length || 0) / 2 : 0); }
+      else if (arrastrando.grupoMod && arrastrando.grupoMod.parent && arrastrando.grupoPos0 && arrastrando.loc0) {
+        // vista previa: todo el mueble sigue el dedo (también hacia otra pared); al soltar se acomoda con el imán
+        const gm = arrastrando.grupoMod, loc = gm.parent!.worldToLocal(P.clone());
+        gm.position.set(arrastrando.grupoPos0.x + (loc.x - arrastrando.loc0.x), arrastrando.grupoPos0.y + 0.03, arrastrando.grupoPos0.z + (loc.z - arrastrando.loc0.z));
+      }
       dibujar();
     };
     const alSoltar = (e: PointerEvent) => {

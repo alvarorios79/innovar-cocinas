@@ -119,6 +119,26 @@ function NumberField(props: React.ComponentProps<typeof Input>) {
   );
 }
 
+// Levantamiento del medidor dentro de la cotización: llega CERRADO (solo el resumen) y se despliega cuando se quiere ver el 3D y las medidas
+function LevantamientoDelMedidor({ medidas }: { medidas: Record<string, any> }) {
+  const [abierto, setAbierto] = useState(false);
+  const c = cocinaDeLevantamiento(medidas);
+  const m = (x: number) => x.toFixed(2).replace(".", ",");
+  return (
+    <div className="rounded-lg border border-primary/30 bg-primary/5">
+      <button type="button" onClick={() => setAbierto((v) => !v)} aria-expanded={abierto}
+        className="w-full flex items-center justify-between gap-3 p-3 text-left min-h-[48px]">
+        <span>
+          <span className="block text-sm font-semibold text-white">Levantamiento del medidor</span>
+          {c && <span className="block text-xs text-white/60">Cocina {c.layout === "paralela" ? "paralela" : c.layout === "lineal" ? "lineal" : c.layout ? `en ${c.layout}` : ""} · inferiores {m(c.lowerMeters)} m · superiores {m(c.upperMeters)} m</span>}
+        </span>
+        <span className="shrink-0 text-xs font-semibold text-primary">{abierto ? "Cerrar ▲" : "Ver 3D y medidas ▼"}</span>
+      </button>
+      {abierto && <div className="p-3 pt-0 space-y-2"><PlanoCocinaLectura measurements={medidas} /></div>}
+    </div>
+  );
+}
+
 // Cantidades de pintura alto brillo para cobrar: con el plano de módulos activo salen del plano; si no, de lo que se escribió
 function planPaintedQtys(config: any): any {
   if (config?.modulePlan?.enabled) {
@@ -3315,10 +3335,7 @@ export default function Quotations() {
 
                             {/* Levantamiento del medidor: el dibujo 3D y las medidas que tomó, a la vista mientras se arma la cotización */}
                             {(item.kitchenConfig as any)?.fromLevantamiento?.medidas?._cocina_forma && (
-                              <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-2">
-                                <p className="text-sm font-semibold text-white">Levantamiento del medidor</p>
-                                <PlanoCocinaLectura measurements={(item.kitchenConfig as any).fromLevantamiento.medidas} />
-                              </div>
+                              <LevantamientoDelMedidor medidas={(item.kitchenConfig as any).fromLevantamiento.medidas} />
                             )}
 
                             {/* 3.4 Plano de módulos por tramos (etapa 1: informativo, no cambia el precio) */}

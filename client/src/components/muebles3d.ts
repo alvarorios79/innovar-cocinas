@@ -76,43 +76,47 @@ export function crearMueble3D(key: string, row: "upper" | "lower" | "tall", w: n
   const g = new THREE.Group();
   const sup = row === "upper";
   const color = op.seleccionado ? 0xbdeff5 : sup ? C.maderaSup : C.madera;
-  const cuerpoAlto = row === "lower" ? h - 0.04 : h;      // los inferiores llevan encima la losa de 4 cm
+  // Inferior terminado = 0,90 m desde el piso: zócalo de 10 cm + carcasa + losa de 4 cm. Los superiores y los altos no llevan zócalo ni losa.
+  const ZOC = row === "lower" ? 0.10 : 0;
+  const cuerpoAlto = row === "lower" ? h - 0.04 - ZOC : h;
   const cuerpo = new THREE.Mesh(new THREE.BoxGeometry(w, cuerpoAlto, d), mat(color, 1));
-  cuerpo.position.set(0, cuerpoAlto / 2, 0); g.add(cuerpo);
+  cuerpo.position.set(0, ZOC + cuerpoAlto / 2, 0); g.add(cuerpo);
 
   if (row === "lower") {
     // losa de piedra
     caja(g, w + 0.004, 0.04, d + 0.03, 0, h - 0.02, 0.015, C.losa);
     const yTop = h;
     const hf = cuerpoAlto - 0.04;
+    // El frente (puertas, gavetas, perillas) arranca sobre el zócalo
+    const fr = new THREE.Group(); fr.position.y = ZOC; g.add(fr);
     switch (key) {
       case "moduloEstufaPuerta":
-        estufa(g, w, d, yTop); puertas(g, w, hf, d, 0.02, 1, true); break;
+        estufa(g, w, d, yTop); puertas(fr, w, hf, d, 0.02, 1, true); break;
       case "moduloEstufaHorno": {
         estufa(g, w, d, yTop);
         const z = d / 2 + 0.005;
-        caja(g, w - 0.06, 0.07, 0.012, 0, hf - 0.04, z, C.negro);                 // panel de perillas
-        [-0.2, -0.1, 0, 0.1, 0.2].forEach((fx) => { if (Math.abs(fx) < w / 2 - 0.05) cilindro(g, 0.012, 0.012, 0.012, fx * (w / 0.7), hf - 0.04, z + 0.01, C.acero, 8).rotation.x = Math.PI / 2; });
-        caja(g, w - 0.08, hf - 0.2, 0.012, 0, (hf - 0.2) / 2 + 0.04, z, C.acero);   // puerta del horno
-        caja(g, w - 0.18, hf - 0.34, 0.014, 0, (hf - 0.2) / 2 + 0.06, z + 0.008, C.vidrioHorno);
-        caja(g, w - 0.14, 0.016, 0.02, 0, hf - 0.19, z + 0.02, C.manija);
+        caja(fr, w - 0.06, 0.07, 0.012, 0, hf - 0.04, z, C.negro);                 // panel de perillas
+        [-0.2, -0.1, 0, 0.1, 0.2].forEach((fx) => { if (Math.abs(fx) < w / 2 - 0.05) cilindro(fr, 0.012, 0.012, 0.012, fx * (w / 0.7), hf - 0.04, z + 0.01, C.acero, 8).rotation.x = Math.PI / 2; });
+        caja(fr, w - 0.08, hf - 0.2, 0.012, 0, (hf - 0.2) / 2 + 0.04, z, C.acero);   // puerta del horno
+        caja(fr, w - 0.18, hf - 0.34, 0.014, 0, (hf - 0.2) / 2 + 0.06, z + 0.008, C.vidrioHorno);
+        caja(fr, w - 0.14, 0.016, 0.02, 0, hf - 0.19, z + 0.02, C.manija);
         break;
       }
-      case "moduloLavaplatos": lavaplatos(g, w, d, yTop, false); puertas(g, w, hf, d, 0.02, 2, true); break;
-      case "moduloLavaplatosDoble": lavaplatos(g, w, d, yTop, true); puertas(g, w, hf, d, 0.02, 2, true); break;
-      case "cajoneroTriple": gavetas(g, w, hf, d, 3); break;
-      case "cajoneroDoble": gavetas(g, w, hf, d, 2); break;
-      case "basurero": puertas(g, w, hf, d, 0.02, 1, true); caja(g, 0.1, 0.1, 0.01, 0, hf * 0.45, d / 2 + 0.014, 0x7a8288); break;
-      case "especiero": puertas(g, w, hf, d, 0.02, 1, true); [0.2, 0.45, 0.7].forEach((f) => caja(g, w * 0.55, 0.014, 0.01, 0, hf * f, d / 2 + 0.014, 0x8a7d66)); break;
+      case "moduloLavaplatos": lavaplatos(g, w, d, yTop, false); puertas(fr, w, hf, d, 0.02, 2, true); break;
+      case "moduloLavaplatosDoble": lavaplatos(g, w, d, yTop, true); puertas(fr, w, hf, d, 0.02, 2, true); break;
+      case "cajoneroTriple": gavetas(fr, w, hf, d, 3); break;
+      case "cajoneroDoble": gavetas(fr, w, hf, d, 2); break;
+      case "basurero": puertas(fr, w, hf, d, 0.02, 1, true); caja(fr, 0.1, 0.1, 0.01, 0, hf * 0.45, d / 2 + 0.014, 0x7a8288); break;
+      case "especiero": puertas(fr, w, hf, d, 0.02, 1, true); [0.2, 0.45, 0.7].forEach((f) => caja(fr, w * 0.55, 0.014, 0.01, 0, hf * f, d / 2 + 0.014, 0x8a7d66)); break;
       case "botellero": {
-        puertas(g, w, hf, d, 0.02, 1, true);
-        [0.25, 0.5, 0.75].forEach((f) => [-1, 1].forEach((s) => cilindro(g, 0.028, 0.028, 0.012, s * w * 0.22, hf * f, d / 2 + 0.014, 0x2d2a26, 12).rotation.x = Math.PI / 2));
+        puertas(fr, w, hf, d, 0.02, 1, true);
+        [0.25, 0.5, 0.75].forEach((f) => [-1, 1].forEach((s) => cilindro(fr, 0.028, 0.028, 0.012, s * w * 0.22, hf * f, d / 2 + 0.014, 0x2d2a26, 12).rotation.x = Math.PI / 2));
         break;
       }
-      case "esquinero1x1": puertas(g, w, hf, d, 0.02, w < 0.55 ? 1 : 2, true); break;   // el brazo corto de la «L» lleva una puerta
-      default: puertas(g, w, hf, d, 0.02, nPuertas(w), true);   // almacenamiento inferior
+      case "esquinero1x1": puertas(fr, w, hf, d, 0.02, w < 0.55 ? 1 : 2, true); break;   // el brazo corto de la «L» lleva una puerta
+      default: puertas(fr, w, hf, d, 0.02, nPuertas(w), true);   // almacenamiento inferior
     }
-    caja(g, w - 0.02, 0.07, d - 0.04, 0, 0.035, 0, 0x2b2b2b);   // zócalo
+    caja(g, w - 0.004, ZOC, d - 0.05, 0, ZOC / 2, -0.025, 0x2b2b2b);   // zócalo de 10 cm, metido 5 cm hacia atrás para que se vea
   } else if (sup) {
     const z = d / 2 + 0.004;
     switch (key) {
@@ -195,3 +199,48 @@ export function crearMueble3D(key: string, row: "upper" | "lower" | "tall", w: n
   }
   return { grupo: g, cuerpo };
 }
+
+/**
+ * Esquinero en «L»: UN SOLO mueble (una carcasa continua), no dos cajas pegadas. Como el modelo de referencia (carcasa de 18 mm, zócalo de 10 cm, losa encima):
+ * dos brazos que se juntan en la esquina y dos frentes (uno por brazo) en el rincón de la L.
+ *  · inferior: 1,00 × 1,00 m con 0,60 de fondo; superior: 0,60 × 0,60 m con 0,35 de fondo.
+ * Se dibuja en el marco de la pared que lo lleva: x a lo largo de la pared, z hacia la cocina (por `sg`), la esquina al final de la pared (xFin) y la pared vecina a su derecha.
+ */
+export function crearEsquinero3D(row: "lower" | "upper", ancho: number, alto: number, fondo: number, sg: number, xFin: number, z0: number, op: OpcionesMueble = {}): MuebleConstruido {
+  const g = new THREE.Group();
+  const xE = xFin - z0, X0 = xE - ancho;           // la cara de la pared vecina está en xE
+  const lower = row === "lower";
+  const hCuerpo = lower ? alto - 0.04 : alto;
+  const extruir = (pts: Array<[number, number]>, y0: number, h: number, color: number) => {
+    const shape = new THREE.Shape(pts.map(([x, z]) => new THREE.Vector2(x, -sg * z)));
+    const geo = new THREE.ExtrudeGeometry(shape, { depth: h, bevelEnabled: false });
+    geo.rotateX(-Math.PI / 2); geo.translate(0, y0, 0);
+    const m = new THREE.Mesh(geo, mat(color));
+    g.add(m); return m;
+  };
+  const L = (arm: number, th: number, extra = 0): Array<[number, number]> => [[X0, z0], [xE, z0], [xE, z0 + arm + extra], [xE - th - extra, z0 + arm + extra], [xE - th - extra, z0 + th + extra], [X0, z0 + th + extra]];
+  const color = op.seleccionado ? 0xbdeff5 : lower ? C.madera : C.maderaSup;
+  const zocalo = lower ? 0.10 : 0;
+  if (lower) extruir(L(ancho - 0.04, fondo - 0.04), 0, zocalo, 0x2b2b2b);                        // zócalo de 10 cm, un poco metido
+  const cuerpo = extruir(L(ancho, fondo), zocalo, hCuerpo - zocalo, color);                        // carcasa en L (una sola pieza)
+  if (lower) extruir(L(ancho, fondo, 0.015), alto - 0.04, 0.04, C.losa);                           // losa continua encima
+  // Los dos frentes del rincón de la L (cada uno de «ancho − fondo» de largo), con su puerta y su manija
+  const largoF = ancho - fondo, yIni = zocalo + 0.012, hf = hCuerpo - zocalo - 0.024;
+  const zf = (z: number) => sg * z;
+  const puerta = (w: number, h: number, d: number, x: number, y: number, z: number, color: number) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(color)); m.position.set(x, y, zf(z)); g.add(m); return m; };
+  // frente del brazo A (mira hacia la cocina): en z = z0 + fondo
+  puerta(largoF - 0.012, hf, 0.012, X0 + largoF / 2, yIni + hf / 2, z0 + fondo + 0.006, C.puerta);
+  puerta(0.012, Math.min(0.2, hf * 0.35), 0.014, X0 + largoF - 0.05, yIni + (lower ? hf - 0.12 : 0.12), z0 + fondo + 0.016, C.manija);
+  // frente del brazo B (mira hacia la pared A… hacia el rincón): en x = xE − fondo
+  const mB = puerta(0.012, hf, largoF - 0.012, xE - fondo - 0.006, yIni + hf / 2, z0 + fondo + largoF / 2, C.puerta); void mB;
+  puerta(0.014, Math.min(0.2, hf * 0.35), 0.012, xE - fondo - 0.016, yIni + (lower ? hf - 0.12 : 0.12), z0 + fondo + 0.05, C.manija);
+  if (lower) { // un entrepaño insinuado en el rincón (se ve en el modelo de referencia)
+    const e = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.01, 0.01), mat(C.madera)); e.visible = false; g.add(e);
+  }
+  if (op.seleccionado) {
+    const e = new THREE.LineSegments(new THREE.EdgesGeometry(cuerpo.geometry), new THREE.LineBasicMaterial({ color: C.sel, depthTest: false, transparent: true }));
+    e.renderOrder = 8; g.add(e);
+  }
+  return { grupo: g, cuerpo };
+}
+

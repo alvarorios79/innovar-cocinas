@@ -2,7 +2,7 @@ import { forwardRef, useEffect, useImperativeHandle, useRef, useState, type Reac
 import { createPortal } from "react-dom";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { crearMueble3D } from "./muebles3d";
+import { crearMueble3D, crearEsquinero3D } from "./muebles3d";
 import { geometriaParedes, ALTO_INFERIOR_CM, ARRANQUE_SUPERIOR_CM, FONDO_INFERIOR_CM, FONDO_SUPERIOR_CM, SEPARACION_PARALELA_POR_DEFECTO } from "@shared/cocinaParedes";
 import { CATALOG_BY_KEY, rowItems, isPainted, round2, type ModulePlan, type PlanRow } from "@shared/kitchenModulePlan";
 
@@ -300,9 +300,16 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
           const cat = CATALOG_BY_KEY[it.key]; if (!cat) return;
           const mine = !it.fromPrev;
           const selected = !!sel && "id" in sel && sel.t === t && sel.row === "lower" && it.mod?.id === sel.id;
-          // El esquinero es una «L»: el brazo largo va en su pared y el otro continúa en la pared vecina desde el fondo del mueble (sin traslapar)
-          const brazo = it.fromPrev && !!cat.corner;
-          poner(it.key, "lower", offX + it.start + (brazo ? profInf : 0), brazo ? Math.max(0.1, it.width - profInf) : it.width, 0, hInf, dIni, profInf,
+          // El esquinero es UN solo mueble en «L» (una carcasa continua): se dibuja una vez, en la pared que lo lleva; el brazo en la pared vecina es parte del mismo mueble
+          if (cat.corner && !isBloque) {
+            if (it.fromPrev) return;
+            const ec = crearEsquinero3D("lower", it.width, hInf, profInf, sg, it.start + it.width, GROSOR / 2, { seleccionado: selected });
+            ec.cuerpo.userData = { pick: true, kind: "mod", t, row: "lower", id: it.mod!.id, start: it.start, w: it.width, corner: true, painted: isPainted(plan, it.mod!, "lower") };
+            pickables.push(ec.cuerpo); grp.add(ec.grupo);
+            if (cotasRef.current) { const l = texto(`${cat.short} ${fm(it.width)}`, "#ffffff", 0.115); l.position.set(it.start + it.width - 0.3, hInf + 0.1, sg * (GROSOR / 2 + 0.3)); grp.add(l); }
+            return;
+          }
+          poner(it.key, "lower", offX + it.start, it.width, 0, hInf, dIni, profInf,
             { pick: mine, kind: "mod", t, row: "lower", id: it.mod!.id, start: it.start, w: it.width, corner: !!cat.corner, painted: isPainted(plan, it.mod!, "lower") }, selected, it.fromPrev, `${cat.short} ${fm(it.width)}`);
         });
         // Superiores (la ventana del plano se dibuja como vidrio)
@@ -317,8 +324,17 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
           }
           const mine = !it.fromPrev;
           const selected = !!sel && "id" in sel && sel.t === t && sel.row === "upper" && it.mod?.id === sel.id;
-          const brazoS = it.fromPrev && !!cat.corner;
-          poner(it.key, "upper", it.start + (brazoS ? profSup : 0), brazoS ? Math.max(0.1, it.width - profSup) : it.width, arranque, Math.max(0.3, alto - arranque), GROSOR / 2, profSup,
+          if (cat.corner) {   // esquinero superior: UN solo mueble en «L» (0,60 × 0,60 m, 0,35 de fondo)
+            if (it.fromPrev) return;
+            const hs = Math.max(0.3, alto - arranque);
+            const ec = crearEsquinero3D("upper", it.width, hs, profSup, sg, it.start + it.width, GROSOR / 2, { seleccionado: selected });
+            ec.grupo.position.y = arranque;
+            ec.cuerpo.userData = { pick: true, kind: "mod", t, row: "upper", id: it.mod!.id, start: it.start, w: it.width, corner: true, painted: isPainted(plan, it.mod!, "upper") };
+            pickables.push(ec.cuerpo); grp.add(ec.grupo);
+            if (cotasRef.current) { const l = texto(`${cat.short} ${fm(it.width)}`, "#ffffff", 0.115); l.position.set(it.start + it.width - 0.2, arranque + hs + 0.1, sg * (GROSOR / 2 + 0.2)); grp.add(l); }
+            return;
+          }
+          poner(it.key, "upper", it.start, it.width, arranque, Math.max(0.3, alto - arranque), GROSOR / 2, profSup,
             { pick: mine, kind: "mod", t, row: "upper", id: it.mod!.id, start: it.start, w: it.width, corner: !!cat.corner, painted: isPainted(plan, it.mod!, "upper") }, selected, it.fromPrev, `${cat.short} ${fm(it.width)}`);
         });
         // Módulos de piso a techo (nichos, alacenas, torre)
@@ -354,7 +370,10 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
       const { cx, cz, radio, alto } = encuadre;
       const vf = (camera.fov * Math.PI) / 180, hf = 2 * Math.atan(Math.tan(vf / 2) * (camera.aspect || 1.5));
       const dist = (radio * 1.12) / Math.sin(Math.min(vf, hf) / 2);
-      const dir = v === "arriba" ? [0, 1, 0.012] : v === "frente" ? [0, 0.42, 1] : [0.62, 0.62, 0.78];
+      // La vista 3D se toma desde el lado de ADENTRO de la cocina (si no, una pared queda entre la cámara y los muebles): en L desde la izquierda, en U y paralela de frente
+      const lay = ultimo.current.config?.layout;
+      const iso = lay === "L" ? [-0.62, 0.62, 0.78] : lay === "U" ? [0.2, 0.8, 0.9] : lay === "paralela" || lay === "cuadrada" ? [0.35, 1.0, 0.55] : [0.5, 0.55, 0.9];
+      const dir = v === "arriba" ? [0, 1, 0.012] : v === "frente" ? [0, 0.42, 1] : iso;
       const len = Math.hypot(dir[0], dir[1], dir[2]);
       const ty = v === "arriba" ? 0 : alto * 0.4;
       controls.target.set(cx, ty, cz);

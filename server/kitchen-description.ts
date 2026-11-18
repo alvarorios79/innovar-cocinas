@@ -152,7 +152,7 @@ export function buildKitchenQuoteDescription(rawConfig: any, manualDescription?:
         const li = includesLine("inf"); if (li) mueble.push(li);
       }
       if (config.includeUpper !== false) {
-        const upper = config.independentMeters && config.upperMeters !== undefined ? (config.upperMeters || 0) : resulting;
+        const upper = config.independentMeters && config.upperMeters !== undefined ? Math.max(0, (config.upperMeters || 0) - (config.upperPlena ? deductions : 0)) : resulting;
         mueble.push(`• Muebles superiores: ${ml(upper)}`);
         const ls = includesLine("sup"); if (ls) mueble.push(ls);
       }

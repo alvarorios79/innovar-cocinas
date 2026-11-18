@@ -1221,6 +1221,7 @@ export default function Quotations() {
       kc.lowerMeters = coc.lowerMeters;
       kc.cornerDiscountMeters = coc.descMesonM || 0;   // solo el mesón se descuenta en las esquinas L/U
       kc.upperMeters = coc.upperMeters;
+      kc.upperPlena = true;   // ancho completo de las paredes: si hay módulos altos, también se restan de los superiores
       kc.totalMeters = igual ? coc.lowerMeters : coc.lowerMeters + coc.upperMeters;
       if (coc.isla) {
         // Isla: el ancho son los metros; el profundo define el recargo por fondo del mesón (≤62 sin recargo · 63–90 +30% · 91–100 +40% · más ×2)
@@ -1397,6 +1398,7 @@ export default function Quotations() {
     }
 
     // Auto-suma: cuando cambia lowerMeters o upperMeters, actualizar totalMeters
+    if (field === 'upperMeters') (config as any).upperPlena = false;   // lo escribió a mano: ya es el valor final
     if (field === 'lowerMeters' || field === 'upperMeters') {
       config.totalMeters = (config.lowerMeters || 0) + (config.upperMeters || 0);
     }
@@ -1601,7 +1603,7 @@ export default function Quotations() {
       if (config.independentMeters && (config.lowerMeters !== undefined || config.upperMeters !== undefined)) {
         // Modo medidas independientes: inferiores y superiores con ML distintos
         const lowerR = Math.max(0, (config.lowerMeters || 0) - deductions);
-        const upperR = config.upperMeters || 0;
+        const upperR = Math.max(0, (config.upperMeters || 0) - ((config as any).upperPlena ? deductions : 0)); // upperPlena = viene del levantamiento (ancho completo): los módulos altos también se restan
         if (config.includeLower !== false) total += lowerR * mlPrice;
         if (config.includeUpper !== false) total += upperR * mlPrice;
       } else {
@@ -1941,7 +1943,7 @@ export default function Quotations() {
           const mlPrice2 = getPrice(mlPriceCode2);
           if (config.independentMeters && (config.lowerMeters !== undefined || config.upperMeters !== undefined)) {
             const lowerR2 = Math.max(0, (config.lowerMeters || 0) - deductions);
-            const upperR2 = config.upperMeters || 0;
+            const upperR2 = Math.max(0, (config.upperMeters || 0) - ((config as any).upperPlena ? deductions : 0));
             if (config.includeLower !== false) total += lowerR2 * mlPrice2;
             if (config.includeUpper !== false) total += upperR2 * mlPrice2;
           } else {
@@ -3270,7 +3272,7 @@ export default function Quotations() {
                                   if (config.specialModules.torreHornos) deductions += 0.7;
                                   const resultingM = Math.max(0, config.totalMeters - deductions);
                                   return (config.independentMeters && config.upperMeters !== undefined)
-                                    ? (config.upperMeters || 0).toFixed(2)
+                                    ? Math.max(0, (config.upperMeters || 0) - ((config as any).upperPlena ? deductions : 0)).toFixed(2)
                                     : resultingM.toFixed(2);
                                 })()} ml
                               </p>

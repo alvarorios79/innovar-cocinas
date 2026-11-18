@@ -141,4 +141,30 @@ describe("Paredes de la cocina (levantamiento)", () => {
     cfg.cornerDiscountMeters = 0;
     expect(buildKitchenQuoteDescription(cfg, "")).toMatch(/Mesón en [^\n]*6[.,]40/);
   });
+
+  it("con módulos altos la operación cambia: se restan de inferiores, superiores y mesón (si el superior viene del levantamiento)", () => {
+    const base: any = { shape: "premium", layout: "L", independentMeters: true, lowerMeters: 6.4, upperMeters: 6.4, totalMeters: 12.8, cornerDiscountMeters: 0.6, mlPriceCode: "COCINA_ML_PREMIUM",
+      specialModules: { nichoNevera: true }, countertop: { type: "granito" }, island: { enabled: false, meters: 0 }, bar: { enabled: false, meters: 0 }, paintedDoors: { enabled: false } };
+    const conBandera = buildKitchenQuoteDescription({ ...base, upperPlena: true }, "");
+    expect(conBandera).toMatch(/Muebles inferiores: 5[.,]65/);   // 6,40 − 0,75
+    expect(conBandera).toMatch(/Muebles superiores: 5[.,]65/);   // 6,40 − 0,75
+    expect(conBandera).toMatch(/Mesón en [^\n]*5[.,]05/);        // 6,40 − 0,75 − 0,60
+    // cotización con superiores escritos a mano (sin bandera): no se toca
+    expect(buildKitchenQuoteDescription(base, "")).toMatch(/Muebles superiores: 6[.,]40/);
+  });
+
+  it("cocina lineal de 5 m con nicho nevecón y alacena, sin ventanas: inferiores 3,50 y superiores 3,50", () => {
+    const c = cocinaDeLevantamiento({ _cocina_forma: "Lineal", _cocina_paredes: [{ ancho: 500, inf: 500, sup: 500 }] })!;
+    expect(c.lowerMeters).toBe(5);
+    expect(c.upperMeters).toBe(5);
+    expect(c.descMesonM).toBe(0);   // lineal: sin esquinas
+    const cfg: any = { shape: "premium", layout: "lineal", independentMeters: true, lowerMeters: c.lowerMeters, upperMeters: c.upperMeters, upperPlena: true, totalMeters: 10,
+      cornerDiscountMeters: 0, mlPriceCode: "COCINA_ML_PREMIUM", specialModules: { nichoNevecon: true, alacenaEntrepanos: true },
+      countertop: { type: "granito" }, island: { enabled: false, meters: 0 }, bar: { enabled: false, meters: 0 }, paintedDoors: { enabled: false } };
+    const txt = buildKitchenQuoteDescription(cfg, "");
+    expect(txt).toMatch(/Muebles inferiores: 3[.,]50/);
+    expect(txt).toMatch(/Muebles superiores: 3[.,]50/);
+    expect(txt).toMatch(/Mesón en [^\n]*3[.,]50/);
+  });
 });
+

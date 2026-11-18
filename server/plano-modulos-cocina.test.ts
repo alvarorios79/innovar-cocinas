@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { normalizePlan, addModuleToPlan, setModuleWidth, moveModuleToTramo, primerHueco, computePlan, ventanasDeLevantamiento, rowItems } from "../shared/kitchenModulePlan";
+import { normalizePlan, addModuleToPlan, setModuleWidth, moveModuleToTramo, primerHueco, esquinasDeLayout, girarEsquinero, computePlan, ventanasDeLevantamiento, rowItems } from "../shared/kitchenModulePlan";
 import { buildKitchenQuoteDescription } from "./kitchen-description";
 
 // ¿El plano de módulos describe de verdad la cocina? Se arma una cocina paralela de 2 paredes (3,0 m y 2,4 m),
@@ -136,6 +136,38 @@ describe("Plano 3D: barra como bloque suelto y mover módulos entre paredes", ()
     const m = addModuleToPlan(plan, 1, "lower", "cajoneroTriple", cfg)!;
     expect(plan.tramos[1].lower.some((x: any) => x.id === m.id)).toBe(true);
     expect(plan.tramos[0].lower.some((x: any) => x.id === m.id)).toBe(false);
+  });
+
+  it("el esquinero va SIEMPRE en la esquina (al final de su pared) aunque falten módulos antes, y la pared vecina lo continúa", () => {
+    const cfg = base();
+    const plan: any = normalizePlan({ enabled: true, autoUpper: false, tramos: [{ name: "Pared A", length: 3.6, upper: [], lower: [] }, { name: "Pared B", length: 2.8, upper: [], lower: [] }], extras: {} }, cfg);
+    addModuleToPlan(plan, 0, "lower", "moduloLavaplatos", cfg);
+    const esq = addModuleToPlan(plan, 0, "lower", "esquinero1x1", cfg)!;
+    const a = rowItems(plan, 0, "lower", cfg).find((i) => i.mod?.id === esq.id)!;
+    expect(a.start).toBeCloseTo(2.6, 2);                 // 3,60 − 1,00: pegado a la esquina, no detrás del lavaplatos (0,70)
+    expect(a.width).toBe(1);
+    const b = rowItems(plan, 1, "lower", cfg).find((i) => i.fromPrev && i.key === "esquinero1x1")!;
+    expect(b.start).toBe(0);                             // en la pared B arranca en la esquina
+    const sup = addModuleToPlan(plan, 0, "upper", "esquineroSuperior", cfg)!;
+    expect(rowItems(plan, 0, "upper", cfg).find((i) => i.mod?.id === sup.id)).toMatchObject({ start: 3.0, width: 0.6 });   // superior 60×60 en la esquina
+  });
+  it("cocina en U: dos esquinas (A–B y B–C) y el esquinero se gira de una a la otra; en L solo hay una y no gira", () => {
+    expect(esquinasDeLayout("L")).toEqual([0]);
+    expect(esquinasDeLayout("U")).toEqual([0, 1]);
+    expect(esquinasDeLayout("lineal")).toEqual([]);
+    const cfg = base({ layout: "U" });
+    const plan: any = normalizePlan({ enabled: true, autoUpper: false, tramos: [{ name: "Pared A", length: 2.8, upper: [], lower: [] }, { name: "Pared B", length: 3.6, upper: [], lower: [] }, { name: "Pared C", length: 2.8, upper: [], lower: [] }], extras: {} }, cfg);
+    const esq = addModuleToPlan(plan, 0, "lower", "esquinero1x1", cfg)!;          // esquina A–B
+    expect(esq.alsoTramo).toBe(1);
+    expect(girarEsquinero(plan, 0, "lower", esq.id, [0, 1], cfg)).toBe(true);     // → esquina B–C
+    expect(plan.tramos[0].lower).toHaveLength(0);
+    expect(plan.tramos[1].lower[0]).toMatchObject({ id: esq.id, alsoTramo: 2 });
+    expect(rowItems(plan, 2, "lower", cfg).some((i) => i.fromPrev && i.key === "esquinero1x1")).toBe(true);   // la pared C lo continúa
+    expect(girarEsquinero(plan, 1, "lower", esq.id, [0, 1], cfg)).toBe(true);     // y de vuelta a A–B
+    expect(plan.tramos[0].lower[0].id).toBe(esq.id);
+    const planL: any = normalizePlan({ enabled: true, autoUpper: false, tramos: [{ name: "Pared A", length: 3.6, upper: [], lower: [] }, { name: "Pared B", length: 2.8, upper: [], lower: [] }], extras: {} }, base());
+    const e2 = addModuleToPlan(planL, 0, "lower", "esquinero1x1", base())!;
+    expect(girarEsquinero(planL, 0, "lower", e2.id, [0], base())).toBe(false);    // en L solo hay una esquina
   });
 });
 

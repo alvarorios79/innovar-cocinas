@@ -77,10 +77,8 @@ export function crearMueble3D(key: string, row: "upper" | "lower" | "tall", w: n
   const sup = row === "upper";
   const color = op.seleccionado ? 0xbdeff5 : sup ? C.maderaSup : C.madera;
   const cuerpoAlto = row === "lower" ? h - 0.04 : h;      // los inferiores llevan encima la losa de 4 cm
-  const cuerpo = new THREE.Mesh(new THREE.BoxGeometry(w, cuerpoAlto, d), mat(color, op.fantasma ? 0.35 : 1));
+  const cuerpo = new THREE.Mesh(new THREE.BoxGeometry(w, cuerpoAlto, d), mat(color, 1));
   cuerpo.position.set(0, cuerpoAlto / 2, 0); g.add(cuerpo);
-  const grande = !op.fantasma;
-  if (!grande) return { grupo: g, cuerpo };
 
   if (row === "lower") {
     // losa de piedra
@@ -111,7 +109,7 @@ export function crearMueble3D(key: string, row: "upper" | "lower" | "tall", w: n
         [0.25, 0.5, 0.75].forEach((f) => [-1, 1].forEach((s) => cilindro(g, 0.028, 0.028, 0.012, s * w * 0.22, hf * f, d / 2 + 0.014, 0x2d2a26, 12).rotation.x = Math.PI / 2));
         break;
       }
-      case "esquinero1x1": puertas(g, w, hf, d, 0.02, 2, true); break;
+      case "esquinero1x1": puertas(g, w, hf, d, 0.02, w < 0.55 ? 1 : 2, true); break;   // el brazo corto de la «L» lleva una puerta
       default: puertas(g, w, hf, d, 0.02, nPuertas(w), true);   // almacenamiento inferior
     }
     caja(g, w - 0.02, 0.07, d - 0.04, 0, 0.035, 0, 0x2b2b2b);   // zócalo

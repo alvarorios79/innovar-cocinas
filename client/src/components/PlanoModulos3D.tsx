@@ -249,7 +249,9 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
           const cat = CATALOG_BY_KEY[it.key]; if (!cat) return;
           const mine = !it.fromPrev;
           const selected = !!sel && "id" in sel && sel.t === t && sel.row === "lower" && it.mod?.id === sel.id;
-          poner(it.key, "lower", offX + it.start, it.width, 0, hInf, dIni, profInf,
+          // El esquinero es una «L»: el brazo largo va en su pared y el otro continúa en la pared vecina desde el fondo del mueble (sin traslapar)
+          const brazo = it.fromPrev && !!cat.corner;
+          poner(it.key, "lower", offX + it.start + (brazo ? profInf : 0), brazo ? Math.max(0.1, it.width - profInf) : it.width, 0, hInf, dIni, profInf,
             { pick: mine, kind: "mod", t, row: "lower", id: it.mod!.id, start: it.start, w: it.width, corner: !!cat.corner, painted: isPainted(plan, it.mod!, "lower") }, selected, it.fromPrev, `${cat.short} ${fm(it.width)}`);
         });
         // Superiores (la ventana del plano se dibuja como vidrio)
@@ -266,7 +268,8 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
           }
           const mine = !it.fromPrev;
           const selected = !!sel && "id" in sel && sel.t === t && sel.row === "upper" && it.mod?.id === sel.id;
-          poner(it.key, "upper", it.start, it.width, arranque, Math.max(0.3, alto - arranque), GROSOR / 2, profSup,
+          const brazoS = it.fromPrev && !!cat.corner;
+          poner(it.key, "upper", it.start + (brazoS ? profSup : 0), brazoS ? Math.max(0.1, it.width - profSup) : it.width, arranque, Math.max(0.3, alto - arranque), GROSOR / 2, profSup,
             { pick: mine, kind: "mod", t, row: "upper", id: it.mod!.id, start: it.start, w: it.width, corner: !!cat.corner, painted: isPainted(plan, it.mod!, "upper") }, selected, it.fromPrev, `${cat.short} ${fm(it.width)}`);
         });
         // Módulos de piso a techo (nichos, alacenas, torre)

@@ -494,6 +494,8 @@ export function rowItems(plan: ModulePlan, t: number, row: PlanRow, config: any)
     if (i < own.length) {
       const m = own[i];
       if (m.lockAt !== undefined) pos = m.lockAt; else pos += Math.max(0, m.gap || 0);
+      // El esquinero que comparte con la pared siguiente va SIEMPRE en la esquina (al final de su pared), aunque falten módulos antes
+      { const trT = plan.tramos[t]; if (isTrailingCorner(m) && trT && !trT.isIsland && trT.length > 0) pos = Math.max(pos, round2(trT.length - m.width)); }
       out.push({ kind: "mod", key: m.key, width: m.width, start: pos, fromPrev: false, ownIndex: i, mod: m }); pos += m.width;
     }
   }
@@ -976,5 +978,27 @@ export function primerHueco(p: ModulePlan, t: number, row: PlanRow, width: numbe
     cursor = Math.max(cursor, it.start + it.width);
   }
   return round2(cursor);
+}
+
+// ── Esquinas: en una cocina en L hay una (A–B) y en una en U hay dos (A–B y B–C). El esquinero pertenece a la pared que lo lleva al final y se comparte con la siguiente. ──
+/** Paredes (tramos) dueñas de una esquina según la forma de la cocina: L → [0]; U → [0, 1]; las demás formas no tienen esquinas. */
+export function esquinasDeLayout(layout?: string): number[] {
+  return layout === "L" ? [0] : layout === "U" ? [0, 1] : [];
+}
+
+/** Gira un esquinero a la otra esquina de la cocina (en U: de A–B a B–C y al revés). Devuelve false si no se puede (una sola esquina, esquinero automático o esquina ya ocupada). */
+export function girarEsquinero(p: ModulePlan, t: number, row: PlanRow, id: string, owners: number[], config: any): boolean {
+  if (owners.length < 2) return false;
+  const m = p.tramos[t]?.[row].find(x => x.id === id);
+  if (!m || !isTrailingCorner(m) || m.autoOf) return false;
+  const t2 = owners[(Math.max(0, owners.indexOf(t)) + 1) % owners.length];
+  if (t2 === t || !p.tramos[t2] || p.tramos[t2].isIsland) return false;
+  if (p.tramos[t2][row].some(x => x.key === m.key && isTrailingCorner(x))) return false;   // esa esquina ya tiene el suyo
+  p.tramos[t][row] = p.tramos[t][row].filter(x => x.id !== id);
+  m.alsoTramo = t2 + 1; delete m.gap; delete m.manual;
+  p.tramos[t2][row].push(m);
+  if (row === "lower") { rebuildAutoUpper(p, t); rebuildAutoUpper(p, t2); }
+  void config;
+  return true;
 }
 

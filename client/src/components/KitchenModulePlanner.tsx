@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactElement
 import {
   CATALOG, CATALOG_BY_KEY, FILL_KEYS, SPECIALS,
   normalizePlan, computePlan, rowItems, rowUsed, activeSpecials, lateralOn, isPainted,
-  addModuleToPlan, removeModuleFromPlan, setModuleWidth, moveModule, moveModuleToTramo, primerHueco, moveTall, dropModule, dropTall, tidyPlan, packRow, setModuleLock, setTypeWidth, alignEnd, rebuildAutoUpper,
+  addModuleToPlan, removeModuleFromPlan, setModuleWidth, moveModule, moveModuleToTramo, primerHueco, esquinasDeLayout, girarEsquinero, moveTall, dropModule, dropTall, tidyPlan, packRow, setModuleLock, setTypeWidth, alignEnd, rebuildAutoUpper,
   round2,
   specialWidth,
   type ModulePlan, type PlanModule, type PlanRow, type RowItem,
@@ -513,8 +513,41 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
     const orden = [tAct, ...p.tramos.map((_, i) => i).filter(i => i !== tAct)];
     for (const i of orden) { const ult = [...p.tramos[i][row]].reverse().find(m => m.key === key); if (ult) { removeModuleFromPlan(p, i, row, ult.id); return; } }
   });
+  // Esquinas de la cocina: en L una (A–B) y en U dos (A–B y B–C). El esquinero va siempre en la esquina y se puede girar a la otra.
+  const esquinas = esquinasDeLayout(config?.layout).filter(o => plan.tramos[o] && plan.tramos[o + 1] && !plan.tramos[o].isIsland && !plan.tramos[o + 1].isIsland);
+  const nombreEsquina = (o: number) => `${plan.tramos[o].name.replace("Pared ", "")}–${plan.tramos[o + 1].name.replace("Pared ", "")}`;
   const renderPaletaUnica = () => {
-    const tarjeta = (o: { key: string; label: string; width: number; locked?: boolean }, row: PlanRow) => {
+    const tarjeta = (o: { key: string; label: string; width: number; locked?: boolean; corner?: boolean }, row: PlanRow) => {
+      if (o.corner) {
+        const cnt = cuentaDe(o.key);
+        return (
+          <div key={o.key} className={`rounded border p-2 flex flex-col gap-1.5 ${esquinas.length === 0 ? "opacity-40" : ""} ${cnt > 0 ? (row === "upper" ? "bg-purple-900/30 border-purple-400/50" : "bg-teal-900/40 border-primary/50") : "bg-white/[0.03] border-white/10"}`}>
+            <div className="flex items-center gap-2 text-left">
+              <ModuleIcon k={o.key} size={30} className="shrink-0 text-white/80" />
+              <span className="text-xs font-semibold text-white/85 leading-tight">{o.label}</span>
+            </div>
+            <div className="flex items-center justify-between gap-1 flex-wrap">
+              <span className="text-xs font-mono text-white/60" title="Medida fija">🔒 {m2(o.width)} m</span>
+              <span className="flex items-center gap-1">
+                <button type="button" className="w-8 h-8 rounded bg-white/10 hover:bg-white/25 disabled:opacity-30" disabled={cnt === 0} onClick={() => quitarUno(o.key, row)}>−</button>
+                <span className={`w-5 text-center font-mono text-sm ${cnt > 0 ? "text-white font-bold" : "text-white/40"}`}>{cnt}</span>
+              </span>
+            </div>
+            {esquinas.length === 0
+              ? <p className="text-[10px] text-white/45">Solo en cocinas en L o en U</p>
+              : <div className="flex flex-wrap gap-1">{esquinas.map(e => {
+                  // un esquinero es UNA «L» por esquina: si esa esquina ya lo tiene, no se agrega otro
+                  const ocupada = plan.tramos[e][row].some(x => x.key === o.key && x.alsoTramo !== undefined);
+                  return (
+                    <button key={e} type="button" disabled={ocupada} className="px-2 h-8 rounded bg-white/10 hover:bg-white/25 disabled:opacity-35 text-[11px] font-semibold text-white/85"
+                      title={ocupada ? `La esquina ${nombreEsquina(e)} ya tiene su esquinero` : `Poner en la esquina ${nombreEsquina(e)}`} onClick={() => edit(p => { addModuleToPlan(p, e, row, o.key, config); })}>
+                      {ocupada ? `✓ Esquina ${nombreEsquina(e)}` : `+ Esquina ${nombreEsquina(e)}`}
+                    </button>
+                  );
+                })}</div>}
+          </div>
+        );
+      }
       const bloqueado = row === "upper" && !!trAct?.isIsland;
       const cnt = cuentaDe(o.key);
       const curW = (!o.locked && plan.defaultWidth?.[o.key]) || o.width;
@@ -604,8 +637,19 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
     const row: PlanRow | null = esAlto ? null : sel.row;
     const mod = esAlto ? null : plan.tramos[sel.t]?.[sel.row].find(m => m.id === sel.id);
     const cat = mod ? CATALOG_BY_KEY[mod.key] : null;
+    if (!esAlto && mod && (cat?.corner || mod.alsoTramo !== undefined) && !mod.autoOf) {
+      // Esquinero: va fijo en la esquina; en una cocina en U se puede girar a la otra esquina
+      const otra = esquinas.length > 1 ? esquinas[(Math.max(0, esquinas.indexOf(sel.t)) + 1) % esquinas.length] : undefined;
+      return otra !== undefined ? (
+        <div className="flex flex-wrap items-center gap-2 text-xs text-white/70">
+          <span>Esquinero en la esquina {nombreEsquina(sel.t)}:</span>
+          <button type="button" className="h-9 px-3 rounded bg-white/10 hover:bg-white/25"
+            onClick={() => { edit(p => { girarEsquinero(p, sel.t, row!, (sel as { id: string }).id, esquinas, config); }); setSel(null); }}>↻ Girar a la esquina {nombreEsquina(otra)}</button>
+        </div>
+      ) : <p className="text-[11px] text-white/40">Este esquinero va fijo en la esquina {nombreEsquina(sel.t)}.</p>;
+    }
     if (!esAlto && (!mod || cat?.corner || mod.alsoTramo !== undefined || mod.autoOf || mod.lockAt !== undefined)) {
-      return <p className="text-[11px] text-white/40">{mod?.lockAt !== undefined ? "La ventana no se pasa de pared." : mod?.autoOf ? "Este superior sigue a su inferior; pasa el inferior y vuelve a poner el superior." : "Este módulo va fijo en su esquina."}</p>;
+      return <p className="text-[11px] text-white/40">{mod?.lockAt !== undefined ? "La ventana no se pasa de pared." : mod?.autoOf ? "Este módulo sigue a su inferior: para cambiarlo de esquina, gira el esquinero inferior." : "Este módulo va fijo en su esquina."}</p>;
     }
     return (
       <div className="flex flex-wrap items-center gap-2 text-xs text-white/70">

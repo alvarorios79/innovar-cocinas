@@ -205,22 +205,26 @@ const Habitacion3D = forwardRef<Habitacion3DRef, Props>(function Habitacion3D({ 
         const aMundo = (lx: number, y: number, lz: number): P3 => [w.x1 + lx * ux + lz * nzx, y, w.z1 + lx * uz + lz * nzz];
         // detalle completo: pared elegida, vista de lectura (activa < 0) o cuando se piden todas
         const detalle = !!p.todo || w.indice === p.activa || p.activa < 0;
-        const cota = (a1: P3, b1: P3, texto: string, color: number, colorTxt: string, tick: P3, escala = 0.2) => {
-          const t = 0.07;
-          const pts = new Float32Array([
-            ...a1, ...b1,
-            a1[0] - tick[0] * t, a1[1] - tick[1] * t, a1[2] - tick[2] * t, a1[0] + tick[0] * t, a1[1] + tick[1] * t, a1[2] + tick[2] * t,
-            b1[0] - tick[0] * t, b1[1] - tick[1] * t, b1[2] - tick[2] * t, b1[0] + tick[0] * t, b1[1] + tick[1] * t, b1[2] + tick[2] * t,
-          ]);
+        // Cota estilo plano: línea de medida (a–b) con topes en diagonal, líneas de referencia que la unen con los puntos medidos (r1, r2) y la medida al centro.
+        // Todo se dibuja EN EL PLANO de lo que se mide, así al girar el 3D cada cota sigue pegada a su elemento.
+        const cota = (a1: P3, b1: P3, r1: P3, r2: P3, texto: string, color: number, colorTxt: string, escala = 0.17) => {
+          const norm = (v: P3): P3 => { const l = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / l, v[1] / l, v[2] / l]; };
+          const dir = norm([b1[0] - a1[0], b1[1] - a1[1], b1[2] - a1[2]]);
+          const e1 = norm([a1[0] - r1[0], a1[1] - r1[1], a1[2] - r1[2]]), e2 = norm([b1[0] - r2[0], b1[1] - r2[1], b1[2] - r2[2]]);
+          const ext = (r: P3, e: P3, l: P3): number[] => [r[0] + e[0] * 0.03, r[1] + e[1] * 0.03, r[2] + e[2] * 0.03, l[0] + e[0] * 0.07, l[1] + e[1] * 0.07, l[2] + e[2] * 0.07];
+          const t = 0.06;
+          const tk = (pt: P3, e: P3): number[] => { const d = norm([dir[0] + e[0], dir[1] + e[1], dir[2] + e[2]]); return [pt[0] - d[0] * t, pt[1] - d[1] * t, pt[2] - d[2] * t, pt[0] + d[0] * t, pt[1] + d[1] * t, pt[2] + d[2] * t]; };
+          const pts = new Float32Array([...a1, ...b1, ...ext(r1, e1, a1), ...ext(r2, e2, b1), ...tk(a1, e1), ...tk(b1, e2)]);
           const gg = new THREE.BufferGeometry(); gg.setAttribute("position", new THREE.BufferAttribute(pts, 3));
           const ln = new THREE.LineSegments(gg, new THREE.LineBasicMaterial({ color, depthTest: false, transparent: true, opacity: 0.95 }));
           ln.renderOrder = 5; contenido.add(ln);
-          contenido.add(medida(texto, (a1[0] + b1[0]) / 2, (a1[1] + b1[1]) / 2 + 0.0, (a1[2] + b1[2]) / 2, colorTxt, "rgba(15,26,29,0.78)", escala));
+          contenido.add(medida(texto, (a1[0] + b1[0]) / 2, (a1[1] + b1[1]) / 2, (a1[2] + b1[2]) / 2, colorTxt, "rgba(15,26,29,0.78)", escala));
         };
+        const zc = signo * (GROSOR / 2 + 0.012);   // cara de la pared hacia el interior de la cocina
         const alLargo: P3 = [ux, 0, uz], aTraves: P3 = [nzx, 0, nzz], vertical: P3 = [0, 1, 0];
         // Ancho total de la pared (cota exterior) y alto
-        cota(aMundo(0, 0.03, fuera * 0.55), aMundo(largo, 0.03, fuera * 0.55), `${fm(largo)} m`, activo ? 0x00e5ff : 0xcfd8dc, activo ? "#80f0ff" : "#ffffff", aTraves);
-        if (detalle) cota(aMundo(0, 0, fuera * 0.35), aMundo(0, alto, fuera * 0.35), `${fm(alto)} m`, 0xffd54f, "#ffe082", alLargo);
+        cota(aMundo(0, alto + 0.42, zc), aMundo(largo, alto + 0.42, zc), aMundo(0, alto, zc), aMundo(largo, alto, zc), `${fm(largo)} m`, activo ? 0x00e5ff : 0xcfd8dc, activo ? "#80f0ff" : "#ffffff", 0.2);
+        if (detalle) cota(aMundo(-0.3, 0, zc), aMundo(-0.3, alto, zc), aMundo(0, 0, zc), aMundo(0, alto, zc), `${fm(alto)} m`, 0xffd54f, "#ffe082", 0.17);
 
         // Muebles: cajas y su cota
         const fondoI = p.profundoCm && p.profundoCm > 10 ? p.profundoCm : FONDO_INFERIOR_CM, fondoS = p.profundoSupCm && p.profundoSupCm > 10 ? p.profundoSupCm : FONDO_SUPERIOR_CM;
@@ -231,14 +235,14 @@ const Habitacion3D = forwardRef<Habitacion3DRef, Props>(function Habitacion3D({ 
         if (inf > 0.05) {
           const m = new THREE.Mesh(new THREE.BoxGeometry(Math.min(inf, largo), ALTO_INFERIOR_CM / 100, profBajo), new THREE.MeshLambertMaterial({ color: 0x26a69a, transparent: true, opacity: 0.6 }));
           m.position.set(x0i + Math.min(inf, largo) / 2, ALTO_INFERIOR_CM / 200, signo * (GROSOR / 2 + profBajo / 2)); g.add(m);
-          if (detalle) cota(aMundo(x0i, 0.03, signo * (GROSOR + profBajo + 0.2)), aMundo(x0i + Math.min(inf, largo), 0.03, signo * (GROSOR + profBajo + 0.2)), `inf ${fm(inf)}`, 0x80cbc4, "#b2dfdb", aTraves, 0.15);
+          if (detalle) { const zf = signo * (GROSOR / 2 + profBajo), yy = ALTO_INFERIOR_CM / 100; cota(aMundo(x0i, yy + 0.11, zf), aMundo(x0i + Math.min(inf, largo), yy + 0.11, zf), aMundo(x0i, yy, zf), aMundo(x0i + Math.min(inf, largo), yy, zf), `inf ${fm(inf)}`, 0x80cbc4, "#b2dfdb", 0.15); }
         }
         if (sup > 0.05) {
           // Superiores: arrancan a 1,50 m (0,90 de inferiores + 0,60 de salpicadero) y suben hasta el techo
           const arranque = ARRANQUE_SUPERIOR_CM / 100, altoSup = Math.max(0.3, alto - arranque), ySup = arranque + altoSup / 2;
           const m = new THREE.Mesh(new THREE.BoxGeometry(Math.min(sup, largo), altoSup, profAlto), new THREE.MeshLambertMaterial({ color: 0x7e57c2, transparent: true, opacity: 0.55 }));
           m.position.set(x0s + Math.min(sup, largo) / 2, ySup, signo * (GROSOR / 2 + profAlto / 2)); g.add(m);
-          if (detalle) cota(aMundo(x0s, arranque + altoSup + 0.1, signo * (GROSOR + profAlto + 0.1)), aMundo(x0s + Math.min(sup, largo), arranque + altoSup + 0.1, signo * (GROSOR + profAlto + 0.1)), `sup ${fm(sup)}`, 0xb39ddb, "#d1c4e9", aTraves, 0.15);
+          if (detalle) { const zf = signo * (GROSOR / 2 + profAlto); cota(aMundo(x0s, arranque - 0.11, zf), aMundo(x0s + Math.min(sup, largo), arranque - 0.11, zf), aMundo(x0s, arranque, zf), aMundo(x0s + Math.min(sup, largo), arranque, zf), `sup ${fm(sup)}`, 0xb39ddb, "#d1c4e9", 0.15); }
         }
 
         // Ventanas y puertas: a cada lado queda tanto, y cuánto mide (cadena de cotas), más la altura desde el piso
@@ -254,17 +258,20 @@ const Habitacion3D = forwardRef<Habitacion3DRef, Props>(function Habitacion3D({ 
           quiebres.forEach((q) => {
             const col = q.tipo === "hueco" ? 0xffffff : q.tipo === "ventana" ? 0x4fc3f7 : 0xffb74d;
             const txt = q.tipo === "hueco" ? "#ffffff" : q.tipo === "ventana" ? "#b3e5fc" : "#ffe0b2";
-            cota(aMundo(q.de, 0.03, fuera * 0.9), aMundo(q.a, 0.03, fuera * 0.9), fm(q.a - q.de), col, txt, aTraves, 0.15);
+            // las líneas de referencia salen del borde de la ventana/puerta (su parte de arriba) o del borde de la pared, y suben hasta la cota
+            const topAt = (xx: number) => { const it = ab.find((o) => Math.abs(o.d - xx) < 0.006 || Math.abs(o.d + o.a - xx) < 0.006); return it ? it.base + it.h : alto; };
+            cota(aMundo(q.de, alto + 0.17, zc), aMundo(q.a, alto + 0.17, zc), aMundo(q.de, topAt(q.de), zc), aMundo(q.a, topAt(q.a), zc), fm(q.a - q.de), col, txt, 0.15);
           });
           ab.forEach((x) => {
-            const lx = x.d + x.a + 0.1, col = x.tipo === "ventana" ? 0x4fc3f7 : 0xffb74d, tx = x.tipo === "ventana" ? "#b3e5fc" : "#ffe0b2";
-            if (x.base > 0.02) cota(aMundo(lx, 0, fuera * 0.12), aMundo(lx, x.base, fuera * 0.12), fm(x.base), 0xffffff, "#ffffff", alLargo, 0.14);
-            cota(aMundo(lx, x.base, fuera * 0.12), aMundo(lx, x.base + x.h, fuera * 0.12), fm(x.h), col, tx, alLargo, 0.14);
+            const aDer = x.d + x.a + 0.4 <= largo, bordeX = aDer ? x.d + x.a : x.d, lx = aDer ? bordeX + 0.3 : bordeX - 0.3;   // al lado de la ventana (donde haya espacio)
+            const col = x.tipo === "ventana" ? 0x4fc3f7 : 0xffb74d, tx = x.tipo === "ventana" ? "#b3e5fc" : "#ffe0b2";
+            if (x.base > 0.02) cota(aMundo(lx, 0, zc), aMundo(lx, x.base, zc), aMundo(bordeX, 0, zc), aMundo(bordeX, x.base, zc), fm(x.base), 0xffffff, "#ffffff", 0.14);
+            cota(aMundo(lx, x.base, zc), aMundo(lx, x.base + x.h, zc), aMundo(bordeX, x.base, zc), aMundo(bordeX, x.base + x.h, zc), fm(x.h), col, tx, 0.14);
           });
         }
 
         // Etiqueta A/B/C encima de la mitad de la pared
-        contenido.add(etiqueta(w.nombre, w.x1 + dx / 2, alto + 0.35, w.z1 + dz / 2, activo));
+        contenido.add(etiqueta(w.nombre, w.x1 + dx / 2, alto + 0.85, w.z1 + dz / 2, activo));
       });
 
       // Isla y barra (referencia: la posición exacta se arma en el plano de módulos de la cotización)

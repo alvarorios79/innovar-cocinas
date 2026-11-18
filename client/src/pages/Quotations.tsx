@@ -3328,6 +3328,7 @@ export default function Quotations() {
                                 onChange={(plan) => updateKitchenConfig(index, "modulePlan", plan)}
                                 onSpecialToggle={(key, on) => updateKitchenConfig(index, `specialModules.${key}`, on)}
                                 onPlanSpecial={(plan, key, on) => updateKitchenConfig(index, "__multi", { modulePlan: plan, [`specialModules.${key}`]: on })}
+                                onRestaurar={(plan, especiales) => updateKitchenConfig(index, "__multi", { modulePlan: plan, specialModules: especiales })}
                                 capturaRef={capturaDe(String(item._id))}
                               />
                             )}

@@ -16,7 +16,13 @@ import { CATALOG_BY_KEY, rowItems, isPainted, round2, type ModulePlan, type Plan
 export type SelModulo = { t: number; row: PlanRow; id: string } | { t: number; tall: string } | null;
 
 export interface PoseCamara3D { p: [number, number, number]; t: [number, number, number] }
-export interface PlanoModulos3DRef { capturar(vista?: "iso" | "arriba" | "frente"): string | null }
+export interface PlanoModulos3DRef {
+  capturar(vista?: "iso" | "arriba" | "frente"): string | null;
+  /** Dónde está hoy un bloque suelto (isla/barra) y cómo quedaría moviéndolo `along` m a lo largo de la pared A y `away` m alejándolo de ella */
+  mover(t: number, along: number, away: number): { x: number; z: number; rot: number } | null;
+}
+/** Resumen por pared para el recuadro fijo del 3D: lo que lleva y lo que FALTA para llenar el muro */
+export interface ResumenPared { nombre: string; largo: number; llevaAbajo: number; llevaArriba: number | null; activa: boolean }
 
 interface Props {
   plan: ModulePlan;
@@ -32,6 +38,10 @@ interface Props {
   onPickPared?: (t: number) => void;
   /** Controles (lista de módulos, selección, pasar de pared) que se muestran al lado cuando el 3D está en pantalla completa */
   panel?: ReactNode;
+  /** Recuadro fijo con lo que falta de cada pared */
+  resumen?: ResumenPared[];
+  onDeshacer?: () => void;
+  puedeDeshacer?: boolean;
   moveTramo: (p: ModulePlan, fromT: number, row: PlanRow, id: string, toT: number, start: number) => boolean;
   dropMod: (p: ModulePlan, t: number, row: PlanRow, id: string, start: number) => void;
   dropTallTo: (p: ModulePlan, key: string, tramo: number, start: number) => void;
@@ -71,13 +81,25 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
     window.addEventListener("keydown", esc);
     return () => window.removeEventListener("keydown", esc);
   }, [pantalla]);
+  const panelRef = useRef<HTMLDivElement>(null);
+  // El panel de la derecha se desplaza con la rueda del ratón: la ventana de la cotización bloquea el scroll de todo lo que queda fuera de ella,
+  // así que la rueda se atiende aquí y no se deja subir hasta ese bloqueo.
+  useEffect(() => {
+    const el = panelRef.current;
+    if (!pantalla || !el) return;
+    const rueda = (e: WheelEvent) => { e.stopPropagation(); };
+    const toque = (e: TouchEvent) => { e.stopPropagation(); };
+    el.addEventListener("wheel", rueda, { passive: true });
+    el.addEventListener("touchmove", toque, { passive: true });
+    return () => { el.removeEventListener("wheel", rueda); el.removeEventListener("touchmove", toque); };
+  });
   const [verCotas, setVerCotas] = useState(true);
   const ultimo = useRef(props);
   ultimo.current = props;
   const cotasRef = useRef(true);
   cotasRef.current = verCotas;
-  const api = useRef<{ rebuild: () => void; vista: (v: "iso" | "arriba" | "frente") => void; capturar: (v?: "iso" | "arriba" | "frente") => string | null } | null>(null);
-  useImperativeHandle(ref, () => ({ capturar: (v) => api.current?.capturar(v) ?? null }), []);
+  const api = useRef<{ rebuild: () => void; vista: (v: "iso" | "arriba" | "frente") => void; capturar: (v?: "iso" | "arriba" | "frente") => string | null; mover: (t: number, along: number, away: number) => { x: number; z: number; rot: number } | null } | null>(null);
+  useImperativeHandle(ref, () => ({ capturar: (v) => api.current?.capturar(v) ?? null, mover: (t, a, b) => api.current?.mover(t, a, b) ?? null }), []);
 
   useEffect(() => {
     const el = host.current;
@@ -225,8 +247,8 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
 
         // Base de un bloque suelto (isla/barra): se toca para moverlo por el piso
         if (isBloque) {
-          const losa = new THREE.Mesh(new THREE.BoxGeometry(largoVisible + 0.12, 0.03, profInf + 0.12), new THREE.MeshLambertMaterial({ color: COLOR.losa, transparent: true, opacity: 0.55 }));
-          losa.position.set(0, 0.015, profInf / 2);
+          const losa = new THREE.Mesh(new THREE.BoxGeometry(largoVisible + 0.5, 0.04, profInf + 0.5), new THREE.MeshLambertMaterial({ color: COLOR.losa, transparent: true, opacity: 0.8 }));
+          losa.position.set(0, 0.02, profInf / 2);
           losa.userData = { pick: true, kind: "losa", t };
           grp.add(losa); pickables.push(losa);
           const et = texto(`${tr.name} · ${fm(largoVisible)} m`, "#ffe082", 0.12); et.position.set(0, hInf + 0.3, profInf / 2); grp.add(et);
@@ -339,7 +361,9 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
       return best as { w: Wall; s: number; dist: number } | null;
     };
 
-    let arrastrando: null | { obj: THREE.Object3D; d: any; x0: number; y0: number; grab: number; mundo0: THREE.Vector3; pos0: THREE.Vector3; planoY: number } = null;
+    let arrastrando: null | { obj: THREE.Object3D; d: any; x0: number; y0: number; grab: number; mundo0: THREE.Vector3; pos0: THREE.Vector3; planoY: number; bloque?: THREE.Object3D; bloquePos0?: THREE.Vector3 } = null;
+    // El grupo de la isla/barra (para moverla entera) a partir de una de sus piezas
+    const grupoBloque = (o: THREE.Object3D | null): THREE.Object3D | undefined => { let x = o; while (x) { if (x.userData && x.userData.bloque !== undefined) return x; x = x.parent; } return undefined; };
     const alBajar = (e: PointerEvent) => {
       apunta(e);
       const hit = ray.intersectObjects(pickables, false)[0];
@@ -359,7 +383,8 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
       }
       controls.enabled = false;
       cv.setPointerCapture(e.pointerId);
-      arrastrando = { obj: hit.object, d, x0: e.clientX, y0: e.clientY, grab, mundo0: p0, pos0: hit.object.position.clone(), planoY };
+      const gb = grupoBloque(hit.object);   // arrastrar cualquier parte de la isla/barra mueve TODO el bloque (los módulos se reordenan con ◀ ▶)
+      arrastrando = { obj: hit.object, d, x0: e.clientX, y0: e.clientY, grab, mundo0: p0, pos0: hit.object.position.clone(), planoY, bloque: gb, bloquePos0: gb?.position.clone() };
     };
     let paredToque: null | { t: number; x: number; y: number } = null;
     const alMover = (e: PointerEvent) => {
@@ -371,7 +396,8 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
       const d = arrastrando.d;
       // vista previa: el objeto sigue el dedo (al soltar se acomoda con el imán)
       const par = arrastrando.obj.parent!;
-      if (d.kind === "losa") { par.position.set(P.x - 0, 0, P.z - 0); }
+      if (arrastrando.bloque && arrastrando.bloquePos0) { arrastrando.bloque.position.set(arrastrando.bloquePos0.x + (P.x - arrastrando.mundo0.x), 0, arrastrando.bloquePos0.z + (P.z - arrastrando.mundo0.z)); }
+      else if (d.kind === "losa") { par.position.set(P.x - 0, 0, P.z - 0); }
       else { const loc = par.worldToLocal(P.clone()); arrastrando.obj.position.x = loc.x - arrastrando.grab + d.w / 2 + (par.userData?.bloque !== undefined ? -(ultimo.current.plan.tramos[d.t].length || 0) / 2 : 0); }
       dibujar();
     };
@@ -391,8 +417,9 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
       const P = enPlano(a.planoY);
       if (!P) { construir(); return; }
       const { onEdit, moveTramo, dropMod, dropTallTo, plan } = ultimo.current;
-      if (d.kind === "losa") {
-        onEdit((p) => { const tr = p.tramos[d.t]; tr.pos = { x: round2(P.x), z: round2(P.z), rot: tr.pos?.rot ?? posBloque(d.t, 0, tr.length).rot }; });
+      if (a.bloque && a.bloquePos0) {   // se soltó la isla/barra: queda donde se dejó
+        const nx = round2(a.bloquePos0.x + (P.x - a.mundo0.x)), nz = round2(a.bloquePos0.z + (P.z - a.mundo0.z));
+        onEdit((p) => { const tr = p.tramos[d.t]; tr.pos = { x: nx, z: nz, rot: tr.pos?.rot ?? posBloque(d.t, 0, tr.length).rot }; });
         return;
       }
       const esBloque = !!plan.tramos[d.t]?.isIsland;
@@ -424,6 +451,13 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
 
     api.current = {
       rebuild: construir,
+      mover: (t, along, away) => {
+        const tr = ultimo.current.plan.tramos[t]; const w0 = paredes[0];
+        if (!tr || !w0) return null;
+        const idx = ultimo.current.plan.tramos.filter((x, k) => x.isIsland && k < t).length;
+        const base = posBloque(t, idx, tr.length || 0);
+        return { x: round2(base.x + w0.ux * along + w0.nx * w0.sg * away), z: round2(base.z + w0.uz * along + w0.nz * w0.sg * away), rot: base.rot };
+      },
       vista,
       // Foto del 3D (1200×800) para el PDF de la cotización y para el diseñador: sin selección, con las medidas puestas
       capturar: (v) => {
@@ -463,7 +497,24 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
     <div ref={caja} data-pantalla-completa={pantalla ? "1" : undefined} className={`${pantalla ? "bg-[#0f1a1d] flex flex-col md:flex-row" : "relative rounded-lg border border-white/10 overflow-hidden bg-black/20"}`} style={pantalla ? { position: "fixed", inset: 0, zIndex: 70, height: "100%", width: "100%" } : { height: props.altura ?? 420 }}>
      <div className={pantalla ? "relative flex-1 min-h-[45%] md:min-h-0" : "contents"}>
       <div ref={host} className="absolute inset-0" />
+      {props.resumen && props.resumen.length > 0 && (
+        <div className="absolute bottom-8 left-2 z-10 flex flex-col-reverse gap-1.5 max-w-[60%] pointer-events-none">
+          {props.resumen.map((r, i) => {
+            const fa = r.largo - r.llevaAbajo, fs = r.llevaArriba === null ? 0 : r.largo - r.llevaArriba;
+            const col = (f: number) => (f < -0.005 ? "text-red-300" : f < 0.005 ? "text-emerald-300" : "text-amber-300");
+            const txt = (f: number) => (f < -0.005 ? `te pasas ${(-f).toFixed(2)}` : f < 0.005 ? "completo ✓" : `FALTAN ${f.toFixed(2)}`);
+            return (
+              <div key={i} className={`rounded-lg border px-2.5 py-1.5 backdrop-blur-sm ${r.activa ? "bg-primary/30 border-primary" : "bg-black/60 border-white/15"}`}>
+                <p className="text-[11px] font-bold text-white leading-tight">{r.nombre} · {r.largo.toFixed(2)} m</p>
+                <p className={`text-xs font-bold leading-tight ${col(fa)}`}>▼ Abajo: {txt(fa)} <span className="text-white/50 font-normal">(lleva {r.llevaAbajo.toFixed(2)})</span></p>
+                {r.llevaArriba !== null && <p className={`text-xs font-bold leading-tight ${col(fs)}`}>▲ Arriba: {txt(fs)} <span className="text-white/50 font-normal">(lleva {r.llevaArriba.toFixed(2)})</span></p>}
+              </div>
+            );
+          })}
+        </div>
+      )}
       <div className="absolute top-2 right-2 flex gap-1.5 flex-wrap justify-end">
+        {props.onDeshacer && <button type="button" disabled={!props.puedeDeshacer} onClick={props.onDeshacer} className="px-3 py-1.5 rounded bg-amber-600 text-white text-xs font-bold border border-amber-300/60 min-h-[32px] disabled:opacity-35" title="Vuelve atrás el último cambio">↶ Deshacer</button>}
         {([["iso", "3D"], ["arriba", "Arriba"], ["frente", "Frente"]] as const).map(([v, t]) => (
           <button key={v} type="button" onClick={() => api.current?.vista(v)} className="px-2.5 py-1.5 rounded bg-black/60 text-white text-xs font-semibold border border-white/20 min-h-[32px]">{t}</button>
         ))}
@@ -472,7 +523,7 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
       </div>
       <p className="absolute bottom-1.5 left-2 right-2 text-[10px] text-white/50 pointer-events-none">Gira y acerca con los dedos · toca un módulo para elegirlo · arrástralo a la pared que quieras (se pega solo) · toca una pared para agregarle módulos · la isla y la barra se mueven por el piso</p>
      </div>
-     {pantalla && props.panel && <div className="md:w-[420px] md:shrink-0 flex-1 md:flex-none overflow-y-auto p-3 border-t md:border-t-0 md:border-l border-white/10 bg-background">{props.panel}</div>}
+     {pantalla && props.panel && <div ref={panelRef} className="md:w-[470px] md:shrink-0 flex-1 md:flex-none overflow-y-auto overscroll-contain p-3 border-t md:border-t-0 md:border-l border-white/10 bg-background">{props.panel}</div>}
     </div>
   );
   return pantalla ? createPortal(<div style={{ pointerEvents: "auto" }}>{marco}</div>, document.body) : marco;

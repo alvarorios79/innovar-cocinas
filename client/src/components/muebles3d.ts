@@ -117,14 +117,20 @@ export function crearMueble3D(key: string, row: "upper" | "lower" | "tall", w: n
     const z = d / 2 + 0.004;
     switch (key) {
       case "moduloExtractor": case "moduloExtractorMicroondas": {
-        // campana: tronco de pirámide y chimenea hasta el techo
-        const campH = Math.min(0.42, h * 0.55);
-        const camp = new THREE.Mesh(new THREE.CylinderGeometry(w * 0.2, w * 0.62, campH, 4, 1), mat(C.acero));
-        camp.rotation.y = Math.PI / 4; camp.scale.set(1, 1, d / w * 1.1); camp.position.set(0, campH / 2, 0.02); g.add(camp);
-        caja(g, w * 0.34, h - campH, d * 0.55, 0, campH + (h - campH) / 2, -d * 0.1, C.acero);
-        caja(g, w * 0.6, 0.012, 0.012, 0, 0.03, d / 2 + 0.02, 0x2b3036);
-        if (key === "moduloExtractorMicroondas") { caja(g, w * 0.7, 0.28, 0.02, 0, 0.2, d / 2 + 0.02, C.negro); caja(g, w * 0.5, 0.2, 0.024, -0.04, 0.2, d / 2 + 0.025, C.vidrioHorno); }
-        cuerpo.visible = false;
+        // Módulo de 0,70 m: el extractor va en la parte de ABAJO (frente de acero con su luz y sus botones) y arriba lleva puerta
+        const hExt = Math.min(0.32, h * 0.38);
+        caja(g, w - 0.02, hExt, d - 0.02, 0, hExt / 2 + 0.005, 0.0, C.acero);                              // cuerpo del extractor
+        caja(g, w - 0.04, hExt * 0.55, 0.014, 0, hExt * 0.55, d / 2 + 0.006, C.aceroOsc);                    // frente de acero
+        caja(g, w - 0.14, 0.012, 0.018, 0, hExt * 0.9, d / 2 + 0.01, 0x2b3036);                              // manija
+        [-0.12, 0, 0.12].forEach((fx) => cilindro(g, 0.012, 0.012, 0.012, fx * (w / 0.7), hExt * 0.3, d / 2 + 0.014, 0x15181b, 8).rotation.x = Math.PI / 2);   // botones
+        caja(g, w * 0.5, 0.006, d * 0.7, 0, 0.004, 0.0, 0xfff2b0);                                          // luz de la campana
+        if (key === "moduloExtractorMicroondas") {
+          caja(g, w - 0.03, 0.26, 0.02, 0, hExt + 0.17, z + 0.005, C.negro);
+          caja(g, w * 0.62, 0.17, 0.024, -0.03, hExt + 0.17, z + 0.012, C.vidrioHorno);
+          puertas(g, w, h - hExt - 0.3, d, hExt + 0.3, 1, false);
+        } else {
+          puertas(g, w, h - hExt, d, hExt, nPuertas(w) > 2 ? 2 : nPuertas(w), false);                       // arriba: puerta(s)
+        }
         break;
       }
       case "moduloMicroondas":

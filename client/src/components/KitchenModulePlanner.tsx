@@ -22,6 +22,8 @@ interface Props {
   onSpecialToggle?: (key: string, on: boolean) => void;
   /** Cambia el plano Y marca/desmarca un módulo alto en UNA sola actualización (dos seguidas se pisan entre sí) */
   onPlanSpecial?: (plan: ModulePlan, key: string, on: boolean) => void;
+  /** Devuelve el plano y los módulos altos marcados a un estado anterior (botón «Deshacer») en una sola actualización */
+  onRestaurar?: (plan: ModulePlan, especiales: Record<string, boolean>) => void;
   /** La cotización pide aquí las fotos del 3D (iso, arriba, frente) al guardar: van al PDF y al proyecto (Diseño). Devuelve [] si el 3D no está a la vista. */
   capturaRef?: { current: null | (() => string[]) };
 }
@@ -84,7 +86,7 @@ function Cota({ w }: { w: number }) {
 
 type Sel = { t: number; row: PlanRow; id: string } | { t: number; tall: string } | null;
 
-export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlanSpecial, capturaRef }: Props) {
+export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlanSpecial, onRestaurar, capturaRef }: Props) {
   const visor3d = useRef<PlanoModulos3DRef>(null);
   const plan = useMemo(() => normalizePlan(config?.modulePlan, config), [config]);
   const result = useMemo(() => computePlan(plan, config), [plan, config]);
@@ -135,7 +137,24 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
     return () => { capturaRef.current = null; };
   });
 
+  // Historial para «Deshacer»: antes de cada cambio se guarda cómo estaba el plano (y los módulos altos marcados)
+  const historial = useRef<Array<{ plan: ModulePlan; especiales: Record<string, boolean> }>>([]);
+  const [nHistorial, setNHistorial] = useState(0);
+  const guardarHistorial = () => {
+    historial.current.push({ plan: JSON.parse(JSON.stringify(plan)), especiales: { ...(config?.specialModules || {}) } });
+    if (historial.current.length > 50) historial.current.shift();
+    setNHistorial(historial.current.length);
+  };
+  const deshacer = () => {
+    const ult = historial.current.pop();
+    setNHistorial(historial.current.length);
+    if (!ult) return;
+    setSel(null);
+    if (onRestaurar) onRestaurar(ult.plan, ult.especiales); else onChange(ult.plan);
+  };
+
   const edit = (fn: (p: ModulePlan) => void) => {
+    guardarHistorial();
     const p: ModulePlan = JSON.parse(JSON.stringify(plan));
     fn(p);
     try { tidyPlan(p, config); } catch { /* si algo falla, se deja el plan como quedó */ }
@@ -145,6 +164,7 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
   // Agrega un módulo alto en la pared elegida: plano + casilla de la cotización en una sola actualización
   const agregarAlto = (key: string, t: number) => {
     if (!onPlanSpecial) { edit(p => { p.specialTramo = { ...(p.specialTramo || {}), [key]: t }; }); onSpecialToggle?.(key, true); return; }
+    guardarHistorial();
     const p: ModulePlan = JSON.parse(JSON.stringify(plan));
     p.specialTramo = { ...(p.specialTramo || {}), [key]: t };
     try { tidyPlan(p, { ...config, specialModules: { ...(config?.specialModules || {}), [key]: true } }); } catch { /* se deja como quedó */ }
@@ -516,60 +536,58 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
   // Esquinas de la cocina: en L una (A–B) y en U dos (A–B y B–C). El esquinero va siempre en la esquina y se puede girar a la otra.
   const esquinas = esquinasDeLayout(config?.layout).filter(o => plan.tramos[o] && plan.tramos[o + 1] && !plan.tramos[o].isIsland && !plan.tramos[o + 1].isIsland);
   const nombreEsquina = (o: number) => `${plan.tramos[o].name.replace("Pared ", "")}–${plan.tramos[o + 1].name.replace("Pared ", "")}`;
+  const quitarAlto = (key: string) => { guardarHistorial(); onSpecialToggle?.(key, false); };
+  // Tarjetas claras: arriba el icono y el nombre, en medio la medida, abajo los botones grandes − / cantidad / +
+  const btnCant = "h-10 rounded-lg bg-white/10 hover:bg-white/25 active:bg-white/30 text-lg font-bold text-white disabled:opacity-30";
+  const claseTarjeta = (cnt: number, tono: "lower" | "upper" | "tall", apagada: boolean) =>
+    `rounded-xl border-2 p-3 flex flex-col gap-2.5 min-w-0 ${apagada ? "opacity-35" : ""} ${cnt > 0
+      ? (tono === "upper" ? "bg-purple-900/35 border-purple-400/70" : tono === "tall" ? "bg-amber-900/35 border-amber-400/70" : "bg-teal-900/40 border-primary/70")
+      : "bg-white/[0.04] border-white/15"}`;
   const renderPaletaUnica = () => {
     const tarjeta = (o: { key: string; label: string; width: number; locked?: boolean; corner?: boolean }, row: PlanRow) => {
+      const cnt = cuentaDe(o.key);
       if (o.corner) {
-        const cnt = cuentaDe(o.key);
         return (
-          <div key={o.key} className={`rounded border p-2 flex flex-col gap-1.5 ${esquinas.length === 0 ? "opacity-40" : ""} ${cnt > 0 ? (row === "upper" ? "bg-purple-900/30 border-purple-400/50" : "bg-teal-900/40 border-primary/50") : "bg-white/[0.03] border-white/10"}`}>
-            <div className="flex items-center gap-2 text-left">
-              <ModuleIcon k={o.key} size={30} className="shrink-0 text-white/80" />
-              <span className="text-xs font-semibold text-white/85 leading-tight">{o.label}</span>
+          <div key={o.key} className={claseTarjeta(cnt, row, esquinas.length === 0)}>
+            <div className="flex items-start gap-2 min-w-0">
+              <ModuleIcon k={o.key} size={34} className="shrink-0 text-white/85" />
+              <span className="text-sm font-semibold text-white leading-snug break-words">{o.label}</span>
             </div>
-            <div className="flex items-center justify-between gap-1 flex-wrap">
-              <span className="text-xs font-mono text-white/60" title="Medida fija">🔒 {m2(o.width)} m</span>
-              <span className="flex items-center gap-1">
-                <button type="button" className="w-8 h-8 rounded bg-white/10 hover:bg-white/25 disabled:opacity-30" disabled={cnt === 0} onClick={() => quitarUno(o.key, row)}>−</button>
-                <span className={`w-5 text-center font-mono text-sm ${cnt > 0 ? "text-white font-bold" : "text-white/40"}`}>{cnt}</span>
-              </span>
-            </div>
+            <div className="text-xs text-white/70">🔒 Medida fija {m2(o.width)} × {m2(o.width)} m (en «L») · Llevas: <b className="text-white text-sm">{cnt}</b></div>
             {esquinas.length === 0
-              ? <p className="text-[10px] text-white/45">Solo en cocinas en L o en U</p>
-              : <div className="flex flex-wrap gap-1">{esquinas.map(e => {
-                  // un esquinero es UNA «L» por esquina: si esa esquina ya lo tiene, no se agrega otro
+              ? <p className="text-xs text-white/55">Solo en cocinas en L o en U</p>
+              : <div className="flex flex-col gap-1.5">{esquinas.map(e => {
                   const ocupada = plan.tramos[e][row].some(x => x.key === o.key && x.alsoTramo !== undefined);
                   return (
-                    <button key={e} type="button" disabled={ocupada} className="px-2 h-8 rounded bg-white/10 hover:bg-white/25 disabled:opacity-35 text-[11px] font-semibold text-white/85"
+                    <button key={e} type="button" disabled={ocupada} className="h-10 rounded-lg bg-white/10 hover:bg-white/25 disabled:opacity-40 text-sm font-semibold text-white px-2"
                       title={ocupada ? `La esquina ${nombreEsquina(e)} ya tiene su esquinero` : `Poner en la esquina ${nombreEsquina(e)}`} onClick={() => edit(p => { addModuleToPlan(p, e, row, o.key, config); })}>
                       {ocupada ? `✓ Esquina ${nombreEsquina(e)}` : `+ Esquina ${nombreEsquina(e)}`}
                     </button>
                   );
-                })}</div>}
+                })}
+                {cnt > 0 && <button type="button" className="h-9 rounded-lg bg-red-900/40 hover:bg-red-900/60 text-xs font-semibold text-red-100" onClick={() => quitarUno(o.key, row)}>− Quitar uno</button>}
+              </div>}
           </div>
         );
       }
       const bloqueado = row === "upper" && !!trAct?.isIsland;
-      const cnt = cuentaDe(o.key);
       const curW = (!o.locked && plan.defaultWidth?.[o.key]) || o.width;
       return (
-        <div key={o.key} className={`rounded border p-2 flex flex-col gap-1.5 ${bloqueado ? "opacity-35" : ""} ${cnt > 0 ? (row === "upper" ? "bg-purple-900/30 border-purple-400/50" : "bg-teal-900/40 border-primary/50") : "bg-white/[0.03] border-white/10"}`}>
-          <button type="button" disabled={bloqueado} className="flex items-center gap-2 text-left" title={`Agregar a ${trAct?.name}`}
-            onClick={() => edit(p => { addModuleToPlan(p, tAct, row, o.key, config); })}>
-            <ModuleIcon k={o.key} size={30} className="shrink-0 text-white/80" />
-            <span className="text-xs font-semibold text-white/85 leading-tight">{o.label}</span>
-          </button>
-          <div className="flex items-center justify-between gap-1">
-            {o.locked ? <span className="text-xs font-mono text-white/60" title="Medida fija">🔒 {m2(o.width)} m</span> : (
-              <label className="flex items-center gap-1 text-xs text-white/70">
+        <div key={o.key} className={claseTarjeta(cnt, row, bloqueado)}>
+          <div className="flex items-start gap-2 min-w-0">
+            <ModuleIcon k={o.key} size={34} className="shrink-0 text-white/85" />
+            <span className="text-sm font-semibold text-white leading-snug break-words">{o.label}</span>
+          </div>
+          {o.locked
+            ? <div className="text-xs text-white/70">🔒 Medida fija: <b className="text-white text-sm">{m2(o.width)} m</b></div>
+            : <label className="flex items-center gap-2 text-xs text-white/70">Medida
                 <input type="number" step="0.05" min="0" value={curW} onChange={(e) => edit(p => setTypeWidth(p, tAct, row, o.key, parseFloat(e.target.value) || 0))}
-                  className="w-14 bg-black/30 border-b border-white/40 text-right font-mono text-white focus:outline-none" /> m
-              </label>
-            )}
-            <span className="flex items-center gap-1">
-              <button type="button" className="w-8 h-8 rounded bg-white/10 hover:bg-white/25 disabled:opacity-30" disabled={cnt === 0} onClick={() => quitarUno(o.key, row)}>−</button>
-              <span className={`w-5 text-center font-mono text-sm ${cnt > 0 ? "text-white font-bold" : "text-white/40"}`}>{cnt}</span>
-              <button type="button" className="w-8 h-8 rounded bg-white/10 hover:bg-white/25 disabled:opacity-30" disabled={bloqueado} onClick={() => edit(p => { addModuleToPlan(p, tAct, row, o.key, config); })}>+</button>
-            </span>
+                  className="w-20 h-9 rounded bg-black/40 border border-white/30 text-center font-mono text-sm text-white focus:outline-none focus:border-primary" /> m
+              </label>}
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+            <button type="button" className={btnCant} disabled={cnt === 0} onClick={() => quitarUno(o.key, row)} aria-label="Quitar uno">−</button>
+            <span className={`min-w-[2rem] text-center font-mono text-lg ${cnt > 0 ? "text-white font-bold" : "text-white/40"}`}>{cnt}</span>
+            <button type="button" className={`${btnCant} bg-primary/40 hover:bg-primary/60`} disabled={bloqueado} onClick={() => edit(p => { addModuleToPlan(p, tAct, row, o.key, config); })} aria-label={`Agregar a ${trAct?.name}`}>+</button>
           </div>
         </div>
       );
@@ -578,52 +596,107 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
       const act = specials.find(s => s.key === o.key);
       const bloqueado = !act && !!trAct?.isIsland;
       return (
-        <div key={o.key} className={`rounded border p-2 flex flex-col gap-1.5 ${bloqueado ? "opacity-35" : ""} ${act ? "bg-amber-900/30 border-amber-400/50" : "bg-white/[0.03] border-white/10"}`}>
-          <button type="button" disabled={bloqueado || !onSpecialToggle || !!act} className="flex items-center gap-2 text-left disabled:cursor-default" title={act ? `Está en ${plan.tramos[act.tramo]?.name}` : `Agregar a ${trAct?.name}`}
-            onClick={() => agregarAlto(o.key, tAct)}>
-            <ModuleIcon k={o.key} size={30} className="shrink-0 text-white/80" />
-            <span className="text-xs font-semibold text-white/85 leading-tight">{o.label}</span>
-          </button>
-          <div className="flex items-center justify-between gap-1">
-            <span className="text-xs font-mono text-white/60">{act ? `en ${plan.tramos[act.tramo]?.name}` : `🔒 ${m2(o.width)} m`}</span>
-            <span className="flex items-center gap-1">
-              <button type="button" className="w-8 h-8 rounded bg-white/10 hover:bg-white/25 disabled:opacity-30" disabled={!act || !onSpecialToggle} onClick={() => onSpecialToggle?.(o.key, false)}>−</button>
-              <span className={`w-5 text-center font-mono text-sm ${act ? "text-white font-bold" : "text-white/40"}`}>{act ? 1 : 0}</span>
-              <button type="button" className="w-8 h-8 rounded bg-white/10 hover:bg-white/25 disabled:opacity-30" disabled={bloqueado || !onSpecialToggle || !!act}
-                onClick={() => agregarAlto(o.key, tAct)}>+</button>
-            </span>
+        <div key={o.key} className={claseTarjeta(act ? 1 : 0, "tall", bloqueado)}>
+          <div className="flex items-start gap-2 min-w-0">
+            <ModuleIcon k={o.key} size={34} className="shrink-0 text-white/85" />
+            <span className="text-sm font-semibold text-white leading-snug break-words">{o.label}</span>
+          </div>
+          <div className="text-xs text-white/70">{act ? <>Está en <b className="text-white text-sm">{plan.tramos[act.tramo]?.name}</b></> : <>🔒 Medida fija: <b className="text-white text-sm">{m2(o.width)} m</b></>}</div>
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+            <button type="button" className={btnCant} disabled={!act || !onSpecialToggle} onClick={() => quitarAlto(o.key)} aria-label="Quitar">−</button>
+            <span className={`min-w-[2rem] text-center font-mono text-lg ${act ? "text-white font-bold" : "text-white/40"}`}>{act ? 1 : 0}</span>
+            <button type="button" className={`${btnCant} bg-primary/40 hover:bg-primary/60`} disabled={bloqueado || !onSpecialToggle || !!act} onClick={() => agregarAlto(o.key, tAct)} aria-label={`Agregar a ${trAct?.name}`}>+</button>
           </div>
         </div>
       );
     };
+    const rejilla = "grid grid-cols-1 min-[420px]:grid-cols-2 xl:grid-cols-3 gap-2.5";
     return (
-      <div className="space-y-3">
-        {/* A qué pared se agregan los módulos nuevos, y cuánto lleva cada una */}
-        <div className="rounded-lg border border-white/10 bg-black/10 p-2 space-y-2">
-          <p className="text-xs font-semibold text-white/80">Agregar módulos a:</p>
-          <div className="flex flex-wrap gap-1.5">
+      <div className="space-y-4">
+        {/* A qué pared se agregan los módulos nuevos, y cuánto FALTA en cada una para llenar el muro */}
+        <div className="rounded-xl border-2 border-white/15 bg-black/20 p-3 space-y-2.5">
+          <p className="text-sm font-bold text-white">Agregar módulos a la pared:</p>
+          <div className="grid grid-cols-1 gap-2">
             {plan.tramos.map((tt, i) => {
-              const li = rowUsed(plan, i, "lower", config), ls = tt.isIsland ? 0 : rowUsed(plan, i, "upper", config);
-              const sobra = tt.length > 0 && (li > tt.length + 0.005 || ls > tt.length + 0.005);
+              const li = rowUsed(plan, i, "lower", config), ls = tt.isIsland ? null : rowUsed(plan, i, "upper", config);
+              const barra = (lleva: number, largo: number) => {
+                const pct = largo > 0 ? Math.min(100, (lleva / largo) * 100) : 0, falta = largo - lleva;
+                const col = falta < -0.005 ? "bg-red-500" : falta < 0.005 ? "bg-emerald-500" : "bg-amber-500";
+                const txt = falta < -0.005 ? `Te pasas ${m2(-falta)} m` : falta < 0.005 ? "Completo ✓" : `FALTAN ${m2(falta)} m`;
+                return { pct, col, txt, tc: falta < -0.005 ? "text-red-300" : falta < 0.005 ? "text-emerald-300" : "text-amber-300" };
+              };
+              const bi = barra(li, tt.length), bs = ls === null ? null : barra(ls, tt.length);
               return (
                 <button key={i} type="button" onClick={() => setActivaT(i)}
-                  className={`px-3 py-2 rounded-lg border text-left min-h-[44px] ${i === tAct ? "bg-primary/25 border-primary text-white" : "border-white/15 text-white/70"}`}>
-                  <span className="block text-xs font-bold">{tt.name} · {m2(tt.length)} m</span>
-                  <span className={`block text-[10px] ${sobra ? "text-red-300" : "text-white/55"}`}>
-                    abajo {m2(li)}{tt.length > 0 ? ` (faltan ${m2(Math.max(0, tt.length - li))})` : ""}{!tt.isIsland ? ` · arriba ${m2(ls)}${tt.length > 0 ? ` (faltan ${m2(Math.max(0, tt.length - ls))})` : ""}` : ""}
+                  className={`w-full text-left rounded-xl border-2 px-3 py-2.5 ${i === tAct ? "bg-primary/25 border-primary" : "border-white/15 hover:border-white/30"}`}>
+                  <span className="flex items-center justify-between gap-2">
+                    <span className="text-sm font-bold text-white">{i === tAct ? "● " : "○ "}{tt.name}</span>
+                    <span className="text-xs text-white/60">mide {m2(tt.length)} m</span>
+                  </span>
+                  <span className="block mt-1.5 space-y-1.5">
+                    <span className="block">
+                      <span className="flex justify-between text-xs"><span className="text-white/75">▼ Abajo · lleva {m2(li)}</span><span className={`font-bold ${bi.tc}`}>{bi.txt}</span></span>
+                      <span className="block h-2 rounded bg-white/10 overflow-hidden"><span className={`block h-full ${bi.col}`} style={{ width: `${bi.pct}%` }} /></span>
+                    </span>
+                    {bs && ls !== null && (
+                      <span className="block">
+                        <span className="flex justify-between text-xs"><span className="text-white/75">▲ Arriba · lleva {m2(ls)}</span><span className={`font-bold ${bs.tc}`}>{bs.txt}</span></span>
+                        <span className="block h-2 rounded bg-white/10 overflow-hidden"><span className={`block h-full ${bs.col}`} style={{ width: `${bs.pct}%` }} /></span>
+                      </span>
+                    )}
                   </span>
                 </button>
               );
             })}
           </div>
-          <p className="text-[10px] text-white/40">También puedes tocar una pared en el 3D. Los módulos se pueden arrastrar a otra pared, o tocarlos y usar «Pasar a…».</p>
+          <p className="text-xs text-white/55">Toca una pared (aquí o en el 3D) para elegirla. Los módulos nuevos se agregan a la pared elegida y los puedes arrastrar a otra o tocarlos y usar «Pasar a…».</p>
         </div>
-        <div className="rounded px-3 py-1.5 bg-teal-900/50 border border-primary/40 text-xs font-bold uppercase tracking-widest text-teal-200">▼ Módulos inferiores</div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5">{CATALOG.filter(c => c.row === "lower").map(c => tarjeta(c, "lower"))}</div>
-        <div className="rounded px-3 py-1.5 bg-purple-900/50 border border-purple-400/40 text-xs font-bold uppercase tracking-widest text-purple-200">▲ Módulos superiores</div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5">{CATALOG.filter(c => c.row === "upper").map(c => tarjeta(c, "upper"))}</div>
-        <div className="rounded px-3 py-1.5 bg-amber-900/40 border border-amber-400/40 text-xs font-bold uppercase tracking-widest text-amber-200">▮ Módulos altos (piso a techo)</div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5">{SPECIALS.map(o => tarjetaAlta(o))}</div>
+        {renderControlesBloque()}
+        <div className="rounded-lg px-3 py-2 bg-teal-900/60 border border-primary/50 text-sm font-bold uppercase tracking-wider text-teal-100">▼ Módulos inferiores</div>
+        <div className={rejilla}>{CATALOG.filter(c => c.row === "lower").map(c => tarjeta(c, "lower"))}</div>
+        <div className="rounded-lg px-3 py-2 bg-purple-900/60 border border-purple-400/50 text-sm font-bold uppercase tracking-wider text-purple-100">▲ Módulos superiores</div>
+        <div className={rejilla}>{CATALOG.filter(c => c.row === "upper").map(c => tarjeta(c, "upper"))}</div>
+        <div className="rounded-lg px-3 py-2 bg-amber-900/60 border border-amber-400/50 text-sm font-bold uppercase tracking-wider text-amber-100">▮ Módulos altos (piso a techo)</div>
+        <div className={rejilla}>{SPECIALS.map(o => tarjetaAlta(o))}</div>
+      </div>
+    );
+  };
+
+  // Mover la isla / la barra (bloques sueltos): flechas a lo largo de la pared A y hacia/desde ella, y giro de 90°
+  const [pasoMover, setPasoMover] = useState(0.1);
+  const renderControlesBloque = () => {
+    const tB = trAct?.isIsland ? tAct : (sel && sel.t !== undefined && plan.tramos[sel.t]?.isIsland ? sel.t : -1);
+    if (tB < 0) return null;
+    const nombre = plan.tramos[tB].name;
+    const mover = (along: number, away: number) => {
+      const np = visor3d.current?.mover(tB, along * pasoMover, away * pasoMover);
+      if (np) edit(p => { p.tramos[tB].pos = { x: np.x, z: np.z, rot: p.tramos[tB].pos?.rot ?? np.rot }; });
+    };
+    const girar = (g: number) => {
+      const np = visor3d.current?.mover(tB, 0, 0);
+      if (np) edit(p => { const t0 = p.tramos[tB]; t0.pos = { x: t0.pos?.x ?? np.x, z: t0.pos?.z ?? np.z, rot: (((t0.pos?.rot ?? np.rot) + g) % 360 + 360) % 360 }; });
+    };
+    const b = "h-11 rounded-lg bg-white/10 hover:bg-white/25 active:bg-white/30 text-white text-base font-bold";
+    return (
+      <div className="rounded-xl border-2 border-amber-400/50 bg-amber-900/20 p-3 space-y-2.5">
+        <p className="text-sm font-bold text-amber-100">Mover «{nombre}» (con todos sus módulos)</p>
+        <p className="text-xs text-white/60">También puedes arrastrar la base amarilla en el 3D. Las flechas son respecto a la pared A.</p>
+        <div className="grid grid-cols-3 gap-1.5 max-w-[260px]">
+          <span /><button type="button" className={b} onClick={() => mover(0, -1)} title="Acercar a la pared A">▲ Acercar</button><span />
+          <button type="button" className={b} onClick={() => mover(-1, 0)} title="A la izquierda">◀</button>
+          <button type="button" className="h-11 rounded-lg bg-white/5 text-[11px] text-white/50" onClick={() => edit(p => { delete p.tramos[tB].pos; })}>Volver a su lugar</button>
+          <button type="button" className={b} onClick={() => mover(1, 0)} title="A la derecha">▶</button>
+          <span /><button type="button" className={b} onClick={() => mover(0, 1)} title="Alejar de la pared A">▼ Alejar</button><span />
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <button type="button" className={`${b} px-3`} onClick={() => girar(-90)}>↺ Girar 90°</button>
+          <button type="button" className={`${b} px-3`} onClick={() => girar(90)}>↻ Girar 90°</button>
+          <label className="flex items-center gap-1 text-xs text-white/70">Paso
+            <select value={pasoMover} onChange={(e) => setPasoMover(parseFloat(e.target.value))} className="h-10 rounded bg-black/40 border border-white/30 text-white text-sm px-1">
+              <option value={0.05}>5 cm</option><option value={0.1}>10 cm</option><option value={0.25}>25 cm</option><option value={0.5}>50 cm</option>
+            </select>
+          </label>
+        </div>
       </div>
     );
   };
@@ -715,7 +788,9 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
                   ref={visor3d}
                   plan={plan} config={config} sel={sel} onSelect={setSel} onEdit={edit} onFalla={() => setVista3d(false)}
                   activa={tAct} onPickPared={setActivaT}
-                  panel={<div className="space-y-3">{renderSelected()}{renderPasarA()}{renderPaletaUnica()}</div>}
+                  onDeshacer={deshacer} puedeDeshacer={nHistorial > 0}
+                  resumen={plan.tramos.map((tt, i) => ({ nombre: tt.name, largo: tt.length, llevaAbajo: rowUsed(plan, i, "lower", config), llevaArriba: tt.isIsland ? null : rowUsed(plan, i, "upper", config), activa: i === tAct }))}
+                  panel={<div className="space-y-4"><button type="button" onClick={deshacer} disabled={nHistorial === 0} className="w-full h-11 rounded-lg bg-amber-600 hover:bg-amber-500 disabled:opacity-35 text-white text-sm font-bold">↶ Deshacer el último cambio ({nHistorial})</button>{renderSelected()}{renderPasarA()}{renderPaletaUnica()}</div>}
                   moveTramo={(p, fromT, row, id, toT, start) => moveModuleToTramo(p, fromT, row, id, toT, start, config)}
                   dropMod={(p, t, row, id, start) => dropModule(p, t, row, id, start, config, true)}
                   dropTallTo={(p, key, tramo, start) => { p.specialTramo = { ...(p.specialTramo || {}), [key]: tramo }; dropTall(p, key, start, config); }}

@@ -26,6 +26,19 @@ export function ProjectModulePlan({ projectId, defaultOpen = true }: { projectId
               <p className="text-sm font-semibold text-white/90">
                 {p.scheme.title}{p.scheme.layout ? <span className="font-normal text-white/50"> · cocina {p.scheme.layout}</span> : null}
               </p>
+              {Array.isArray(p.plano3d) && p.plano3d.length > 0 && (
+                <div className="rounded border border-teal-400/30 bg-teal-900/10 p-3 space-y-2">
+                  <p className="text-xs font-semibold text-teal-200">Distribución en 3D · referencia para el diseñador</p>
+                  <p className="text-[11px] text-white/55">Así se distribuyeron los módulos al cotizar. Es orientativa: sirve para entender la cocina y empezar el modelado y los renders reales; no es el diseño final. Toca una imagen para abrirla o descargarla.</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    {p.plano3d.map((u: string, k: number) => (
+                      <a key={k} href={u} target="_blank" rel="noopener noreferrer" className="block rounded overflow-hidden border border-white/10 hover:border-teal-300/60">
+                        <img src={u} alt={`Distribución de la cocina ${k + 1}`} loading="lazy" className="w-full h-auto" />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
               <PlanSchemeView scheme={p.scheme} showPaint />
               <div className="flex flex-wrap items-center gap-4 text-[11px] text-white/55">
                 <span>🎨 va pintado</span>

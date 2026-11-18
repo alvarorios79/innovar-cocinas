@@ -39,15 +39,53 @@ export function drawSchemePages(doc: any, schemes: SchemeData[], g: Geo, newPage
   let Y = newPage();
   const need = (h: number) => { if (Y + h > PH - 46) Y = newPage(); };
 
+  const con3d = schemes.some(sc => sc.imagenes3d && sc.imagenes3d.length > 0);
   doc.rect(ML, Y, CW, 22).fill(DARK);
   doc.rect(ML, Y, 4, 22).fill(TEAL);
-  doc.fontSize(10).fillColor(WHITE).font("Helvetica-Bold").text("ESQUEMA DE LA COCINA", ML + 12, Y + 6, { width: CW - 20, lineBreak: false });
+  doc.fontSize(10).fillColor(WHITE).font("Helvetica-Bold").text(con3d ? "DISTRIBUCIÓN DE LA COCINA" : "ESQUEMA DE LA COCINA", ML + 12, Y + 6, { width: CW - 20, lineBreak: false });
   Y += 30;
   doc.fontSize(7.5).fillColor(MGRAY).font("Helvetica")
-    .text("Distribución de los módulos que lleva su proyecto, vista de frente. Muebles superiores arriba e inferiores abajo; los módulos de piso a techo cruzan ambas líneas. Medidas de cada módulo en metros.", ML, Y, { width: CW });
-  Y += 22;
+    .text(con3d
+      ? "Así se distribuyen los módulos de su cocina, para que usted entienda mejor el proyecto. Es una guía orientativa, no el diseño final: el diseño definitivo, el modelado 3D y los renders se presentan para su aprobación antes de fabricar. Medidas de cada módulo en metros."
+      : "Distribución de los módulos que lleva su proyecto, vista de frente. Muebles superiores arriba e inferiores abajo; los módulos de piso a techo cruzan ambas líneas. Medidas de cada módulo en metros.", ML, Y, { width: CW });
+  Y += con3d ? 34 : 22;
 
   schemes.forEach(sc => {
+    if (sc.imagenes3d && sc.imagenes3d.length > 0) {
+      // Distribución en 3D: una vista grande y las otras dos al lado, y la lista de módulos con su medida
+      const [iso, ...otras] = sc.imagenes3d;
+      doc.fontSize(9).fillColor(DARK).font("Helvetica-Bold").text(`${sc.title}${sc.layout ? ` — cocina ${sc.layout}` : ""}`, ML, Y, { width: CW, lineBreak: false });
+      Y += 14;
+      const hGrande = Math.min(300, CW / 1.5);
+      need(hGrande + 6);
+      try { doc.image(iso, ML, Y, { fit: [CW, hGrande], align: "center" }); } catch (e) { console.error("[pdf] imagen 3D:", e); }
+      doc.rect(ML, Y, CW, hGrande).lineWidth(0.4).strokeColor(BORDER).stroke();
+      Y += hGrande + 6;
+      if (otras.length) {
+        const wC = (CW - 8) / Math.min(2, otras.length), hC = wC / 1.5;
+        need(hC + 6);
+        otras.slice(0, 2).forEach((im: any, k: number) => {
+          const x = ML + k * (wC + 8);
+          try { doc.image(im, x, Y, { fit: [wC, hC], align: "center" }); } catch (e) { console.error("[pdf] imagen 3D:", e); }
+          doc.rect(x, Y, wC, hC).lineWidth(0.4).strokeColor(BORDER).stroke();
+        });
+        Y += hC + 8;
+      }
+      if (sc.modules.length) {
+        need(14 + Math.ceil(sc.modules.length / 2) * 10);
+        doc.fontSize(8).fillColor(DARK).font("Helvetica-Bold").text("Módulos de la cocina", ML, Y, { width: CW, lineBreak: false });
+        Y += 12;
+        const mitad = Math.ceil(sc.modules.length / 2);
+        [sc.modules.slice(0, mitad), sc.modules.slice(mitad)].forEach((col: any[], k: number) => {
+          col.forEach((m, i) => {
+            doc.fontSize(7).fillColor(DGRAY).font("Helvetica")
+              .text(`• ${m.qty > 1 ? `${m.qty} × ` : ""}${m.label} (${m.widths.map((w: number) => w.toFixed(2)).join(" + ")} m)`, ML + k * (CW / 2), Y + i * 10, { width: CW / 2 - 6, lineBreak: false });
+          });
+        });
+        Y += mitad * 10 + 6;
+      }
+      return;
+    }
     need(30);
     doc.fontSize(9).fillColor(DARK).font("Helvetica-Bold").text(`${sc.title}${sc.layout ? ` — cocina ${sc.layout}` : ""}`, ML, Y, { width: CW, lineBreak: false });
     Y += 15;

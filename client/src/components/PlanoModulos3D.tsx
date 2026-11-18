@@ -87,8 +87,10 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
     const contenido = new THREE.Group(); scene.add(contenido);
     const pickables: THREE.Object3D[] = [];
     let paredes: Wall[] = [];
-    let encuadre = { cx: 0, cz: 0, r: 4 };
+    let encuadre = { cx: 0, cz: 0, r: 4, radio: 3, alto: ALTO_DEF };
     let movido = false;
+    let ocultarSel = false;   // al tomar fotos no se muestra la selección
+    let claro = false;        // fotos para el PDF: fondo claro y letras oscuras (se imprimen mejor)
 
     const limpiar = () => {
       contenido.traverse((o: any) => {
@@ -98,15 +100,16 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
       contenido.clear(); pickables.length = 0;
     };
 
-    const texto = (txt: string, color = "#ffffff", altoM = 0.1) => {
+    const texto = (txt: string, colorIn = "#ffffff", altoM = 0.1) => {
+      const color = claro ? "#1b2b34" : colorIn;
       const c = document.createElement("canvas"); const g = c.getContext("2d")!;
       g.font = "bold 28px sans-serif";
       const w = Math.ceil(g.measureText(txt).width) + 16, h = 38; c.width = w; c.height = h;
       const g2 = c.getContext("2d")!;
-      g2.fillStyle = "rgba(15,26,29,0.72)"; g2.fillRect(0, 0, w, h);
+      g2.fillStyle = claro ? "rgba(255,255,255,0.9)" : "rgba(15,26,29,0.72)"; g2.fillRect(0, 0, w, h);
       g2.font = "bold 28px sans-serif"; g2.fillStyle = color; g2.textAlign = "center"; g2.textBaseline = "middle"; g2.fillText(txt, w / 2, h / 2 + 1);
       const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), depthTest: false, transparent: true }));
-      sp.scale.set(altoM * (w / h), altoM, 1); sp.renderOrder = 6;
+      const k = claro ? 1.5 : 1; sp.scale.set(altoM * k * (w / h), altoM * k, 1); sp.renderOrder = 6;
       return sp;
     };
 
@@ -146,7 +149,8 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
 
     const construir = () => {
       limpiar();
-      const { plan, config, sel } = ultimo.current;
+      const { plan, config } = ultimo.current;
+      const sel = ocultarSel ? null : ultimo.current.sel;
       paredes = geometria();
       if (!paredes.length) { dibujar(); return; }
       const alto = paredes[0].alto;
@@ -155,9 +159,9 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
       // Piso
       const xs = paredes.flatMap((w) => [w.x1, w.x1 + w.ux * w.largo]), zs = paredes.flatMap((w) => [w.z1, w.z1 + w.uz * w.largo]);
       const minX = Math.min(...xs) - 2.5, maxX = Math.max(...xs) + 2.5, minZ = Math.min(...zs) - 2.5, maxZ = Math.max(...zs) + 2.5;
-      const piso = new THREE.Mesh(new THREE.PlaneGeometry(maxX - minX, maxZ - minZ), new THREE.MeshLambertMaterial({ color: COLOR.piso }));
+      const piso = new THREE.Mesh(new THREE.PlaneGeometry(maxX - minX, maxZ - minZ), new THREE.MeshLambertMaterial({ color: claro ? 0xdde5e8 : COLOR.piso }));
       piso.rotation.x = -Math.PI / 2; piso.position.set((minX + maxX) / 2, -0.01, (minZ + maxZ) / 2); contenido.add(piso);
-      const grid = new THREE.GridHelper(Math.max(maxX - minX, maxZ - minZ), Math.round(Math.max(maxX - minX, maxZ - minZ)), 0x35484f, 0x2a3a40);
+      const grid = new THREE.GridHelper(Math.max(maxX - minX, maxZ - minZ), Math.round(Math.max(maxX - minX, maxZ - minZ)), claro ? 0xb7c4ca : 0x35484f, claro ? 0xc9d4d9 : 0x2a3a40);
       grid.position.set((minX + maxX) / 2, 0.001, (minZ + maxZ) / 2); contenido.add(grid);
 
       const sombra = (mesh: THREE.Mesh, c: number, row: PlanRow | "tall", selected: boolean) => {
@@ -189,7 +193,7 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
         } else if (W) {
           grp.position.set(W.x1, 0, W.z1); grp.rotation.y = -Math.atan2(W.uz, W.ux); sg = W.sg;
           // pared
-          const pared = new THREE.Mesh(new THREE.BoxGeometry(W.largo, alto, GROSOR), new THREE.MeshLambertMaterial({ color: COLOR.pared, transparent: true, opacity: 0.22 }));
+          const pared = new THREE.Mesh(new THREE.BoxGeometry(W.largo, alto, GROSOR), new THREE.MeshLambertMaterial({ color: COLOR.pared, transparent: true, opacity: claro ? 0.4 : 0.22 }));
           pared.position.set(W.largo / 2, alto / 2, 0); grp.add(pared);
           // piso/zócalo de la pared: línea de referencia del largo
           const base = new THREE.Mesh(new THREE.BoxGeometry(W.largo, 0.02, GROSOR + 0.02), new THREE.MeshLambertMaterial({ color: 0x00bcd4 })); base.position.set(W.largo / 2, 0.01, 0); grp.add(base);
@@ -260,19 +264,23 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
       paredes.forEach((w) => { pts.push([w.x1, w.z1], [w.x1 + w.ux * w.largo, w.z1 + w.uz * w.largo]); });
       plan.tramos.forEach((tr, t) => { if (tr.isIsland) { const p = posBloque(t, 0, tr.length); pts.push([p.x - tr.length / 2, p.z - 0.6], [p.x + tr.length / 2, p.z + 0.6]); } });
       const mnx = Math.min(...pts.map((q) => q[0])), mxx = Math.max(...pts.map((q) => q[0])), mnz = Math.min(...pts.map((q) => q[1])), mxz = Math.max(...pts.map((q) => q[1]));
-      encuadre = { cx: (mnx + mxx) / 2, cz: (mnz + mxz) / 2, r: Math.max(2.5, Math.hypot(mxx - mnx, mxz - mnz) * 0.75) };
+      encuadre = { cx: (mnx + mxx) / 2, cz: (mnz + mxz) / 2, r: Math.max(2.2, Math.hypot(mxx - mnx, mxz - mnz) * 0.62), radio: Math.max(1.8, Math.hypot(mxx - mnx, mxz - mnz, alto) * 0.55), alto };
       if (!movidoUsuario) vista("iso");
       dibujar();
     };
 
     let movidoUsuario = false;
     controls.addEventListener("start", () => { if (!arrastrando) movidoUsuario = true; });
+    // La cámara se aleja lo justo para que TODA la cocina quepa, sea cual sea la forma y el tamaño de la pantalla
     const vista = (v: "iso" | "arriba" | "frente") => {
-      const { cx, cz, r } = encuadre;
-      controls.target.set(cx, 0.9, cz);
-      if (v === "arriba") camera.position.set(cx, r * 1.9, cz + 0.01);
-      else if (v === "frente") camera.position.set(cx, r * 0.55, cz + r * 1.6);
-      else camera.position.set(cx + r * 0.9, r * 1.05, cz + r * 1.25);
+      const { cx, cz, radio, alto } = encuadre;
+      const vf = (camera.fov * Math.PI) / 180, hf = 2 * Math.atan(Math.tan(vf / 2) * (camera.aspect || 1.5));
+      const dist = (radio * 1.12) / Math.sin(Math.min(vf, hf) / 2);
+      const dir = v === "arriba" ? [0, 1, 0.012] : v === "frente" ? [0, 0.42, 1] : [0.62, 0.62, 0.78];
+      const len = Math.hypot(dir[0], dir[1], dir[2]);
+      const ty = v === "arriba" ? 0 : alto * 0.4;
+      controls.target.set(cx, ty, cz);
+      camera.position.set(cx + (dir[0] / len) * dist, ty + (dir[1] / len) * dist, cz + (dir[2] / len) * dist);
       controls.update(); dibujar();
     };
 
@@ -384,13 +392,23 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
     api.current = {
       rebuild: construir,
       vista,
+      // Foto del 3D (1200×800) para el PDF de la cotización y para el diseñador: sin selección, con las medidas puestas
       capturar: (v) => {
         const prev = { p: camera.position.clone(), t: controls.target.clone() };
-        if (v) vista(v);
-        renderer.render(scene, camera);
-        const url = cv.toDataURL("image/jpeg", 0.9);
-        camera.position.copy(prev.p); controls.target.copy(prev.t); controls.update(); dibujar();
-        return url;
+        try {
+          ocultarSel = true; claro = true; scene.background = new THREE.Color(0xf4f7f8); construir();
+          renderer.setPixelRatio(1); renderer.setSize(1200, 800, false);
+          camera.aspect = 1.5; camera.updateProjectionMatrix();
+          vista(v || "iso");
+          renderer.render(scene, camera);
+          return cv.toDataURL("image/jpeg", 0.9);
+        } catch { return null; }
+        finally {
+          ocultarSel = false; claro = false; scene.background = null;
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+          construir(); ajustar();
+          camera.position.copy(prev.p); controls.target.copy(prev.t); controls.update(); dibujar();
+        }
       },
     };
     construir();

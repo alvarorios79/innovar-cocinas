@@ -23,6 +23,8 @@ export interface SchemeData {
   modules: Array<{ label: string; qty: number; widths: number[] }>;
   pieces: Array<{ label: string; n: number }>;
   warnings: string[];
+  /** Solo servidor (PDF): capturas del plano en 3D (distribución de la cocina), ya descargadas */
+  imagenes3d?: any[];
 }
 
 const LAYOUT_LABELS: Record<string, string> = { lineal: "Lineal", L: "En L", U: "En U", paralela: "Paralela", isla: "Con isla", cuadrada: "Cuadrada", otra: "Otra forma" };

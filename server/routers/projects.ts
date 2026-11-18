@@ -29,13 +29,13 @@ async function loadModuleSchemes(projectId: number) {
   const project = await db.getProjectById(projectId);
   let items: any[] = await db.getLatestQuotationItems(projectId);
   if ((!items || !items.length) && project?.quotationId) items = await db.getQuotationItems(project.quotationId);
-  const out: Array<{ itemNumber: number; scheme: NonNullable<ReturnType<typeof buildScheme>> }> = [];
+  const out: Array<{ itemNumber: number; scheme: NonNullable<ReturnType<typeof buildScheme>>; plano3d: string[] }> = [];
   for (const it of [...(items || [])].sort((a: any, b: any) => (a.itemNumber || 0) - (b.itemNumber || 0))) {
     if (it.itemType !== "cocina" || !it.kitchenConfig) continue;
     let cfg: any = it.kitchenConfig;
     if (typeof cfg === "string") { try { cfg = JSON.parse(cfg); } catch { continue; } }
     const scheme = cfg?.modulePlan?.enabled ? buildScheme(cfg.modulePlan, cfg, `Cocina integral · ítem ${it.itemNumber}`) : null;
-    if (scheme) out.push({ itemNumber: it.itemNumber, scheme });
+    if (scheme) out.push({ itemNumber: it.itemNumber, scheme, plano3d: Array.isArray(cfg?.plano3d?.urls) ? cfg.plano3d.urls : [] });
   }
   return out;
 }

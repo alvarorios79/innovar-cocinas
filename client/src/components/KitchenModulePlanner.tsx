@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo, useRef, useState, type ReactElement, type CSSProperties, type PointerEvent as RPointerEvent } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactElement, type CSSProperties, type PointerEvent as RPointerEvent } from "react";
 import {
   CATALOG, CATALOG_BY_KEY, FILL_KEYS, SPECIALS,
   normalizePlan, computePlan, rowItems, rowUsed, activeSpecials, lateralOn, isPainted,
@@ -13,12 +13,15 @@ import {
 // No cambia precios ni el PDF: guarda su estado en kitchenConfig.modulePlan.
 
 const PlanoModulos3D = lazy(() => import("./PlanoModulos3D"));
+import type { PlanoModulos3DRef } from "./PlanoModulos3D";
 
 interface Props {
   config: any;                       // kitchenConfig del ítem
   onChange: (plan: ModulePlan) => void;
   // Marca / desmarca un módulo de piso a techo en la cotización (specialModules). Si no se pasa, las tarjetas son de solo lectura.
   onSpecialToggle?: (key: string, on: boolean) => void;
+  /** La cotización pide aquí las fotos del 3D (iso, arriba, frente) al guardar: van al PDF y al proyecto (Diseño). Devuelve [] si el 3D no está a la vista. */
+  capturaRef?: { current: null | (() => string[]) };
 }
 
 let PX = 120;        // píxeles por metro en el dibujo
@@ -79,7 +82,8 @@ function Cota({ w }: { w: number }) {
 
 type Sel = { t: number; row: PlanRow; id: string } | { t: number; tall: string } | null;
 
-export function KitchenModulePlanner({ config, onChange, onSpecialToggle }: Props) {
+export function KitchenModulePlanner({ config, onChange, onSpecialToggle, capturaRef }: Props) {
+  const visor3d = useRef<PlanoModulos3DRef>(null);
   const plan = useMemo(() => normalizePlan(config?.modulePlan, config), [config]);
   const result = useMemo(() => computePlan(plan, config), [plan, config]);
   const specials = activeSpecials(plan, config);
@@ -121,6 +125,12 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle }: Prop
       if (cur) edit(p => dropModule(p, t, row, id, cur.start + dM, config, true));
     }
   };
+
+  useEffect(() => {
+    if (!capturaRef) return;
+    capturaRef.current = () => (["iso", "arriba", "frente"] as const).map((v) => visor3d.current?.capturar(v) || "").filter(Boolean);
+    return () => { capturaRef.current = null; };
+  });
 
   const edit = (fn: (p: ModulePlan) => void) => {
     const p: ModulePlan = JSON.parse(JSON.stringify(plan));
@@ -526,6 +536,7 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle }: Prop
             <div className="space-y-2">
               <Suspense fallback={<div className="h-[420px] rounded-lg bg-black/20 border border-white/10 flex items-center justify-center text-xs text-gray-400">Cargando el plano en 3D…</div>}>
                 <PlanoModulos3D
+                  ref={visor3d}
                   plan={plan} config={config} sel={sel} onSelect={setSel} onEdit={edit} onFalla={() => setVista3d(false)}
                   moveTramo={(p, fromT, row, id, toT, start) => moveModuleToTramo(p, fromT, row, id, toT, start, config)}
                   dropMod={(p, t, row, id, start) => dropModule(p, t, row, id, start, config, true)}

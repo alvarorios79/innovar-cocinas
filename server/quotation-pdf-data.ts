@@ -24,7 +24,32 @@ export async function buildQuotationPdfData(quotation: any, client: any, items: 
   // Preparar datos para el PDF
   // Ordenar items por itemNumber
   const sortedItems = [...items].sort((a, b) => (a.itemNumber || 0) - (b.itemNumber || 0));
-  
+
+  // Capturas del plano en 3D (distribución de la cocina) de cada cocina: se descargan aquí para dibujarlas en la última hoja del PDF
+  const imagenes3dDe = new Map<any, Buffer[]>();
+  for (const it of sortedItems) {
+    try {
+      if (it.itemType !== 'cocina' || !it.kitchenConfig) continue;
+      let cfg: any = it.kitchenConfig;
+      if (typeof cfg === 'string') cfg = JSON.parse(cfg);
+      const urls: string[] = Array.isArray(cfg?.plano3d?.urls) ? cfg.plano3d.urls.slice(0, 3) : [];
+      const bufs: Buffer[] = [];
+      for (const u of urls) {
+        try {
+          if (u.startsWith('/local-uploads/')) {   // desarrollo local: el archivo está en la carpeta .local-uploads
+            const fs = await import('fs/promises');
+            bufs.push(await fs.readFile('.' + u.replace('/local-uploads/', '/.local-uploads/')));
+            continue;
+          }
+          const ctl = new AbortController(); const timer = setTimeout(() => ctl.abort(), 10000);
+          const r = await fetch(u, { signal: ctl.signal }); clearTimeout(timer);
+          if (r.ok) bufs.push(Buffer.from(await r.arrayBuffer()));
+        } catch (e) { console.error('[pdf] no se pudo bajar la imagen 3D:', e); }
+      }
+      if (bufs.length) imagenes3dDe.set(it, bufs);
+    } catch (e) { console.error('[pdf] imágenes 3D:', e); }
+  }
+
   const pdfData = {
     quotationNumber: quotation.quotationNumber,
     date: new Date().toLocaleDateString('es-CO', { timeZone: 'America/Bogota' }),
@@ -463,7 +488,7 @@ export async function buildQuotationPdfData(quotation: any, client: any, items: 
           let cfg: any = it.kitchenConfig;
           if (typeof cfg === 'string') cfg = JSON.parse(cfg);
           const sc = cfg?.modulePlan?.enabled ? buildScheme(cfg.modulePlan, cfg, `Cocina integral${sortedItems.filter((x: any) => x.itemType === 'cocina').length > 1 ? ` · ítem ${it.itemNumber}` : ''}`) : null;
-          if (sc) out.push(sc);
+          if (sc) { (sc as any).imagenes3d = imagenes3dDe.get(it) || undefined; out.push(sc); }
         }
       } catch (e) { console.error('[pdf] esquema del plano:', e); }
       return out;

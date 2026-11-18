@@ -590,6 +590,10 @@ export default function Quotations() {
     cerradas: filteredQuotations.filter((g: any) => getQuotationGroup(g) === 'cerradas'),
   };
 
+  // Fotos del plano en 3D (distribución de la cocina): se piden al visor de cada cocina al guardar y se suben una sola vez por cada cambio del plano
+  const uploadPlano3d = trpc.quotations.uploadPlano3d.useMutation();
+  const capturasPlano = useRef<Record<string, { current: null | (() => string[]) }>>({});
+  const capturaDe = (id: string) => (capturasPlano.current[id] ??= { current: null });
   const createQuotation = trpc.quotations.create.useMutation({
     onSuccess: () => {
       utils.quotations.list.invalidate();
@@ -1733,7 +1737,7 @@ export default function Quotations() {
     return items.reduce((sum, item) => sum + item.totalPrice, 0);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!selectedClient) {
@@ -2199,6 +2203,27 @@ export default function Quotations() {
       }
       return item;
     });
+
+    // Distribución de la cocina en 3D: fotos del plano para el PDF (última hoja) y para el diseñador. Si algo falla, la cotización se guarda igual.
+    const hashPlano = (c: any) => { const t = JSON.stringify([c?.modulePlan?.tramos, c?.layout, c?.island?.meters, c?.bar?.meters, c?.modulePlan?.specialTramo, c?.specialModules]); let h = 5381; for (let i = 0; i < t.length; i++) h = ((h << 5) + h + t.charCodeAt(i)) | 0; return String(h); };
+    for (let i = 0; i < itemsWithDescriptions.length; i++) {
+      const it: any = itemsWithDescriptions[i];
+      if (it.itemType !== "cocina" || !it.kitchenConfig?.modulePlan?.enabled) continue;
+      const tieneModulos = (it.kitchenConfig.modulePlan.tramos || []).some((t: any) => (t.upper?.length || 0) + (t.lower?.length || 0) > 0);
+      if (!tieneModulos) continue;
+      const h = hashPlano(it.kitchenConfig);
+      if (it.kitchenConfig.plano3d?.hash === h && it.kitchenConfig.plano3d?.urls?.length) continue;   // no cambió: se reutilizan las fotos
+      try {
+        const fotos = capturasPlano.current[(items[i] as any)?._id]?.current?.() || [];
+        if (fotos.length) {
+          const { urls } = await uploadPlano3d.mutateAsync({ images: fotos });
+          it.kitchenConfig = { ...it.kitchenConfig, plano3d: { urls, hash: h, at: new Date().toISOString() } };
+        }
+      } catch (err) {
+        console.warn("[plano 3D → fotos]", err);
+        toast.warning("No se pudo guardar el dibujo 3D de la cocina; la cotización se guarda igual");
+      }
+    }
 
     // Texto completo de condiciones para las notas del PDF
     const notesWithTerms = `${generalNotes}\n\nCondiciones de pago: ${paymentTerms}\nTiempo de entrega: ${deliveryTime}`;
@@ -3298,6 +3323,7 @@ export default function Quotations() {
                                 config={item.kitchenConfig}
                                 onChange={(plan) => updateKitchenConfig(index, "modulePlan", plan)}
                                 onSpecialToggle={(key, on) => updateKitchenConfig(index, `specialModules.${key}`, on)}
+                                capturaRef={capturaDe(String(item._id))}
                               />
                             )}
 

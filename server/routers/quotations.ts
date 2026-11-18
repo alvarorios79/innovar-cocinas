@@ -252,9 +252,9 @@ function fzStable(v: any): string {
   };
   return JSON.stringify(walk(fzNorm(v)));
 }
-// El plano de módulos (kitchenConfig.modulePlan) es informativo: no debe cambiar la firma que congela precios.
+// El plano de módulos (kitchenConfig.modulePlan) y sus fotos en 3D (plano3d) son informativos: no deben cambiar la firma que congela precios.
 function fzStripPlan(k: any): any {
-  if (k && typeof k === "object" && !Array.isArray(k) && "modulePlan" in k) { const { modulePlan, ...rest } = k; return rest; }
+  if (k && typeof k === "object" && !Array.isArray(k) && ("modulePlan" in k || "plano3d" in k)) { const { modulePlan, plano3d, ...rest } = k; return rest; }
   return k;
 }
 function fzSignature(it: any): string {
@@ -288,6 +288,24 @@ async function saveFieldsOneByOne(id: number, fields: Record<string, any>, tag: 
 }
 
 export const quotationsRouter = router({
+    // Guarda las capturas del plano de módulos en 3D (distribución de la cocina): van en la última hoja del PDF y al proyecto (Diseño).
+    uploadPlano3d: protectedProcedure
+      .input(z.object({ images: z.array(z.string().max(8_000_000)).min(1).max(4) }))
+      .mutation(async ({ ctx, input }) => {
+        if (!["super_admin", "admin", "comercial"].includes(ctx.user.role)) throw new TRPCError({ code: "FORBIDDEN", message: "Sin permisos" });
+        const { storagePut } = await import("../storage");
+        const { compressImage } = await import("../image-utils");
+        const urls: string[] = [];
+        const stamp = Date.now(), rnd = Math.random().toString(36).slice(2, 8);
+        for (let i = 0; i < input.images.length; i++) {
+          let buf = Buffer.from(input.images[i].replace(/^data:[^;]+;base64,/, ""), "base64");
+          try { const c = await compressImage(buf, { maxWidth: 1400, maxHeight: 1000, quality: 86, format: "jpeg" }); buf = Buffer.from(c.buffer); } catch { /* se usa la original */ }
+          const { url } = await storagePut(`quotations/plano3d/${stamp}-${rnd}-${i}.jpg`, buf, "image/jpeg");
+          urls.push(url);
+        }
+        return { urls };
+      }),
+
     // Crear nueva cotización con items
     create: protectedProcedure
       .input(z.object({

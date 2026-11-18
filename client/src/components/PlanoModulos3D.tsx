@@ -392,7 +392,9 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
     const grupoBloque = (o: THREE.Object3D | null): THREE.Object3D | undefined => { let x = o; while (x) { if (x.userData && x.userData.bloque !== undefined) return x; x = x.parent; } return undefined; };
     const alBajar = (e: PointerEvent) => {
       apunta(e);
-      const hit = ray.intersectObjects(pickables, false)[0];
+      // Los módulos tienen prioridad sobre las paredes: si una pared queda entre la cámara y un módulo, se elige el módulo (la pared solo si no hay ningún módulo ahí)
+      const impactos = ray.intersectObjects(pickables, false);
+      const hit = impactos.find((h) => h.object.userData.kind !== "pared") ?? impactos[0];
       movido = false;
       if (!hit) { arrastrando = null; return; }
       const d = hit.object.userData;

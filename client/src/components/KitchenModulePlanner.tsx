@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactElement
 import {
   CATALOG, CATALOG_BY_KEY, FILL_KEYS, SPECIALS,
   normalizePlan, computePlan, rowItems, rowUsed, activeSpecials, lateralOn, isPainted,
-  addModuleToPlan, removeModuleFromPlan, setModuleWidth, moveModule, moveModuleToTramo, primerHueco, setDefaultWidth, esquinasDeLayout, girarEsquinero, espaciosLibres, ampliarMueble, moveTall, dropModule, dropTall, tidyPlan, packRow, setModuleLock, setTypeWidth, alignEnd, rebuildAutoUpper,
+  addModuleToPlan, removeModuleFromPlan, setModuleWidth, moveModule, moveModuleToTramo, primerHueco, setDefaultWidth, esquinasDeLayout, girarEsquinero, espaciosLibres, ampliarMueble, pegarMueble, moveTall, dropModule, dropTall, tidyPlan, packRow, setModuleLock, setTypeWidth, alignEnd, rebuildAutoUpper,
   round2,
   specialWidth,
   type ModulePlan, type PlanModule, type PlanRow, type RowItem,
@@ -460,8 +460,12 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
               <div key={lado} className="rounded-lg bg-black/25 border border-white/15 p-2 space-y-1.5">
                 <p className="text-[11px] text-white/60">{titulo}</p>
                 <p className="text-sm text-white">Libre: <b className={e.libre > 0.005 ? "text-amber-300" : "text-white/50"}>{m2(e.libre)} m</b> <span className="text-[11px] text-white/55">hasta {e.hasta}</span></p>
-                <button type="button" disabled={e.libre < 0.01} className="w-full h-9 rounded-lg bg-primary/40 hover:bg-primary/60 disabled:opacity-30 text-xs font-semibold text-white"
-                  onClick={() => edit(p => { ampliarMueble(p, sel.t, sel.row, mod.id, lado, config); })}>Ampliar hasta {e.hasta}</button>
+                <div className="grid grid-cols-2 gap-1.5">
+                  <button type="button" disabled={e.libre < 0.01} className="h-9 rounded-lg bg-white/10 hover:bg-white/25 disabled:opacity-30 text-xs font-semibold text-white"
+                    title="Mueve el mueble hasta pegarlo, sin cambiarle la medida" onClick={() => edit(p => { pegarMueble(p, sel.t, sel.row, mod.id, lado, config); })}>{lado === "izq" ? "◀ Pegar" : "Pegar ▶"}</button>
+                  <button type="button" disabled={e.libre < 0.01} className="h-9 rounded-lg bg-primary/40 hover:bg-primary/60 disabled:opacity-30 text-xs font-semibold text-white"
+                    title="Agranda el mueble hasta llegar allí" onClick={() => edit(p => { ampliarMueble(p, sel.t, sel.row, mod.id, lado, config); })}>Ampliar</button>
+                </div>
               </div>
             ))}
           </div>

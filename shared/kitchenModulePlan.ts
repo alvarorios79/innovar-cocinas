@@ -441,12 +441,14 @@ export function tidyPlan(p: ModulePlan, config: any) {
 export function setModuleWidth(p: ModulePlan, t: number, row: PlanRow, id: string, w: number, config?: any) {
   const m = p.tramos[t][row].find(x => x.id === id);
   if (m && config) {
-    // Si crece, se come primero el espacio libre de su vecino (los demás no se mueven); si se achica, los demás se corren y no queda hueco.
+    // Los vecinos NO se mueven: si crece, se come primero el espacio libre de su vecino; si se achica, queda un espacio libre a su lado
+    // (así el usuario decide de qué lado juntarlo: «Pegar a la izquierda / a la derecha»).
     const list = ownList(p, t, row, config);
     const i = list.findIndex(e => e.kind === "mod" && e.mod.id === id);
     const next = list[i + 1];
     const delta = round2(w) - m.width;
     if (next && delta > 0) setElGap(p, row, next, elGap(p, row, next) - delta, config);
+    else if (next && delta < 0) setElGap(p, row, next, elGap(p, row, next) - delta, config);   // delta < 0: el hueco queda donde el vecino estaba
   }
   if (m) {
     m.width = round2(w);
@@ -470,6 +472,17 @@ export function espaciosLibres(p: ModulePlan, t: number, row: PlanRow, id: strin
     izq: { libre: Math.max(0, round2(me.start - izqFin)), hasta: i > 0 ? nombre(items[i - 1]) : "el borde de la pared" },
     der: { libre: Math.max(0, round2(derIni - (me.start + me.width))), hasta: i < items.length - 1 ? nombre(items[i + 1]) : "el borde de la pared" },
   };
+}
+
+/** Pega un módulo al vecino (o a la pared) del lado elegido, SIN cambiarle la medida: mueve el mueble hasta que quede a ras. */
+export function pegarMueble(p: ModulePlan, t: number, row: PlanRow, id: string, lado: "izq" | "der", config: any): boolean {
+  const esp = espaciosLibres(p, t, row, id, config);
+  const it = rowItems(p, t, row, config).find(x => x.mod?.id === id && !x.fromPrev);
+  if (!esp || !it) return false;
+  const libre = lado === "der" ? esp.der.libre : esp.izq.libre;
+  if (libre < 0.01) return false;
+  dropModule(p, t, row, id, round2(it.start + (lado === "der" ? libre : -libre)), config, true);
+  return true;
 }
 
 /** Amplía un módulo hasta el vecino (la ventana, otro módulo) o la pared del lado elegido. */

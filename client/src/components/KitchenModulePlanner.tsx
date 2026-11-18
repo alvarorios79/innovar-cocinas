@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactElement
 import {
   CATALOG, CATALOG_BY_KEY, FILL_KEYS, SPECIALS,
   normalizePlan, computePlan, rowItems, rowUsed, activeSpecials, lateralOn, isPainted,
-  addModuleToPlan, removeModuleFromPlan, setModuleWidth, moveModule, moveModuleToTramo, primerHueco, esquinasDeLayout, girarEsquinero, espaciosLibres, ampliarMueble, moveTall, dropModule, dropTall, tidyPlan, packRow, setModuleLock, setTypeWidth, alignEnd, rebuildAutoUpper,
+  addModuleToPlan, removeModuleFromPlan, setModuleWidth, moveModule, moveModuleToTramo, primerHueco, setDefaultWidth, esquinasDeLayout, girarEsquinero, espaciosLibres, ampliarMueble, moveTall, dropModule, dropTall, tidyPlan, packRow, setModuleLock, setTypeWidth, alignEnd, rebuildAutoUpper,
   round2,
   specialWidth,
   type ModulePlan, type PlanModule, type PlanRow, type RowItem,
@@ -512,7 +512,7 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
                   ) : (
                     <label className="flex items-center gap-1 text-xs text-white/70">
                       <input type="number" step="0.05" min="0" value={curW}
-                        onChange={(e) => edit(p => setTypeWidth(p, t, row, o.key, parseFloat(e.target.value) || 0))}
+                        onChange={(e) => edit(p => setDefaultWidth(p, o.key, parseFloat(e.target.value) || 0))}
                         className="w-14 bg-black/30 border-b border-white/40 text-right font-mono text-white focus:outline-none" />
                       m
                     </label>
@@ -609,7 +609,10 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
         );
       }
       const bloqueado = row === "upper" && !!trAct?.isIsland;
-      const curW = (!o.locked && plan.defaultWidth?.[o.key]) || o.width;
+      // Si hay un módulo de este tipo SELECCIONADO, la medida de la tarjeta es la de ESE módulo (y solo la de ese): puede haber varios del mismo tipo con medidas distintas.
+      // Si no hay ninguno seleccionado, la medida es la de los módulos NUEVOS de este tipo; los que ya están puestos no se tocan.
+      const modSel = selKey === o.key && sel && "id" in sel && sel.id !== "__bloque__" ? plan.tramos[sel.t]?.[sel.row].find(m => m.id === sel.id) : undefined;
+      const curW = modSel ? modSel.width : ((!o.locked && plan.defaultWidth?.[o.key]) || o.width);
       return (
         <div key={o.key} data-tarjeta={o.key} className={claseTarjeta(cnt, row, bloqueado, selKey === o.key)}>
           {selKey === o.key && <span className="absolute -top-2.5 right-3 rounded-full bg-cyan-300 px-2 py-0.5 text-[10px] font-extrabold text-slate-900">● SELECCIONADO</span>}
@@ -620,8 +623,12 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
           {o.locked
             ? <div className="text-xs text-white/70">🔒 Medida fija: <b className="text-white text-sm">{m2(o.width)} m</b></div>
             : <div className="space-y-1">
-                <span className="text-xs text-white/70">Medida</span>
-                <MedidaStepper valor={curW} onCambio={(v) => edit(p => setTypeWidth(p, tAct, row, o.key, v))} />
+                <span className={`text-xs ${modSel ? "text-cyan-200 font-semibold" : "text-white/70"}`}>{modSel ? "Medida del módulo seleccionado" : "Medida de los módulos nuevos"}</span>
+                <MedidaStepper valor={curW} onCambio={(v) => edit(p => { if (modSel && sel && "id" in sel) setModuleWidth(p, sel.t, sel.row, sel.id, v, config); else setDefaultWidth(p, o.key, v); })} />
+                {cnt > 1 && !modSel && (
+                  <button type="button" className="text-[11px] text-white/55 underline hover:text-white" title="Pone esta medida a TODOS los de este tipo"
+                    onClick={() => edit(p => { p.tramos.forEach((_, i) => setTypeWidth(p, i, row, o.key, curW)); })}>Igualar los {cnt} a {m2(curW)} m</button>
+                )}
               </div>}
           <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
             <button type="button" className={btnCant} disabled={cnt === 0} onClick={() => quitarUno(o.key, row)} aria-label="Quitar uno">−</button>

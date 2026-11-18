@@ -830,6 +830,14 @@ export function dropTall(p: ModulePlan, key: string, start: number, config: any)
 }
 
 // Ancho de todos los módulos de un tipo en una fila de un tramo (y ancho para los próximos que se agreguen).
+/** Medida que llevarán los módulos NUEVOS de ese tipo. No toca los que ya están puestos (puede haber varios del mismo tipo con medidas distintas). */
+export function setDefaultWidth(p: ModulePlan, key: string, w: number) {
+  const cat = CATALOG_BY_KEY[key];
+  if (!cat || cat.locked) return;
+  p.defaultWidth = { ...(p.defaultWidth || {}), [key]: round2(w) };
+}
+
+/** Pone la MISMA medida a todos los módulos de un tipo en una fila de un tramo (acción explícita: «igualar»). */
 export function setTypeWidth(p: ModulePlan, t: number, row: PlanRow, key: string, w: number) {
   const cat = CATALOG_BY_KEY[key];
   if (!cat || cat.locked) return;

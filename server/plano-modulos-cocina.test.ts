@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { normalizePlan, addModuleToPlan, setModuleWidth, moveModuleToTramo, primerHueco, esquinasDeLayout, girarEsquinero, tidyPlan, dropModule, setModuleWidth, espaciosLibres, ampliarMueble, rebuildAutoUpper, computePlan, ventanasDeLevantamiento, rowItems } from "../shared/kitchenModulePlan";
+import { normalizePlan, addModuleToPlan, setModuleWidth, moveModuleToTramo, primerHueco, esquinasDeLayout, girarEsquinero, tidyPlan, dropModule, setModuleWidth, setDefaultWidth, espaciosLibres, ampliarMueble, rebuildAutoUpper, computePlan, ventanasDeLevantamiento, rowItems } from "../shared/kitchenModulePlan";
 import { buildKitchenQuoteDescription } from "./kitchen-description";
 
 // ¿El plano de módulos describe de verdad la cocina? Se arma una cocina paralela de 2 paredes (3,0 m y 2,4 m),
@@ -268,6 +268,26 @@ describe("Plano 3D: barra como bloque suelto y mover módulos entre paredes", ()
     dropModule(p, 0, "upper", m.id, 0.5, cfg, true); tidyPlan(p, cfg);                             // termina en 1,15: a 0,35 de la ventana (1,50)
     const it = rowItems(p, 0, "upper", cfg).find((i) => i.mod?.id === m.id)!;
     expect(it.start + it.width).toBeCloseTo(1.5, 2);
+  });
+
+  it("varios módulos del mismo tipo con medidas distintas: cambiarle la medida a UNO no mueve a los otros", () => {
+    const cfg = base();
+    let p = planA(cfg);
+    const a = agregar(p, cfg, "upper", "moduloAlmacSup"); p = a.q;
+    const b = agregar(p, cfg, "upper", "moduloAlmacSup"); p = b.q;
+    const c = agregar(p, cfg, "upper", "moduloAlmacSup"); p = c.q;
+    // se les dan medidas distintas
+    for (const [m, w] of [[a.m!, 0.5], [b.m!, 0.8], [c.m!, 0.6]] as const) { setModuleWidth(p, 0, "upper", m.id, w, cfg); }
+    tidyPlan(p, cfg);
+    const ancho = (q: any, id: string) => q.tramos[0].upper.find((m: any) => m.id === id).width;
+    expect([a.m!.id, b.m!.id, c.m!.id].map((id) => ancho(p, id))).toEqual([0.5, 0.8, 0.6]);
+    // cambiar solo el segundo
+    const q = JSON.parse(JSON.stringify(p)); setModuleWidth(q, 0, "upper", b.m!.id, 0.9, cfg); tidyPlan(q, cfg);
+    expect([a.m!.id, b.m!.id, c.m!.id].map((id) => ancho(q, id))).toEqual([0.5, 0.9, 0.6]);
+    // la medida «de los nuevos» no toca los que ya están
+    const r = JSON.parse(JSON.stringify(p)); setDefaultWidth(r, "moduloAlmacSup", 0.45);
+    expect([a.m!.id, b.m!.id, c.m!.id].map((id) => ancho(r, id))).toEqual([0.5, 0.8, 0.6]);
+    expect(r.defaultWidth.moduloAlmacSup).toBe(0.45);
   });
 });
 

@@ -1,4 +1,4 @@
-import { Toaster } from "sonner";
+import { Toaster, toast } from "sonner";
 import CitaPublica from "@/pages/CitaPublica";
 import React from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -114,6 +114,31 @@ function Router() {
 }
 
 function App() {
+  // Aviso de versión nueva: una pestaña o tablet que quedó abierta sigue corriendo el código VIEJO hasta que se recarga
+  // (por eso a veces «no se veían los cambios» después de un deploy). Cada 2 min y al volver a la app se compara con el servidor.
+  React.useEffect(() => {
+    const hashDe = (t: string) => t.match(/assets\/index-([A-Za-z0-9_-]+)\.js/)?.[1];
+    const actual = hashDe(Array.from(document.scripts).map((x) => x.src).find((x) => /\/assets\/index-/.test(x)) || "");
+    if (!actual) return;   // en desarrollo no hay archivo con huella
+    let avisado = false;
+    const revisar = async () => {
+      if (avisado) return;
+      try {
+        const html = await fetch("/", { cache: "no-store" }).then((r) => r.text());
+        const nuevo = hashDe(html);
+        if (nuevo && nuevo !== actual) {
+          avisado = true;
+          toast("Hay una versión nueva del CRM", { description: "Actualiza para ver los últimos cambios. Lo que anotaste ya está guardado.", duration: Infinity, action: { label: "Actualizar", onClick: () => window.location.reload() } });
+        }
+      } catch { /* sin señal: se vuelve a intentar */ }
+    };
+    const id = window.setInterval(revisar, 120000);
+    const alVolver = () => { if (document.visibilityState === "visible") void revisar(); };
+    document.addEventListener("visibilitychange", alVolver);
+    void revisar();
+    return () => { window.clearInterval(id); document.removeEventListener("visibilitychange", alVolver); };
+  }, []);
+
   React.useEffect(() => {
     if ('serviceWorker' in navigator) {
       // Desregistrar el service-worker.js antiguo: interceptaba fetch con caché agresivo

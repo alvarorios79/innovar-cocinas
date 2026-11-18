@@ -712,8 +712,8 @@ function dropInRow(p: ModulePlan, t: number, row: PlanRow, target: DropTarget, s
   const fits = hole >= w - 1e-9;
   if (fits) {
     s = Math.min(Math.max(s, prevEnd), limit - w);
-    // Imán: si queda a menos de 0.30 m de su vecino (o del tope de la pared), se pega
-    const MAG = 0.30;
+    // Imán: si queda a menos de 0.60 m de su vecino (la ventana, otro módulo, el esquinero o el tope de la pared), se pega: así no quedan huecos por imprecisión
+    const MAG = 0.60;
     const left = s - prevEnd, right = limit - (s + w);
     if (left <= MAG && (right > MAG || left <= right)) s = prevEnd;
     else if (right <= MAG && isFinite(limit)) s = limit - w;

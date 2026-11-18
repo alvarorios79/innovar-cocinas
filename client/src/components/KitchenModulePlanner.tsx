@@ -834,6 +834,7 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
                   panel={<div className="space-y-4"><button type="button" onClick={deshacer} disabled={nHistorial === 0} className="w-full h-11 rounded-lg bg-amber-600 hover:bg-amber-500 disabled:opacity-35 text-white text-sm font-bold">↶ Deshacer el último cambio ({nHistorial})</button>{renderSelected()}{renderPasarA()}{renderPaletaUnica(true)}</div>}
                   moveTramo={(p, fromT, row, id, toT, start) => moveModuleToTramo(p, fromT, row, id, toT, start, config)}
                   dropMod={(p, t, row, id, start) => dropModule(p, t, row, id, start, config, true)}
+                  acomodar={(p) => { try { tidyPlan(p, config); } catch { /* */ } }}
                   dropTallTo={(p, key, tramo, start) => { p.specialTramo = { ...(p.specialTramo || {}), [key]: tramo }; dropTall(p, key, start, config); }}
                 />
               </Suspense>

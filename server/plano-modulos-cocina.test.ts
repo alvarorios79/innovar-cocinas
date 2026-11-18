@@ -247,5 +247,27 @@ describe("Plano 3D: barra como bloque suelto y mover módulos entre paredes", ()
     const e3 = espaciosLibres(p2, 0, "upper", m3.m!.id, cfg)!;
     expect(e3.izq.libre + e3.der.libre).toBeGreaterThanOrEqual(0);
   });
+
+  // ── Imán: un módulo soltado cerca de su vecino (o de la ventana) queda pegado, sin huecos por imprecisión ──
+  it("imán: soltado a 50 cm de su vecino queda pegado; a 90 cm, no", () => {
+    const cfg = base();
+    const p: any = normalizePlan({ enabled: true, autoUpper: false, tramos: [{ name: "Pared A", length: 3.6, upper: [], lower: [] }, { name: "Pared B", length: 2.8, upper: [], lower: [] }], extras: {} }, cfg);
+    const a = addModuleToPlan(p, 0, "lower", "cajoneroTriple", cfg)!; const b = addModuleToPlan(p, 0, "lower", "cajoneroDoble", cfg)!;
+    const inicio = (q: any, id: string) => rowItems(q, 0, "lower", cfg).find((i) => i.mod?.id === id)!.start;
+    const q1 = JSON.parse(JSON.stringify(p)); dropModule(q1, 0, "lower", b.id, 1.2, cfg, true);      // pegado a 0,70 → 0,50 de separación
+    expect(inicio(q1, b.id)).toBeCloseTo(0.7, 2);
+    const q2 = JSON.parse(JSON.stringify(p)); dropModule(q2, 0, "lower", b.id, 1.6, cfg, true);      // 0,90 de separación y lejos de la pared: queda donde se soltó
+    expect(inicio(q2, b.id)).toBeCloseTo(1.6, 2);
+    void a;
+  });
+  it("imán: un superior soltado a 35 cm de la ventana queda a ras de ella", () => {
+    const cfg = base();
+    const v = ventanasDeLevantamiento([{ tipo: "ventana", pared: 0, desde: 150, ancho: 100, alto: 120, antepecho: 100 }], 2)[0];
+    const p = planA(cfg, v);
+    const m = addModuleToPlan(p, 0, "upper", "moduloAlmacSup", cfg)!;
+    dropModule(p, 0, "upper", m.id, 0.5, cfg, true); tidyPlan(p, cfg);                             // termina en 1,15: a 0,35 de la ventana (1,50)
+    const it = rowItems(p, 0, "upper", cfg).find((i) => i.mod?.id === m.id)!;
+    expect(it.start + it.width).toBeCloseTo(1.5, 2);
+  });
 });
 

@@ -45,6 +45,8 @@ interface Props {
   moveTramo: (p: ModulePlan, fromT: number, row: PlanRow, id: string, toT: number, start: number) => boolean;
   dropMod: (p: ModulePlan, t: number, row: PlanRow, id: string, start: number) => void;
   dropTallTo: (p: ModulePlan, key: string, tramo: number, start: number) => void;
+  /** Deja el plano simulado tal como quedaría después de un cambio (acomoda los superiores, cierra espacios…): sirve para mostrar el imán en vivo */
+  acomodar?: (p: ModulePlan) => void;
 }
 
 const GROSOR = 0.08;
@@ -428,6 +430,20 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
         // vista previa: todo el mueble sigue el dedo (también hacia otra pared); al soltar se acomoda con el imán
         const gm = arrastrando.grupoMod, loc = gm.parent!.worldToLocal(P.clone());
         gm.position.set(arrastrando.grupoPos0.x + (loc.x - arrastrando.loc0.x), arrastrando.grupoPos0.y + 0.03, arrastrando.grupoPos0.z + (loc.z - arrastrando.loc0.z));
+        // IMÁN EN VIVO: sobre su misma pared se simula el cambio y el mueble salta al lugar donde de verdad va a quedar (junto al vecino, la ventana, la esquina o el borde)
+        try {
+          const c = paredCerca(P);
+          if (c && c.w.t === d.t && (d.kind === "mod" || d.kind === "tall")) {
+            const { plan: pl, config: cf, dropMod: dm, dropTallTo: dt, acomodar } = ultimo.current;
+            const q: ModulePlan = JSON.parse(JSON.stringify(pl));
+            const ini = round2(c.s - arrastrando.grab);
+            if (d.kind === "mod") dm(q, d.t, d.row, d.id, ini); else dt(q, d.key, d.t, ini);
+            acomodar?.(q);
+            const fila: PlanRow = d.kind === "mod" ? d.row : "lower";
+            const it = rowItems(q, d.t, fila, cf).find((i) => (d.kind === "mod" ? i.mod?.id === d.id : i.key === d.key));
+            if (it) gm.position.x = it.start + it.width / 2;
+          }
+        } catch { /* si la simulación falla se queda el movimiento libre y al soltar se acomoda igual */ }
       }
       dibujar();
     };

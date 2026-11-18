@@ -151,6 +151,15 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
     return () => { capturaRef.current = null; };
   });
 
+  // Tarjeta del módulo seleccionado en el 3D: se resalta con su color y la lista se desplaza hasta ella
+  const selKey: string | null = !sel ? null : "tall" in sel ? sel.tall : sel.id === "__bloque__" ? null : (plan.tramos[sel.t]?.[sel.row].find(m => m.id === sel.id)?.key ?? null);
+  useEffect(() => {
+    if (!selKey) return;
+    const els = Array.from(document.querySelectorAll<HTMLElement>(`[data-tarjeta="${selKey}"]`)).filter(e => e.offsetParent !== null);
+    const el = els.find(e => e.closest("[data-pantalla-completa]")) ?? els[0];
+    el?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [selKey, sel]);
+
   // Historial para «Deshacer»: antes de cada cambio se guarda cómo estaba el plano (y los módulos altos marcados)
   const historial = useRef<Array<{ plan: ModulePlan; especiales: Record<string, boolean> }>>([]);
   const [nHistorial, setNHistorial] = useState(0);
@@ -550,8 +559,8 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
   const quitarAlto = (key: string) => { guardarHistorial(); onSpecialToggle?.(key, false); };
   // Tarjetas claras: arriba el icono y el nombre, en medio la medida, abajo los botones grandes − / cantidad / +
   const btnCant = "h-10 rounded-lg bg-white/10 hover:bg-white/25 active:bg-white/30 text-lg font-bold text-white disabled:opacity-30";
-  const claseTarjeta = (cnt: number, tono: "lower" | "upper" | "tall", apagada: boolean) =>
-    `rounded-xl border-2 p-3 flex flex-col gap-2.5 min-w-0 ${apagada ? "opacity-35" : ""} ${cnt > 0
+  const claseTarjeta = (cnt: number, tono: "lower" | "upper" | "tall", apagada: boolean, elegida = false) =>
+    `relative rounded-xl border-2 p-3 flex flex-col gap-2.5 min-w-0 transition-shadow ${apagada ? "opacity-35" : ""} ${elegida ? "!border-cyan-300 !bg-cyan-900/55 ring-4 ring-cyan-300/70 shadow-lg shadow-cyan-300/30" : ""} ${cnt > 0
       ? (tono === "upper" ? "bg-purple-900/35 border-purple-400/70" : tono === "tall" ? "bg-amber-900/35 border-amber-400/70" : "bg-teal-900/40 border-primary/70")
       : "bg-white/[0.04] border-white/15"}`;
   const renderPaletaUnica = (enPanel = false) => {
@@ -559,7 +568,8 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
       const cnt = cuentaDe(o.key);
       if (o.corner) {
         return (
-          <div key={o.key} className={claseTarjeta(cnt, row, esquinas.length === 0)}>
+          <div key={o.key} data-tarjeta={o.key} className={claseTarjeta(cnt, row, esquinas.length === 0, selKey === o.key)}>
+            {selKey === o.key && <span className="absolute -top-2.5 right-3 rounded-full bg-cyan-300 px-2 py-0.5 text-[10px] font-extrabold text-slate-900">● SELECCIONADO</span>}
             <div className="flex items-start gap-2 min-w-0">
               <ModuleIcon k={o.key} size={34} className="shrink-0 text-white/85" />
               <span className="text-sm font-semibold text-white leading-snug break-words">{o.label}</span>
@@ -584,7 +594,8 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
       const bloqueado = row === "upper" && !!trAct?.isIsland;
       const curW = (!o.locked && plan.defaultWidth?.[o.key]) || o.width;
       return (
-        <div key={o.key} className={claseTarjeta(cnt, row, bloqueado)}>
+        <div key={o.key} data-tarjeta={o.key} className={claseTarjeta(cnt, row, bloqueado, selKey === o.key)}>
+          {selKey === o.key && <span className="absolute -top-2.5 right-3 rounded-full bg-cyan-300 px-2 py-0.5 text-[10px] font-extrabold text-slate-900">● SELECCIONADO</span>}
           <div className="flex items-start gap-2 min-w-0">
             <ModuleIcon k={o.key} size={34} className="shrink-0 text-white/85" />
             <span className="text-sm font-semibold text-white leading-snug break-words">{o.label}</span>
@@ -607,7 +618,8 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
       const act = specials.find(s => s.key === o.key);
       const bloqueado = !act && !!trAct?.isIsland;
       return (
-        <div key={o.key} className={claseTarjeta(act ? 1 : 0, "tall", bloqueado)}>
+        <div key={o.key} data-tarjeta={o.key} className={claseTarjeta(act ? 1 : 0, "tall", bloqueado, selKey === o.key)}>
+          {selKey === o.key && <span className="absolute -top-2.5 right-3 rounded-full bg-cyan-300 px-2 py-0.5 text-[10px] font-extrabold text-slate-900">● SELECCIONADO</span>}
           <div className="flex items-start gap-2 min-w-0">
             <ModuleIcon k={o.key} size={34} className="shrink-0 text-white/85" />
             <span className="text-sm font-semibold text-white leading-snug break-words">{o.label}</span>

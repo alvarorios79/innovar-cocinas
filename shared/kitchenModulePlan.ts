@@ -289,9 +289,8 @@ export function rebuildAutoUpper(p: ModulePlan, t: number) {
   fresh.forEach((f, i) => {
     const sig = autoSig(f);
     if (result.some(m => m.autoOf && autoSig(m) === sig)) return;
-    const prev = i > 0 ? fresh[i - 1] : undefined;
-    const prevIdx = prev ? result.findIndex(m => m.autoOf && autoSig(m) === autoSig(prev)) : -1;
-    result.splice(prevIdx >= 0 ? prevIdx + 1 : 0, 0, f);
+    // El superior automático nuevo va AL FINAL de la fila (luego se acomoda sobre su inferior): así no desplaza lo que el usuario ya había puesto
+    result.push(f);
   });
   // 3) El esquinero (y su compensación) siempre al final de la pared
   const tail: PlanModule[] = [];
@@ -322,9 +321,35 @@ export function syncAuto(p: ModulePlan) {
   });
 }
 
+// Fija el lugar de los módulos de piso a techo de un tramo tal como están AHORA. Por defecto un módulo alto «va al final de la fila»
+// (su lugar depende de cuántos módulos hay), así que al agregar otro módulo se corría. Con su lugar fijado, lo ya acomodado no se mueve.
+export function fijarAltos(p: ModulePlan, t: number, config: any) {
+  if (!config) return;
+  const mios = activeSpecials(p, config).filter(s => s.tramo === t);
+  if (!mios.length) return;
+  const nuevo: NonNullable<ModulePlan["specialPos"]> = { ...(p.specialPos || {}) };
+  mios.forEach(sp => { nuevo[sp.key] = { ...(nuevo[sp.key] || { u: 0, l: 0 }), u: tallPos(p, t, "upper", sp.key), l: tallPos(p, t, "lower", sp.key) }; });
+  p.specialPos = nuevo;
+  (["upper", "lower"] as PlanRow[]).forEach(row => {
+    const items = rowItems(p, t, row, config).slice().sort((a, b) => a.start - b.start);
+    const prefix = items.filter(i => i.fromPrev).reduce((a, i) => a + i.width, 0);
+    let prevEnd = prefix;
+    items.forEach(it => {
+      if (it.fromPrev) return;
+      if (it.kind === "tall") {
+        const cur = p.specialPos![it.key];
+        const gap = Math.max(0, round2(it.start - prevEnd));
+        p.specialPos![it.key] = row === "upper" ? { ...cur, gu: gap } : { ...cur, gl: gap };
+      }
+      prevEnd = Math.max(prevEnd, it.start + it.width);
+    });
+  });
+}
+
 export function addModuleToPlan(p: ModulePlan, t: number, row: PlanRow, key: string, config?: any): PlanModule | undefined {
   const cat = CATALOG_BY_KEY[key];
   if (!cat || !p.tramos[t]) return undefined;
+  fijarAltos(p, t, config);   // lo ya acomodado (nevera, alacenas, torre) no se corre al agregar otro módulo
   // Platero / extractor: si hay un lavaplatos / estufa sin el suyo (porque se quitó antes), se devuelve el automático,
   // que sí sigue la medida y el lugar de su inferior, en vez de crear uno suelto.
   if (row === "upper" && p.autoUpper !== false && (key === "moduloPlatero" || key === "moduloExtractor")) {
@@ -714,7 +739,9 @@ export function alignUppers(p: ModulePlan, config: any) {
       return cur.get(k) ?? 0;
     };
     const widthOf = (e: OwnEl) => e.kind === "mod" ? e.mod.width : (activeSpecials(p, config).find(s => s.key === e.key)?.w || 0);
-    const sorted = head.map((e, i) => ({ e, i, tg: target(e) })).sort((a, b) => a.tg - b.tg || a.i - b.i).map(x => x.e);
+    // Si un superior automático y uno puesto a mano caen en el mismo lugar, el que puso el usuario conserva su sitio y el automático se acomoda a su lado
+    const puestoPorUsuario = (e: OwnEl) => (e.kind === "tall" || !e.mod.autoOf) ? 0 : 1;
+    const sorted = head.map((e, i) => ({ e, i, tg: target(e) })).sort((a, b) => a.tg - b.tg || puestoPorUsuario(a.e) - puestoPorUsuario(b.e) || a.i - b.i).map(x => x.e);
     const all = [...sorted, ...tail];
     let cursor = prefix;
     all.forEach(e => {

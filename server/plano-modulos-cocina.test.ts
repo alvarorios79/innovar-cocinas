@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { normalizePlan, addModuleToPlan, setModuleWidth, moveModuleToTramo, primerHueco, esquinasDeLayout, girarEsquinero, computePlan, ventanasDeLevantamiento, rowItems } from "../shared/kitchenModulePlan";
+import { normalizePlan, addModuleToPlan, setModuleWidth, moveModuleToTramo, primerHueco, esquinasDeLayout, girarEsquinero, tidyPlan, dropModule, computePlan, ventanasDeLevantamiento, rowItems } from "../shared/kitchenModulePlan";
 import { buildKitchenQuoteDescription } from "./kitchen-description";
 
 // ¿El plano de módulos describe de verdad la cocina? Se arma una cocina paralela de 2 paredes (3,0 m y 2,4 m),
@@ -168,6 +168,46 @@ describe("Plano 3D: barra como bloque suelto y mover módulos entre paredes", ()
     const planL: any = normalizePlan({ enabled: true, autoUpper: false, tramos: [{ name: "Pared A", length: 3.6, upper: [], lower: [] }, { name: "Pared B", length: 2.8, upper: [], lower: [] }], extras: {} }, base());
     const e2 = addModuleToPlan(planL, 0, "lower", "esquinero1x1", base())!;
     expect(girarEsquinero(planL, 0, "lower", e2.id, [0], base())).toBe(false);    // en L solo hay una esquina
+  });
+
+  // ── Al agregar un módulo, lo que ya estaba acomodado NO se mueve ──
+  const posiciones = (p: any, cfg: any, t = 0) => (["lower", "upper"] as const).flatMap((r) => rowItems(p, t, r, cfg).filter((i) => !i.fromPrev).map((i) => `${r}:${i.kind === "tall" ? "alto-" + i.key : i.mod!.id}@${i.start.toFixed(2)}`));
+  const agregar = (p: any, cfg: any, row: "lower" | "upper", key: string) => { const q = JSON.parse(JSON.stringify(p)); const m = addModuleToPlan(q, 0, row, key, cfg); tidyPlan(q, cfg); return { q, m }; };
+  const sinMover = (antes: string[], despues: string[]) => antes.every((x) => despues.includes(x));
+  const planA = (cfg: any, upper: any[] = []): any => normalizePlan({ enabled: true, tramos: [{ name: "Pared A", length: 3.6, upper, lower: [] }, { name: "Pared B", length: 2.8, upper: [], lower: [] }], extras: {}, specialTramo: { nichoNevera: 0 } }, cfg);
+
+  it("un módulo alto (nevera) ya colocado no se corre cuando se agregan otros módulos", () => {
+    const cfg = base({ specialModules: { nichoNevera: true } });
+    let p = planA(cfg);
+    const antes = posiciones(p, cfg);
+    for (const key of ["moduloLavaplatos", "moduloEstufaHorno", "cajoneroTriple"]) {
+      const a = posiciones(p, cfg);
+      p = agregar(p, cfg, "lower", key).q;
+      expect(sinMover(a.filter((x) => x.startsWith("lower:alto") || x.startsWith("upper:alto")), posiciones(p, cfg))).toBe(true);
+    }
+    expect(posiciones(p, cfg).filter((x) => x.includes("alto-nichoNevera")).every((x) => x.endsWith("@0.00"))).toBe(true);
+    void antes;
+  });
+  it("un inferior arrastrado a otro lugar se queda ahí cuando se agrega otro módulo", () => {
+    const cfg = base();
+    let p = planA(cfg);
+    p = agregar(p, cfg, "lower", "moduloLavaplatos").q;
+    const e = agregar(p, cfg, "lower", "moduloEstufaHorno"); p = e.q;
+    dropModule(p, 0, "lower", e.m!.id, 1.6, cfg, true); tidyPlan(p, cfg);
+    const antes = posiciones(p, cfg).filter((x) => x.startsWith("lower"));
+    const despues = posiciones(agregar(p, cfg, "lower", "cajoneroTriple").q, cfg);
+    expect(sinMover(antes, despues)).toBe(true);
+  });
+  it("un superior que el usuario ya puso no se mueve cuando un inferior nuevo genera su superior automático", () => {
+    const cfg = base();
+    let p = planA(cfg);
+    const m = agregar(p, cfg, "upper", "moduloAlmacSup"); p = m.q;
+    const antes = posiciones(p, cfg).filter((x) => x.includes(m.m!.id));
+    p = agregar(p, cfg, "lower", "cajoneroTriple").q;
+    expect(sinMover(antes, posiciones(p, cfg))).toBe(true);
+    const antes2 = posiciones(p, cfg).filter((x) => x.includes(m.m!.id));
+    p = agregar(p, cfg, "lower", "moduloLavaplatos").q;
+    expect(sinMover(antes2, posiciones(p, cfg))).toBe(true);
   });
 });
 

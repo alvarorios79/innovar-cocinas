@@ -369,7 +369,11 @@ export default function VisitasTecnicas() {
                           <p className="text-xs font-bold text-primary mb-2">{wtLabel}</p>
                           <div className="space-y-1 text-sm">
                             {forma && <div className="flex justify-between"><span className="text-gray-400">Forma</span><span className="text-white font-medium">{forma}</span></div>}
-                            {ancho && <div className="flex justify-between"><span className="text-gray-400">Ancho</span><span className="text-white font-medium">{ancho} cm</span></div>}
+                            {Array.isArray((measurements as any)._cocina_paredes) && (measurements as any)._cocina_paredes.map((p: any, i: number) => (
+                              <div key={i} className="flex justify-between"><span className="text-gray-400">Pared {["A", "B", "C"][i] || i + 1}</span><span className="text-white font-medium">inferiores {p?.inf ?? 0} cm · superiores {p?.sup ?? 0} cm</span></div>
+                            ))}
+                            {(measurements as any)._cocina_isla > 0 && <div className="flex justify-between"><span className="text-gray-400">Isla</span><span className="text-white font-medium">{(measurements as any)._cocina_isla} cm</span></div>}
+                            {ancho && !Array.isArray((measurements as any)._cocina_paredes) && <div className="flex justify-between"><span className="text-gray-400">Ancho</span><span className="text-white font-medium">{ancho} cm</span></div>}
                             {alto  && <div className="flex justify-between"><span className="text-gray-400">Alto</span><span className="text-white font-medium">{alto} cm</span></div>}
                             {prof  && <div className="flex justify-between"><span className="text-gray-400">Profundo</span><span className="text-white font-medium">{prof} cm</span></div>}
                             {!forma && !ancho && !alto && !prof && <p className="text-gray-500 text-xs">Sin medidas</p>}

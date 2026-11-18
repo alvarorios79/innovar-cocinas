@@ -1,4 +1,5 @@
 // client/src/pages/Medidor.tsx
+import { CocinaParedes } from "@/components/CocinaParedes";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useSearch } from "wouter";
 import { Pizarra, type PizarraRef, type PizarraStatus } from "@/components/Pizarra";
@@ -1609,36 +1610,15 @@ export default function Medidor() {
                     {isChecked && (
                       <div className="p-3 space-y-3 bg-card/50">
                         {wt === "cocina" ? (
-                          /* ── Cocina: forma + una sola medida ── */
-                          <>
-                            <div>
-                              <label className="block text-xs font-semibold text-primary mb-2">Forma de la cocina *</label>
-                              <div className="flex gap-2">
-                                {(["L", "Lineal", "U"] as const).map((forma) => (
-                                  <button
-                                    key={forma}
-                                    type="button"
-                                    onClick={() => setLocalMeasurements((prev: any) => ({ ...prev, _cocina_forma: forma }))}
-                                    className={`flex-1 py-2 rounded-lg border text-sm font-bold transition-colors ${
-                                      (localMeasurements as any)._cocina_forma === forma
-                                        ? "bg-primary border-primary text-white"
-                                        : "border-primary/30 text-gray-300 hover:border-primary/60"
-                                    }`}
-                                  >
-                                    {forma}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                            <div className="grid grid-cols-3 gap-2">
-                              {[{ key: "_cocina_ancho", label: "Ancho" }, { key: "_cocina_alto", label: "Alto" }, { key: "_cocina_profundo", label: "Profundo" }].map(({ key, label }) => (
-                                <div key={key}>
-                                  <label className="block text-xs font-semibold text-primary mb-1">{label} (cm)</label>
-                                  <Input type="number" value={(localMeasurements as any)[key] || ""} onChange={(e) => setLocalMeasurements((prev: any) => ({ ...prev, [key]: e.target.value ? parseFloat(e.target.value) : undefined }))} placeholder="0" className="bg-background border-primary/20 text-white h-9 text-sm" />
-                                </div>
-                              ))}
-                            </div>
-                          </>
+                          /* ── Cocina: forma con gráfico + medidas de cada pared (inferiores y superiores aparte) ── */
+                          <CocinaParedes
+                            forma={(localMeasurements as any)._cocina_forma}
+                            paredes={(localMeasurements as any)._cocina_paredes}
+                            islaCm={(localMeasurements as any)._cocina_isla}
+                            altoCm={(localMeasurements as any)._cocina_alto}
+                            profundoCm={(localMeasurements as any)._cocina_profundo}
+                            onChange={(cambios) => setLocalMeasurements((prev: any) => ({ ...prev, ...cambios }))}
+                          />
                         ) : (
                           /* ── Otros tipos: una o varias unidades con medidas independientes ── */
                           <>

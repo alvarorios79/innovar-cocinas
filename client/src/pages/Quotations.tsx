@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
@@ -9,6 +9,7 @@ import { TVCenterConfigurator, TVCenterConfig } from "@/components/TVCenterConfi
 import type { KitchenConfig } from "@/components/kitchenTypes";
 import { DESCRIPTIVE_UPPER_MODULES, DESCRIPTIVE_LOWER_MODULES } from "@/components/kitchenTypes";
 import { CountertopConfigurator, CountertopConfig, defaultCountertopConfig } from "@/components/CountertopConfigurator";
+import { cocinaDeLevantamiento } from "@shared/cocinaParedes";
 import { piedraMesonPrincipal, piedraIsla, piedraBarra, hierrosBarra, precioHerrajeBarra, textoLavaplatos, PIEDRA_NOMBRE, normalizarPiedra, cantLateralesIsla, precioPiedraML } from "@shared/mesonPrecios";
 import { LavaplatosSelector } from "@/components/LavaplatosSelector";
 import { MuebleCocinaConfigurator, MuebleCocinaConfig, defaultMuebleCocinaConfig, calcularMuebleCocina, applyPiezaPrices } from "@/components/MuebleCocinaConfigurator";
@@ -397,6 +398,13 @@ export default function Quotations() {
   const [generalNotes, setGeneralNotes] = useState<string>(INNOVAR_NOTAS_DEFAULT);
   const [paymentTerms, setPaymentTerms] = useState<string>("60% anticipo — 40% a la entrega de la obra");
   const [deliveryTime, setDeliveryTime] = useState<string>("25 días hábiles a partir de la aprobación del render final");
+
+  // ── Levantamiento → cotización: forma, metros (inferiores y superiores aparte), isla y paredes del plano ──
+  const { data: visitaLevantamiento } = trpc.technicalVisits.getById.useQuery(
+    { visitId: fromVisitId ?? 0 },
+    { enabled: !!fromVisitId, refetchOnWindowFocus: false }
+  );
+  const levantamientoAplicado = useRef<number | null>(null);
 
   const [items, setItems] = useState<QuotationItem[]>([
     { 
@@ -1196,6 +1204,34 @@ export default function Quotations() {
       toast.error("Error al cargar la cotización");
     }
   };
+
+  useEffect(() => {
+    if (!fromVisitId || !visitaLevantamiento || levantamientoAplicado.current === fromVisitId || editingQuotation) return;
+    const coc = cocinaDeLevantamiento((visitaLevantamiento as any).measurements);
+    if (!coc) return;
+    levantamientoAplicado.current = fromVisitId;
+    const igual = Math.abs(coc.lowerMeters - coc.upperMeters) < 0.005;
+    setItems((prev) => {
+      // Se usa el primer renglón si está vacío; si no, se agrega uno nuevo de cocina
+      const vacio = prev.length > 0 && !prev[0].itemType;
+      const base: any = vacio ? prev[0] : { ...prev[0], _id: `item_${Date.now()}_${Math.random()}`, itemNumber: prev.length + 1, itemType: "", description: "", quantity: "", totalPrice: 0 };
+      const kc: any = structuredClone(base.kitchenConfig);
+      kc.layout = coc.layout || kc.layout;
+      kc.independentMeters = !igual;
+      kc.lowerMeters = coc.lowerMeters;
+      kc.upperMeters = coc.upperMeters;
+      kc.totalMeters = igual ? coc.lowerMeters : coc.lowerMeters + coc.upperMeters;
+      if (coc.islaM > 0) { kc.island = { ...kc.island, enabled: true, meters: coc.islaM }; }
+      kc.modulePlan = {
+        ...(kc.modulePlan || { paintAll: false }), enabled: true,
+        tramos: coc.paredesM.map((p) => ({ name: `Pared ${p.nombre}`, length: Math.max(p.inf, p.sup), upper: [], lower: [] })),
+      };
+      kc.fromLevantamiento = { forma: coc.layout, paredes: coc.paredesM, aproximado: coc.aproximado };
+      const nuevo = { ...base, itemType: "cocina", kitchenConfig: kc };
+      return vacio ? [nuevo, ...prev.slice(1)] : [...prev, nuevo];
+    });
+    toast.success(`Medidas del levantamiento cargadas: inferiores ${coc.lowerMeters.toFixed(2)} m · superiores ${coc.upperMeters.toFixed(2)} m${coc.aproximado ? " (aproximado: levantamiento antiguo sin paredes)" : ""}. Revísalas y elige el tipo de cocina.`);
+  }, [fromVisitId, visitaLevantamiento, editingQuotation]);
 
   const addItem = () => {
     setItems([

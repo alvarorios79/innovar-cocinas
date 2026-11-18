@@ -335,5 +335,46 @@ describe("Plano 3D: barra como bloque suelto y mover módulos entre paredes", ()
     expect(q.tramos[0].upper.filter((m: any) => m.key === "esquineroSuperior")).toHaveLength(1);
     expect(q.tramos[0].upper.some((m: any) => m.key === "esquineroSuperior" && m.autoRole === "cornerFill")).toBe(false);
   });
+
+  // ── El esquinero es UN solo mueble por esquina: nunca quedan dos registrados ──
+  const contar = (q: any, key: string) => q.tramos.reduce((a: number, t: any) => a + t.lower.filter((m: any) => m.key === key).length + t.upper.filter((m: any) => m.key === key).length, 0);
+  it("esquinero: agregar el mismo esquinero dos veces en la misma esquina deja uno solo", () => {
+    const cfg = base();
+    const p = planA(cfg);
+    const a = addModuleToPlan(p, 0, "lower", "esquinero1x1", cfg)!; const b = addModuleToPlan(p, 0, "lower", "esquinero1x1", cfg)!;
+    expect(b.id).toBe(a.id);
+    expect(contar(p, "esquinero1x1")).toBe(1);
+    // el superior puesto a mano cuando ya existe el automático tampoco se duplica
+    tidyPlan(p, cfg);
+    expect(contar(p, "esquineroSuperior")).toBe(1);
+    addModuleToPlan(p, 0, "upper", "esquineroSuperior", cfg); tidyPlan(p, cfg);
+    expect(contar(p, "esquineroSuperior")).toBe(1);
+  });
+  it("esquinero: el superior puesto a mano ANTES que el inferior no se repite cuando llega el inferior (no sale un segundo automático)", () => {
+    const cfg = base();
+    let p = planA(cfg);
+    addModuleToPlan(p, 0, "upper", "esquineroSuperior", cfg); tidyPlan(p, cfg);
+    p = agregar(p, cfg, "lower", "esquinero1x1").q;
+    expect(contar(p, "esquineroSuperior")).toBe(1);
+    expect(contar(p, "esquinero1x1")).toBe(1);
+    expect(p.tramos[0].upper.find((m: any) => m.key === "esquineroSuperior").autoOf).toBeUndefined();   // se conserva el que puso el usuario
+  });
+  it("esquinero: solo existe donde hay esquina (no en la última pared, ni en cocinas lineales o paralelas)", () => {
+    const cfg = base();
+    const p = planA(cfg);
+    expect(addModuleToPlan(p, 1, "lower", "esquinero1x1", cfg)).toBeUndefined();                    // la pared B no tiene pared siguiente
+    const lineal = base({ layout: "lineal" });
+    expect(addModuleToPlan(planA(lineal), 0, "lower", "esquinero1x1", lineal)).toBeUndefined();
+    expect(contar(p, "esquinero1x1")).toBe(0);
+  });
+  it("esquinero: un plan que ya traía dos esquineros repetidos se cura solo", () => {
+    const cfg = base();
+    const mod = (id: string, extra: any = {}) => ({ id, key: "esquineroSuperior", width: 0.6, alsoTramo: 1, ...extra });
+    const plan: any = normalizePlan({ enabled: true, tramos: [{ name: "Pared A", length: 3.6, upper: [mod("auto1", { autoOf: ["x"] }), mod("mano1")], lower: [] }, { name: "Pared B", length: 2.8, upper: [], lower: [] }], extras: {} }, cfg);
+    expect(plan.tramos[0].upper).toHaveLength(1);
+    expect(plan.tramos[0].upper[0].id).toBe("mano1");                                              // queda el puesto por el usuario
+    const lower: any = normalizePlan({ enabled: true, tramos: [{ name: "Pared A", length: 3.6, upper: [], lower: [{ id: "e1", key: "esquinero1x1", width: 1, alsoTramo: 1 }, { id: "e2", key: "esquinero1x1", width: 1, alsoTramo: 1 }] }, { name: "Pared B", length: 2.8, upper: [], lower: [] }], extras: {} }, cfg);
+    expect(lower.tramos[0].lower).toHaveLength(1);
+  });
 });
 

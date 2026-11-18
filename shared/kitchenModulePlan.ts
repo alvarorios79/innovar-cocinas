@@ -144,6 +144,20 @@ export function layoutTramoNames(layout?: string): string[] {
 const emptyExtras = (): PlanExtras => ({ latSup: 0, latInf: 0, latNevera: 0, puertaAlta: 0, especiales: 0, latIsla: 0, puertaElectro: 0, puertaNevera: 0 });
 
 // Asegura que el plan tenga los tramos que corresponden a la forma de la cocina (sin perder lo ya armado).
+// El esquinero es UN solo mueble en «L» por esquina: si por cualquier camino quedaron dos del mismo tipo en la misma esquina (por ejemplo uno puesto a mano y otro automático),
+// se queda uno solo (el que puso el usuario antes que el automático).
+export function sinEsquinerosRepetidos(arr: PlanModule[]): PlanModule[] {
+  const vistos = new Map<string, PlanModule>();
+  arr.forEach(m => {
+    if (!CATALOG_BY_KEY[m.key]?.corner || m.alsoTramo === undefined) return;
+    const k = m.key + ":" + m.alsoTramo, prev = vistos.get(k);
+    if (!prev || (prev.autoOf && !m.autoOf)) vistos.set(k, m);
+  });
+  const quitar = new Set<PlanModule>();
+  arr.forEach(m => { if (CATALOG_BY_KEY[m.key]?.corner && m.alsoTramo !== undefined && vistos.get(m.key + ":" + m.alsoTramo) !== m) quitar.add(m); });
+  return quitar.size ? arr.filter(m => !quitar.has(m)) : arr;
+}
+
 export function normalizePlan(raw: any, config: any): ModulePlan {
   const base: ModulePlan = raw && typeof raw === "object" ? raw : { enabled: false, tramos: [], extras: emptyExtras() };
   const names = layoutTramoNames(config?.layout);
@@ -170,7 +184,7 @@ export function normalizePlan(raw: any, config: any): ModulePlan {
   // Los vértices (alsoTramo) deben apuntar a un tramo que exista
   tramos.forEach(t => {
     (["upper", "lower"] as PlanRow[]).forEach(r => {
-      t[r] = (t[r] || []).map(m => (m.alsoTramo !== undefined && (m.alsoTramo >= tramos.length || tramos[m.alsoTramo]?.isIsland)) ? { ...m, alsoTramo: undefined } : m);
+      t[r] = sinEsquinerosRepetidos((t[r] || []).map(m => (m.alsoTramo !== undefined && (m.alsoTramo >= tramos.length || tramos[m.alsoTramo]?.isIsland)) ? { ...m, alsoTramo: undefined } : m));
     });
   });
   return {
@@ -245,7 +259,8 @@ function genAutoUppers(p: ModulePlan, t: number): PlanModule[] {
       // El esquinero es UN solo mueble en «L»: su superior es UNA sola pieza (esquinero superior 0,60×0,60). Ya NO se arma con un almacenamiento
       // superior de relleno al lado: si el diseño lo pide, se agrega a mano. Lo pequeño pegado al esquinero (basurero, especiero…) tiene su propio almacenamiento.
       flush();
-      if (!sup.has(m.id + ":esquineroSuperior")) out.push(mk("esquineroSuperior", 0.60, [m.id], { alsoTramo: m.alsoTramo }));
+      const yaPuestoAMano = tr.upper.some(u => u.key === "esquineroSuperior" && !u.autoOf && u.alsoTramo === m.alsoTramo);
+      if (!sup.has(m.id + ":esquineroSuperior") && !yaPuestoAMano) out.push(mk("esquineroSuperior", 0.60, [m.id], { alsoTramo: m.alsoTramo }));
       continue;
     }
     flush();
@@ -352,6 +367,13 @@ export function addModuleToPlan(p: ModulePlan, t: number, row: PlanRow, key: str
   const cat = CATALOG_BY_KEY[key];
   if (!cat || !p.tramos[t]) return undefined;
   fijarAltos(p, t, config);   // lo ya acomodado (nevera, alacenas, torre) no se corre al agregar otro módulo
+  if (cat.corner) {
+    // El esquinero es UN solo mueble en «L» y solo existe en una esquina de verdad (cocina en L o en U, y que haya pared siguiente)
+    const hayEsquina = !!p.tramos[t + 1] && !p.tramos[t].isIsland && !p.tramos[t + 1].isIsland && (!config || ["L", "U"].includes(config.layout));
+    if (!hayEsquina) return undefined;
+    const ya = p.tramos[t][row].find(m => m.key === key && isTrailingCorner(m));
+    if (ya) return ya;   // esa esquina ya tiene su esquinero: no se agrega otro
+  }
   // Platero / extractor: si hay un lavaplatos / estufa sin el suyo (porque se quitó antes), se devuelve el automático,
   // que sí sigue la medida y el lugar de su inferior, en vez de crear uno suelto.
   if (row === "upper" && p.autoUpper !== false && (key === "moduloPlatero" || key === "moduloExtractor")) {

@@ -242,10 +242,9 @@ function genAutoUppers(p: ModulePlan, t: number): PlanModule[] {
   for (const m of tr.lower) {
     if (SMALL_KEYS.includes(m.key)) { pending.push(m); continue; }
     if (m.key === "esquinero1x1") {
-      const ids = [...pending.map(x => x.id), m.id];
-      const sum = pending.reduce((a, x) => a + x.width, 0) + m.width;
-      pending = [];
-      if (!sup.has(m.id + ":cornerFill") && sum - 0.60 > 0.01) out.push(mk("moduloAlmacSup", sum - 0.60, ids, { autoBase: 0.60, autoRole: "cornerFill" }));
+      // El esquinero es UN solo mueble en «L»: su superior es UNA sola pieza (esquinero superior 0,60×0,60). Ya NO se arma con un almacenamiento
+      // superior de relleno al lado: si el diseño lo pide, se agrega a mano. Lo pequeño pegado al esquinero (basurero, especiero…) tiene su propio almacenamiento.
+      flush();
       if (!sup.has(m.id + ":esquineroSuperior")) out.push(mk("esquineroSuperior", 0.60, [m.id], { alsoTramo: m.alsoTramo }));
       continue;
     }

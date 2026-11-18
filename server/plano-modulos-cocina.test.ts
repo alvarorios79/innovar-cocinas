@@ -308,5 +308,22 @@ describe("Plano 3D: barra como bloque suelto y mover módulos entre paredes", ()
     expect(ini(q, b.m!.id).width).toBe(0.4);
     expect(espaciosLibres(q, 0, "lower", b.m!.id, cfg)!.izq.libre).toBeCloseTo(0.2, 2);
   });
+
+  it("el esquinero inferior llama a UN solo superior (el esquinero superior): no se arma con un almacenamiento de relleno", () => {
+    const cfg = base();
+    let p = planA(cfg);
+    p = agregar(p, cfg, "lower", "esquinero1x1").q;
+    const sup = p.tramos[0].upper;
+    expect(sup.map((m: any) => m.key)).toEqual(["esquineroSuperior"]);          // una sola pieza, sin «Almacenamiento superior» al lado
+    expect(sup[0].width).toBe(0.6);
+    expect(sup[0].alsoTramo).toBe(1);                                            // es el esquinero en «L» compartido con la pared B
+    const it = rowItems(p, 0, "upper", cfg).find((i) => i.key === "esquineroSuperior")!;
+    expect(it.start + it.width).toBeCloseTo(3.6, 2);                              // en la esquina
+    // lo pequeño pegado al esquinero (basurero) tiene su propio almacenamiento, aparte del esquinero
+    let q = planA(cfg);
+    q = agregar(q, cfg, "lower", "basurero").q; q = agregar(q, cfg, "lower", "esquinero1x1").q;
+    expect(q.tramos[0].upper.filter((m: any) => m.key === "esquineroSuperior")).toHaveLength(1);
+    expect(q.tramos[0].upper.some((m: any) => m.key === "esquineroSuperior" && m.autoRole === "cornerFill")).toBe(false);
+  });
 });
 

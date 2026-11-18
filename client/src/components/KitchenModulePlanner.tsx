@@ -732,7 +732,7 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
     return (
       <div className="rounded-xl border-2 border-amber-400/50 bg-amber-900/20 p-3 space-y-2.5">
         <p className="text-sm font-bold text-amber-100">Mover «{nombre}» (con todos sus módulos)</p>
-        <p className="text-xs text-white/60">También puedes arrastrar la base amarilla en el 3D. Las flechas son respecto a la pared A.</p>
+        <p className="text-xs text-white/60">{plan.tramos[tB].lower.length > 0 ? "La isla está BLOQUEADA porque ya tiene módulos: arrastra cada módulo por su cuenta (sus frentes miran al interior de la cocina) y muévela entera solo con estas flechas." : "Mientras esté vacía puedes arrastrar la base amarilla en el 3D."} Las flechas son respecto a la pared A.</p>
         <div className="grid grid-cols-3 gap-1.5 max-w-[260px]">
           <span /><button type="button" className={b} onClick={() => mover(0, -1)} title="Acercar a la pared A">▲ Acercar</button><span />
           <button type="button" className={b} onClick={() => mover(-1, 0)} title="A la izquierda">◀</button>

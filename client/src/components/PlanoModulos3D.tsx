@@ -224,6 +224,7 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
         const W = paredes.find((w) => w.t === t);
         const grp = new THREE.Group();
         let sg = 1;
+        let sgI = 1;   // isla/barra: hacia dónde miran sus frentes (el interior de la cocina)
         let dIni = GROSOR / 2;
         let largoVisible = tr.length || 0;
         if (isBloque) {
@@ -231,6 +232,12 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
           const pos = posBloque(t, idx, largoVisible);
           grp.position.set(pos.x, 0, pos.z); grp.rotation.y = (pos.rot * Math.PI) / 180;
           grp.userData = { bloque: t };
+          // Los frentes de la isla miran hacia el interior de la cocina (hacia sus paredes), no hacia afuera
+          if (paredes.length) {
+            const cx = paredes.reduce((a, w) => a + w.x1 + w.ux * w.largo / 2, 0) / paredes.length, cz = paredes.reduce((a, w) => a + w.z1 + w.uz * w.largo / 2, 0) / paredes.length;
+            const th = (pos.rot * Math.PI) / 180;
+            sgI = Math.sin(th) * (cx - pos.x) + Math.cos(th) * (cz - pos.z) >= 0 ? 1 : -1;
+          }
           dIni = 0;
         } else if (W) {
           grp.position.set(W.x1, 0, W.z1); grp.rotation.y = -Math.atan2(W.uz, W.ux); sg = W.sg;
@@ -243,6 +250,7 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
           const et = texto(`${tr.name} · ${fm(W.largo)} m`, "#80f0ff", 0.12); et.position.set(W.largo / 2, alto + 0.18, 0); grp.add(et);
         } else return;
 
+        const sgx = isBloque ? sgI : sg;
         const offX = isBloque ? -largoVisible / 2 : 0;
         const profInf = FONDO_INFERIOR_CM / 100, profSup = FONDO_SUPERIOR_CM / 100;
         const arranque = ARRANQUE_SUPERIOR_CM / 100, hInf = ALTO_INFERIOR_CM / 100;
@@ -250,15 +258,15 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
         // Base de un bloque suelto (isla/barra): se toca para moverlo por el piso
         if (isBloque) {
           const losa = new THREE.Mesh(new THREE.BoxGeometry(largoVisible + 0.5, 0.04, profInf + 0.5), new THREE.MeshLambertMaterial({ color: COLOR.losa, transparent: true, opacity: 0.8 }));
-          losa.position.set(0, 0.02, profInf / 2);
+          losa.position.set(0, 0.02, sgx * profInf / 2);
           losa.userData = { pick: true, kind: "losa", t };
           grp.add(losa); pickables.push(losa);
-          const et = texto(`${tr.name} · ${fm(largoVisible)} m`, "#ffe082", 0.12); et.position.set(0, hInf + 0.3, profInf / 2); grp.add(et);
+          const et = texto(`${tr.name} · ${fm(largoVisible)} m`, "#ffe082", 0.12); et.position.set(0, hInf + 0.3, sgx * profInf / 2); grp.add(et);
         }
 
         // Ventana o puerta bien visible: marco, vidrio con travesaños y, si estorba a los superiores, la zona sin muebles marcada en rojo (su límite)
         const dibujarVentana = (desde: number, ancho: number, base: number, h: number, marcaLimite: boolean, esPuerta = false) => {
-          const zf = (isBloque ? 1 : sg) * (GROSOR / 2 + 0.012);
+          const zf = sgx * (GROSOR / 2 + 0.012);
           const bq = (w: number, hh: number, d: number, x: number, y: number, z: number, color: number, op = 1) => {
             const m = new THREE.Mesh(new THREE.BoxGeometry(w, hh, d), new THREE.MeshLambertMaterial({ color, transparent: op < 1, opacity: op, depthWrite: op >= 1 }));
             m.position.set(x, y, z); grp.add(m); return m;
@@ -268,26 +276,26 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
           if (esPuerta) bq(ancho, h, 0.03, cx, cy, zf, 0x8a5a2b, 0.9);
           else {
             bq(ancho, h, 0.014, cx, cy, zf, claro ? 0x7cc4e8 : 0x8fd8ff, 0.55);                      // vidrio
-            bq(0.02, h - g, 0.02, cx, cy, zf + (isBloque ? 1 : sg) * 0.01, marco);                  // travesaño vertical
-            bq(ancho - g, 0.02, 0.02, cx, cy, zf + (isBloque ? 1 : sg) * 0.01, marco);              // travesaño horizontal
+            bq(0.02, h - g, 0.02, cx, cy, zf + sgx * 0.01, marco);                  // travesaño vertical
+            bq(ancho - g, 0.02, 0.02, cx, cy, zf + sgx * 0.01, marco);              // travesaño horizontal
           }
           bq(ancho, g, 0.07, cx, base + g / 2, zf, marco); bq(ancho, g, 0.07, cx, base + h - g / 2, zf, marco);    // marco: abajo y arriba
           bq(g, h, 0.07, desde + g / 2, cy, zf, marco); bq(g, h, 0.07, desde + ancho - g / 2, cy, zf, marco);       // marco: lados
           if (marcaLimite) {
             // Zona donde NO van muebles superiores: banda roja desde donde arrancan (1,50 m) hasta el techo y líneas en los dos bordes
             const y0 = ARRANQUE_SUPERIOR_CM / 100, hz = Math.max(0.2, alto - y0);
-            bq(ancho, hz, 0.012, cx, y0 + hz / 2, zf + (isBloque ? 1 : sg) * 0.03, 0xff5252, 0.28);
-            [desde, desde + ancho].forEach((x) => bq(0.03, hz, 0.03, x, y0 + hz / 2, zf + (isBloque ? 1 : sg) * 0.04, 0xff1744, 0.95));
-            const l = texto(`Ventana ${fm(ancho)} · aquí terminan los superiores`, claro ? "#7a1020" : "#ffb4b4", 0.1); l.position.set(cx, Math.max(y0 + 0.12, base + h + 0.2), zf + (isBloque ? 1 : sg) * 0.08); grp.add(l);
+            bq(ancho, hz, 0.012, cx, y0 + hz / 2, zf + sgx * 0.03, 0xff5252, 0.28);
+            [desde, desde + ancho].forEach((x) => bq(0.03, hz, 0.03, x, y0 + hz / 2, zf + sgx * 0.04, 0xff1744, 0.95));
+            const l = texto(`Ventana ${fm(ancho)} · aquí terminan los superiores`, claro ? "#7a1020" : "#ffb4b4", 0.1); l.position.set(cx, Math.max(y0 + 0.12, base + h + 0.2), zf + sgx * 0.08); grp.add(l);
           } else {
-            const l = texto(`${esPuerta ? "Puerta" : "Ventana"} ${fm(ancho)}`, "#b3e5fc", 0.09); l.position.set(cx, base + h + 0.12, zf + (isBloque ? 1 : sg) * 0.06); grp.add(l);
+            const l = texto(`${esPuerta ? "Puerta" : "Ventana"} ${fm(ancho)}`, "#b3e5fc", 0.09); l.position.set(cx, base + h + 0.12, zf + sgx * 0.06); grp.add(l);
           }
         };
         // Muebles: cada uno se dibuja como es (estufa con hornillas, lavaplatos con poceta y llave, gavetas…). Origen del grupo = centro de la base.
-        const girar = (isBloque ? 1 : sg) < 0 ? Math.PI : 0;
+        const girar = sgx < 0 ? Math.PI : 0;
         const poner = (key: string, row: "upper" | "lower" | "tall", s0: number, w: number, y0: number, h: number, dIni0: number, prof: number, data: any, selected: boolean, fantasma: boolean, etiqueta: string) => {
           const mu = crearMueble3D(key, row, w, h, prof, { seleccionado: selected, fantasma });
-          mu.grupo.position.set(s0 + w / 2, y0, (isBloque ? 1 : sg) * (dIni0 + prof / 2));
+          mu.grupo.position.set(s0 + w / 2, y0, sgx * (dIni0 + prof / 2));
           mu.grupo.rotation.y = girar;
           mu.cuerpo.userData = data;
           if (data.pick) pickables.push(mu.cuerpo);
@@ -406,7 +414,7 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
       return best as { w: Wall; s: number; dist: number } | null;
     };
 
-    let arrastrando: null | { obj: THREE.Object3D; d: any; x0: number; y0: number; grab: number; mundo0: THREE.Vector3; pos0: THREE.Vector3; planoY: number; bloque?: THREE.Object3D; bloquePos0?: THREE.Vector3; grupoMod?: THREE.Object3D; grupoPos0?: THREE.Vector3; loc0?: THREE.Vector3 } = null;
+    let arrastrando: null | { obj: THREE.Object3D; d: any; x0: number; y0: number; grab: number; mundo0: THREE.Vector3; pos0: THREE.Vector3; planoY: number; fija?: boolean; bloque?: THREE.Object3D; bloquePos0?: THREE.Vector3; grupoMod?: THREE.Object3D; grupoPos0?: THREE.Vector3; loc0?: THREE.Vector3 } = null;
     // El grupo de la isla/barra (para moverla entera) a partir de una de sus piezas
     const grupoBloque = (o: THREE.Object3D | null): THREE.Object3D | undefined => { let x = o; while (x) { if (x.userData && x.userData.bloque !== undefined) return x; x = x.parent; } return undefined; };
     const alBajar = (e: PointerEvent) => {
@@ -424,20 +432,22 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
       if (d.kind === "mod" || d.kind === "tall") {
         const w = paredes.find((q) => q.t === d.t);
         if (w) grab = ((p0.x - w.x1) * w.ux + (p0.z - w.z1) * w.uz) - d.start;
-        else { // bloque suelto: coordenada a lo largo del eje de la isla
-          const g = hit.object.parent!; const loc = g.worldToLocal(p0.clone()); grab = loc.x - (d.start - (ultimo.current.plan.tramos[d.t].length || 0) / 2);
+        else { // bloque suelto: coordenada a lo largo del eje de la isla (en el sistema de la isla, no del mueble)
+          const g = grupoBloque(hit.object); if (g) { const loc = g.worldToLocal(p0.clone()); grab = loc.x + (ultimo.current.plan.tramos[d.t].length || 0) / 2 - d.start; }
         }
       }
       controls.enabled = false;
       try { cv.setPointerCapture(e.pointerId); } catch { /* sin captura el arrastre igual funciona */ }
-      const gb = grupoBloque(hit.object);
+      // Isla/barra: solo su base la mueve entera, y SOLO mientras está vacía; con módulos puestos queda bloqueada y cada módulo se acomoda por su cuenta
+      const gb = d.kind === "losa" ? grupoBloque(hit.object) : undefined;
+      const fija = d.kind === "losa" && (ultimo.current.plan.tramos[d.t]?.lower.length ?? 0) > 0;
       // El mueble se mueve COMPLETO (cuerpo, puertas, gavetas, losa…): se mueve su grupo, no solo la pieza tocada
       const gm = d.kind === "mod" || d.kind === "tall" ? hit.object.parent ?? undefined : undefined;   // arrastrar cualquier parte de la isla/barra mueve TODO el bloque (los módulos se reordenan con ◀ ▶)
-      arrastrando = { obj: hit.object, d, x0: e.clientX, y0: e.clientY, grab, mundo0: p0, pos0: hit.object.position.clone(), planoY, bloque: gb, bloquePos0: gb?.position.clone(), grupoMod: gm, grupoPos0: gm?.position.clone(), loc0: gm?.parent ? gm.parent.worldToLocal(p0.clone()) : undefined };
+      arrastrando = { obj: hit.object, d, x0: e.clientX, y0: e.clientY, grab, mundo0: p0, pos0: hit.object.position.clone(), planoY, fija, bloque: gb, bloquePos0: gb?.position.clone(), grupoMod: gm, grupoPos0: gm?.position.clone(), loc0: gm?.parent ? gm.parent.worldToLocal(p0.clone()) : undefined };
     };
     let paredToque: null | { t: number; x: number; y: number } = null;
     const alMover = (e: PointerEvent) => {
-      if (!arrastrando) return;
+      if (!arrastrando || arrastrando.fija) return;
       if (!movido && Math.hypot(e.clientX - arrastrando.x0, e.clientY - arrastrando.y0) < 6) return;
       movido = true;
       apunta(e);
@@ -465,6 +475,20 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
             if (it) gm.position.x = it.start + it.width / 2;
           }
         } catch { /* si la simulación falla se queda el movimiento libre y al soltar se acomoda igual */ }
+        // Dentro de la isla/barra: el módulo se acomoda a lo largo de su eje, con imán, igual que en una pared
+        try {
+          const isl = grupoBloque(arrastrando.obj);
+          if (isl && (d.kind === "mod" || d.kind === "tall")) {
+            const { plan: pl, config: cf, dropMod: dm, dropTallTo: dt, acomodar } = ultimo.current;
+            const L = pl.tramos[d.t].length || 0;
+            const q: ModulePlan = JSON.parse(JSON.stringify(pl));
+            const ini = round2(isl.worldToLocal(P.clone()).x + L / 2 - arrastrando.grab);
+            if (d.kind === "mod") dm(q, d.t, d.row, d.id, ini); else dt(q, d.key, d.t, ini);
+            acomodar?.(q);
+            const it = rowItems(q, d.t, d.kind === "mod" ? d.row : "lower", cf).find((i) => (d.kind === "mod" ? i.mod?.id === d.id : i.key === d.key));
+            if (it) gm.position.x = it.start + it.width / 2 - L / 2;
+          }
+        } catch { /* igual se acomoda al soltar */ }
       }
       dibujar();
     };
@@ -491,7 +515,8 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
       }
       const esBloque = !!plan.tramos[d.t]?.isIsland;
       if (esBloque) {   // dentro de la isla/barra: a lo largo de su eje
-        const par = a.obj.parent!; const loc = par.worldToLocal(P.clone());
+        const isl = grupoBloque(a.obj); if (!isl) { construir(); return; }
+        const loc = isl.worldToLocal(P.clone());
         const start = round2(loc.x - a.grab + (plan.tramos[d.t].length || 0) / 2);
         onEdit((p) => dropMod(p, d.t, d.row, d.id, start));
         return;

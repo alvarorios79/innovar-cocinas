@@ -372,7 +372,9 @@ export default function VisitasTecnicas() {
                             {Array.isArray((measurements as any)._cocina_paredes) && (measurements as any)._cocina_paredes.map((p: any, i: number) => (
                               <div key={i} className="flex justify-between"><span className="text-gray-400">Pared {["A", "B", "C"][i] || i + 1}</span><span className="text-white font-medium">inferiores {p?.inf ?? 0} cm · superiores {p?.sup ?? 0} cm</span></div>
                             ))}
-                            {(measurements as any)._cocina_isla > 0 && <div className="flex justify-between"><span className="text-gray-400">Isla</span><span className="text-white font-medium">{(measurements as any)._cocina_isla} cm</span></div>}
+                            {([["_cocina_isla", "Isla"], ["_cocina_barra", "Barra"]] as const).map(([k, t]) => (measurements as any)[k] > 0 && (
+                              <div key={k} className="flex justify-between"><span className="text-gray-400">{t}</span><span className="text-white font-medium">{(measurements as any)[k]} cm de ancho · {(measurements as any)[k + "_profundo"] || 0} de profundo · {(measurements as any)[k + "_alto"] || 0} de alto</span></div>
+                            ))}
                             {ancho && !Array.isArray((measurements as any)._cocina_paredes) && <div className="flex justify-between"><span className="text-gray-400">Ancho</span><span className="text-white font-medium">{ancho} cm</span></div>}
                             {alto  && <div className="flex justify-between"><span className="text-gray-400">Alto</span><span className="text-white font-medium">{alto} cm</span></div>}
                             {prof  && <div className="flex justify-between"><span className="text-gray-400">Profundo</span><span className="text-white font-medium">{prof} cm</span></div>}

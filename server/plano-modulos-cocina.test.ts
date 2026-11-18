@@ -48,4 +48,17 @@ describe("Plano de módulos → descripción de la cocina", () => {
     console.log("METRAJE vs PLANO → avisos:", JSON.stringify(res.warnings), "| texto:", txt.match(/Metraje total: [\d.]+ ml/)?.[0]);
     expect(res.warnings.some((w) => /metraje|metros/i.test(w))).toBe(false); // hoy no avisa
   });
+
+  it("la isla se arma igual que las paredes: se activa con su medida y se le arrastran módulos", () => {
+    const cfg: any = { shape: "premium", layout: "lineal", totalMeters: 3, island: { enabled: true, meters: 2 }, specialModules: {}, countertop: {}, bar: {}, paintedDoors: { enabled: true } };
+    const plan: any = normalizePlan({ enabled: true, tramos: [{ name: "Pared A", length: 3, upper: [], lower: [] }], extras: {} }, cfg);
+    expect(plan.tramos.map((t: any) => t.name)).toEqual(["Pared A", "Isla"]);
+    expect(plan.tramos[1].length).toBe(2);                       // el largo de la isla viene de su medida
+    addModuleToPlan(plan, 1, "lower", "cajoneroDoble", cfg);
+    addModuleToPlan(plan, 1, "lower", "moduloAlmacInf", cfg);
+    plan.enabled = true;
+    const res = computePlan(plan, cfg);
+    expect(res.modules.some((m) => m.key === "cajoneroDoble")).toBe(true);
+    expect(res.warnings.filter((w) => /Isla/.test(w))).toEqual([]);  // caben en la isla
+  });
 });

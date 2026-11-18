@@ -1221,12 +1221,20 @@ export default function Quotations() {
       kc.lowerMeters = coc.lowerMeters;
       kc.upperMeters = coc.upperMeters;
       kc.totalMeters = igual ? coc.lowerMeters : coc.lowerMeters + coc.upperMeters;
-      if (coc.islaM > 0) { kc.island = { ...kc.island, enabled: true, meters: coc.islaM }; }
+      if (coc.isla) {
+        // Isla: el ancho son los metros; el profundo define el recargo por fondo del mesón (≤62 sin recargo · 63–90 +30% · 91–100 +40% · más ×2)
+        const p = coc.isla.profundoCm;
+        kc.island = { ...kc.island, enabled: true, meters: coc.isla.anchoCm / 100, ...(p > 0 ? { depthSurcharge: p <= 62 ? "none" : p <= 90 ? "30percent" : p <= 100 ? "40percent" : "double" } : {}) };
+      }
+      if (coc.barra) {
+        // Barra: el ancho son los metros; la altura define el lateral y el regrueso interior (herraje)
+        kc.bar = { ...kc.bar, enabled: true, meters: coc.barra.anchoCm / 100, ...(coc.barra.altoCm > 0 ? { barraAlturaLateral: coc.barra.altoCm } : {}) };
+      }
       kc.modulePlan = {
         ...(kc.modulePlan || { paintAll: false }), enabled: true,
         tramos: coc.paredesM.map((p) => ({ name: `Pared ${p.nombre}`, length: Math.max(p.inf, p.sup), upper: [], lower: [] })),
       };
-      kc.fromLevantamiento = { forma: coc.layout, paredes: coc.paredesM, aproximado: coc.aproximado };
+      kc.fromLevantamiento = { forma: coc.layout, paredes: coc.paredesM, aproximado: coc.aproximado, isla: coc.isla, barra: coc.barra };
       const nuevo = { ...base, itemType: "cocina", kitchenConfig: kc };
       return vacio ? [nuevo, ...prev.slice(1)] : [...prev, nuevo];
     });

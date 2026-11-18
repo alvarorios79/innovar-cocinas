@@ -1614,7 +1614,9 @@ export default function Medidor() {
                           <CocinaParedes
                             forma={(localMeasurements as any)._cocina_forma}
                             paredes={(localMeasurements as any)._cocina_paredes}
-                            islaCm={(localMeasurements as any)._cocina_isla}
+                            medidas={localMeasurements as any}
+                            separacionCm={(localMeasurements as any)._cocina_separacion}
+                            aberturas={(localMeasurements as any)._cocina_aberturas}
                             altoCm={(localMeasurements as any)._cocina_alto}
                             profundoCm={(localMeasurements as any)._cocina_profundo}
                             onChange={(cambios) => setLocalMeasurements((prev: any) => ({ ...prev, ...cambios }))}

@@ -35,7 +35,7 @@ export function PlanoCocinaLectura({ measurements }: { measurements: Record<stri
     ? createPortal(<div data-pantalla-completa="1" style={{ pointerEvents: "auto" }}>{nodo}</div>, document.body)
     : nodo;
   return envolver(
-    <div className={grande ? "fixed inset-0 z-[60] bg-background flex flex-col [@media(orientation:landscape)]:flex-row" : "space-y-3"}>
+    <div className={grande ? "fixed inset-0 z-[100000] bg-background flex flex-col [@media(orientation:landscape)]:flex-row" : "space-y-3"}>
       <div className={grande ? "shrink-0 h-[46dvh] [@media(orientation:landscape)]:h-full [@media(orientation:landscape)]:w-[56%] flex flex-col gap-2 p-3 border-b [@media(orientation:landscape)]:border-b-0 [@media(orientation:landscape)]:border-r border-primary/30" : "space-y-3"}>
       <div className="flex items-center justify-between">
         <p className="text-sm font-bold text-white">Cocina {FORMAS_COCINA.find((f) => f.key === forma)?.label ?? forma}</p>

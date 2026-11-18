@@ -86,6 +86,20 @@ function Cota({ w }: { w: number }) {
 
 type Sel = { t: number; row: PlanRow; id: string } | { t: number; tall: string } | null;
 
+// Medida con botones «−» y «+» SIEMPRE visibles (las flechitas del navegador solo salen al pasar el ratón y en la tablet no existen)
+function MedidaStepper({ valor, onCambio, paso = 0.05 }: { valor: number; onCambio: (v: number) => void; paso?: number }) {
+  const cambiar = (v: number) => onCambio(Math.max(0, round2(v)));
+  return (
+    <div className="flex items-center gap-1">
+      <button type="button" onClick={() => cambiar(valor - paso)} aria-label="Restar 5 cm" className="w-10 h-10 shrink-0 rounded-lg bg-white/10 hover:bg-white/25 active:bg-white/30 text-lg font-bold text-white">−</button>
+      <input type="number" step={paso} min="0" value={valor} onChange={(e) => cambiar(parseFloat(e.target.value) || 0)}
+        className="w-[4.2rem] h-10 min-w-0 rounded-lg bg-black/40 border border-white/30 text-center font-mono text-sm text-white focus:outline-none focus:border-primary [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+      <button type="button" onClick={() => cambiar(valor + paso)} aria-label="Sumar 5 cm" className="w-10 h-10 shrink-0 rounded-lg bg-white/10 hover:bg-white/25 active:bg-white/30 text-lg font-bold text-white">+</button>
+      <span className="text-xs text-white/60">m</span>
+    </div>
+  );
+}
+
 export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlanSpecial, onRestaurar, capturaRef }: Props) {
   const visor3d = useRef<PlanoModulos3DRef>(null);
   const plan = useMemo(() => normalizePlan(config?.modulePlan, config), [config]);
@@ -361,14 +375,11 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
         <ModuleIcon k={mod.key} size={26} />
         <span className="font-semibold">{cat.label}</span>
         {!cat.noPieces && <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${painted ? "bg-purple-600/70 text-white" : "bg-white/10 text-white/60"}`}>{painted ? "VA PINTADO" : "SIN PINTAR"}</span>}
-        <label className="flex items-center gap-1">
+        <div className="flex items-center gap-1">
           {adjustable ? (
-            <input type="number" step="0.05" min="0" value={mod.width}
-              onChange={(e) => edit(p => setModuleWidth(p, sel.t, sel.row, mod.id, parseFloat(e.target.value) || 0, config))}
-              className="w-16 bg-black/20 border-b border-white/40 text-right font-mono text-sm focus:outline-none" />
-          ) : <span className="font-mono text-sm">{m2(mod.width)}</span>}
-          m
-        </label>
+            <MedidaStepper valor={mod.width} onCambio={(v) => edit(p => setModuleWidth(p, sel.t, sel.row, mod.id, v, config))} />
+          ) : <span className="font-mono text-sm">{m2(mod.width)} m</span>}
+        </div>
         {Math.abs(mod.width - cat.width) > 0.004 && mod.autoBase === undefined && (
           <span className="text-amber-300">{mod.width > cat.width ? "+" : ""}{m2(mod.width - cat.width)} vs normal</span>
         )}
@@ -543,7 +554,7 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
     `rounded-xl border-2 p-3 flex flex-col gap-2.5 min-w-0 ${apagada ? "opacity-35" : ""} ${cnt > 0
       ? (tono === "upper" ? "bg-purple-900/35 border-purple-400/70" : tono === "tall" ? "bg-amber-900/35 border-amber-400/70" : "bg-teal-900/40 border-primary/70")
       : "bg-white/[0.04] border-white/15"}`;
-  const renderPaletaUnica = () => {
+  const renderPaletaUnica = (enPanel = false) => {
     const tarjeta = (o: { key: string; label: string; width: number; locked?: boolean; corner?: boolean }, row: PlanRow) => {
       const cnt = cuentaDe(o.key);
       if (o.corner) {
@@ -561,7 +572,7 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
                   return (
                     <button key={e} type="button" disabled={ocupada} className="h-10 rounded-lg bg-white/10 hover:bg-white/25 disabled:opacity-40 text-sm font-semibold text-white px-2"
                       title={ocupada ? `La esquina ${nombreEsquina(e)} ya tiene su esquinero` : `Poner en la esquina ${nombreEsquina(e)}`} onClick={() => edit(p => { addModuleToPlan(p, e, row, o.key, config); })}>
-                      {ocupada ? `✓ Esquina ${nombreEsquina(e)}` : `+ Esquina ${nombreEsquina(e)}`}
+                      {ocupada ? `✓ Esq. ${nombreEsquina(e)}` : `+ Esq. ${nombreEsquina(e)}`}
                     </button>
                   );
                 })}
@@ -580,10 +591,10 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
           </div>
           {o.locked
             ? <div className="text-xs text-white/70">🔒 Medida fija: <b className="text-white text-sm">{m2(o.width)} m</b></div>
-            : <label className="flex items-center gap-2 text-xs text-white/70">Medida
-                <input type="number" step="0.05" min="0" value={curW} onChange={(e) => edit(p => setTypeWidth(p, tAct, row, o.key, parseFloat(e.target.value) || 0))}
-                  className="w-20 h-9 rounded bg-black/40 border border-white/30 text-center font-mono text-sm text-white focus:outline-none focus:border-primary" /> m
-              </label>}
+            : <div className="space-y-1">
+                <span className="text-xs text-white/70">Medida</span>
+                <MedidaStepper valor={curW} onCambio={(v) => edit(p => setTypeWidth(p, tAct, row, o.key, v))} />
+              </div>}
           <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
             <button type="button" className={btnCant} disabled={cnt === 0} onClick={() => quitarUno(o.key, row)} aria-label="Quitar uno">−</button>
             <span className={`min-w-[2rem] text-center font-mono text-lg ${cnt > 0 ? "text-white font-bold" : "text-white/40"}`}>{cnt}</span>
@@ -610,7 +621,8 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
         </div>
       );
     };
-    const rejilla = "grid grid-cols-1 min-[420px]:grid-cols-2 xl:grid-cols-3 gap-2.5";
+    // Columnas según el ANCHO DEL PANEL (no el de la pantalla): en el panel de pantalla completa van 2 y dentro de la cotización 2 o 3
+    const rejilla = enPanel ? "grid grid-cols-2 gap-2.5" : "grid grid-cols-2 lg:grid-cols-3 gap-2.5";
     return (
       <div className="space-y-4">
         {/* A qué pared se agregan los módulos nuevos, y cuánto FALTA en cada una para llenar el muro */}
@@ -790,7 +802,7 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
                   activa={tAct} onPickPared={setActivaT}
                   onDeshacer={deshacer} puedeDeshacer={nHistorial > 0}
                   resumen={plan.tramos.map((tt, i) => ({ nombre: tt.name, largo: tt.length, llevaAbajo: rowUsed(plan, i, "lower", config), llevaArriba: tt.isIsland ? null : rowUsed(plan, i, "upper", config), activa: i === tAct }))}
-                  panel={<div className="space-y-4"><button type="button" onClick={deshacer} disabled={nHistorial === 0} className="w-full h-11 rounded-lg bg-amber-600 hover:bg-amber-500 disabled:opacity-35 text-white text-sm font-bold">↶ Deshacer el último cambio ({nHistorial})</button>{renderSelected()}{renderPasarA()}{renderPaletaUnica()}</div>}
+                  panel={<div className="space-y-4"><button type="button" onClick={deshacer} disabled={nHistorial === 0} className="w-full h-11 rounded-lg bg-amber-600 hover:bg-amber-500 disabled:opacity-35 text-white text-sm font-bold">↶ Deshacer el último cambio ({nHistorial})</button>{renderSelected()}{renderPasarA()}{renderPaletaUnica(true)}</div>}
                   moveTramo={(p, fromT, row, id, toT, start) => moveModuleToTramo(p, fromT, row, id, toT, start, config)}
                   dropMod={(p, t, row, id, start) => dropModule(p, t, row, id, start, config, true)}
                   dropTallTo={(p, key, tramo, start) => { p.specialTramo = { ...(p.specialTramo || {}), [key]: tramo }; dropTall(p, key, start, config); }}

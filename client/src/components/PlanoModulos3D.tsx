@@ -254,6 +254,33 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
           const et = texto(`${tr.name} · ${fm(largoVisible)} m`, "#ffe082", 0.12); et.position.set(0, hInf + 0.3, profInf / 2); grp.add(et);
         }
 
+        // Ventana o puerta bien visible: marco, vidrio con travesaños y, si estorba a los superiores, la zona sin muebles marcada en rojo (su límite)
+        const dibujarVentana = (desde: number, ancho: number, base: number, h: number, marcaLimite: boolean, esPuerta = false) => {
+          const zf = (isBloque ? 1 : sg) * (GROSOR / 2 + 0.012);
+          const bq = (w: number, hh: number, d: number, x: number, y: number, z: number, color: number, op = 1) => {
+            const m = new THREE.Mesh(new THREE.BoxGeometry(w, hh, d), new THREE.MeshLambertMaterial({ color, transparent: op < 1, opacity: op, depthWrite: op >= 1 }));
+            m.position.set(x, y, z); grp.add(m); return m;
+          };
+          const cx = desde + ancho / 2, cy = base + h / 2, g = 0.045;
+          const marco = esPuerta ? 0x6b4423 : (claro ? 0x6e7b82 : 0xf4efe3);
+          if (esPuerta) bq(ancho, h, 0.03, cx, cy, zf, 0x8a5a2b, 0.9);
+          else {
+            bq(ancho, h, 0.014, cx, cy, zf, claro ? 0x7cc4e8 : 0x8fd8ff, 0.55);                      // vidrio
+            bq(0.02, h - g, 0.02, cx, cy, zf + (isBloque ? 1 : sg) * 0.01, marco);                  // travesaño vertical
+            bq(ancho - g, 0.02, 0.02, cx, cy, zf + (isBloque ? 1 : sg) * 0.01, marco);              // travesaño horizontal
+          }
+          bq(ancho, g, 0.07, cx, base + g / 2, zf, marco); bq(ancho, g, 0.07, cx, base + h - g / 2, zf, marco);    // marco: abajo y arriba
+          bq(g, h, 0.07, desde + g / 2, cy, zf, marco); bq(g, h, 0.07, desde + ancho - g / 2, cy, zf, marco);       // marco: lados
+          if (marcaLimite) {
+            // Zona donde NO van muebles superiores: banda roja desde donde arrancan (1,50 m) hasta el techo y líneas en los dos bordes
+            const y0 = ARRANQUE_SUPERIOR_CM / 100, hz = Math.max(0.2, alto - y0);
+            bq(ancho, hz, 0.012, cx, y0 + hz / 2, zf + (isBloque ? 1 : sg) * 0.03, 0xff5252, 0.28);
+            [desde, desde + ancho].forEach((x) => bq(0.03, hz, 0.03, x, y0 + hz / 2, zf + (isBloque ? 1 : sg) * 0.04, 0xff1744, 0.95));
+            const l = texto(`Ventana ${fm(ancho)} · aquí terminan los superiores`, claro ? "#7a1020" : "#ffb4b4", 0.1); l.position.set(cx, Math.max(y0 + 0.12, base + h + 0.2), zf + (isBloque ? 1 : sg) * 0.08); grp.add(l);
+          } else {
+            const l = texto(`${esPuerta ? "Puerta" : "Ventana"} ${fm(ancho)}`, "#b3e5fc", 0.09); l.position.set(cx, base + h + 0.12, zf + (isBloque ? 1 : sg) * 0.06); grp.add(l);
+          }
+        };
         // Muebles: cada uno se dibuja como es (estufa con hornillas, lavaplatos con poceta y llave, gavetas…). Origen del grupo = centro de la base.
         const girar = (isBloque ? 1 : sg) < 0 ? Math.PI : 0;
         const poner = (key: string, row: "upper" | "lower" | "tall", s0: number, w: number, y0: number, h: number, dIni0: number, prof: number, data: any, selected: boolean, fantasma: boolean, etiqueta: string) => {
@@ -283,9 +310,7 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
           if (it.key === "ventana") {
             const a = aber.find((x) => x.tipo === "ventana" && x.pared === t && Math.abs(x.desde / 100 - it.start) < 0.03);
             const base = a ? (a.antepecho || 100) / 100 : 1.0, h = a ? (a.alto || 120) / 100 : 1.2;
-            const v = new THREE.Mesh(new THREE.BoxGeometry(it.width, h, 0.02), new THREE.MeshLambertMaterial({ color: COLOR.vidrio, transparent: true, opacity: 0.5 }));
-            v.position.set(it.start + it.width / 2, base + h / 2, 0.0); grp.add(v);
-            const l = texto(`Ventana ${fm(it.width)}`, "#b3e5fc", 0.095); l.position.set(it.start + it.width / 2, base + h / 2, sg * 0.05); grp.add(l);
+            dibujarVentana(it.start, it.width, base, h, true);
             return;
           }
           const mine = !it.fromPrev;
@@ -305,8 +330,7 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
           const ya = rowItems(plan, t, "upper", config).some((i) => i.key === "ventana" && Math.abs(i.start - a.desde / 100) < 0.03);
           if (ya) return;
           const w = a.ancho / 100, h = a.alto / 100, base = (a.antepecho || 0) / 100;
-          const v = new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.02), new THREE.MeshLambertMaterial({ color: a.tipo === "puerta" ? COLOR.puerta : COLOR.vidrio, transparent: true, opacity: a.tipo === "puerta" ? 0.55 : 0.4 }));
-          v.position.set(a.desde / 100 + w / 2, base + h / 2, 0); grp.add(v);
+          if (a.tipo === "puerta") dibujarVentana(a.desde / 100, w, base, h, false, true); else dibujarVentana(a.desde / 100, w, base, h, false);
         });
         contenido.add(grp);
       });
@@ -494,7 +518,7 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
   useEffect(() => { api.current?.rebuild(); }, [firma]);
 
   const marco = (
-    <div ref={caja} data-pantalla-completa={pantalla ? "1" : undefined} className={`${pantalla ? "bg-[#0f1a1d] flex flex-col md:flex-row" : "relative rounded-lg border border-white/10 overflow-hidden bg-black/20"}`} style={pantalla ? { position: "fixed", inset: 0, zIndex: 70, height: "100%", width: "100%" } : { height: props.altura ?? 420 }}>
+    <div ref={caja} data-pantalla-completa={pantalla ? "1" : undefined} className={`${pantalla ? "bg-[#0f1a1d] flex flex-col md:flex-row" : "relative rounded-lg border border-white/10 overflow-hidden bg-black/20"}`} style={pantalla ? { position: "fixed", inset: 0, zIndex: 100000, height: "100%", width: "100%" } : { height: props.altura ?? 420 }}>
      <div className={pantalla ? "relative flex-1 min-h-[45%] md:min-h-0" : "contents"}>
       <div ref={host} className="absolute inset-0" />
       {props.resumen && props.resumen.length > 0 && (

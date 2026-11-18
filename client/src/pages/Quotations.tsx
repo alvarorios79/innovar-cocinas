@@ -1232,7 +1232,7 @@ export default function Quotations() {
       }
       kc.modulePlan = {
         ...(kc.modulePlan || { paintAll: false }), enabled: true,
-        tramos: coc.paredesM.map((p) => ({ name: `Pared ${p.nombre}`, length: Math.max(p.inf, p.sup), upper: [], lower: [] })),
+        tramos: coc.paredesM.map((p) => ({ name: `Pared ${p.nombre}`, length: Math.max(p.inf, p.sup) || p.ancho, upper: [], lower: [] })),
       };
       kc.fromLevantamiento = { forma: coc.layout, paredes: coc.paredesM, aproximado: coc.aproximado, isla: coc.isla, barra: coc.barra };
       const nuevo = { ...base, itemType: "cocina", kitchenConfig: kc };

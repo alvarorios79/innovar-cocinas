@@ -1,5 +1,6 @@
 // client/src/pages/Medidor.tsx
 import { CocinaParedes } from "@/components/CocinaParedes";
+import { componerPlanoLevantamiento } from "@/lib/planoLevantamiento";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useSearch } from "wouter";
 import { Pizarra, type PizarraRef, type PizarraStatus } from "@/components/Pizarra";
@@ -456,6 +457,9 @@ export default function Medidor() {
   // null = todavía no llegó pizarra:status; true/false = estado real
   const [pizarraHasContent, setPizarraHasContent] = useState<boolean | null>(null);
   const [pizarraFullscreen, setPizarraFullscreen] = useState(false);
+  // Plano 3D del levantamiento → hoja automática y BLOQUEADA en la pizarra (la ven comercial, admin y diseñador)
+  const captura3DRef = useRef<(() => string | null) | null>(null);
+  const [pizarraListo, setPizarraListo] = useState(false);
   // Callback estable para evitar que el useEffect de Pizarra.tsx se re-ejecute en cada render
   const onPizarraStatus = useCallback((s: PizarraStatus) => setPizarraHasContent(s.hasContent), []);
 
@@ -878,6 +882,20 @@ export default function Medidor() {
   const handleSubmitVisit = async () => {
     if (!visitDetail) return;
     try {
+      // El plano de la cocina (dibujo 3D + medidas) queda guardado como PDF en el levantamiento para comercial, administrador y diseñador.
+      // Si algo falla aquí, el levantamiento se envía igual.
+      const mm = localMeasurements as any;
+      if (pizarraListo && mm._tipo_cocina && mm._cocina_forma && pizarraHasContent !== false) {
+        try {
+          toast.info("Guardando el plano del levantamiento…");
+          const pdf = await pizarraRef.current?.requestPdf();
+          if (pdf) {
+            await compressPdf.mutateAsync({ visitId: visitDetail.id, fileName: `plano-levantamiento-${visitDetail.id}.pdf`, fileData: pdf.dataUrl, category: "pdf_plano" });
+          }
+        } catch (errPlano) {
+          console.warn("[plano del levantamiento → PDF]", errPlano);
+        }
+      }
       await submitVisit.mutateAsync({ visitId: visitDetail.id });
       toast.success("Levantamiento técnico enviado al equipo");
       setView("list");
@@ -927,6 +945,34 @@ export default function Medidor() {
   const canAddMaterial = isEditable || canComplement;
   // La pizarra queda activa siempre (también con cotización): cada PDF exportado es una captura nueva que no toca los anteriores
   const canUsePizarra = !!visit && (isEditable || canComplement || user?.role === "admin" || user?.role === "super_admin" || user?.role === "comercial" || (user?.role === "medidor" && (visit as any).createdBy === user?.id));
+
+  // Cada vez que cambian las medidas de la cocina, la hoja del levantamiento (foto 3D + medidas) se pone sola y BLOQUEADA en la pizarra
+  const claveCocina = JSON.stringify([
+    (localMeasurements as any)._tipo_cocina, (localMeasurements as any)._cocina_forma, (localMeasurements as any)._cocina_paredes,
+    (localMeasurements as any)._cocina_aberturas, (localMeasurements as any)._cocina_alto, (localMeasurements as any)._cocina_profundo,
+    (localMeasurements as any)._cocina_separacion, (localMeasurements as any)._cocina_isla, (localMeasurements as any)._cocina_isla_profundo,
+    (localMeasurements as any)._cocina_isla_alto, (localMeasurements as any)._cocina_barra, (localMeasurements as any)._cocina_barra_profundo,
+    (localMeasurements as any)._cocina_barra_alto,
+  ]);
+  useEffect(() => {
+    const mm = localMeasurements as any;
+    if (!canUsePizarra || !pizarraListo || !mm._tipo_cocina || !mm._cocina_forma) return;
+    const t = setTimeout(async () => {
+      try {
+        const foto = captura3DRef.current?.();
+        if (!foto) return;
+        const pieza = (base: string) => (Number(mm[base]) > 0 ? { ancho: Number(mm[base]), profundo: Number(mm[base + "_profundo"]) || 0, alto: Number(mm[base + "_alto"]) || 0 } : null);
+        const hoja = await componerPlanoLevantamiento(foto, {
+          cliente: visitDetail?.clientName ?? selectedVisit?.clientName ?? "",
+          forma: mm._cocina_forma, paredes: mm._cocina_paredes, aberturas: mm._cocina_aberturas,
+          altoGeneralCm: Number(mm._cocina_alto) || undefined, profundoCm: Number(mm._cocina_profundo) || undefined,
+          isla: pieza("_cocina_isla"), barra: pieza("_cocina_barra"),
+        });
+        pizarraRef.current?.setLockedPhoto({ id: "plano-levantamiento", ...hoja });
+      } catch (err) { console.error("[plano 3D → pizarra]", err); }
+    }, 1800);
+    return () => clearTimeout(t);
+  }, [claveCocina, pizarraListo, canUsePizarra]);
   const completion = calculateCompletion();
 
   // ── Vistas ────────────────────────────────────────────────────────────────
@@ -1615,6 +1661,7 @@ export default function Medidor() {
                             forma={(localMeasurements as any)._cocina_forma}
                             paredes={(localMeasurements as any)._cocina_paredes}
                             medidas={localMeasurements as any}
+                            capturaRef={captura3DRef}
                             separacionCm={(localMeasurements as any)._cocina_separacion}
                             aberturas={(localMeasurements as any)._cocina_aberturas}
                             altoCm={(localMeasurements as any)._cocina_alto}
@@ -2094,6 +2141,7 @@ export default function Medidor() {
                 date={pizarraDate.current}
                 height={pizarraFullscreen ? "calc(100dvh - 53px)" : "580px"}
                 onStatus={onPizarraStatus}
+                onReady={() => setPizarraListo(true)}
               />
             </div>
           )}

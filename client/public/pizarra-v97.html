@@ -1407,6 +1407,19 @@ window.addEventListener('message', e => {
   if (!e.data || typeof e.data !== 'object') return;
   if (e.data.type === 'pizarra:requestStatus') sendStatus();
   if (e.data.type === 'pizarra:requestPdf') { notifyParent({ type: 'pizarra:ack', request: 'requestPdf', version: VERSION, items: items.length }); hint.textContent = 'Orden recibida del formulario: generando el PDF…'; exportPdf({ fromParent: true }); }
+  if (e.data.type === 'pizarra:setLockedPhoto') {
+    // Hoja automática del portal (plano del levantamiento): foto BLOQUEADA arriba a la izquierda; si ya existe se reemplaza en el mismo lugar
+    const d = e.data, id = 'auto-' + String(d.id || 'plano');
+    if (!d.src || !d.w || !d.h) return;
+    const prev = items.find(i => i.id === id);
+    const w = prev ? prev.w : 1000, h = prev ? prev.w * d.h / d.w : 1000 * d.h / d.w;
+    const it = { t: 'p', id, src: d.src, x: prev ? prev.x : 0, y: prev ? prev.y : 0, w, h, locked: true, auto: true };
+    imgs.delete(id);
+    items = prev ? items.map(i => i.id === id ? it : i) : [it, ...items];
+    IDB.put(id, d.src).then(() => { persisted.add(id); }).catch(() => {});
+    if (!prev) { try { const bw = board.clientWidth, bh = board.clientHeight; view = { x: 20, y: 20, k: Math.min(1, (bw - 40) / w, (bh - 40) / h) }; } catch (_) {} }
+    save(); schedule(); sendStatus();
+  }
   if (e.data.type === 'pizarra:setParams') {
     // Permite actualizar job/who sin recargar el iframe
     if (e.data.job !== undefined) { job = e.data.job; $('#job').value = job; save(); }

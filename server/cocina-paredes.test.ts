@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { imantarDesde, estadoIman, geometriaParedes, ajustarAbertura, nombresParedes, normalizarParedes, setInferior, setSuperior, totalesParedes, cocinaDeLevantamiento } from "../shared/cocinaParedes";
+import { anchoMuroCm, imantarDesde, estadoIman, geometriaParedes, ajustarAbertura, nombresParedes, normalizarParedes, setInferior, setSuperior, totalesParedes, cocinaDeLevantamiento } from "../shared/cocinaParedes";
 
 describe("Paredes de la cocina (levantamiento)", () => {
   it("cada forma pide sus paredes: línea 1, L 2, U 3, paralela 2", () => {
@@ -78,5 +78,20 @@ describe("Paredes de la cocina (levantamiento)", () => {
     expect(c.isla).toEqual({ anchoCm: 200, profundoCm: 90, altoCm: 90 });
     expect(c.barra).toEqual({ anchoCm: 150, profundoCm: 40, altoCm: 100 });
     expect(cocinaDeLevantamiento({ _cocina_forma: "L", _cocina_paredes: [{ inf: 300 }] })!.isla).toBeNull();
+  });
+
+  it("el ancho de la pared es aparte de los muebles: el muro manda en el dibujo", () => {
+    expect(anchoMuroCm({ ancho: 360, inf: 300, sup: 300 })).toBe(360);
+    expect(anchoMuroCm({ inf: 300, sup: 280 })).toBe(300); // sin ancho escrito, se usa el mayor de los muebles
+    const L = geometriaParedes("L", [{ ancho: 360, alto: 250, inf: 300 }, { ancho: 240, inf: 200 }]);
+    expect(L.map((w) => w.largo)).toEqual([3.6, 2.4]);
+    expect(L[0].altoM).toBe(2.5);
+    expect(L[1].altoM).toBeUndefined();                      // sin alto propio usa el alto general
+  });
+  it("del levantamiento salen el ancho y el alto de cada pared y los muebles aparte", () => {
+    const c = cocinaDeLevantamiento({ _cocina_forma: "L", _cocina_paredes: [{ ancho: 360, alto: 250, inf: 300, sup: 280 }, { ancho: 240, inf: 200, sup: 200 }] })!;
+    expect(c.paredesM[0]).toMatchObject({ ancho: 3.6, alto: 2.5, inf: 3, sup: 2.8 });
+    expect(c.lowerMeters).toBe(5);
+    expect(c.upperMeters).toBe(4.8);
   });
 });

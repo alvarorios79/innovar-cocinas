@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { geometriaParedes, ALTO_COCINA_POR_DEFECTO, type AberturaCocina, type ParedCocina } from "@shared/cocinaParedes";
@@ -16,15 +16,23 @@ interface Props {
   activa: number;
   onPickPared?: (i: number) => void;
   onFalla?: () => void;
+  /** Alto del visor en pantalla (por defecto 300 px). En pantalla completa se usa casi todo el alto. */
+  altura?: number | string;
+}
+
+export interface Habitacion3DRef {
+  /** Foto del dibujo 3D (JPEG en data URL) para la pizarra y el plano del levantamiento. Devuelve null si no se puede. */
+  capturar(): string | null;
 }
 
 const COLOR_PARED = 0x8d9aa0, COLOR_ACTIVA = 0x00bcd4, COLOR_PISO = 0x1f2a2e, COLOR_VIDRIO = 0x7fd4ff, COLOR_PUERTA = 0x8a5a2b;
 const GROSOR = 0.08;
 
-export default function Habitacion3D({ forma, paredes, separacionCm, altoCm, aberturas, activa, onPickPared, onFalla }: Props) {
+const Habitacion3D = forwardRef<Habitacion3DRef, Props>(function Habitacion3D({ forma, paredes, separacionCm, altoCm, aberturas, activa, onPickPared, onFalla, altura = 300 }, ref) {
   const host = useRef<HTMLDivElement>(null);
   // La escena se arma una vez; los cambios de medidas la reconstruyen (es pequeña) y se vuelve a dibujar una sola vez.
-  const api = useRef<{ rebuild: (p: Props) => void; vista: (v: "arriba" | "frente" | "iso") => void } | null>(null);
+  const api = useRef<{ rebuild: (p: Props) => void; vista: (v: "arriba" | "frente" | "iso") => void; capturar: () => string | null } | null>(null);
+  useImperativeHandle(ref, () => ({ capturar: () => api.current?.capturar() ?? null }), []);
   const ultimo = useRef<Props>({ forma, paredes, separacionCm, altoCm, aberturas, activa, onPickPared, onFalla });
   ultimo.current = { forma, paredes, separacionCm, altoCm, aberturas, activa, onPickPared, onFalla };
 
@@ -89,7 +97,7 @@ export default function Habitacion3D({ forma, paredes, separacionCm, altoCm, abe
 
     const construir = (p: Props) => {
       limpiar();
-      const alto = (p.altoCm && p.altoCm > 100 ? p.altoCm : ALTO_COCINA_POR_DEFECTO) / 100;
+      const altoGeneral = (p.altoCm && p.altoCm > 100 ? p.altoCm : ALTO_COCINA_POR_DEFECTO) / 100;
       let geo = geometriaParedes(p.forma, p.paredes, p.separacionCm).filter((w) => w.largo > 0.05);
       // Sin medidas todavía: se muestra la forma con paredes de 3 m (transparentes) para que se entienda cómo es
       const fantasma = geo.length === 0;
@@ -111,7 +119,9 @@ export default function Habitacion3D({ forma, paredes, separacionCm, altoCm, abe
       rejilla.position.set(cx, 0.002, cz);
       contenido.add(rejilla);
 
+      const altoMax = Math.max(altoGeneral, ...geo.map((w) => w.altoM || 0));
       geo.forEach((w) => {
+        const alto = w.altoM && w.altoM > 0.5 ? w.altoM : altoGeneral; // cada pared puede tener su propio alto
         const dx = w.x2 - w.x1, dz = w.z2 - w.z1, largo = Math.hypot(dx, dz);
         const ang = Math.atan2(dz, dx);
         const g = new THREE.Group();
@@ -153,7 +163,7 @@ export default function Habitacion3D({ forma, paredes, separacionCm, altoCm, abe
         contenido.add(etiqueta(w.nombre, w.x1 + dx / 2, alto + 0.35, w.z1 + dz / 2, activo));
       });
 
-      encuadre = { cx, cz, r: Math.max(sx, sz, alto * 1.4) };
+      encuadre = { cx, cz, r: Math.max(sx, sz, altoMax * 1.4) };
       if (!movidoPorUsuario) vista("iso"); else dibujar();
     };
 
@@ -193,7 +203,10 @@ export default function Habitacion3D({ forma, paredes, separacionCm, altoCm, abe
     const perdido = (e: Event) => { e.preventDefault(); ultimo.current.onFalla?.(); };
     renderer.domElement.addEventListener("webglcontextlost", perdido);
 
-    api.current = { rebuild: construir, vista };
+    const capturar = () => {
+      try { renderer.render(scene, camera); return renderer.domElement.toDataURL("image/jpeg", 0.88); } catch { return null; }
+    };
+    api.current = { rebuild: construir, vista, capturar };
     ajustar();
     construir(ultimo.current);
     vista("iso");
@@ -220,7 +233,7 @@ export default function Habitacion3D({ forma, paredes, separacionCm, altoCm, abe
 
   return (
     <div className="relative">
-      <div ref={host} className="w-full rounded-lg overflow-hidden bg-black/20 border border-white/10" style={{ height: 300 }} />
+      <div ref={host} className="w-full rounded-lg overflow-hidden bg-black/20 border border-white/10" style={{ height: altura }} />
       <div className="absolute top-2 right-2 flex gap-1">
         {([["iso", "3D"], ["arriba", "Arriba"], ["frente", "Frente"]] as const).map(([v, t]) => (
           <button key={v} type="button" onClick={() => api.current?.vista(v)} className="px-2.5 py-1.5 rounded bg-black/50 text-white text-xs font-semibold border border-white/20 min-h-[32px]">{t}</button>
@@ -229,4 +242,6 @@ export default function Habitacion3D({ forma, paredes, separacionCm, altoCm, abe
       <p className="absolute bottom-1.5 left-2 text-[10px] text-white/50 pointer-events-none">Arrastra para girar · pellizca para acercar · toca una pared para elegirla</p>
     </div>
   );
-}
+});
+
+export default Habitacion3D;

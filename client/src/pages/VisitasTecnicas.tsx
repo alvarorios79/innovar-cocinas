@@ -4,6 +4,7 @@
  * Permite ver detalles y crear cotización desde la visita.
  */
 
+import { PlanoCocinaLectura } from "@/components/PlanoCocinaLectura";
 import { useState } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
@@ -369,15 +370,12 @@ export default function VisitasTecnicas() {
                           <p className="text-xs font-bold text-primary mb-2">{wtLabel}</p>
                           <div className="space-y-1 text-sm">
                             {forma && <div className="flex justify-between"><span className="text-gray-400">Forma</span><span className="text-white font-medium">{forma}</span></div>}
-                            {Array.isArray((measurements as any)._cocina_paredes) && (measurements as any)._cocina_paredes.map((p: any, i: number) => (
-                              <div key={i} className="flex justify-between"><span className="text-gray-400">Pared {["A", "B", "C"][i] || i + 1}</span><span className="text-white font-medium">inferiores {p?.inf ?? 0} cm · superiores {p?.sup ?? 0} cm</span></div>
-                            ))}
-                            {([["_cocina_isla", "Isla"], ["_cocina_barra", "Barra"]] as const).map(([k, t]) => (measurements as any)[k] > 0 && (
-                              <div key={k} className="flex justify-between"><span className="text-gray-400">{t}</span><span className="text-white font-medium">{(measurements as any)[k]} cm de ancho · {(measurements as any)[k + "_profundo"] || 0} de profundo · {(measurements as any)[k + "_alto"] || 0} de alto</span></div>
-                            ))}
-                            {ancho && !Array.isArray((measurements as any)._cocina_paredes) && <div className="flex justify-between"><span className="text-gray-400">Ancho</span><span className="text-white font-medium">{ancho} cm</span></div>}
-                            {alto  && <div className="flex justify-between"><span className="text-gray-400">Alto</span><span className="text-white font-medium">{alto} cm</span></div>}
-                            {prof  && <div className="flex justify-between"><span className="text-gray-400">Profundo</span><span className="text-white font-medium">{prof} cm</span></div>}
+                            {Array.isArray((measurements as any)._cocina_paredes) && (
+                              <PlanoCocinaLectura measurements={measurements as any} />
+                            )}
+                            {!Array.isArray((measurements as any)._cocina_paredes) && ancho && <div className="flex justify-between"><span className="text-gray-400">Ancho</span><span className="text-white font-medium">{ancho} cm</span></div>}
+                            {!Array.isArray((measurements as any)._cocina_paredes) && alto  && <div className="flex justify-between"><span className="text-gray-400">Alto</span><span className="text-white font-medium">{alto} cm</span></div>}
+                            {!Array.isArray((measurements as any)._cocina_paredes) && prof  && <div className="flex justify-between"><span className="text-gray-400">Profundo</span><span className="text-white font-medium">{prof} cm</span></div>}
                             {!forma && !ancho && !alto && !prof && <p className="text-gray-500 text-xs">Sin medidas</p>}
                           </div>
                         </div>

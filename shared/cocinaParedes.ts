@@ -30,14 +30,14 @@ export const ABERTURA_POR_DEFECTO: Record<AberturaCocina["tipo"], Pick<AberturaC
 export const ALTO_COCINA_POR_DEFECTO = 240; // cm
 export const SEPARACION_PARALELA_POR_DEFECTO = 240; // cm entre las dos paredes de una cocina paralela
 
-export interface ParedGeometria { nombre: string; indice: number; x1: number; z1: number; x2: number; z2: number; largo: number }
+export interface ParedGeometria { nombre: string; indice: number; x1: number; z1: number; x2: number; z2: number; largo: number; altoM?: number }
 
 /** Posición de cada pared en el plano (vista desde arriba, en metros). A=izquierda/primera, etc. Usa el mayor entre inferior y superior como largo. */
 export function geometriaParedes(forma: string | undefined, paredes: ParedCocina[] | undefined, separacionCm?: number): ParedGeometria[] {
   const lista = normalizarParedes(forma, paredes);
-  const L = lista.map((p) => Math.max(Number(p.inf) || 0, Number(p.sup) || 0) / 100);
+  const L = lista.map((p) => anchoMuroCm(p) / 100);
   const nom = nombresParedes(forma);
-  const mk = (i: number, x1: number, z1: number, x2: number, z2: number): ParedGeometria => ({ nombre: nom[i], indice: i, x1, z1, x2, z2, largo: L[i] });
+  const mk = (i: number, x1: number, z1: number, x2: number, z2: number): ParedGeometria => ({ nombre: nom[i], indice: i, x1, z1, x2, z2, largo: L[i], altoM: (Number(lista[i]?.alto) || 0) / 100 || undefined });
   if (forma === "Lineal") return [mk(0, 0, 0, L[0], 0)];
   if (forma === "L") return [mk(0, 0, 0, L[0], 0), mk(1, L[0], 0, L[0], L[1])];
   if (forma === "U") return [mk(0, 0, L[0], 0, 0), mk(1, 0, 0, L[1], 0), mk(2, L[1], 0, L[1], L[2])];
@@ -83,6 +83,13 @@ export interface ParedCocina {
   inf?: number;        // largo de muebles inferiores (cm)
   sup?: number;        // largo de muebles superiores (cm)
   supManual?: boolean; // true = el superior se escribió aparte (si no, sigue al inferior)
+  ancho?: number;      // ANCHO de la pared (cm): lo que mide el muro, aparte de los muebles
+  alto?: number;       // ALTO de la pared (cm); si no se escribe, se usa el alto general de la cocina
+}
+
+/** Largo del muro: el ancho escrito de la pared; si no se escribió, el mayor de los muebles. */
+export function anchoMuroCm(p: ParedCocina | undefined): number {
+  return Math.max(Number(p?.ancho) || 0, 0) || Math.max(Number(p?.inf) || 0, Number(p?.sup) || 0);
 }
 
 export function nombresParedes(forma?: string): string[] {
@@ -118,7 +125,7 @@ export function layoutDeForma(forma?: string): "lineal" | "L" | "U" | "paralela"
 
 export interface CocinaDeLevantamiento {
   layout: "lineal" | "L" | "U" | "paralela" | "";
-  paredesM: Array<{ nombre: string; inf: number; sup: number }>;
+  paredesM: Array<{ nombre: string; inf: number; sup: number; ancho: number; alto?: number }>;
   lowerMeters: number;     // m de muebles inferiores
   upperMeters: number;     // m de muebles superiores
   islaM: number;           // m de isla (0 si no hay)
@@ -146,11 +153,11 @@ export function cocinaDeLevantamiento(m: Record<string, any> | null | undefined)
   const paredes: ParedCocina[] | undefined = Array.isArray(m._cocina_paredes) ? m._cocina_paredes : undefined;
   const nombres = nombresParedes(forma);
   const isla = n(m._cocina_isla) / 100;
-  if (paredes && paredes.some((p) => n(p.inf) > 0 || n(p.sup) > 0)) {
+  if (paredes && paredes.some((p) => n(p.inf) > 0 || n(p.sup) > 0 || n(p.ancho) > 0)) {
     const t = totalesParedes(paredes);
     return {
       layout: layoutDeForma(forma),
-      paredesM: paredes.map((p, i) => ({ nombre: nombres[i] || String(i + 1), inf: r2(n(p.inf) / 100), sup: r2(n(p.sup) / 100) })),
+      paredesM: paredes.map((p, i) => ({ nombre: nombres[i] || String(i + 1), inf: r2(n(p.inf) / 100), sup: r2(n(p.sup) / 100), ancho: r2(anchoMuroCm(p) / 100), alto: n(p.alto) > 0 ? r2(n(p.alto) / 100) : undefined })),
       lowerMeters: t.infM, upperMeters: t.supM, islaM: r2(isla),
       altoCm: n(m._cocina_alto) || undefined, profundoCm: n(m._cocina_profundo) || undefined,
       separacionCm: n(m._cocina_separacion) || undefined, isla: piezaDeLevantamiento(m, "_cocina_isla"), barra: piezaDeLevantamiento(m, "_cocina_barra"), aberturas: Array.isArray(m._cocina_aberturas) ? m._cocina_aberturas : [], aproximado: false,
@@ -159,7 +166,7 @@ export function cocinaDeLevantamiento(m: Record<string, any> | null | undefined)
   const ancho = n(m._cocina_ancho) / 100; // levantamiento antiguo: un solo «ancho»
   if (ancho > 0) {
     return {
-      layout: layoutDeForma(forma), paredesM: [{ nombre: "A", inf: r2(ancho), sup: r2(ancho) }],
+      layout: layoutDeForma(forma), paredesM: [{ nombre: "A", inf: r2(ancho), sup: r2(ancho), ancho: r2(ancho) }],
       lowerMeters: r2(ancho), upperMeters: r2(ancho), islaM: r2(isla),
       altoCm: n(m._cocina_alto) || undefined, profundoCm: n(m._cocina_profundo) || undefined, isla: piezaDeLevantamiento(m, "_cocina_isla"), barra: piezaDeLevantamiento(m, "_cocina_barra"), aberturas: [], aproximado: true,
     };

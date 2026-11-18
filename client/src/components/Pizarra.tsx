@@ -43,6 +43,8 @@ export interface PizarraRef {
   setParams(params: { job?: string; who?: string }): void;
   /** Solicita pantalla completa sobre el iframe (nativo del navegador). */
   requestFullscreen(): void;
+  /** Pone (o reemplaza) en la pizarra una hoja automática BLOQUEADA, por ejemplo el plano del levantamiento. */
+  setLockedPhoto(foto: { id: string; src: string; w: number; h: number }): void;
 }
 
 export interface PizarraProps {
@@ -168,6 +170,10 @@ export const Pizarra = forwardRef<PizarraRef, PizarraProps>(function Pizarra(
         { type: 'pizarra:setParams', ...params },
         '*'
       );
+    },
+
+    setLockedPhoto(foto) {
+      iframeRef.current?.contentWindow?.postMessage({ type: 'pizarra:setLockedPhoto', ...foto }, '*');
     },
 
     requestFullscreen() {

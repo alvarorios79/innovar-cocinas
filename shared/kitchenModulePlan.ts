@@ -101,7 +101,8 @@ export interface PlanModule {
   manual?: boolean;      // el usuario lo colocó a mano: no se realinea solo con su inferior
   gap?: number;          // espacio libre (m) entre el elemento anterior y este módulo
 }
-export interface PlanTramo { name: string; length: number; isIsland?: boolean; upper: PlanModule[]; lower: PlanModule[] }
+// `isIsland` = bloque suelto (solo fila inferior). La barra es igual que la isla (isBar). `pos` = dónde está en la cocina (m) y cuánto gira (grados): es orientativo, para el dibujo 3D.
+export interface PlanTramo { name: string; length: number; isIsland?: boolean; isBar?: boolean; pos?: { x: number; z: number; rot: number }; upper: PlanModule[]; lower: PlanModule[] }
 export interface PlanExtras { latSup: number; latInf: number; latNevera: number; puertaAlta: number; especiales: number; latIsla?: number; puertaElectro?: number; puertaNevera?: number }
 
 // Piezas extra con precio propio de pintura (Motor de Cotización → Puertas y Tapas). La clave es el campo de `extras`.
@@ -146,6 +147,7 @@ export function normalizePlan(raw: any, config: any): ModulePlan {
   const base: ModulePlan = raw && typeof raw === "object" ? raw : { enabled: false, tramos: [], extras: emptyExtras() };
   const names = layoutTramoNames(config?.layout);
   const wantIsland = !!(config?.island?.enabled && (config.island.meters || 0) > 0);
+  const wantBar = !!(config?.bar?.enabled && (config.bar.meters || 0) > 0);
   const tramos: PlanTramo[] = names.map((name, i) => {
     const prev = base.tramos?.[i] && !base.tramos[i].isIsland ? base.tramos[i] : undefined;
     const defaultLen = i === 0 && names.length === 1
@@ -156,8 +158,13 @@ export function normalizePlan(raw: any, config: any): ModulePlan {
       : { name, length: round2(defaultLen), upper: [], lower: [] };
   });
   if (wantIsland) {
-    const prevI = (base.tramos || []).find(t => t.isIsland);
+    const prevI = (base.tramos || []).find(t => t.isIsland && !t.isBar);
     tramos.push(prevI ? { ...prevI, name: "Isla" } : { name: "Isla", length: round2(config.island.meters), isIsland: true, upper: [], lower: [] });
+  }
+  if (wantBar) {
+    // La barra se arma igual que la isla: un bloque con sus módulos que se coloca donde vaya (orientativo; su precio sigue siendo el de la barra de la cotización)
+    const prevB = (base.tramos || []).find(t => t.isBar);
+    tramos.push(prevB ? { ...prevB, name: "Barra", isIsland: true, isBar: true } : { name: "Barra", length: round2(config.bar.meters), isIsland: true, isBar: true, upper: [], lower: [] });
   }
   // Los vértices (alsoTramo) deben apuntar a un tramo que exista
   tramos.forEach(t => {
@@ -725,6 +732,25 @@ export function alignUppers(p: ModulePlan, config: any) {
     tr.upper = all.filter((e): e is Extract<OwnEl, { kind: "mod" }> => e.kind === "mod").map(e => e.mod);
     saveList(p, "upper", all, config);
   });
+}
+
+// Pasa un módulo de una pared a otra (al arrastrarlo en el 3D) y lo acomoda en `start` (m) de la pared nueva.
+// No mueve esquineros (van fijos en su esquina) ni superiores a un bloque suelto (isla/barra no llevan superiores).
+export function moveModuleToTramo(p: ModulePlan, fromT: number, row: PlanRow, id: string, toT: number, start: number, config: any): boolean {
+  if (fromT === toT || !p.tramos[fromT] || !p.tramos[toT]) return false;
+  const src = p.tramos[fromT][row];
+  const i = src.findIndex(m => m.id === id);
+  if (i < 0) return false;
+  const m = src[i];
+  const cat = CATALOG_BY_KEY[m.key];
+  if (!cat || cat.corner || m.alsoTramo !== undefined || m.lockAt !== undefined || m.autoOf) return false;
+  if (row === "upper" && p.tramos[toT].isIsland) return false;
+  src.splice(i, 1);
+  delete m.gap; delete m.manual;
+  insertBeforeTrailingBlock(p.tramos[toT][row], m);
+  if (row === "lower") { rebuildAutoUpper(p, fromT); rebuildAutoUpper(p, toT); }
+  dropModule(p, toT, row, id, start, config, true);
+  return true;
 }
 
 // Mueve un módulo de piso a techo a la posición `start` (m) en las dos filas a la vez.

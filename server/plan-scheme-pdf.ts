@@ -58,7 +58,7 @@ export function drawSchemePages(doc: any, schemes: SchemeData[], g: Geo, newPage
       const H = lanes * lane + (lanes - 1) * gap;
       need(H + 44);
       doc.fontSize(8).fillColor(DGRAY).font("Helvetica-Bold")
-        .text(`${w.name}${w.isIsland ? " (isla)" : ""}`, ML, Y, { width: CW, lineBreak: false });   // sin el largo de la pared: solo los módulos llevan medida
+        .text(`${w.name}${w.isIsland && w.name !== "Barra" ? " (isla)" : ""}`, ML, Y, { width: CW, lineBreak: false });   // sin el largo de la pared: solo los módulos llevan medida
       const top = Y + 12;
       const lowerY = top + (w.isIsland ? 0 : lane + gap);
       if (!w.isIsland) doc.rect(ML, top, w.extent * s, lane).lineWidth(0.4).strokeColor(BORDER).stroke();

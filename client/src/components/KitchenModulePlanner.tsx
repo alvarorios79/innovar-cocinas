@@ -1,8 +1,8 @@
-import { useMemo, useRef, useState, type ReactElement, type CSSProperties, type PointerEvent as RPointerEvent } from "react";
+import { lazy, Suspense, useMemo, useRef, useState, type ReactElement, type CSSProperties, type PointerEvent as RPointerEvent } from "react";
 import {
   CATALOG, CATALOG_BY_KEY, FILL_KEYS, SPECIALS,
   normalizePlan, computePlan, rowItems, rowUsed, activeSpecials, lateralOn, isPainted,
-  addModuleToPlan, removeModuleFromPlan, setModuleWidth, moveModule, moveTall, dropModule, dropTall, tidyPlan, packRow, setModuleLock, setTypeWidth, alignEnd, rebuildAutoUpper,
+  addModuleToPlan, removeModuleFromPlan, setModuleWidth, moveModule, moveModuleToTramo, moveTall, dropModule, dropTall, tidyPlan, packRow, setModuleLock, setTypeWidth, alignEnd, rebuildAutoUpper,
   round2,
   specialWidth,
   type ModulePlan, type PlanModule, type PlanRow, type RowItem,
@@ -11,6 +11,8 @@ import {
 // Plano de módulos por tramos, visto de frente: superiores arriba, inferiores abajo,
 // y los módulos de piso a techo como un solo bloque largo. Solo cuenta módulos y piezas de pintura.
 // No cambia precios ni el PDF: guarda su estado en kitchenConfig.modulePlan.
+
+const PlanoModulos3D = lazy(() => import("./PlanoModulos3D"));
 
 interface Props {
   config: any;                       // kitchenConfig del ítem
@@ -85,6 +87,7 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle }: Prop
   const ZOOMS = [70, 95, 120, 170, 220];   // píxeles por metro
   const [zoom, setZoom] = useState(2);
   const [showExtras, setShowExtras] = useState(false);       // acercar / alejar el dibujo
+  const [vista3d, setVista3d] = useState(true);              // el 3D es la vista de trabajo; el dibujo de frente 2D queda oculto como «vista clásica»
   PX = ZOOMS[zoom];
   // Arrastre con puntero (funciona con dedo y con ratón)
   const dragRef = useRef<{ kind: "mod" | "tall"; t: number; row?: PlanRow; id: string; startX: number; moved: boolean; locked?: boolean; box: HTMLElement | null } | null>(null);
@@ -261,7 +264,22 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle }: Prop
 
   // ── Barra del módulo seleccionado ────────────────────────────────────────
   const renderSelected = () => {
-    if (!sel) return <p className="text-[11px] text-white/35">Toca un icono para ver y cambiar su medida, moverlo o quitarlo.</p>;
+    if (!sel) return <p className="text-[11px] text-white/35">Toca un módulo para ver y cambiar su medida, moverlo o quitarlo.</p>;
+    if ("id" in sel && sel.id === "__bloque__") {
+      // Isla o barra: bloque suelto que se coloca donde vaya (orientativo)
+      const trB = plan.tramos[sel.t];
+      if (!trB) return null;
+      const rot = trB.pos?.rot ?? 0;
+      return (
+        <div className="flex flex-wrap items-center gap-3 rounded border border-amber-300/40 bg-amber-900/20 p-2 text-xs text-amber-100">
+          <span className="font-semibold">{trB.name} · {m2(trB.length)} m</span>
+          <span className="text-amber-100/60">arrástrala por el piso para ubicarla</span>
+          <button type="button" className="h-9 px-3 rounded bg-white/10 hover:bg-white/25" onClick={() => edit(p => { const t0 = p.tramos[sel.t]; t0.pos = { x: t0.pos?.x ?? 0, z: t0.pos?.z ?? 1.8, rot: ((t0.pos?.rot ?? rot) - 90) % 360 }; })}>↺ Girar 90°</button>
+          <button type="button" className="h-9 px-3 rounded bg-white/10 hover:bg-white/25" onClick={() => edit(p => { const t0 = p.tramos[sel.t]; t0.pos = { x: t0.pos?.x ?? 0, z: t0.pos?.z ?? 1.8, rot: ((t0.pos?.rot ?? rot) + 90) % 360 }; })}>↻ Girar 90°</button>
+          <button type="button" className="h-9 px-3 rounded bg-white/10 hover:bg-white/25" onClick={() => edit(p => { delete p.tramos[sel.t].pos; })}>Volver a su lugar</button>
+        </div>
+      );
+    }
     if ("tall" in sel) {
       const s = specials.find(x => x.key === sel.tall);
       if (!s) return null;
@@ -504,6 +522,24 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle }: Prop
             <span className="text-white/35">(lavaplatos→platero, estufa→extractor, cajoneros→almacenamiento; botellero/basurero/especiero pegados al esquinero agrandan el de arriba)</span>
           </label>
 
+          {vista3d && (
+            <div className="space-y-2">
+              <Suspense fallback={<div className="h-[420px] rounded-lg bg-black/20 border border-white/10 flex items-center justify-center text-xs text-gray-400">Cargando el plano en 3D…</div>}>
+                <PlanoModulos3D
+                  plan={plan} config={config} sel={sel} onSelect={setSel} onEdit={edit} onFalla={() => setVista3d(false)}
+                  moveTramo={(p, fromT, row, id, toT, start) => moveModuleToTramo(p, fromT, row, id, toT, start, config)}
+                  dropMod={(p, t, row, id, start) => dropModule(p, t, row, id, start, config, true)}
+                  dropTallTo={(p, key, tramo, start) => { p.specialTramo = { ...(p.specialTramo || {}), [key]: tramo }; dropTall(p, key, start, config); }}
+                />
+              </Suspense>
+              {renderSelected()}
+              <button type="button" onClick={() => setVista3d(false)} className="text-[11px] text-white/35 hover:text-white/70 underline">Vista clásica 2D</button>
+            </div>
+          )}
+          {!vista3d && (
+            <button type="button" onClick={() => setVista3d(true)} className="text-xs px-3 py-2 rounded border border-primary/40 text-primary min-h-[36px]">Ver el plano en 3D</button>
+          )}
+
           {plan.tramos.map((tr, t) => (
             <div key={t} className="rounded-lg border border-white/10 p-3 space-y-3 bg-black/10">
               <div className="flex flex-wrap items-center gap-3">
@@ -524,8 +560,8 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle }: Prop
                 </button>
               </div>
 
-              {renderElevation(t)}
-              {renderSelected()}
+              {!vista3d && renderElevation(t)}
+              {!vista3d && renderSelected()}
               {renderPalette(t, "lower")}
               {!tr.isIsland && renderPalette(t, "upper")}
             </div>

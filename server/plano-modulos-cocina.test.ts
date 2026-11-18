@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { normalizePlan, addModuleToPlan, setModuleWidth, computePlan, ventanasDeLevantamiento, rowItems } from "../shared/kitchenModulePlan";
+import { normalizePlan, addModuleToPlan, setModuleWidth, moveModuleToTramo, computePlan, ventanasDeLevantamiento, rowItems } from "../shared/kitchenModulePlan";
 import { buildKitchenQuoteDescription } from "./kitchen-description";
 
 // ¿El plano de módulos describe de verdad la cocina? Se arma una cocina paralela de 2 paredes (3,0 m y 2,4 m),
@@ -96,6 +96,35 @@ describe("Ventanas del levantamiento → plano de módulos", () => {
     expect(rowItems(plan, 0, "upper", cfg).find((i) => i.mod?.id === m1.id)).toMatchObject({ start: 1.7, width: 1.3 });
     expect(rowItems(plan, 0, "upper", cfg).find((i) => i.key === "ventana")).toMatchObject({ start: 0.5, width: 1.2 });
     expect(computePlan(plan, cfg).warnings.filter((w) => /ventana/i.test(w))).toHaveLength(0);
+  });
+});
+
+describe("Plano 3D: barra como bloque suelto y mover módulos entre paredes", () => {
+  const base = (extra: any = {}): any => ({ shape: "premium", layout: "L", totalMeters: 6.4, specialModules: {}, countertop: {}, island: { enabled: false, meters: 0 }, bar: { enabled: false, meters: 0 }, paintedDoors: { enabled: false }, ...extra });
+  it("la barra se arma igual que la isla: un bloque con su largo (sin superiores) y conserva dónde se colocó", () => {
+    const cfg = base({ island: { enabled: true, meters: 2 }, bar: { enabled: true, meters: 1.5 } });
+    const plan: any = normalizePlan({ enabled: true, tramos: [{ name: "Pared A", length: 3.6, upper: [], lower: [] }, { name: "Pared B", length: 2.8, upper: [], lower: [] }], extras: {} }, cfg);
+    expect(plan.tramos.map((t: any) => t.name)).toEqual(["Pared A", "Pared B", "Isla", "Barra"]);
+    expect(plan.tramos[3]).toMatchObject({ isIsland: true, isBar: true, length: 1.5 });
+    plan.tramos[3].pos = { x: 2, z: 3, rot: 90 };
+    const otra: any = normalizePlan(JSON.parse(JSON.stringify(plan)), cfg);
+    expect(otra.tramos[3].pos).toEqual({ x: 2, z: 3, rot: 90 });       // no se pierde al recalcular
+    expect(otra.tramos[2].isBar).toBeUndefined();                      // la isla sigue siendo isla
+  });
+  it("sin barra ni isla el plano queda igual que antes", () => {
+    const plan: any = normalizePlan({ enabled: true, tramos: [{ name: "Pared A", length: 3.6, upper: [], lower: [] }, { name: "Pared B", length: 2.8, upper: [], lower: [] }], extras: {} }, base());
+    expect(plan.tramos.map((t: any) => t.name)).toEqual(["Pared A", "Pared B"]);
+  });
+  it("mover un módulo a otra pared lo quita de la primera y lo acomoda en la segunda; los esquineros no se mueven", () => {
+    const cfg = base();
+    const plan: any = normalizePlan({ enabled: true, autoUpper: false, tramos: [{ name: "Pared A", length: 3.6, upper: [], lower: [] }, { name: "Pared B", length: 2.8, upper: [], lower: [] }], extras: {} }, cfg);
+    const caj = addModuleToPlan(plan, 0, "lower", "cajoneroDoble", cfg)!;
+    const esq = addModuleToPlan(plan, 0, "lower", "esquinero1x1", cfg)!;
+    expect(moveModuleToTramo(plan, 0, "lower", esq.id, 1, 0.5, cfg)).toBe(false);   // esquinero: fijo
+    expect(moveModuleToTramo(plan, 0, "lower", caj.id, 1, 1.0, cfg)).toBe(true);
+    expect(plan.tramos[0].lower.some((m: any) => m.id === caj.id)).toBe(false);
+    expect(plan.tramos[1].lower.some((m: any) => m.id === caj.id)).toBe(true);
+    expect(rowItems(plan, 1, "lower", cfg).find((i) => i.mod?.id === caj.id)?.start).toBeCloseTo(1.0, 1);
   });
 });
 

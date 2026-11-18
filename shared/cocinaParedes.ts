@@ -195,6 +195,18 @@ export function totalesParedes(paredes: ParedCocina[] | undefined): { infM: numb
   return { infM: r2(p.reduce((a, x) => a + muebleCm(x.inf, x), 0) / 100), supM: r2(p.reduce((a, x) => a + muebleCm(x.sup, x), 0) / 100) };
 }
 
+/** Metros de superiores por pared (cm), ya sin las ventanas: ancho de la pared − ancho de las ventanas que estorban. Lo escrito a mano se respeta tal cual. */
+export function supNetoPorParedCm(forma: string | undefined, paredes: ParedCocina[] | undefined, aberturas: AberturaCocina[] | undefined): number[] {
+  const ps = normalizarParedes(forma, paredes);
+  const v = ventanasSuperioresCm(forma, ps, aberturas);
+  // «Automático» = no se escribió a mano y es el ancho completo de la pared (o está vacío). Cualquier otro valor guardado se toma como escrito a propósito.
+  return ps.map((p, i) => {
+    const w = anchoMuroCm(p), guardado = muebleCm(p.sup, p);
+    const auto = !p.supManual && w > 0 && (p.sup === undefined || p.sup === null || Math.abs(guardado - w) < 1);
+    return auto ? Math.max(0, w - v[i]) : guardado;
+  });
+}
+
 /** Ancho (cm) de ventanas que estorban a los superiores, por pared: donde va ventana no va mueble superior. */
 export function ventanasSuperioresCm(forma: string | undefined, paredes: ParedCocina[] | undefined, aberturas: AberturaCocina[] | undefined): number[] {
   const ps = normalizarParedes(forma, paredes);
@@ -248,13 +260,16 @@ export function cocinaDeLevantamiento(m: Record<string, any> | null | undefined)
   const isla = n(m._cocina_isla) / 100;
   if (paredes && paredes.some((p) => n(p.inf) > 0 || n(p.sup) > 0 || n(p.ancho) > 0)) {
     const t = totalesParedes(paredes);
-    const ventanasSup = r2(ventanasSuperioresCm(forma, paredes, Array.isArray(m._cocina_aberturas) ? m._cocina_aberturas : undefined).reduce((a, x) => a + x, 0) / 100);
+    const aberturasM = Array.isArray(m._cocina_aberturas) ? m._cocina_aberturas : undefined;
+    const supNeto = supNetoPorParedCm(forma, paredes, aberturasM);   // por pared: ancho − ventanas (o lo escrito a mano)
+    const supBruto = totalesParedes(paredes).supM;
+    const ventanasSup = r2(Math.max(0, supBruto - supNeto.reduce((a, x) => a + x, 0) / 100));
     return {
       layout: layoutDeForma(forma),
-      paredesM: paredes.map((p, i) => ({ nombre: nombres[i] || String(i + 1), inf: r2(muebleCm(p.inf, p) / 100), sup: r2(muebleCm(p.sup, p) / 100), ancho: r2(anchoMuroCm(p) / 100), alto: n(p.alto) > 0 ? r2(n(p.alto) / 100) : undefined })),
+      paredesM: paredes.map((p, i) => ({ nombre: nombres[i] || String(i + 1), inf: r2(muebleCm(p.inf, p) / 100), sup: r2(supNeto[i] / 100), ancho: r2(anchoMuroCm(p) / 100), alto: n(p.alto) > 0 ? r2(n(p.alto) / 100) : undefined })),
       descMesonM: r2(descuentoMesonCm(forma, paredes, n(m._cocina_profundo) || FONDO_INFERIOR_CM, Array.isArray(m._cocina_esquinas) ? m._cocina_esquinas : undefined).totalCm / 100),
       ventanasSupM: ventanasSup,
-      lowerMeters: t.infM, upperMeters: Math.max(0, r2(t.supM - ventanasSup)), islaM: r2(isla),
+      lowerMeters: t.infM, upperMeters: r2(supNeto.reduce((a, x) => a + x, 0) / 100), islaM: r2(isla),
       altoCm: n(m._cocina_alto) || undefined, profundoCm: n(m._cocina_profundo) || undefined,
       separacionCm: n(m._cocina_separacion) || undefined, isla: piezaDeLevantamiento(m, "_cocina_isla"), barra: piezaDeLevantamiento(m, "_cocina_barra"), aberturas: Array.isArray(m._cocina_aberturas) ? m._cocina_aberturas : [], aproximado: false,
     };

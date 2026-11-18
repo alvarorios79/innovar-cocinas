@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { buildKitchenQuoteDescription } from "./kitchen-description";
-import { ventanasSuperioresCm, descuentoMesonCm, mueblesSugeridos, aplicarMueblesAutomaticos, descuentosEsquinas, paredGanadoraEsquina, anchoMuroCm, imantarDesde, estadoIman, geometriaParedes, ajustarAbertura, nombresParedes, normalizarParedes, setInferior, setSuperior, totalesParedes, cocinaDeLevantamiento } from "../shared/cocinaParedes";
+import { supNetoPorParedCm, ventanasSuperioresCm, descuentoMesonCm, mueblesSugeridos, aplicarMueblesAutomaticos, descuentosEsquinas, paredGanadoraEsquina, anchoMuroCm, imantarDesde, estadoIman, geometriaParedes, ajustarAbertura, nombresParedes, normalizarParedes, setInferior, setSuperior, totalesParedes, cocinaDeLevantamiento } from "../shared/cocinaParedes";
 
 describe("Paredes de la cocina (levantamiento)", () => {
   it("cada forma pide sus paredes: línea 1, L 2, U 3, paralela 2", () => {
@@ -188,6 +188,16 @@ describe("Paredes de la cocina (levantamiento)", () => {
     expect(c.upperMeters).toBe(5.55);
     // pero un 0 escrito a propósito se respeta
     expect(cocinaDeLevantamiento({ _cocina_forma: "L", _cocina_paredes: [{ ancho: 333, inf: 0, sup: 0 }, { ancho: 222 }] })!.lowerMeters).toBe(2.22);
+  });
+
+  it("superiores por pared ya sin ventanas: pared A de 3,60 con ventana de 1,20 = 2,40; lo escrito a mano se respeta", () => {
+    const ab: any[] = [{ id: "v", tipo: "ventana", pared: 0, desde: 50, ancho: 120, alto: 120, antepecho: 100 }];
+    expect(supNetoPorParedCm("L", [{ ancho: 360 }, { ancho: 280 }], ab)).toEqual([240, 280]);
+    expect(supNetoPorParedCm("L", [{ ancho: 360, sup: 300, supManual: true }, { ancho: 280 }], ab)).toEqual([300, 280]);
+    const c = cocinaDeLevantamiento({ _cocina_forma: "L", _cocina_paredes: [{ ancho: 360, inf: 360, sup: 360 }, { ancho: 280, inf: 280, sup: 280 }], _cocina_aberturas: ab })!;
+    expect(c.paredesM[0].sup).toBe(2.4);
+    expect(c.upperMeters).toBe(5.2);
+    expect(c.lowerMeters).toBe(6.4);
   });
 });
 

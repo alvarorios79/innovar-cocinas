@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { InputM, fm } from "@/components/InputMetros";
 import {
   FORMAS_COCINA, nombresParedes, normalizarParedes, setInferior, setSuperior, totalesParedes, ajustarAbertura, imantarDesde, estadoIman, anchoMuroCm,
-  FONDO_INFERIOR_CM, FONDO_SUPERIOR_CM, ventanasSuperioresCm, esquinasDeForma, paredGanadoraEsquina, descuentosEsquinas, aplicarMueblesAutomaticos,
+  FONDO_INFERIOR_CM, FONDO_SUPERIOR_CM, supNetoPorParedCm, esquinasDeForma, paredGanadoraEsquina, descuentosEsquinas, aplicarMueblesAutomaticos,
   ABERTURA_POR_DEFECTO, ALTO_COCINA_POR_DEFECTO, SEPARACION_PARALELA_POR_DEFECTO,
   type FormaCocina, type ParedCocina, type AberturaCocina,
 } from "@shared/cocinaParedes";
@@ -117,7 +117,9 @@ export function CocinaParedes({ forma, paredes, medidas, altoCm, profundoCm, sep
   const lista = normalizarParedes(forma, paredes);
   const letras = nombresParedes(forma);
   const tot = totalesParedes(lista);
-  const ventSupCm = ventanasSuperioresCm(forma, lista, lista0).reduce((a, x) => a + x, 0);   // donde va ventana no va mueble superior
+  const supNeto = supNetoPorParedCm(forma, lista, lista0);   // superiores por pared: donde va ventana no va mueble
+  const supTotalCm = supNeto.reduce((a, x) => a + x, 0);
+  const ventSupCm = Math.max(0, tot.supM * 100 - supTotalCm);
   const techo = altoCm || ALTO_COCINA_POR_DEFECTO;
   const num = (v: string) => (v === "" ? undefined : Math.max(0, parseFloat(v)));
   // Largo que se usa para mover una abertura: el ancho de la pared; si aún no se escribió, 300 cm provisionales
@@ -397,8 +399,9 @@ export function CocinaParedes({ forma, paredes, medidas, altoCm, profundoCm, sep
                     </div>
                     <div>
                       <label className="block text-xs font-semibold text-primary mb-1">Superiores (m) {!lista[i]?.supManual && w > 0 && <span className="text-emerald-300 font-normal">· automático</span>}</label>
-                      <InputM placeholder="0,00" valorCm={lista[i]?.sup} onFocus={() => setActiva(i)}
+                      <InputM placeholder="0,00" valorCm={supNeto[i]} onFocus={() => setActiva(i)}
                         onCm={(v) => { const nuevas = [...lista]; nuevas[i] = setSuperior(lista[i] || {}, v); emitir(nuevas); }} className={inputCls} />
+                      {w > 0 && !lista[i]?.supManual && <p className="text-[10px] text-gray-400 mt-0.5">{fm(w)}{w - supNeto[i] > 0 ? ` − ${fm(w - supNeto[i])} de ventana = ${fm(supNeto[i])} m` : " m (sin ventanas que estorben)"}</p>}
                                           </div>
                   </div>
                 </div>
@@ -411,7 +414,7 @@ export function CocinaParedes({ forma, paredes, medidas, altoCm, profundoCm, sep
               </div>
               <div className="rounded-lg bg-primary/15 border border-primary/40 p-3 text-center">
                 <p className="text-[11px] text-gray-300">Total superiores</p>
-                <p className="text-xl font-bold text-white">{metros(Math.max(0, tot.supM * 100 - ventSupCm))} m</p>
+                <p className="text-xl font-bold text-white">{metros(supTotalCm)} m</p>
                 {ventSupCm > 0 && <p className="text-[10px] text-gray-400">{metros(tot.supM * 100)} − {metros(ventSupCm)} de ventanas</p>}
               </div>
             </div>

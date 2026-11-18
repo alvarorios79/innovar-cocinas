@@ -1,6 +1,8 @@
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { crearMueble3D } from "./muebles3d";
 import { geometriaParedes, ALTO_INFERIOR_CM, ARRANQUE_SUPERIOR_CM, FONDO_INFERIOR_CM, FONDO_SUPERIOR_CM, SEPARACION_PARALELA_POR_DEFECTO } from "@shared/cocinaParedes";
 import { CATALOG_BY_KEY, rowItems, isPainted, round2, type ModulePlan, type PlanRow } from "@shared/kitchenModulePlan";
 
@@ -25,6 +27,11 @@ interface Props {
   onEdit: (fn: (p: ModulePlan) => void) => void;
   onFalla?: () => void;
   altura?: number | string;
+  /** Pared (tramo) a la que se agregan los módulos nuevos, y aviso cuando se toca otra pared en el 3D */
+  activa?: number;
+  onPickPared?: (t: number) => void;
+  /** Controles (lista de módulos, selección, pasar de pared) que se muestran al lado cuando el 3D está en pantalla completa */
+  panel?: ReactNode;
   moveTramo: (p: ModulePlan, fromT: number, row: PlanRow, id: string, toT: number, start: number) => boolean;
   dropMod: (p: ModulePlan, t: number, row: PlanRow, id: string, start: number) => void;
   dropTallTo: (p: ModulePlan, key: string, tramo: number, start: number) => void;
@@ -53,6 +60,17 @@ function formaDe(layout?: string): string {
 
 const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulos3D(props, ref) {
   const host = useRef<HTMLDivElement>(null);
+  const caja = useRef<HTMLDivElement>(null);
+  const [pantalla, setPantalla] = useState(false);
+  // Pantalla completa: el visor se saca de la ventana emergente de la cotización (portal al body) y ocupa toda la pantalla, con la lista de módulos al lado.
+  // (Dentro de la ventana un «fixed» queda pegado a ella y no a la pantalla.) Al cambiar de modo el visor se vuelve a armar en su nuevo lugar.
+  const alternarPantalla = () => setPantalla((x) => !x);
+  useEffect(() => {
+    if (!pantalla) return;
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setPantalla(false); };
+    window.addEventListener("keydown", esc);
+    return () => window.removeEventListener("keydown", esc);
+  }, [pantalla]);
   const [verCotas, setVerCotas] = useState(true);
   const ultimo = useRef(props);
   ultimo.current = props;
@@ -193,8 +211,9 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
         } else if (W) {
           grp.position.set(W.x1, 0, W.z1); grp.rotation.y = -Math.atan2(W.uz, W.ux); sg = W.sg;
           // pared
-          const pared = new THREE.Mesh(new THREE.BoxGeometry(W.largo, alto, GROSOR), new THREE.MeshLambertMaterial({ color: COLOR.pared, transparent: true, opacity: claro ? 0.4 : 0.22 }));
-          pared.position.set(W.largo / 2, alto / 2, 0); grp.add(pared);
+          const esActiva = ultimo.current.activa === t && !claro;
+          const pared = new THREE.Mesh(new THREE.BoxGeometry(W.largo, alto, GROSOR), new THREE.MeshLambertMaterial({ color: esActiva ? 0x00bcd4 : COLOR.pared, transparent: true, opacity: claro ? 0.4 : esActiva ? 0.34 : 0.22 }));
+          pared.position.set(W.largo / 2, alto / 2, 0); pared.userData = { pick: true, kind: "pared", t }; grp.add(pared); pickables.push(pared);
           // piso/zócalo de la pared: línea de referencia del largo
           const base = new THREE.Mesh(new THREE.BoxGeometry(W.largo, 0.02, GROSOR + 0.02), new THREE.MeshLambertMaterial({ color: 0x00bcd4 })); base.position.set(W.largo / 2, 0.01, 0); grp.add(base);
           const et = texto(`${tr.name} · ${fm(W.largo)} m`, "#80f0ff", 0.12); et.position.set(W.largo / 2, alto + 0.18, 0); grp.add(et);
@@ -213,15 +232,25 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
           const et = texto(`${tr.name} · ${fm(largoVisible)} m`, "#ffe082", 0.12); et.position.set(0, hInf + 0.3, profInf / 2); grp.add(et);
         }
 
+        // Muebles: cada uno se dibuja como es (estufa con hornillas, lavaplatos con poceta y llave, gavetas…). Origen del grupo = centro de la base.
+        const girar = (isBloque ? 1 : sg) < 0 ? Math.PI : 0;
+        const poner = (key: string, row: "upper" | "lower" | "tall", s0: number, w: number, y0: number, h: number, dIni0: number, prof: number, data: any, selected: boolean, fantasma: boolean, etiqueta: string) => {
+          const mu = crearMueble3D(key, row, w, h, prof, { seleccionado: selected, fantasma });
+          mu.grupo.position.set(s0 + w / 2, y0, (isBloque ? 1 : sg) * (dIni0 + prof / 2));
+          mu.grupo.rotation.y = girar;
+          mu.cuerpo.userData = data;
+          if (data.pick) pickables.push(mu.cuerpo);
+          if (!fantasma && cotasRef.current) { const l = texto(etiqueta, "#ffffff", 0.095); l.position.set(0, h + 0.1, 0); mu.grupo.add(l); l.rotation.y = 0; }
+          grp.add(mu.grupo);
+        };
         // Inferiores
         rowItems(plan, t, "lower", config).forEach((it) => {
           if (it.kind === "tall") return;
           const cat = CATALOG_BY_KEY[it.key]; if (!cat) return;
           const mine = !it.fromPrev;
           const selected = !!sel && "id" in sel && sel.t === t && sel.row === "lower" && it.mod?.id === sel.id;
-          const m = caja(grp, offX + it.start, it.width, 0, hInf, dIni, profInf, isBloque ? 1 : sg, colorDe(it.key, "lower"), it.fromPrev ? 0.35 : 0.72,
-            { pick: mine, kind: "mod", t, row: "lower", id: it.mod!.id, start: it.start, w: it.width, corner: !!cat.corner, painted: isPainted(plan, it.mod!, "lower") }, selected);
-          if (mine && cotasRef.current) { const l = texto(`${cat.short} ${fm(it.width)}`, "#ffffff", 0.115); l.position.set(0, 0, (isBloque ? 1 : sg) * profInf / 2 + (isBloque ? 0.0 : 0)); l.position.set(0, hInf / 2, (isBloque ? 1 : sg) * (profInf / 2 + 0.01)); m.add(l); }
+          poner(it.key, "lower", offX + it.start, it.width, 0, hInf, dIni, profInf,
+            { pick: mine, kind: "mod", t, row: "lower", id: it.mod!.id, start: it.start, w: it.width, corner: !!cat.corner, painted: isPainted(plan, it.mod!, "lower") }, selected, it.fromPrev, `${cat.short} ${fm(it.width)}`);
         });
         // Superiores (la ventana del plano se dibuja como vidrio)
         if (!isBloque) rowItems(plan, t, "upper", config).forEach((it) => {
@@ -232,21 +261,19 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
             const base = a ? (a.antepecho || 100) / 100 : 1.0, h = a ? (a.alto || 120) / 100 : 1.2;
             const v = new THREE.Mesh(new THREE.BoxGeometry(it.width, h, 0.02), new THREE.MeshLambertMaterial({ color: COLOR.vidrio, transparent: true, opacity: 0.5 }));
             v.position.set(it.start + it.width / 2, base + h / 2, 0.0); grp.add(v);
-            const l = texto(`Ventana ${fm(it.width)}`, "#b3e5fc", 0.115); l.position.set(it.start + it.width / 2, base + h / 2, sg * 0.05); grp.add(l);
+            const l = texto(`Ventana ${fm(it.width)}`, "#b3e5fc", 0.095); l.position.set(it.start + it.width / 2, base + h / 2, sg * 0.05); grp.add(l);
             return;
           }
           const mine = !it.fromPrev;
           const selected = !!sel && "id" in sel && sel.t === t && sel.row === "upper" && it.mod?.id === sel.id;
-          const m = caja(grp, it.start, it.width, arranque, Math.max(0.3, alto - arranque), GROSOR / 2, profSup, sg, colorDe(it.key, "upper"), it.fromPrev ? 0.3 : 0.6,
-            { pick: mine, kind: "mod", t, row: "upper", id: it.mod!.id, start: it.start, w: it.width, corner: !!cat.corner, painted: isPainted(plan, it.mod!, "upper") }, selected);
-          if (mine && cotasRef.current) { const l = texto(`${cat.short} ${fm(it.width)}`, "#ffffff", 0.115); l.position.set(0, 0, sg * (profSup / 2 + 0.01)); m.add(l); }
+          poner(it.key, "upper", it.start, it.width, arranque, Math.max(0.3, alto - arranque), GROSOR / 2, profSup,
+            { pick: mine, kind: "mod", t, row: "upper", id: it.mod!.id, start: it.start, w: it.width, corner: !!cat.corner, painted: isPainted(plan, it.mod!, "upper") }, selected, it.fromPrev, `${cat.short} ${fm(it.width)}`);
         });
         // Módulos de piso a techo (nichos, alacenas, torre)
         if (!isBloque) rowItems(plan, t, "lower", config).forEach((it) => {
           if (it.kind !== "tall" || !it.special) return;
           const selected = !!sel && "tall" in sel && sel.tall === it.key;
-          const m = caja(grp, it.start, it.width, 0, alto, GROSOR / 2, profInf, sg, COLOR.tall, 0.7, { pick: true, kind: "tall", t, key: it.key, start: it.start, w: it.width }, selected);
-          if (cotasRef.current) { const l = texto(`${it.special.label} ${fm(it.width)}`, "#fff3e0", 0.115); l.position.set(0, 0, sg * (profInf / 2 + 0.01)); m.add(l); }
+          poner(it.key, "tall", it.start, it.width, 0, alto, GROSOR / 2, profInf, { pick: true, kind: "tall", t, key: it.key, start: it.start, w: it.width }, selected, false, `${it.special.label} ${fm(it.width)}`);
         });
         // Ventanas/puertas del levantamiento que NO están en el plano (puertas y ventanas bajas): solo de contexto
         if (!isBloque) aber.filter((a) => a.pared === t).forEach((a) => {
@@ -316,6 +343,7 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
       movido = false;
       if (!hit) { arrastrando = null; return; }
       const d = hit.object.userData;
+      if (d.kind === "pared") { paredToque = { t: d.t, x: e.clientX, y: e.clientY }; arrastrando = null; return; }   // tocar una pared la elige; el dedo sigue girando la cámara
       const planoY = d.kind === "mod" && d.row === "upper" ? ARRANQUE_SUPERIOR_CM / 100 + 0.4 : d.kind === "losa" ? 0.03 : 0.45;
       const p0 = enPlano(planoY) || hit.point.clone();
       let grab = 0;
@@ -330,6 +358,7 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
       cv.setPointerCapture(e.pointerId);
       arrastrando = { obj: hit.object, d, x0: e.clientX, y0: e.clientY, grab, mundo0: p0, pos0: hit.object.position.clone(), planoY };
     };
+    let paredToque: null | { t: number; x: number; y: number } = null;
     const alMover = (e: PointerEvent) => {
       if (!arrastrando) return;
       if (!movido && Math.hypot(e.clientX - arrastrando.x0, e.clientY - arrastrando.y0) < 6) return;
@@ -344,6 +373,7 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
       dibujar();
     };
     const alSoltar = (e: PointerEvent) => {
+      if (paredToque) { const pt = paredToque; paredToque = null; if (Math.hypot(e.clientX - pt.x, e.clientY - pt.y) < 6) ultimo.current.onPickPared?.(pt.t); return; }
       const a = arrastrando; arrastrando = null; controls.enabled = true;
       try { cv.releasePointerCapture(e.pointerId); } catch { /* */ }
       if (!a) return;
@@ -412,31 +442,37 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
       },
     };
     construir();
-    return () => {
+    const limpiarTodo = () => {
       ro.disconnect(); cancelAnimationFrame(raf);
       cv.removeEventListener("pointerdown", alBajar, true); cv.removeEventListener("pointermove", alMover); cv.removeEventListener("pointerup", alSoltar); cv.removeEventListener("pointercancel", alSoltar);
       controls.dispose(); limpiar(); renderer.dispose(); renderer.forceContextLoss?.();
       if (cv.parentElement === el) el.removeChild(cv);
       api.current = null;
     };
-  }, []);
+    return limpiarTodo;
+  }, [pantalla]);
 
   // Reconstruir cuando cambia el plano, la selección o las cotas
-  const firma = JSON.stringify([props.plan, props.sel, props.config?.layout, props.config?.island?.meters, props.config?.bar?.meters, verCotas]);
+  const firma = JSON.stringify([props.plan, props.sel, props.activa, props.config?.layout, props.config?.island?.meters, props.config?.bar?.meters, verCotas]);
   useEffect(() => { api.current?.rebuild(); }, [firma]);
 
-  return (
-    <div className="relative rounded-lg border border-white/10 bg-black/20 overflow-hidden" style={{ height: props.altura ?? 420 }}>
+  const marco = (
+    <div ref={caja} data-pantalla-completa={pantalla ? "1" : undefined} className={`${pantalla ? "bg-[#0f1a1d] flex flex-col md:flex-row" : "relative rounded-lg border border-white/10 overflow-hidden bg-black/20"}`} style={pantalla ? { position: "fixed", inset: 0, zIndex: 70, height: "100%", width: "100%" } : { height: props.altura ?? 420 }}>
+     <div className={pantalla ? "relative flex-1 min-h-[45%] md:min-h-0" : "contents"}>
       <div ref={host} className="absolute inset-0" />
       <div className="absolute top-2 right-2 flex gap-1.5 flex-wrap justify-end">
         {([["iso", "3D"], ["arriba", "Arriba"], ["frente", "Frente"]] as const).map(([v, t]) => (
           <button key={v} type="button" onClick={() => api.current?.vista(v)} className="px-2.5 py-1.5 rounded bg-black/60 text-white text-xs font-semibold border border-white/20 min-h-[32px]">{t}</button>
         ))}
         <button type="button" onClick={() => setVerCotas((x) => !x)} className={`px-2.5 py-1.5 rounded text-xs font-semibold border min-h-[32px] ${verCotas ? "bg-primary text-white border-primary" : "bg-black/60 text-white border-white/20"}`}>Medidas</button>
+        <button type="button" onClick={() => void alternarPantalla()} className="px-2.5 py-1.5 rounded bg-black/60 text-white text-xs font-semibold border border-white/20 min-h-[32px]">{pantalla ? "Cerrar" : "Pantalla completa"}</button>
       </div>
-      <p className="absolute bottom-1.5 left-2 right-2 text-[10px] text-white/50 pointer-events-none">Gira y acerca con los dedos · toca un módulo para elegirlo · arrástralo para acomodarlo (se pega solo) · la isla y la barra se mueven por el piso</p>
+      <p className="absolute bottom-1.5 left-2 right-2 text-[10px] text-white/50 pointer-events-none">Gira y acerca con los dedos · toca un módulo para elegirlo · arrástralo a la pared que quieras (se pega solo) · toca una pared para agregarle módulos · la isla y la barra se mueven por el piso</p>
+     </div>
+     {pantalla && props.panel && <div className="md:w-[420px] md:shrink-0 flex-1 md:flex-none overflow-y-auto p-3 border-t md:border-t-0 md:border-l border-white/10 bg-background">{props.panel}</div>}
     </div>
   );
+  return pantalla ? createPortal(<div style={{ pointerEvents: "auto" }}>{marco}</div>, document.body) : marco;
 });
 
 export default PlanoModulos3D;

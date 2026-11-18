@@ -1,7 +1,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { geometriaParedes, anchoMuroCm, descuentosEsquinas, ALTO_INFERIOR_CM, ARRANQUE_SUPERIOR_CM, FONDO_INFERIOR_CM, FONDO_SUPERIOR_CM, ALTO_COCINA_POR_DEFECTO, type AberturaCocina, type ParedCocina } from "@shared/cocinaParedes";
+import { geometriaParedes, supNetoPorParedCm, ventanaEstorbaSuperiores, anchoMuroCm, descuentosEsquinas, ALTO_INFERIOR_CM, ARRANQUE_SUPERIOR_CM, FONDO_INFERIOR_CM, FONDO_SUPERIOR_CM, ALTO_COCINA_POR_DEFECTO, type AberturaCocina, type ParedCocina } from "@shared/cocinaParedes";
 
 // Habitación de la cocina en 3D (solo paredes, ventanas y puertas) para el levantamiento.
 // Hecho para NO pesar: figuras simples (cajas), sin sombras ni texturas, y dibuja SOLO cuando algo cambia (no hay animación continua).
@@ -126,7 +126,7 @@ const Habitacion3D = forwardRef<Habitacion3DRef, Props>(function Habitacion3D({ 
       return sp;
     };
 
-    let encuadre = { cx: 0, cz: 0, r: 3 };
+    let encuadre = { cx: 0, cz: 0, r: 3, radio: 3 };
     let movidoPorUsuario = false;
     controls.addEventListener("start", () => { movidoPorUsuario = true; });
 
@@ -237,12 +237,23 @@ const Habitacion3D = forwardRef<Habitacion3DRef, Props>(function Habitacion3D({ 
           m.position.set(x0i + Math.min(inf, largo) / 2, ALTO_INFERIOR_CM / 200, signo * (GROSOR / 2 + profBajo / 2)); g.add(m);
           if (detalle) { const zf = signo * (GROSOR / 2 + profBajo), yy = ALTO_INFERIOR_CM / 100; cota(aMundo(x0i, yy + 0.11, zf), aMundo(x0i + Math.min(inf, largo), yy + 0.11, zf), aMundo(x0i, yy, zf), aMundo(x0i + Math.min(inf, largo), yy, zf), `inf ${fm(inf)}`, 0x80cbc4, "#b2dfdb", 0.15); }
         }
-        if (sup > 0.05) {
-          // Superiores: arrancan a 1,50 m (0,90 de inferiores + 0,60 de salpicadero) y suben hasta el techo
+        // Superiores: arrancan a 1,50 m (0,90 de inferiores + 0,60 de salpicadero) y suben hasta el techo.
+        // Donde hay una ventana que estorba no va mueble: la fila se parte en tramos alrededor de cada ventana.
+        const supNetoCm = supNetoPorParedCm(p.forma, p.paredes, p.aberturas)[w.indice];
+        const supM = supNetoCm !== undefined ? supNetoCm / 100 : sup;
+        if (supM > 0.05) {
           const arranque = ARRANQUE_SUPERIOR_CM / 100, altoSup = Math.max(0.3, alto - arranque), ySup = arranque + altoSup / 2;
-          const m = new THREE.Mesh(new THREE.BoxGeometry(Math.min(sup, largo), altoSup, profAlto), new THREE.MeshLambertMaterial({ color: 0x7e57c2, transparent: true, opacity: 0.55 }));
-          m.position.set(x0s + Math.min(sup, largo) / 2, ySup, signo * (GROSOR / 2 + profAlto / 2)); g.add(m);
-          if (detalle) { const zf = signo * (GROSOR / 2 + profAlto); cota(aMundo(x0s, arranque - 0.11, zf), aMundo(x0s + Math.min(sup, largo), arranque - 0.11, zf), aMundo(x0s, arranque, zf), aMundo(x0s + Math.min(sup, largo), arranque, zf), `sup ${fm(sup)}`, 0xb39ddb, "#d1c4e9", 0.15); }
+          const bloquean = par.supManual ? [] : ab.filter((a) => ventanaEstorbaSuperiores({ tipo: a.tipo, antepecho: a.antepecho, alto: a.alto })).map((a) => ({ de: a.d, a: a.d + a.a }));
+          const tramos: Array<[number, number]> = [];
+          let cur = 0;
+          bloquean.forEach((b) => { if (b.de - cur > 0.04) tramos.push([cur, b.de]); cur = Math.max(cur, b.a); });
+          if (largo - cur > 0.04) tramos.push([cur, largo]);
+          const lista = bloquean.length ? tramos : [[x0s, x0s + Math.min(sup, largo)] as [number, number]];
+          lista.forEach(([s0, s1]) => {
+            const m = new THREE.Mesh(new THREE.BoxGeometry(s1 - s0, altoSup, profAlto), new THREE.MeshLambertMaterial({ color: 0x7e57c2, transparent: true, opacity: 0.55 }));
+            m.position.set((s0 + s1) / 2, ySup, signo * (GROSOR / 2 + profAlto / 2)); g.add(m);
+            if (detalle) { const zf = signo * (GROSOR / 2 + profAlto); cota(aMundo(s0, arranque - 0.11, zf), aMundo(s1, arranque - 0.11, zf), aMundo(s0, arranque, zf), aMundo(s1, arranque, zf), `sup ${fm(s1 - s0)}`, 0xb39ddb, "#d1c4e9", 0.15); }
+          });
         }
 
         // Ventanas y puertas: a cada lado queda tanto, y cuánto mide (cadena de cotas), más la altura desde el piso
@@ -293,18 +304,23 @@ const Habitacion3D = forwardRef<Habitacion3DRef, Props>(function Habitacion3D({ 
         contenido.add(medida(`Barra ${fm(p.barra.ancho / 100)}×${fm((p.barra.profundo || 0) / 100)}×${fm((p.barra.alto || 0) / 100)} m`, cx, alt + 0.2, zb, "#ef9a9a"));
       }
 
-      encuadre = { cx, cz, r: Math.max(sx, sz, altoMax * 1.4) };
+      encuadre = { cx, cz, r: Math.max(sx, sz, altoMax * 1.4), radio: Math.max(1.5, Math.hypot(sx, sz, altoMax) * 0.55) };
       if (!movidoPorUsuario) vista("iso"); else dibujar();
     };
 
+    // Distancia de la cámara para que TODA la cocina quepa llenando el visor, sea cual sea su tamaño (celular, tablet, pantalla completa de laptop)
+    const distanciaAjustada = () => {
+      const vf = (camera.fov * Math.PI) / 180, hf = 2 * Math.atan(Math.tan(vf / 2) * (camera.aspect || 1.5));
+      return (encuadre.radio * 1.08) / Math.sin(Math.min(vf, hf) / 2);
+    };
     function vista(v: "arriba" | "frente" | "iso") {
-      // En un visor angosto (pantalla dividida en horizontal) la cámara se aleja un poco para que quepa toda la cocina
       const { cx, cz } = encuadre;
-      const r = encuadre.r * Math.min(2.2, Math.max(1, 1.5 / (camera.aspect || 1.5)));
-      controls.target.set(cx, 0.9, cz);
-      if (v === "arriba") camera.position.set(cx, r * 1.6, cz + 0.001);
-      else if (v === "frente") camera.position.set(cx, r * 0.45, cz + r * 1.5);
-      else camera.position.set(cx + r * 0.9, r * 0.95, cz + r * 1.1);
+      const dist = distanciaAjustada();
+      const dir = v === "arriba" ? [0, 1, 0.001] : v === "frente" ? [0, 0.42, 1] : [0.62, 0.62, 0.78];
+      const len = Math.hypot(dir[0], dir[1], dir[2]);
+      const ty = v === "arriba" ? 0 : 0.9;
+      controls.target.set(cx, ty, cz);
+      camera.position.set(cx + (dir[0] / len) * dist, ty + (dir[1] / len) * dist, cz + (dir[2] / len) * dist);
       controls.update(); dibujar();
     }
 
@@ -313,7 +329,11 @@ const Habitacion3D = forwardRef<Habitacion3DRef, Props>(function Habitacion3D({ 
       renderer.setSize(w, h, false);
       renderer.domElement.style.width = "100%"; renderer.domElement.style.height = "100%";
       camera.aspect = w / h; camera.updateProjectionMatrix();
-      if (!movidoPorUsuario && encuadre.r > 0) vista("iso"); else dibujar(); // al cambiar de tamaño (pantalla completa) se vuelve a encuadrar solo
+      if (!movidoPorUsuario && encuadre.r > 0) vista("iso");
+      else if (encuadre.r > 0) {   // ya movió la cámara: se conserva su ángulo y solo se ajusta la distancia al nuevo tamaño
+        const dir = camera.position.clone().sub(controls.target); const len = dir.length() || 1;
+        camera.position.copy(controls.target).add(dir.multiplyScalar(distanciaAjustada() / len)); controls.update(); dibujar();
+      } else dibujar();
     };
     const ro = new ResizeObserver(ajustar); ro.observe(el);
 

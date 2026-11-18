@@ -1,4 +1,4 @@
-import { FORMAS_COCINA, ventanasSuperioresCm, descuentosEsquinas, FONDO_INFERIOR_CM, FONDO_SUPERIOR_CM, anchoMuroCm, nombresParedes, totalesParedes, type AberturaCocina, type ParedCocina } from "@shared/cocinaParedes";
+import { FORMAS_COCINA, supNetoPorParedCm, descuentosEsquinas, FONDO_INFERIOR_CM, FONDO_SUPERIOR_CM, anchoMuroCm, nombresParedes, totalesParedes, type AberturaCocina, type ParedCocina } from "@shared/cocinaParedes";
 
 // Hoja del levantamiento de la cocina: foto del dibujo 3D + tabla de medidas. Se pone sola y BLOQUEADA en la pizarra,
 // y es lo que ven el comercial, el administrador y el diseñador al trabajar la cotización.
@@ -28,17 +28,18 @@ export async function componerPlanoLevantamiento(foto3d: string, d: DatosPlano):
   const paredes = d.paredes || [];
   const ab = d.aberturas || [];
   const filas: string[] = [];
+  const supNetoPared = supNetoPorParedCm(d.forma, paredes, ab);
   const dsc = descuentosEsquinas(d.forma, paredes, d.profundoCm || FONDO_INFERIOR_CM, d.profundoSupCm || FONDO_SUPERIOR_CM, d.esquinas);
   paredes.forEach((p, i) => {
     const q = dsc[i] || { infIni: 0, infFin: 0, supIni: 0, supFin: 0 };
     const di = q.infIni + q.infFin;
     const nota = di > 0 ? `   (mesón − ${fm(di)} m por esquina; la madera va plena)` : "";
     const alto = Number(p.alto) || d.altoGeneralCm || 240;
-    filas.push(`Pared ${nombres[i] || i + 1}:  ancho ${fm(anchoMuroCm(p))} m  ·  alto ${fm(alto)} m   |   muebles inferiores ${fm(p.inf ?? 0)} m  ·  superiores ${fm(p.sup ?? 0)} m${nota}`);
+    filas.push(`Pared ${nombres[i] || i + 1}:  ancho ${fm(anchoMuroCm(p))} m  ·  alto ${fm(alto)} m   |   muebles inferiores ${fm(p.inf ?? 0)} m  ·  superiores ${fm(supNetoPared[i] ?? 0)} m${nota}`);
   });
   const t = totalesParedes(paredes);
-  const vs = ventanasSuperioresCm(d.forma, paredes, ab).reduce((a, x) => a + x, 0);
-  filas.push(`Total de muebles:  inferiores ${t.infM.toFixed(2)} m   ·   superiores ${Math.max(0, t.supM - vs / 100).toFixed(2)} m${vs > 0 ? `  (${t.supM.toFixed(2)} − ${(vs / 100).toFixed(2)} de ventanas: donde va ventana no va mueble)` : ""}`);
+  const supN = supNetoPorParedCm(d.forma, paredes, ab).reduce((a, x) => a + x, 0), vs = Math.max(0, t.supM * 100 - supN);
+  filas.push(`Total de muebles:  inferiores ${t.infM.toFixed(2)} m   ·   superiores ${(supN / 100).toFixed(2)} m${vs > 0 ? `  (${t.supM.toFixed(2)} − ${(vs / 100).toFixed(2)} de ventanas: donde va ventana no va mueble)` : ""}`);
   if (d.isla) filas.push(`Isla:  ancho ${fm(d.isla.ancho)} m  ·  profundidad ${fm(d.isla.profundo)} m  ·  altura ${fm(d.isla.alto)} m`);
   if (d.barra) filas.push(`Barra:  ancho ${fm(d.barra.ancho)} m  ·  profundidad ${fm(d.barra.profundo)} m  ·  altura ${fm(d.barra.alto)} m`);
   ab.forEach((a) => {

@@ -967,3 +967,14 @@ export function ventanasDeLevantamiento(aberturas: any, nTramos: number): PlanMo
   return out;
 }
 
+// Primer espacio libre (m desde el inicio de la pared) donde cabe un módulo de ese ancho en una fila; si no cabe, al final.
+export function primerHueco(p: ModulePlan, t: number, row: PlanRow, width: number, config: any): number {
+  const items = rowItems(p, t, row, config).slice().sort((a, b) => a.start - b.start);
+  let cursor = 0;
+  for (const it of items) {
+    if (it.start - cursor >= width - 1e-9) break;
+    cursor = Math.max(cursor, it.start + it.width);
+  }
+  return round2(cursor);
+}
+

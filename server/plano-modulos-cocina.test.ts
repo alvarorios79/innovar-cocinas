@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { normalizePlan, addModuleToPlan, setModuleWidth, moveModuleToTramo, computePlan, ventanasDeLevantamiento, rowItems } from "../shared/kitchenModulePlan";
+import { normalizePlan, addModuleToPlan, setModuleWidth, moveModuleToTramo, primerHueco, computePlan, ventanasDeLevantamiento, rowItems } from "../shared/kitchenModulePlan";
 import { buildKitchenQuoteDescription } from "./kitchen-description";
 
 // ¿El plano de módulos describe de verdad la cocina? Se arma una cocina paralela de 2 paredes (3,0 m y 2,4 m),
@@ -125,6 +125,17 @@ describe("Plano 3D: barra como bloque suelto y mover módulos entre paredes", ()
     expect(plan.tramos[0].lower.some((m: any) => m.id === caj.id)).toBe(false);
     expect(plan.tramos[1].lower.some((m: any) => m.id === caj.id)).toBe(true);
     expect(rowItems(plan, 1, "lower", cfg).find((i) => i.mod?.id === caj.id)?.start).toBeCloseTo(1.0, 1);
+  });
+
+  it("primerHueco: el módulo nuevo cae en el primer espacio libre de la pared elegida, no siempre en la A", () => {
+    const cfg = base();
+    const plan: any = normalizePlan({ enabled: true, autoUpper: false, tramos: [{ name: "Pared A", length: 3.6, upper: [], lower: [] }, { name: "Pared B", length: 2.8, upper: [], lower: [] }], extras: {} }, cfg);
+    addModuleToPlan(plan, 0, "lower", "moduloLavaplatos", cfg);
+    expect(primerHueco(plan, 0, "lower", 0.7, cfg)).toBeCloseTo(0.7, 2);   // A: después del lavaplatos
+    expect(primerHueco(plan, 1, "lower", 0.7, cfg)).toBe(0);              // B: vacía → al inicio
+    const m = addModuleToPlan(plan, 1, "lower", "cajoneroTriple", cfg)!;
+    expect(plan.tramos[1].lower.some((x: any) => x.id === m.id)).toBe(true);
+    expect(plan.tramos[0].lower.some((x: any) => x.id === m.id)).toBe(false);
   });
 });
 

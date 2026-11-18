@@ -1390,8 +1390,9 @@ export default function Quotations() {
     }
 
     // Con el plano de módulos activo, "Muebles que lleva la cocina" (descripción) se arma solo desde el plano
-    if (field === 'modulePlan' && value?.enabled) {
-      (config as any).descriptiveModules = descriptiveFromPlan(value);
+    const planNuevo = field === 'modulePlan' ? value : (field === '__multi' ? value?.modulePlan : undefined);
+    if (planNuevo?.enabled) {
+      (config as any).descriptiveModules = descriptiveFromPlan(planNuevo);
     }
 
     // Al desmarcar el salpicadero alto del mesón, limpiar sus laterales en la misma operación
@@ -2571,7 +2572,10 @@ export default function Quotations() {
 
       {/* Dialog para crear cotización */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="w-[95vw] sm:w-[90vw] md:max-w-3xl lg:max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto p-0">
+        <DialogContent className="w-[95vw] sm:w-[90vw] md:max-w-3xl lg:max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto p-0"
+          // la pantalla completa del 3D vive fuera de la ventana (portal): tocarla no debe cerrar la cotización
+          onPointerDownOutside={(e) => { if ((e.target as HTMLElement | null)?.closest?.("[data-pantalla-completa]")) e.preventDefault(); }}
+          onInteractOutside={(e) => { if ((e.target as HTMLElement | null)?.closest?.("[data-pantalla-completa]")) e.preventDefault(); }}>
           {/* Header con gradiente */}
           <div className="bg-gradient-to-r from-[oklch(0.72_0.14_180)] to-[oklch(0.60_0.14_180)] p-4 sm:p-6 rounded-t-lg relative">
             <DialogHeader>
@@ -3323,6 +3327,7 @@ export default function Quotations() {
                                 config={item.kitchenConfig}
                                 onChange={(plan) => updateKitchenConfig(index, "modulePlan", plan)}
                                 onSpecialToggle={(key, on) => updateKitchenConfig(index, `specialModules.${key}`, on)}
+                                onPlanSpecial={(plan, key, on) => updateKitchenConfig(index, "__multi", { modulePlan: plan, [`specialModules.${key}`]: on })}
                                 capturaRef={capturaDe(String(item._id))}
                               />
                             )}

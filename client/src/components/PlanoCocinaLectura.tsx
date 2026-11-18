@@ -1,6 +1,7 @@
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense, useState, type ReactElement } from "react";
+import { createPortal } from "react-dom";
 import { Maximize2, X } from "lucide-react";
-import { FORMAS_COCINA, ventanasSuperioresCm, descuentosEsquinas, FONDO_INFERIOR_CM, FONDO_SUPERIOR_CM, anchoMuroCm, nombresParedes, totalesParedes, type AberturaCocina, type ParedCocina } from "@shared/cocinaParedes";
+import { FORMAS_COCINA, supNetoPorParedCm, descuentosEsquinas, FONDO_INFERIOR_CM, FONDO_SUPERIOR_CM, anchoMuroCm, nombresParedes, totalesParedes, type AberturaCocina, type ParedCocina } from "@shared/cocinaParedes";
 
 const Habitacion3D = lazy(() => import("./Habitacion3D"));
 
@@ -15,7 +16,9 @@ export function PlanoCocinaLectura({ measurements }: { measurements: Record<stri
   const aberturas: AberturaCocina[] = Array.isArray(m._cocina_aberturas) ? m._cocina_aberturas : [];
   const letras = nombresParedes(forma);
   const t = totalesParedes(paredes);
-  const ventSup = ventanasSuperioresCm(forma, paredes, aberturas).reduce((a, x) => a + x, 0);
+  const supNeto = supNetoPorParedCm(forma, paredes, aberturas);
+  const supTotalCm = supNeto.reduce((a, x) => a + x, 0);
+  const ventSup = Math.max(0, t.supM * 100 - supTotalCm);
   const fondoInf = Number(m._cocina_profundo) || FONDO_INFERIOR_CM, fondoSup = Number(m._cocina_profundo_sup) || FONDO_SUPERIOR_CM;
   const esq: number[] | undefined = Array.isArray(m._cocina_esquinas) ? m._cocina_esquinas : undefined;
   const dsc = descuentosEsquinas(forma, paredes, fondoInf, fondoSup, esq);
@@ -26,7 +29,12 @@ export function PlanoCocinaLectura({ measurements }: { measurements: Record<stri
     ? <div key={base} className="flex justify-between gap-3"><span className="text-gray-400">{titulo}</span><span className="text-white font-medium text-right">{fm(m[base])} m de ancho · {fm(m[base + "_profundo"] || 0)} de profundo · {fm(m[base + "_alto"] || 0)} de alto</span></div>
     : null);
 
-  return (
+  // En pantalla completa la vista se saca del contenedor (portal al body): dentro de una ventana emergente (la cotización) un «fixed»
+  // queda pegado a la ventana y no a la pantalla, y se veía diminuto en el computador.
+  const envolver = (nodo: ReactElement) => grande
+    ? createPortal(<div data-pantalla-completa="1" style={{ pointerEvents: "auto" }}>{nodo}</div>, document.body)
+    : nodo;
+  return envolver(
     <div className={grande ? "fixed inset-0 z-[60] bg-background flex flex-col [@media(orientation:landscape)]:flex-row" : "space-y-3"}>
       <div className={grande ? "shrink-0 h-[46dvh] [@media(orientation:landscape)]:h-full [@media(orientation:landscape)]:w-[56%] flex flex-col gap-2 p-3 border-b [@media(orientation:landscape)]:border-b-0 [@media(orientation:landscape)]:border-r border-primary/30" : "space-y-3"}>
       <div className="flex items-center justify-between">
@@ -59,10 +67,10 @@ export function PlanoCocinaLectura({ measurements }: { measurements: Record<stri
             <span>{fm(anchoMuroCm(paredes[i]))} m</span>
             <span>{fm(paredes[i]?.alto || techo)} m</span>
             <span>{fm(paredes[i]?.inf ?? anchoMuroCm(paredes[i]))} m{(dsc[i]?.infIni + dsc[i]?.infFin) > 0 && <span className="block text-[10px] text-gray-400">mesón − {fm(dsc[i].infIni + dsc[i].infFin)} esquina</span>}</span>
-            <span>{fm(paredes[i]?.sup ?? anchoMuroCm(paredes[i]))} m</span>
+            <span>{fm(supNeto[i] ?? 0)} m{(anchoMuroCm(paredes[i]) - (supNeto[i] ?? 0)) > 0.5 && !paredes[i]?.supManual && <span className="block text-[10px] text-gray-400">− {fm(anchoMuroCm(paredes[i]) - supNeto[i])} ventana</span>}</span>
           </div>
         ))}
-        <div className="flex justify-between pt-1 border-t border-primary/20"><span className="text-gray-400">Total de muebles</span><span className="text-white font-semibold">inferiores {metros(t.infM)} m · superiores {metros(Math.max(0, t.supM - ventSup / 100))} m{ventSup > 0 ? ` (− ${metros(ventSup / 100)} de ventanas)` : ""}</span></div>
+        <div className="flex justify-between pt-1 border-t border-primary/20"><span className="text-gray-400">Total de muebles</span><span className="text-white font-semibold">inferiores {metros(t.infM)} m · superiores {metros(supTotalCm / 100)} m{ventSup > 0 ? ` (− ${metros(ventSup / 100)} de ventanas)` : ""}</span></div>
         {pieza("_cocina_isla", "Isla")}
         {pieza("_cocina_barra", "Barra")}
         {Number(m._cocina_profundo) > 0 && <div className="flex justify-between"><span className="text-gray-400">Profundo de los muebles</span><span className="text-white font-medium">{fm(m._cocina_profundo)} m</span></div>}

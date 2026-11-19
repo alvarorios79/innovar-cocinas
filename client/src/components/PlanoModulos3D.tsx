@@ -51,6 +51,7 @@ interface Props {
 
 const GROSOR = 0.08;
 const ALTO_DEF = 2.4;
+const ALTO_SUPERIOR_MAX = 0.90; // el superior mide máximo 0,90 m; si el techo es más alto queda espacio libre arriba (diseño)
 const COLOR = { lower: 0x26a69a, upper: 0x7e57c2, tall: 0xffa726, vidrio: 0x7fd4ff, puerta: 0x8a5a2b, pared: 0x8d9aa0, piso: 0x1f2a2e, losa: 0xffd54f };
 const colorDe = (key: string, row: PlanRow | "tall"): number => {
   if (row === "tall") return COLOR.tall;
@@ -344,7 +345,7 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
           const selected = !!sel && "id" in sel && sel.t === t && sel.row === "upper" && it.mod?.id === sel.id;
           if (cat.corner) {   // esquinero superior: UN solo mueble en «L» (0,60 × 0,60 m, 0,35 de fondo)
             if (it.fromPrev) return;
-            const hs = Math.max(0.3, alto - arranque);
+            const hs = Math.max(0.3, Math.min(ALTO_SUPERIOR_MAX, alto - arranque));
             const ec = crearEsquinero3D("upper", it.width, hs, profSup, sg, it.start + it.width, GROSOR / 2, { seleccionado: selected });
             ec.grupo.position.y = arranque;
             ec.cuerpo.userData = { pick: true, kind: "mod", t, row: "upper", id: it.mod!.id, start: it.start, w: it.width, corner: true, painted: isPainted(plan, it.mod!, "upper") };
@@ -352,7 +353,7 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
             if (cotasRef.current) { const l = texto(`${cat.short} ${fm(it.width)}`, "#ffffff", 0.115); l.position.set(it.start + it.width - 0.2, arranque + hs + 0.1, sg * (GROSOR / 2 + 0.2)); grp.add(l); }
             return;
           }
-          poner(it.key, "upper", it.start, it.width, arranque, Math.max(0.3, alto - arranque), GROSOR / 2, profSup,
+          poner(it.key, "upper", it.start, it.width, arranque, Math.max(0.3, Math.min(ALTO_SUPERIOR_MAX, alto - arranque)), GROSOR / 2, profSup,
             { pick: mine, kind: "mod", t, row: "upper", id: it.mod!.id, start: it.start, w: it.width, corner: !!cat.corner, painted: isPainted(plan, it.mod!, "upper") }, selected, it.fromPrev, `${cat.short} ${fm(it.width)}`);
         });
         // Módulos de piso a techo (nichos, alacenas, torre)

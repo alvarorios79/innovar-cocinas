@@ -228,7 +228,6 @@ export function activeSpecials(plan: ModulePlan, config: any): Array<SpecialEntr
 // ── Edición del plan (funciones puras sobre una copia) ─────────────────────
 
 const isTrailingCorner = (m?: PlanModule) => !!m && !!CATALOG_BY_KEY[m.key]?.corner && m.alsoTramo !== undefined;
-const SMALL_KEYS = ["basurero", "especiero", "botellero"];
 
 // El esquinero que sigue a la pared siguiente (y su almacenamiento de compensación) quedan siempre al final de su tramo.
 function insertBeforeTrailingBlock(arr: PlanModule[], mod: PlanModule) {
@@ -241,6 +240,8 @@ function insertBeforeTrailingBlock(arr: PlanModule[], mod: PlanModule) {
 // Genera los superiores que corresponden a la fila inferior, en el mismo orden:
 // lavaplatos→platero, estufa→extractor, cajonero/almacenamiento→almacenamiento,
 // basurero/especiero/botellero seguidos→un almacenamiento (si están pegados al esquinero, se suman a la compensación del esquinero).
+// Solo tres inferiores arrastran su superior: el esquinero (esquinero superior), la estufa (extractor) y el lavaplatos (platero).
+// Los demás superiores (almacenamiento, etc.) los pone el usuario con la medida que quiera.
 function genAutoUppers(p: ModulePlan, t: number): PlanModule[] {
   const tr = p.tramos[t];
   const sup = new Set(p.suppress || []);
@@ -254,7 +255,6 @@ function genAutoUppers(p: ModulePlan, t: number): PlanModule[] {
     pending = [];
   };
   for (const m of tr.lower) {
-    if (SMALL_KEYS.includes(m.key)) { pending.push(m); continue; }
     if (m.key === "esquinero1x1") {
       // El esquinero es UN solo mueble en «L»: su superior es UNA sola pieza (esquinero superior 0,60×0,60). Ya NO se arma con un almacenamiento
       // superior de relleno al lado: si el diseño lo pide, se agrega a mano. Lo pequeño pegado al esquinero (basurero, especiero…) tiene su propio almacenamiento.
@@ -273,9 +273,6 @@ function genAutoUppers(p: ModulePlan, t: number): PlanModule[] {
         break;
       case "moduloEstufaPuerta":
       case "moduloEstufaHorno": add("moduloExtractor", 0.70); break;
-      case "cajoneroTriple":
-      case "cajoneroDoble":
-      case "moduloAlmacInf": add("moduloAlmacSup", m.width, { autoBase: 0 }); break;
     }
   }
   flush();

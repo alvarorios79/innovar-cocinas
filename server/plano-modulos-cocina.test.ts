@@ -213,9 +213,8 @@ describe("Plano 3D: barra como bloque suelto y mover módulos entre paredes", ()
   it("un superior amarrado a un inferior (el que acompaña al esquinero) acepta una medida propia y la conserva", () => {
     const cfg = base();
     let p = planA(cfg);
-    p = agregar(p, cfg, "lower", "cajoneroTriple").q;
-    p = agregar(p, cfg, "lower", "esquinero1x1").q;
-    const auto = p.tramos[0].upper.find((m: any) => m.autoRole === "cornerFill" || (m.autoBase !== undefined && m.key === "moduloAlmacSup"))!;
+    p = agregar(p, cfg, "lower", "moduloLavaplatos").q;
+    const auto = p.tramos[0].upper.find((m: any) => m.key === "moduloPlatero" && m.autoOf)!;
     expect(auto).toBeTruthy();
     const q = JSON.parse(JSON.stringify(p));
     setModuleWidth(q, 0, "upper", auto.id, 1.4, cfg); tidyPlan(q, cfg);
@@ -405,6 +404,15 @@ describe("Plano 3D: barra como bloque suelto y mover módulos entre paredes", ()
     const nuevo: any = normalizePlan(viejo, cfg);
     expect(nuevo.tramos.find((t: any) => t.name === "Isla").length).toBe(2.4);
     expect(nuevo.tramos.find((t: any) => t.name === "Barra").length).toBe(1.8);
+  });
+
+  it("solo el esquinero, la estufa y el lavaplatos arrastran su superior; cajoneros, almacenamiento y pequeños no", () => {
+    const cfg = base();
+    let p = planA(cfg);
+    ["cajoneroTriple", "cajoneroDoble", "moduloAlmacInf", "basurero", "especiero", "botellero"].forEach(k => { p = agregar(p, cfg, "lower", k).q; });
+    expect(p.tramos[0].upper).toHaveLength(0);
+    p = agregar(p, cfg, "lower", "moduloEstufaHorno").q; p = agregar(p, cfg, "lower", "moduloLavaplatos").q; p = agregar(p, cfg, "lower", "esquinero1x1").q;
+    expect(p.tramos[0].upper.map((m: any) => m.key).sort()).toEqual(["esquineroSuperior", "moduloExtractor", "moduloPlatero"]);
   });
 });
 

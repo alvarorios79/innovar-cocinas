@@ -414,5 +414,15 @@ describe("Plano 3D: barra como bloque suelto y mover módulos entre paredes", ()
     p = agregar(p, cfg, "lower", "moduloEstufaHorno").q; p = agregar(p, cfg, "lower", "moduloLavaplatos").q; p = agregar(p, cfg, "lower", "esquinero1x1").q;
     expect(p.tramos[0].upper.map((m: any) => m.key).sort()).toEqual(["esquineroSuperior", "moduloExtractor", "moduloPlatero"]);
   });
+
+  it("módulos de piso a techo: con el candado abierto se les puede dar otra medida y el plano la respeta", () => {
+    const cfg = base(); cfg.specialModules = { nichoNevecon: true };
+    const p: any = normalizePlan({ enabled: true, tramos: [{ name: "Pared A", length: 3.6, upper: [], lower: [] }, { name: "Pared B", length: 2.8, upper: [], lower: [] }], extras: {}, specialWidths: { nichoNevecon: 1.2 } }, cfg);
+    expect(p.specialWidths.nichoNevecon).toBe(1.2);                                                // se conserva al volver a abrir
+    const it = rowItems(p, 0, "lower", cfg).find((i: any) => i.key === "nichoNevecon")!;
+    expect(it.width).toBe(1.2);
+    delete p.specialWidths.nichoNevecon;                                                            // candado cerrado: medida estándar
+    expect(rowItems(p, 0, "lower", cfg).find((i: any) => i.key === "nichoNevecon")!.width).toBe(1);
+  });
 });
 

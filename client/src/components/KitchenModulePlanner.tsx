@@ -642,6 +642,22 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
         </div>
       );
     };
+    // Candado de los módulos de piso a techo: cerrado = medida estándar; al tocarlo se abre y se puede ampliar o reducir (electrodoméstico especial, completar la pared)
+    const renderMedidaAlta = (key: string, estandar: number) => {
+      const propia = plan.specialWidths?.[key];
+      const abierto = !!propia && Math.abs(propia - estandar) > 0.001;
+      const actual = abierto ? propia! : estandar;
+      const poner = (v: number) => edit(p => { const sw = { ...(p.specialWidths || {}) }; if (v > 0 && Math.abs(v - estandar) > 0.001) sw[key] = round2(v); else delete sw[key]; p.specialWidths = sw; });
+      return abierto ? (
+        <div className="space-y-1.5">
+          <MedidaStepper valor={actual} onCambio={poner} />
+          <button type="button" className="h-9 w-full rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold text-white" onClick={() => poner(estandar)}>🔒 Volver a {m2(estandar)} m</button>
+        </div>
+      ) : (
+        <button type="button" className="h-9 w-full rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold text-white" onClick={() => poner(round2(estandar + 0.05))}
+          title="Cambiar la medida de este módulo (electrodoméstico especial o para completar la pared)">🔒 Medida fija {m2(estandar)} m · tocar para cambiarla</button>
+      );
+    };
     const tarjetaAlta = (o: typeof SPECIALS[number]) => {
       const act = specials.find(s => s.key === o.key);
       const bloqueado = !act && !!trAct?.isIsland;
@@ -652,7 +668,8 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
             <ModuleIcon k={o.key} size={34} className="shrink-0 text-white/85" />
             <span className="text-sm font-semibold text-white leading-snug break-words">{o.label}</span>
           </div>
-          <div className="text-xs text-white/70">{act ? <>Está en <b className="text-white text-sm">{plan.tramos[act.tramo]?.name}</b></> : <>🔒 Medida fija: <b className="text-white text-sm">{m2(o.width)} m</b></>}</div>
+          <div className="text-xs text-white/70">{act ? <>Está en <b className="text-white text-sm">{plan.tramos[act.tramo]?.name}</b></> : <>Medida estándar: <b className="text-white text-sm">{m2(o.width)} m</b></>}</div>
+          {renderMedidaAlta(o.key, o.width)}
           <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
             <button type="button" className={btnCant} disabled={!act || !onSpecialToggle} onClick={() => quitarAlto(o.key)} aria-label="Quitar">−</button>
             <span className={`min-w-[2rem] text-center font-mono text-lg ${act ? "text-white font-bold" : "text-white/40"}`}>{act ? 1 : 0}</span>

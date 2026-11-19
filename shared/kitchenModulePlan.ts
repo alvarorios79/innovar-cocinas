@@ -118,6 +118,7 @@ export interface ModulePlan {
   specialTramo?: Record<string, number>;
   specialLateral?: Record<string, boolean>;
   alacenaEntrepanosWidth?: number;
+  specialWidths?: Record<string, number>;   // medida propia de un módulo de piso a techo (candado abierto); sin valor = medida estándar
   paintAll?: boolean;
   autoUpper?: boolean;   // al agregar un inferior, agregar su superior (por defecto sí)
   suppress?: string[];   // superiores automáticos que el usuario quitó a propósito ("idInferior:clave")
@@ -193,6 +194,7 @@ export function normalizePlan(raw: any, config: any): ModulePlan {
     specialTramo: base.specialTramo || {},
     specialLateral: base.specialLateral || {},
     alacenaEntrepanosWidth: base.alacenaEntrepanosWidth,
+    specialWidths: base.specialWidths || {},
     paintAll: base.paintAll !== false,
     specialPos: base.specialPos || {},
     defaultWidth: base.defaultWidth || {},
@@ -206,6 +208,9 @@ export function normalizePlan(raw: any, config: any): ModulePlan {
 
 export function specialWidth(plan: ModulePlan, key: string): number {
   const s = SPECIALS.find(x => x.key === key)!;
+  // Medida propia (candado abierto) > la de la alacena con entrepaños de antes > la medida estándar
+  const propia = plan.specialWidths?.[key];
+  if (propia && propia > 0) return propia;
   return key === "alacenaEntrepanos" ? (plan.alacenaEntrepanosWidth ?? s.width) : s.width;
 }
 

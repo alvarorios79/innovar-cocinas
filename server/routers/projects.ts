@@ -29,13 +29,16 @@ async function loadModuleSchemes(projectId: number) {
   const project = await db.getProjectById(projectId);
   let items: any[] = await db.getLatestQuotationItems(projectId);
   if ((!items || !items.length) && project?.quotationId) items = await db.getQuotationItems(project.quotationId);
-  const out: Array<{ itemNumber: number; scheme: NonNullable<ReturnType<typeof buildScheme>>; plano3d: string[] }> = [];
+  const out: Array<{ itemNumber: number; scheme: NonNullable<ReturnType<typeof buildScheme>>; plano3d: string[]; medidas: Record<string, any> | null }> = [];
   for (const it of [...(items || [])].sort((a: any, b: any) => (a.itemNumber || 0) - (b.itemNumber || 0))) {
     if (it.itemType !== "cocina" || !it.kitchenConfig) continue;
     let cfg: any = it.kitchenConfig;
     if (typeof cfg === "string") { try { cfg = JSON.parse(cfg); } catch { continue; } }
     const scheme = cfg?.modulePlan?.enabled ? buildScheme(cfg.modulePlan, cfg, `Cocina integral · ítem ${it.itemNumber}`) : null;
-    if (scheme) out.push({ itemNumber: it.itemNumber, scheme, plano3d: Array.isArray(cfg?.plano3d?.urls) ? cfg.plano3d.urls : [] });
+    if (scheme) { // Medidas del levantamiento del medidor que viajan dentro de la cocina cotizada (solo claves de cocina: paredes, ventanas, puertas, isla, barra)
+    const med = cfg?.fromLevantamiento?.medidas;
+    out.push({ itemNumber: it.itemNumber, scheme, plano3d: Array.isArray(cfg?.plano3d?.urls) ? cfg.plano3d.urls : [], medidas: med && typeof med === "object" && !Array.isArray(med) ? med : null });
+    }
   }
   return out;
 }
@@ -66,7 +69,11 @@ export const projectsRouter = router({
         // El diseñador lo recibe cuando el proyecto está activo para diseñar (cliente confirmado)
         const ACTIVE = ["adelanto_recibido", "en_diseno", "pendiente_modelado", "pendiente_render", "aprobacion_final", "despiece", "corte", "enchape", "ensamble", "listo_instalacion", "entregado"];
         if (ctx.user.role === "disenador" && !ACTIVE.includes(String((project as any).status))) return [];
-        try { return await loadModuleSchemes(input.projectId); } catch (e) { console.error("[projects] getModulePlans:", e); return []; }
+        try {
+          const planes = await loadModuleSchemes(input.projectId);
+          // El taller no recibe el levantamiento del medidor (como en el resto del proyecto): solo el plano
+          return isWorkshopRole(ctx.user.role) ? planes.map(x => ({ ...x, medidas: null })) : planes;
+        } catch (e) { console.error("[projects] getModulePlans:", e); return []; }
       }),
 
     // Crear proyecto (Admin/Comercial)

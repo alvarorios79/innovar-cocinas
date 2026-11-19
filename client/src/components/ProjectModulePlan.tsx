@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
 import { LayoutGrid, ChevronDown, ChevronUp } from "lucide-react";
 import { PlanSchemeView } from "@/components/PlanSchemeView";
+import { PlanoCocinaLectura } from "@/components/PlanoCocinaLectura";
 
 // Plano de módulos de la cocina del proyecto (solo lectura) para el diseñador, el jefe de taller y el equipo.
 // Sale de la cotización del proyecto: dibujo con medidas, ventanas, qué va pintado, laterales y módulos de piso a techo.
@@ -39,6 +40,7 @@ export function ProjectModulePlan({ projectId, defaultOpen = true }: { projectId
                   </div>
                 </div>
               )}
+              {p.medidas && <LevantamientoPuntoDePartida medidas={p.medidas} />}
               <PlanSchemeView scheme={p.scheme} showPaint />
               <div className="flex flex-wrap items-center gap-4 text-[11px] text-white/55">
                 <span>🎨 va pintado</span>
@@ -72,5 +74,23 @@ export function ProjectModulePlan({ projectId, defaultOpen = true }: { projectId
         </CardContent>
       )}
     </Card>
+  );
+}
+
+// Punto de partida para el diseñador: el levantamiento del medidor (paredes, ventanas, puertas, isla, barra y su 3D) que viajó con la cotización aprobada.
+// Llega cerrado para no alargar la pantalla; es solo lectura.
+function LevantamientoPuntoDePartida({ medidas }: { medidas: Record<string, any> }) {
+  const [abierto, setAbierto] = useState(false);
+  return (
+    <div className="rounded border border-primary/30 bg-primary/5">
+      <button type="button" onClick={() => setAbierto(v => !v)} aria-expanded={abierto} className="w-full flex items-center justify-between gap-3 p-3 text-left min-h-[44px]">
+        <span>
+          <span className="block text-xs font-semibold text-white">Punto de partida · levantamiento del medidor</span>
+          <span className="block text-[11px] text-white/55">Medidas reales de paredes, ventanas, puertas, isla y barra, con el 3D de la habitación.</span>
+        </span>
+        <span className="shrink-0 text-xs font-semibold text-primary">{abierto ? "Cerrar ▲" : "Ver medidas y 3D ▼"}</span>
+      </button>
+      {abierto && <div className="p-3 pt-0"><PlanoCocinaLectura measurements={medidas} /></div>}
+    </div>
   );
 }

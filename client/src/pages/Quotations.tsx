@@ -1571,10 +1571,11 @@ export default function Quotations() {
     return getPrice(code) * (1 + getPrice('RECARGO_PIEZA_SUELTA') / 100);
   };
 
-  const calculateKitchenTotal = (index: number, itemsArray: typeof items = items) => {
+  // soloDesglose: calcula el desglose SIN tocar el total ni nada más (se usa al abrir una cotización ya guardada); solo se guarda si su suma coincide con el total que ya tenía
+  const calculateKitchenTotal = (index: number, itemsArray: typeof items = items, soloDesglose = false) => {
     const item = itemsArray[index];
     const config = item.kitchenConfig!;
-    syncPlanPaint(config);
+    if (!soloDesglose) syncPlanPaint(config);
     let total = 0;
     let _last = 0;
     const bd: Array<{ label: string; amount: number }> = [];
@@ -1743,6 +1744,10 @@ export default function Quotations() {
     }
 
     mark("Transporte e imprevistos");
+    if (soloDesglose) {
+      if (Math.abs(total - (Number(item.totalPrice) || 0)) <= 1) { (config as any).desglose = bd; setKitchenBreakdown(prev => ({ ...prev, [index]: bd })); }
+      return;
+    }
     setKitchenBreakdown(prev => ({ ...prev, [index]: bd }));
     // El desglose se guarda con la cocina: el PDF lo puede mostrar al cliente (solo si su suma coincide con el total)
     (config as any).desglose = bd;
@@ -1759,6 +1764,17 @@ export default function Quotations() {
   const calculateTotal = () => {
     return items.reduce((sum, item) => sum + item.totalPrice, 0);
   };
+
+  // Al abrir una cotización ya guardada que no tiene desglose, se calcula (sin cambiar el total) para que quede listo al guardar
+  useEffect(() => {
+    if (!showCreateDialog || !editingQuotation) return;
+    items.forEach((it, i) => {
+      if (it.itemType === "cocina" && it.kitchenConfig && !(it.kitchenConfig as any).desglose && !kitchenBreakdown[i]) {
+        try { calculateKitchenTotal(i, items, true); } catch { /* sin desglose */ }
+      }
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showCreateDialog, editingQuotation, items.length]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

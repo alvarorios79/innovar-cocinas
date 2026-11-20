@@ -420,7 +420,9 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
         "Garantía: 6 meses sobre la madera, la estructura y los herrajes. Los materiales cuentan además con la garantía del fabricante.",
         "Los diseños y renders son propiedad exclusiva de Innovar Cocinas de Diseño.",
       ];
-      const tH = terms.length * 16 + 10;
+      // Cada condición se mide con su alto real (las largas ocupan 2 líneas): así no se montan unas sobre otras
+      const hTerm = terms.map((t) => doc.fontSize(8).font("Helvetica").heightOfString(`• ${t}`, { width: CW - 16 }) + 6);
+      const tH = hTerm.reduce((a, b) => a + b, 0) + 10;
       if (Y + 18 + tH + 10 > PH - 48) { doc.addPage(); Y = 28; }
       doc.rect(ML, Y, CW, 18).fill(DGRAY);
       doc.fontSize(8.5).fillColor(WHITE).font("Helvetica-Bold")
@@ -428,11 +430,11 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
       Y += 18;
       doc.rect(ML, Y, CW, tH).fill(WHITE).stroke(BORDER);
       let ty = Y + 8;
-      for (const t of terms) {
+      terms.forEach((t, i) => {
         doc.fontSize(8).fillColor(MGRAY).font("Helvetica")
            .text(`• ${t}`, ML + 8, ty, { width: CW - 16 });
-        ty += 16;
-      }
+        ty += hTerm[i];
+      });
       Y += tH + 16;
 
       // ── ACEPTACIÓN, PAGOS Y VALOR LEGAL ──────────────────────────────────────────

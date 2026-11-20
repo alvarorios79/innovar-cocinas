@@ -82,10 +82,21 @@ export function buildKitchenQuoteDescription(rawConfig: any, manualDescription?:
   const claseLabel = CLASS_LABEL[shape] || String(shape).toUpperCase();
   push(isOnlyFinishes ? "ACABADOS ESPECIALES PARA COCINA" : `COCINA INTEGRAL ${isFull ? "" : "- "}${claseLabel}`.replace("  ", " ").trim());
   if (config.layout && LAYOUT_LABEL[config.layout]) push(`Forma de la cocina: ${LAYOUT_LABEL[config.layout]}`);
+  // Resumen de una línea para quien abre la cotización (forma, isla o barra, sistema de apertura y material del mesón)
+  if (isFull && !isOnlyFinishes) {
+    const partes: string[] = [];
+    if (config.layout && LAYOUT_LABEL[config.layout]) partes.push(`cocina ${LAYOUT_LABEL[config.layout]}`);
+    else partes.push("cocina integral");
+    if (config.island?.enabled && Number(config.island?.meters) > 0) partes.push(config.bar?.enabled ? "con isla y barra" : "con isla");
+    else if (config.bar?.enabled) partes.push("con barra");
+    partes.push(config.modulePlan?.conManijas ? "con manijas" : "sistema gola (sin manijas)");
+    if (config.countertop?.type) partes.push(`mesón en ${stoneName(config.countertop.type, config.countertop.esImportado).toLowerCase()}`);
+    push(`En resumen: ${partes.join(" · ")}.`);
+  }
   const totalMeters = Number(config.totalMeters) || 0;
   if (!isOnlyFinishes && !isDoorsOnly && totalMeters > 0) {
     if (config.independentMeters && (config.lowerMeters !== undefined || config.upperMeters !== undefined)) {
-      push(`Metraje: inferiores ${ml(config.lowerMeters)} · superiores ${ml(config.upperMeters)}`);
+      push(`Medido en la obra (muebles): inferiores ${ml(config.lowerMeters)} · superiores ${ml(config.upperMeters)}`);
     } else {
       push(`Metraje total: ${ml(totalMeters)}`);
     }
@@ -149,6 +160,7 @@ export function buildKitchenQuoteDescription(rawConfig: any, manualDescription?:
       if (config.includeLower !== false) {
         const lower = config.independentMeters && config.lowerMeters !== undefined ? Math.max(0, (config.lowerMeters || 0) - deductions) : resulting;
         mueble.push(`• Muebles inferiores: ${ml(lower)}`);
+        if (deductions > 0 && config.independentMeters && config.lowerMeters !== undefined) mueble.push(`  - Ya descuenta ${ml(deductions)} de módulos de piso a techo (nevecón, nevera, alacena o torre), que van aparte`);
         const li = includesLine("inf"); if (li) mueble.push(li);
       }
       if (config.includeUpper !== false) {
@@ -160,33 +172,36 @@ export function buildKitchenQuoteDescription(rawConfig: any, manualDescription?:
     if (mueble.length) { section("MUEBLES:"); lines.push(...mueble); }
   }
 
-  // ── Módulos y equipamiento ──────────────────────────────────────────────
+  // ── Módulos de la cocina (agrupados: abajo, arriba y de piso a techo; en una frase por grupo, fácil de leer para el cliente) ──
   if (!isOnlyFinishes) {
-    const mods: string[] = [];
-    if (sm.nichoNevecon) mods.push("• Nicho para nevecón (100 cm)");
-    if (sm.nichoNevera) mods.push("• Nicho para nevera (75 cm)");
-    if (sm.alacenaEntrepanos) mods.push("• Alacena con entrepaños (50 cm)");
-    if (sm.alacenaHerraje) mods.push("• Alacena para herraje (50 cm)");
-    if (sm.torreHornos) mods.push("• Torre de hornos (70 cm)");
     const km: any = kmQ;
-    const KM: Array<[string, string]> = [
-      ["esquineroSuperior", "Esquinero superior"], ["moduloAlmacSup", "Módulo de almacenamiento superior"],
-      ["moduloExtractor", "Módulo para extractor"], ["moduloMicroondas", "Módulo para microondas"],
-      ["especiero", "Especiero"], ["botellero", "Botellero"], ["moduloRepisa", "Repisa"],
-      ["esquinero1x1", "Esquinero inferior 1×1"], ["cajoneroTriple", "Cajonero triple"], ["cajoneroDoble", "Cajonero doble"],
-      ["basurero", "Basurero integrado"], ["moduloEstufaHorno", "Módulo para estufa y horno"], ["moduloAlmacInf", "Módulo de almacenamiento inferior"],
-      ["moduloExtractorMicroondas", "Módulo para extractor y microondas"], ["moduloPlatero", "Platero (2 puertas)"],
-      ["moduloLavaplatos", "Módulo para lavaplatos"], ["moduloEstufaPuerta", "Módulo para estufa (con doble puerta inferior)"],
-    ];
-    for (const [k, label] of KM) {
-      const q = toQty(km[k]);
-      if (q > 0) mods.push(`• ${q > 1 ? `${q} × ` : ""}${label}`);
-    }
+    const fila = (pares: Array<[string, string]>): string[] => pares.flatMap(([k, label]) => { const q = toQty(km[k]); return q > 0 ? [`${q > 1 ? `${q} × ` : ""}${label}`] : []; });
+    const abajo = fila([
+      ["esquinero1x1", "esquinero inferior 1×1"], ["cajoneroTriple", "cajonero triple"], ["cajoneroDoble", "cajonero doble"], ["basurero", "basurero integrado"],
+      ["moduloEstufaHorno", "módulo para estufa y horno"], ["moduloEstufaPuerta", "módulo para estufa (con doble puerta inferior)"], ["moduloLavaplatos", "módulo para lavaplatos"],
+      ["moduloAlmacInf", "almacenamiento inferior"], ["especiero", "especiero"], ["botellero", "botellero"],
+    ]);
+    const arriba = fila([
+      ["esquineroSuperior", "esquinero superior"], ["moduloAlmacSup", "almacenamiento superior"], ["moduloExtractor", "módulo para extractor"],
+      ["moduloMicroondas", "módulo para microondas"], ["moduloExtractorMicroondas", "módulo para extractor y microondas"], ["moduloPlatero", "platero (2 puertas)"], ["moduloRepisa", "espacio de repisas"],
+    ]);
+    const altos: string[] = [];
+    if (sm.nichoNevecon) altos.push("nicho para nevecón (100 cm)");
+    if (sm.nichoNevera) altos.push("nicho para nevera (75 cm)");
+    if (sm.alacenaEntrepanos) altos.push("alacena con entrepaños (50 cm)");
+    if (sm.alacenaHerraje) altos.push("alacena para herraje (50 cm)");
+    if (sm.torreHornos) altos.push("torre de hornos (70 cm)");
     const latNN = toQty(km.lateralNichoNevera), latSup = toQty(km.lateralMuebleSuperior), latInf = toQty(km.lateralMuebleInferior);
-    if (latNN > 0) mods.push(`• ${latNN} lateral${latNN > 1 ? "es" : ""} de nicho de nevera`);
-    if (latSup > 0) mods.push(`• ${latSup} lateral${latSup > 1 ? "es" : ""} de mueble superior`);
-    if (latInf > 0) mods.push(`• ${latInf} lateral${latInf > 1 ? "es" : ""} de mueble inferior`);
-    if (mods.length) { section("MÓDULOS Y EQUIPAMIENTO:"); lines.push(...mods); }
+    const laterales: string[] = [];
+    if (latNN > 0) laterales.push(`${latNN} del nicho de la nevera`);
+    if (latSup > 0) laterales.push(`${latSup} de mueble superior`);
+    if (latInf > 0) laterales.push(`${latInf} de mueble inferior`);
+    const mods: string[] = [];
+    if (abajo.length) mods.push(`• Abajo: ${abajo.join(", ")}`);
+    if (arriba.length) mods.push(`• Arriba: ${arriba.join(", ")}`);
+    if (altos.length) mods.push(`• De piso a techo: ${altos.join(", ")}`);
+    if (laterales.length) mods.push(`• Laterales (piezas que cierran los costados): ${laterales.join(", ")}`);
+    if (mods.length) { section("MÓDULOS DE LA COCINA:"); lines.push(...mods); }
   }
 
   // ── Mesón ───────────────────────────────────────────────────────────────
@@ -199,6 +214,7 @@ export function buildKitchenQuoteDescription(rawConfig: any, manualDescription?:
     section("MESÓN:");
     const depth = depthText(ct.depthSurcharge);
     push(`• Mesón en ${stoneName(ct.type, ct.esImportado)}: ${ml(mesonML)}${depth ? ` (${depth})` : ""}`);
+    if (!esEspecial && (Number(config.cornerDiscountMeters) || 0) > 0) push(`  - El mesón mide menos que los muebles inferiores porque se descuenta el rincón de la esquina`);
     if (ct.incluyeSalpicaderoAlto) {
       push(`  - Salpicadero alto en ${stoneName(ct.type, ct.esImportado)} (${ml(mesonML)}) y regrueso en el visto`);
       const nl = Number(ct.cantLateralesSalpicadero) || 0;

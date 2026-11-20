@@ -409,7 +409,14 @@ export async function createQuotation(quotation: Omit<InsertQuotation, 'quotatio
   }
 
   const result = await db.insert(quotations).values({ ...finalQuotation, dataOrigin } as any).returning({ id: quotations.id });
-  return result[0].id;
+  const nuevoId = result[0].id;
+  // Número corto y legible para el cliente (el mismo que se ve en el CRM): COT-2026-0141. Solo cuando el número se generó solo.
+  if (!quotation.quotationNumber) {
+    try {
+      await db.update(quotations).set({ quotationNumber: `COT-${new Date().getFullYear()}-${String(nuevoId).padStart(4, "0")}` } as any).where(eq(quotations.id, nuevoId));
+    } catch { /* si el número corto ya existe, se queda el largo (único) */ }
+  }
+  return nuevoId;
 }
 
 export async function getQuotationById(id: number) {

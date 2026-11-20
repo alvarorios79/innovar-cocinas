@@ -5,7 +5,7 @@
 import * as db from "./db";
 import { buildKitchenQuoteDescription, appendHouseStandards, specialFinishesLines } from "./kitchen-description";
 import { buildTVQuoteDescription } from "./tv-description";
-import { buildScheme } from "@shared/kitchenPlanScheme";
+import { coloresDelPlan, buildScheme } from "@shared/kitchenPlanScheme";
 import { lineasSubMeson, textoLavaplatos } from "@shared/mesonPrecios";
 import { lineasCloset } from "@shared/closetTexto";
 import { lineasFrentePieza, lineaPintadoPieza } from "@shared/piezasTexto";
@@ -488,7 +488,7 @@ export async function buildQuotationPdfData(quotation: any, client: any, items: 
           let cfg: any = it.kitchenConfig;
           if (typeof cfg === 'string') cfg = JSON.parse(cfg);
           const sc = cfg?.modulePlan?.enabled ? buildScheme(cfg.modulePlan, cfg, `Cocina integral${sortedItems.filter((x: any) => x.itemType === 'cocina').length > 1 ? ` · ítem ${it.itemNumber}` : ''}`) : null;
-          if (sc) { (sc as any).imagenes3d = imagenes3dDe.get(it) || undefined; out.push(sc); }
+          if (sc) { (sc as any).imagenes3d = imagenes3dDe.get(it) || undefined; (sc as any).colores = coloresDelPlan(cfg.modulePlan); out.push(sc); }
         }
       } catch (e) { console.error('[pdf] esquema del plano:', e); }
       return out;

@@ -963,6 +963,24 @@ export const quotationsRouter = router({
         }
       }),
 
+    // Textos que el PDF usaría SIN ediciones manuales (lo que el editor del PDF debe mostrar de partida)
+    pdfDefaultDescriptions: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ ctx, input }) => {
+        if (ctx.user.role !== "admin" && ctx.user.role !== "super_admin" && ctx.user.role !== "comercial") {
+          throw new TRPCError({ code: "FORBIDDEN" });
+        }
+        const quotation = await db.getQuotationById(input.id);
+        if (!quotation) throw new TRPCError({ code: "NOT_FOUND" });
+        const client = await db.getClientById(quotation.clientId);
+        if (!client) throw new TRPCError({ code: "NOT_FOUND", message: "Cliente no encontrado" });
+        const items = await db.getQuotationItems(input.id);
+        const data = await buildQuotationPdfData({ ...quotation, customDescriptions: null }, client, items);
+        const out: Record<number, string> = {};
+        (data.items || []).forEach((it: any, i: number) => { out[i] = String(it.description ?? ""); });
+        return out;
+      }),
+
     // Vista previa del PDF (genera PDF temporal para preview)
     previewPDF: protectedProcedure
       .input(z.object({ id: z.number() }))

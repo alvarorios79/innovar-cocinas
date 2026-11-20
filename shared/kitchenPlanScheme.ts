@@ -4,6 +4,8 @@ import {
   normalizePlan, computePlan, rowItems, isPainted, CATALOG_BY_KEY, round2,
   type ModulePlan, type PlanRow,
 } from "./kitchenModulePlan";
+import { PRIMADERA_DESIGNS, woodShortName, woodSwatchUrl, woodHasPhoto } from "./primaderaCatalog";
+import { findCountertopDesign, countertopLabel, countertopSwatchUrl, countertopHasPhoto } from "./countertopCatalog";
 
 export interface SchemeBlock {
   x: number;                 // m desde el inicio de la pared
@@ -25,6 +27,34 @@ export interface SchemeData {
   warnings: string[];
   /** Solo servidor (PDF): capturas del plano en 3D (distribución de la cocina), ya descargadas */
   imagenes3d?: any[];
+  /** Colores y piedra sugeridos (orientativos) con su muestra: la hoja de distribución los nombra */
+  colores?: ColorSugerido[];
+}
+
+export interface ColorSugerido { etiqueta: string; nombre: string; url?: string }
+
+/** Colores y piedra que el plano de módulos sugiere (todos orientativos; el definitivo se elige al aprobar el diseño). */
+export function coloresDelPlan(plan: any): ColorSugerido[] {
+  const out: ColorSugerido[] = [];
+  const madera = (etiqueta: string, nombre?: string) => {
+    if (!nombre) return;
+    const d = PRIMADERA_DESIGNS.find(x => x.name === nombre);
+    out.push({ etiqueta, nombre: d ? woodShortName(d) : nombre, url: d && woodHasPhoto(d) ? woodSwatchUrl(d) : undefined });
+  };
+  const piedra = (etiqueta: string, nombre?: string) => {
+    if (!nombre) return;
+    const d = findCountertopDesign(nombre);
+    out.push({ etiqueta, nombre: d ? countertopLabel(d) : nombre, url: d && countertopHasPhoto(d) ? countertopSwatchUrl(d.code) : undefined });
+  };
+  madera("Muebles (todo)", plan?.colorExt);
+  madera("Muebles superiores", plan?.colorSup);
+  madera("Muebles inferiores", plan?.colorInf);
+  madera("Módulos de piso a techo", plan?.colorAlt);
+  madera("Isla", plan?.colorIsla);
+  madera("Interior", plan?.colorInt);
+  piedra("Mesón", plan?.colorMeson);
+  if (plan?.colorMesonIsla && plan.colorMesonIsla !== plan.colorMeson) piedra("Mesón de la isla", plan.colorMesonIsla);
+  return out;
 }
 
 const LAYOUT_LABELS: Record<string, string> = { lineal: "Lineal", L: "En L", U: "En U", paralela: "Paralela", isla: "Con isla", cuadrada: "Cuadrada", otra: "Otra forma" };

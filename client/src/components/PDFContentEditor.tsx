@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { trpc } from "@/lib/trpc";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,6 +29,7 @@ interface PDFContentEditorProps {
   isSaving?: boolean;
   clientName?: string;
   quotationNumber?: string;
+  quotationId?: number | null;
 }
 
 const formatPrice = (price: number) => {
@@ -187,6 +189,7 @@ export function PDFContentEditor({
   onOpenChange,
   items,
   customDescriptions: initialDescriptions,
+  quotationId,
   generalNotes: initialNotes,
   onSave,
   onGeneratePDF,
@@ -197,20 +200,21 @@ export function PDFContentEditor({
   const [descriptions, setDescriptions] = useState<Record<number, string>>(initialDescriptions || {});
   const [notes, setNotes] = useState(initialNotes || "");
   
-  // Inicializar descripciones automáticas si no existen
+  // El texto de partida es EXACTAMENTE el que el PDF usaría solo (lo arma el servidor); así abrir el editor y guardar no cambia ni empobrece el PDF
+  const defaultsQ = trpc.quotations.pdfDefaultDescriptions.useQuery({ id: quotationId || 0 }, { enabled: open && !!quotationId, refetchOnWindowFocus: false });
+  const defaults = defaultsQ.data as Record<number, string> | undefined;
+
   useEffect(() => {
-    if (open) {
-      const newDescriptions: Record<number, string> = { ...initialDescriptions };
-      items.forEach((item, index) => {
-        if (!newDescriptions[index]) {
-          newDescriptions[index] = generateAutoDescription(item, index);
-        }
-      });
-      setDescriptions(newDescriptions);
-      setNotes(initialNotes || "");
-    }
-  }, [open, items, initialDescriptions, initialNotes]);
-  
+    if (!open) return;
+    if (quotationId && defaultsQ.isLoading) return;   // espera el texto real del servidor
+    const newDescriptions: Record<number, string> = { ...initialDescriptions };
+    items.forEach((item, index) => {
+      if (!newDescriptions[index]) newDescriptions[index] = defaults?.[index] ?? generateAutoDescription(item, index);
+    });
+    setDescriptions(newDescriptions);
+    setNotes(initialNotes || "");
+  }, [open, items, initialDescriptions, initialNotes, defaults, defaultsQ.isLoading, quotationId]);
+
   const handleDescriptionChange = (index: number, value: string) => {
     setDescriptions(prev => ({
       ...prev,
@@ -219,7 +223,15 @@ export function PDFContentEditor({
   };
   
   const handleSave = () => {
-    onSave(descriptions, notes);
+    // Solo se guarda lo que la persona EDITÓ: lo que quedó igual al texto automático sigue la cotización (si después cambia, el PDF se actualiza solo)
+    const editadas: Record<number, string> = {};
+    Object.entries(descriptions).forEach(([k, v]) => {
+      const i = Number(k);
+      const base = defaults?.[i];
+      if (base !== undefined && String(v).trim() === String(base).trim()) return;
+      editadas[i] = v;
+    });
+    onSave(editadas, notes);
   };
   
   const calculateTotal = () => {

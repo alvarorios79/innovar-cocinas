@@ -166,8 +166,8 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
          .text("TIPO DE TRABAJO", RX + 10, Y + 32)
          .text("FORMA DE PAGO",   RX + 10, Y + 58);
       doc.fontSize(9).fillColor(DGRAY).font("Helvetica-Bold")
-         .text(data.vendorName,  RX + 10, Y + 16, { width: HF - 18 })
-         .text(data.productType, RX + 10, Y + 42, { width: HF - 18 });
+         .text(`${data.vendorName} · 313 680 2025`,  RX + 10, Y + 16, { width: HF - 18 })
+         .text(({ cocina: "Cocina integral", closet: "Closet", puerta: "Puertas", "baño": "Mueble de baño", centro_tv: "Centro de TV", mueble_cocina: "Piezas de cocina", mesones: "Mesón", herrajes: "Herrajes", acabados_especiales: "Acabados especiales", otro: "Otro" } as Record<string, string>)[String(data.productType)] || String(data.productType || "").replace(/^./, (c: string) => c.toUpperCase()), RX + 10, Y + 42, { width: HF - 18 });
       doc.fontSize(8.5).fillColor(TDARK).font("Helvetica-Bold")
          .text("60% inicial · 40% al finalizar obra", RX + 10, Y + 68, { width: HF - 18 });
 
@@ -297,7 +297,43 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
         doc.fontSize(8.5).fillColor(DGRAY).font("Helvetica-Bold").text(fmt(String(saldo)), TX + 10, Y + 6, { width: TW - 20, align: "right" });
         Y += 20;
       }
-      Y += 12;
+      // Aclaración del IVA (siempre se dice si el valor lo incluye o no)
+      // Con IVA activado ya sale la fila «IVA (19%)» en los totales; sin IVA se aclara que el valor no lo incluye
+      if (!data.includeIva) {
+        doc.fontSize(7.5).fillColor(MGRAY).font("Helvetica")
+           .text("Valor sin IVA incluido.", TX, Y + 4, { width: TW, align: "right" });
+        Y += 22;
+      } else {
+        Y += 6;
+      }
+
+      // Bloque de texto con encabezado (se pasa de página solo si no cabe)
+      const bloqueTexto = (titulo: string, lineas: string[], opts: { fondo?: string; size?: number; juntoCon?: number } = {}) => {
+        const size = opts.size ?? 8.5;
+        const hLineas = lineas.map((l) => doc.fontSize(size).font("Helvetica").heightOfString(l, { width: CW - 20, lineGap: 1.5 }) + 4);
+        const H = hLineas.reduce((a, b) => a + b, 0) + 12;
+        if (Y + 18 + H + (opts.juntoCon || 0) + 10 > PH - 48) { doc.addPage(); doc.rect(0, 0, PW, 4).fill(TEAL); Y = 28; }   // juntoCon: espacio que debe caber debajo (las firmas no quedan solas en otra hoja)
+        doc.rect(ML, Y, CW, 18).fill(DGRAY);
+        doc.fontSize(8.5).fillColor(WHITE).font("Helvetica-Bold").text(titulo, ML + 8, Y + 5);
+        Y += 18;
+        doc.rect(ML, Y, CW, H).fill(opts.fondo || WHITE).stroke(BORDER);
+        let by = Y + 7;
+        lineas.forEach((l, i) => {
+          doc.fontSize(size).fillColor(MGRAY).font("Helvetica").text(l, ML + 10, by, { width: CW - 20, lineGap: 1.5 });
+          by += hLineas[i];
+        });
+        Y += H + 12;
+      };
+
+      // ── ¿QUÉ SIGUE? (primero se vende, luego se advierte) ──────────────────────────
+      bloqueTexto("¿QUÉ SIGUE DESPUÉS DE ESTA COTIZACIÓN?", [
+        "1.  Revisas la cotización desde el enlace que te enviamos y la apruebas (o nos cuentas qué quieres ajustar).",
+        "2.  Pagas el anticipo del 60 %. La aprobación y el anticipo van juntos: necesitamos las dos cosas para comenzar.",
+        "3.  Hacemos la medición final en tu espacio.",
+        "4.  Desarrollamos contigo el diseño, el modelado 3D y el render, con los colores y detalles que definas, hasta que lo apruebes.",
+        "5.  Fabricamos en nuestra fábrica e instalamos en tu casa o negocio.",
+        "6.  Entregamos el trabajo terminado y se paga el 40 % restante.",
+      ], { fondo: LGRAY, size: 8 });
 
       // ── OBSERVACIONES ──────────────────────────────────────────────────────
       if (data.generalNotes && data.generalNotes.trim()) {
@@ -352,7 +388,7 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
         "Tiempo de entrega: 25 días hábiles a partir de la aprobación del render final.",
         "NO incluye obra civil, plomería, instalación de gas ni trabajos de albañilería.",
         "Validez de la cotización: 1 semana desde la fecha de emisión.",
-        "Garantía: 6 meses en herrajes. Los materiales cuentan con garantía del fabricante.",
+        "Garantía: 1 año sobre madera y estructura y 6 meses sobre herrajes. Los materiales cuentan con garantía del fabricante.",
         "Los diseños y renders son propiedad exclusiva de Innovar Cocinas de Diseño.",
       ];
       const tH = terms.length * 16 + 10;
@@ -369,6 +405,14 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
         ty += 16;
       }
       Y += tH + 16;
+
+      // ── ACEPTACIÓN, PAGOS Y VALOR LEGAL ──────────────────────────────────────────
+      bloqueTexto("ACEPTACIÓN, PAGOS Y VALOR DE ESTE DOCUMENTO", [
+        "• Al ser aprobada, esta cotización se convierte en el contrato oficial de la obra y en la factura del proyecto, porque contiene los precios de todo el trabajo.",
+        "• Para iniciar se requieren las dos cosas: la aprobación de la cotización y el pago del anticipo del 60 %. Sin ambas no es posible avanzar.",
+        "• El 40 % restante se paga el día de la entrega del trabajo terminado. El no pago de este saldo puede dar inicio a cobro jurídico por parte de Innovar Cocinas de Diseño.",
+        "• Los diseños y distribuciones que se muestran con esta cotización son orientativos; el diseño definitivo se desarrolla y se aprueba después de la aprobación de la cotización.",
+      ], { fondo: WHITE, size: 8, juntoCon: 80 });
 
       // ── FIRMAS ─────────────────────────────────────────────────────────────
       if (Y + 80 > PH - 38) { doc.addPage(); doc.rect(0, 0, PW, 4).fill(TEAL); Y = 36; }

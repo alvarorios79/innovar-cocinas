@@ -1028,7 +1028,7 @@ export function computePlan(rawPlan: any, config: any): PlanResult {
         }
         if (!cat.noPieces && isPainted(plan, m, row)) addPieces(acc, cat.pieces(m.width, m));
         detail.push({ t, tramo: tr.name, row, id: m.id, key: m.key, label: cat.label, width: m.width, painted: !cat.noPieces && isPainted(plan, m, row), noPieces: cat.noPieces, pieces: cat.noPieces ? {} : cat.pieces(m.width, m) });
-        if (m.key === "moduloRepisa" && !(m.qty && m.qty > 0)) warnings.push(`${tr.name}: indica cuántas repisas lleva el espacio de repisas.`);
+        // El espacio de repisas es un mueble normal sin puertas (hasta 3 entrepaños): no hace falta indicar cuántas lleva
         if (cat.min && m.width < cat.min - 1e-9) warnings.push(`${tr.name}: ${cat.short} no debería medir menos de ${cat.min.toFixed(2)} m.`);
         if (cat.max && m.width > cat.max + 1e-9) warnings.push(`${tr.name}: ${cat.short} normalmente no pasa de ${cat.max.toFixed(2)} m.`);
       });
@@ -1043,9 +1043,7 @@ export function computePlan(rawPlan: any, config: any): PlanResult {
     // Avisos: el lavaplatos debe llevar platero encima y la estufa extractor
     if (!tr.isIsland) {
       const upI = rowItems(plan, t, "upper", config), loI = rowItems(plan, t, "lower", config);
-      loI.filter(i => i.kind === "mod" && !i.fromPrev && ["moduloLavaplatos", "moduloLavaplatosDoble"].includes(i.key)).forEach(i => {
-        if (!upI.some(u => u.key === "moduloPlatero" && Math.abs(u.start - i.start) < 0.05)) warnings.push(`${tr.name}: el lavaplatos no tiene platero encima. Toca "+" en la tarjeta Platero para ponerlo.`);
-      });
+      // El lavaplatos NO siempre lleva el platero encima (con una ventana, por ejemplo, el platero va en otro lugar de la pared): no se avisa
       loI.filter(i => i.kind === "mod" && !i.fromPrev && ["moduloEstufaPuerta", "moduloEstufaHorno"].includes(i.key)).forEach(i => {
         if (!upI.some(u => (u.key === "moduloExtractor" || u.key === "moduloExtractorMicroondas") && Math.abs(u.start - i.start) < 0.05)) warnings.push(`${tr.name}: la estufa no tiene extractor encima. Toca "+" en la tarjeta Extractor para ponerlo.`);
       });
@@ -1062,7 +1060,6 @@ export function computePlan(rawPlan: any, config: any): PlanResult {
         });
       });
       const pairs: Array<[string[], string[], string]> = [
-        [["moduloPlatero"], ["moduloLavaplatos", "moduloLavaplatosDoble"], "El platero y el lavaplatos"],
         [["moduloExtractor", "moduloExtractorMicroondas"], ["moduloEstufaPuerta", "moduloEstufaHorno"], "El extractor y la estufa"],
       ];
       pairs.forEach(([a, b, msg]) => {

@@ -1,11 +1,22 @@
 // Dibuja el esquema del plano de módulos en el PDF de la cotización (última página).
 // Usa solo primitivas de PDFKit: rectángulos, líneas y texto. Si no hay esquemas, no hace nada.
+import fs from "fs";
+import path from "path";
 import type { SchemeData, SchemeBlock } from "@shared/kitchenPlanScheme";
 
 interface Geo { PW: number; PH: number; ML: number; CW: number }
 const TEAL = "#00BCD4", DARK = "#1E2A3A", DGRAY = "#3A3A3A", MGRAY = "#6B7280", BORDER = "#D1D9E0", WHITE = "#FFFFFF";
 const FILL = { upper: "#EDE7F6", lower: "#E0F2F1", tall: "#FFF3E0", window: "#E1F5FE" };
 const STROKE = { upper: "#7E57C2", lower: "#00897B", tall: "#EF6C00", window: "#0288D1" };
+
+/** Muestra de color/piedra desde la carpeta pública (en Render está en dist/public; en local en client/public). Si no se encuentra, se omite la muestra. */
+function leerMuestra(url?: string): Buffer | null {
+  if (!url || !/^\/materiales\//.test(url)) return null;
+  for (const base of ["dist/public", "client/public"]) {
+    try { const f = path.resolve(process.cwd(), base + url); if (fs.existsSync(f)) return fs.readFileSync(f); } catch { /* sigue con la siguiente ruta */ }
+  }
+  return null;
+}
 
 function drawBlock(doc: any, b: SchemeBlock, x0: number, y: number, h: number, s: number) {
   const key = b.kind === "window" ? "window" : b.kind === "tall" ? "tall" : (b.lane === "upper" ? "upper" : "lower");
@@ -83,6 +94,25 @@ export function drawSchemePages(doc: any, schemes: SchemeData[], g: Geo, newPage
           });
         });
         Y += mitad * 10 + 6;
+      }
+      // Colores y piedra sugeridos, con su nombre y una muestra pequeña (orientativos)
+      if (sc.colores && sc.colores.length) {
+        const cols = 3, wCel = CW / cols, hCel = 26;
+        const filas = Math.ceil(sc.colores.length / cols);
+        need(14 + filas * hCel + 18);
+        doc.fontSize(8).fillColor(DARK).font("Helvetica-Bold").text("Colores y piedra sugeridos (orientativos)", ML, Y, { width: CW, lineBreak: false });
+        Y += 13;
+        sc.colores.forEach((c: any, i: number) => {
+          const x = ML + (i % cols) * wCel, y = Y + Math.floor(i / cols) * hCel;
+          const img = leerMuestra(c.url);
+          if (img) { try { doc.image(img, x, y, { width: 30, height: 20 }); doc.rect(x, y, 30, 20).lineWidth(0.4).strokeColor(BORDER).stroke(); } catch { /* sin muestra */ } }
+          else { doc.rect(x, y, 30, 20).lineWidth(0.4).strokeColor(BORDER).stroke(); }
+          doc.fontSize(6.5).fillColor(MGRAY).font("Helvetica").text(c.etiqueta, x + 36, y + 1, { width: wCel - 42, lineBreak: false });
+          doc.fontSize(7.5).fillColor(DGRAY).font("Helvetica-Bold").text(c.nombre, x + 36, y + 10, { width: wCel - 42, lineBreak: false });
+        });
+        Y += filas * hCel + 2;
+        doc.fontSize(6.5).fillColor(MGRAY).font("Helvetica-Oblique").text("Los colores y la veta son una referencia: el color definitivo se elige al aprobar el diseño.", ML, Y, { width: CW });
+        Y += 14;
       }
       return;
     }

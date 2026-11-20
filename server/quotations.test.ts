@@ -40,7 +40,8 @@ describe("Quotations System", () => {
     // Verificar que se generó el número automáticamente
     const quotation = await db.getQuotationById(quotationId);
     expect(quotation).toBeDefined();
-    expect(quotation?.quotationNumber).toMatch(/^COT-\d{4}-\d+-\d+$/);
+    // Número corto y legible, el mismo que ve el cliente: COT-AAAA-NNNN (con el id de la cotización)
+    expect(quotation?.quotationNumber).toBe(`COT-${new Date().getFullYear()}-${String(quotationId).padStart(4, "0")}`);
     expect(quotation?.vendorName).toBe("Alvaro Gutierrez");
     expect(quotation?.status).toBe("draft");
 

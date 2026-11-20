@@ -5385,6 +5385,7 @@ export default function Quotations() {
         isSaving={updateQuotation.isPending}
         clientName={pdfEditorClientName}
         quotationNumber={pdfEditorQuotationNumber}
+        quotationId={pdfEditorQuotationId}
       />
 
       <Dialog open={lockConfirmDialog.open} onOpenChange={(open) => setLockConfirmDialog({ ...lockConfirmDialog, open })}>

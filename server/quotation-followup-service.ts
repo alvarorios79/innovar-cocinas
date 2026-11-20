@@ -3,12 +3,12 @@
  * (campanita + push, con enlace directo a la cotización). Las reglas viven en shared/seguimientoCotizacion.ts.
  * Los mensajes los envía una persona desde WhatsApp (un toque); el sistema nunca escribe solo al cliente.
  */
-import { and, eq, inArray, isNull, like } from "drizzle-orm";
+import { and, eq, inArray, isNull, like, notInArray, or } from "drizzle-orm";
 import * as db from "./db";
 import { quotations, quotationFollowUps, projects, clients, notifications } from "../drizzle/schema";
 import { esDiaHabil } from "@shared/festivosColombia";
 import {
-  siguientePaso, mensajeSeguimiento, primerNombre, proponerExtension, ETIQUETA_PASO, TIPO_PRODUCTO_TEXTO,
+  siguientePaso, evaluarGrupo, mensajeSeguimiento, primerNombre, proponerExtension, ETIQUETA_PASO, TIPO_PRODUCTO_TEXTO,
   type PasoSeguimiento, type TipoSeguimiento, type EntradaSeguimiento,
 } from "@shared/seguimientoCotizacion";
 
@@ -45,25 +45,32 @@ const telefonoIntl = (raw: string | null | undefined) => { const d = String(raw 
 async function cargar(ids?: number[]) {
   const d = await db.getDb();
   if (!d) return [];
+  // 1) Candidatas: enviadas o aprobadas (no copias históricas)
   const filtro = [isNull(quotations.deletedAt), eq(quotations.isHistoricalCopy, 0), inArray(quotations.status, ["sent", "approved"])];
   if (ids?.length) filtro.push(inArray(quotations.id, ids));
-  const filas = await d.select({
-    q: quotations, clienteNombre: clients.name, clienteTel: clients.whatsappPhone, proyectoId: projects.id,
-  }).from(quotations)
-    .leftJoin(clients, eq(clients.id, quotations.clientId))
-    .leftJoin(projects, eq(projects.quotationId, quotations.id))
-    .where(and(...filtro));
-  if (!filas.length) return [];
-  const idsQ = Array.from(new Set(filas.map(f => f.q.id)));
-  const logs = await d.select().from(quotationFollowUps).where(inArray(quotationFollowUps.quotationId, idsQ));
+  const candidatas = await d.select({ q: quotations, clienteNombre: clients.name, clienteTel: clients.whatsappPhone })
+    .from(quotations).leftJoin(clients, eq(clients.id, quotations.clientId)).where(and(...filtro));
+  if (!candidatas.length) return [];
+  // 2) Todas las versiones de esos grupos (V1, V2…) y los proyectos que ya existen en alguna de ellas
+  const claves = Array.from(new Set(candidatas.map(c => c.q.baseQuotationId ?? c.q.id)));
+  const versiones = await d.select({ id: quotations.id, baseId: quotations.baseQuotationId, version: quotations.versionNumber, status: quotations.status })
+    .from(quotations).where(and(isNull(quotations.deletedAt), or(inArray(quotations.id, claves), inArray(quotations.baseQuotationId, claves))));
+  const idsVersiones = Array.from(new Set([...versiones.map(v => v.id), ...candidatas.map(c => c.q.id)]));
+  const conProyecto = new Set((await d.select({ qid: projects.quotationId }).from(projects).where(inArray(projects.quotationId, idsVersiones))).map(r => Number(r.qid)));
+  const logs = await d.select().from(quotationFollowUps).where(inArray(quotationFollowUps.quotationId, idsVersiones));
   const porQ = new Map<number, typeof logs>();
   logs.forEach(l => { const a = porQ.get(l.quotationId) || []; a.push(l); porQ.set(l.quotationId, a); });
-  const vistos = new Set<number>();
-  return filas.filter(f => (vistos.has(f.q.id) ? false : (vistos.add(f.q.id), true))).map(f => ({ ...f, logs: porQ.get(f.q.id) || [] }));
+  return candidatas.map(c => {
+    const g = evaluarGrupo(versiones, conProyecto, c.q.id);
+    return { ...c, proyectoId: g.hayProyecto ? 1 : null, esUltima: g.esUltima, grupoAprobado: g.grupoAprobado, logs: porQ.get(c.q.id) || [] };
+  });
 }
 
 function aItem(f: Awaited<ReturnType<typeof cargar>>[number], hoy: Date): ItemSeguimiento | null {
   const q = f.q;
+  // Solo la última versión de la cotización; y una cotización enviada cuyo grupo ya fue aprobado (por enlace o por llamada) no se persigue
+  if (!f.esUltima) return null;
+  if (q.status === "sent" && f.grupoAprobado) return null;
   const entrada: EntradaSeguimiento = {
     status: q.status, sentAt: aFecha(q.sentAt), createdAt: aFecha(q.createdAt) || hoy, validUntil: aFecha(q.validUntil),
     approvedAt: aFecha((q as any).approvedAt), hayProyecto: !!f.proyectoId, archivado: q.isArchived === 1,
@@ -146,6 +153,13 @@ export async function avisarSeguimientosPendientes(now = new Date()): Promise<nu
   const d = await db.getDb();
   if (!d) return 0;
   const { porEnviar } = await calcularSeguimientos(now);
+  // Avisos que ya no corresponden (la cotización se aprobó, tiene proyecto, fue reemplazada por otra versión…): se borran de la campanita
+  try {
+    const vigentes = porEnviar.map(i => i.quotationId);
+    await d.delete(notifications).where(vigentes.length
+      ? and(like(notifications.referenceType, `${SEGUIMIENTO_REF}%`), notInArray(notifications.referenceId, vigentes))
+      : like(notifications.referenceType, `${SEGUIMIENTO_REF}%`));
+  } catch (e) { console.error("[Seguimiento cotizaciones] No se pudieron limpiar avisos obsoletos:", e); }
   if (!porEnviar.length) return 0;
   const { createAndSendNotification } = await import("./push-notifications");
   const equipo = await equipoIds();

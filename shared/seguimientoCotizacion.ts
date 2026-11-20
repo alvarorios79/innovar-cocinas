@@ -177,3 +177,26 @@ export const TIPO_PRODUCTO_TEXTO: Record<string, string> = {
   cocina: "cocina", closet: "closet", puerta: "puerta", "baño": "mueble de baño", centro_tv: "centro de TV",
   mueble_cocina: "cocina", mesones: "mesón", herrajes: "proyecto", acabados_especiales: "cocina", otro: "proyecto",
 };
+
+
+// ── Versiones de una cotización ──────────────────────────────────────────────────────────────────────────────────────
+export interface VersionCotizacion { id: number; baseId: number | null; version: number; status: string }
+
+/**
+ * Una cotización puede tener varias versiones (V1, V2…): el seguimiento va por GRUPO, no por versión.
+ *  · Solo la ÚLTIMA versión genera avisos (las anteriores quedaron reemplazadas por el ajuste).
+ *  · Si alguna versión del grupo ya tiene proyecto, no hay nada que perseguir (ni seguimiento ni anticipo).
+ *  · Si el grupo ya fue aprobado (en cualquier versión: por el enlace o por llamada), no se hace seguimiento de venta.
+ */
+export function evaluarGrupo(versiones: VersionCotizacion[], conProyecto: Set<number>, id: number): { esUltima: boolean; hayProyecto: boolean; grupoAprobado: boolean } {
+  const yo = versiones.find(v => v.id === id);
+  const clave = (v: VersionCotizacion) => v.baseId ?? v.id;
+  const miGrupo = yo ? clave(yo) : id;
+  const grupo = versiones.filter(v => clave(v) === miGrupo || v.id === miGrupo);
+  const ultima = grupo.reduce((a, v) => (v.version > a.version || (v.version === a.version && v.id > a.id) ? v : a), grupo[0] ?? { id, baseId: null, version: 1, status: "" });
+  return {
+    esUltima: !yo || ultima.id === id,
+    hayProyecto: grupo.some(v => conProyecto.has(v.id)),
+    grupoAprobado: grupo.some(v => v.status === "approved"),
+  };
+}

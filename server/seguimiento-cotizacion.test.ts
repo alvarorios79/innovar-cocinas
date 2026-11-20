@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { siguientePaso, proponerExtension, mensajeSeguimiento, primerNombre, restarDiasHabiles, type EntradaSeguimiento } from "../shared/seguimientoCotizacion";
+import { evaluarGrupo, siguientePaso, proponerExtension, mensajeSeguimiento, primerNombre, restarDiasHabiles, type EntradaSeguimiento } from "../shared/seguimientoCotizacion";
 
 const f = (y: number, m: number, d: number) => new Date(y, m - 1, d, 9, 0, 0);
 const ymd = (x: Date) => `${x.getFullYear()}-${x.getMonth() + 1}-${x.getDate()}`;
@@ -91,5 +91,36 @@ describe("Mensajes", () => {
     expect(primerNombre("ADRIANA ABONCE")).toBe("Adriana");
     expect(primerNombre("")).toBe("cliente");
     expect(ymd(restarDiasHabiles(f(2026, 11, 17), 2))).toBe("2026-11-12");
+  });
+});
+
+describe("Versiones: el seguimiento va por grupo, no por versión (caso Martha Zuluaga)", () => {
+  // V1 (133) aprobada por el enlace; V2 (138) con el ajuste, aprobada por llamada; el proyecto quedó en V2
+  const versiones = [{ id: 133, baseId: null, version: 1, status: "approved" }, { id: 138, baseId: 133, version: 2, status: "approved" }];
+  it("la versión anterior (V1) no genera avisos aunque el proyecto esté en V2", () => {
+    const v1 = evaluarGrupo(versiones, new Set([138]), 133);
+    expect(v1.esUltima).toBe(false);
+    expect(v1.hayProyecto).toBe(true);
+  });
+  it("la última versión con proyecto tampoco", () => {
+    const v2 = evaluarGrupo(versiones, new Set([138]), 138);
+    expect(v2.esUltima).toBe(true);
+    expect(v2.hayProyecto).toBe(true);
+    expect(siguientePaso(base({ status: "approved", approvedAt: f(2026, 11, 20), hayProyecto: v2.hayProyecto }), f(2026, 11, 22))).toBeNull();
+  });
+  it("aunque el proyecto esté en V1, V2 aprobada no se persigue", () => {
+    expect(evaluarGrupo(versiones, new Set([133]), 138).hayProyecto).toBe(true);
+  });
+  it("con V1 y V2 enviadas, solo V2 cuenta", () => {
+    const vs = [{ id: 10, baseId: null, version: 1, status: "sent" }, { id: 11, baseId: 10, version: 2, status: "sent" }];
+    expect(evaluarGrupo(vs, new Set(), 10).esUltima).toBe(false);
+    expect(evaluarGrupo(vs, new Set(), 11).esUltima).toBe(true);
+  });
+  it("si una versión del grupo ya se aprobó, la versión enviada no se persigue", () => {
+    const vs = [{ id: 20, baseId: null, version: 1, status: "approved" }, { id: 21, baseId: 20, version: 2, status: "sent" }];
+    expect(evaluarGrupo(vs, new Set(), 21).grupoAprobado).toBe(true);
+  });
+  it("una cotización sin versiones se evalúa sola", () => {
+    expect(evaluarGrupo([{ id: 5, baseId: null, version: 1, status: "sent" }], new Set(), 5)).toEqual({ esUltima: true, hayProyecto: false, grupoAprobado: false });
   });
 });

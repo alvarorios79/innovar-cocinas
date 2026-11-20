@@ -1,3 +1,4 @@
+import { registrarAlVolverDeWhatsApp } from "@/lib/whatsappEnvio";
 import { useState, useMemo, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -843,7 +844,7 @@ export default function AppointmentsCalendar() {
                                 onClick={e => {
                                   e.stopPropagation();
                                   window.open(buildWhatsAppConfirmLink(apt)!, "_blank", "noopener,noreferrer");
-                                  markSentMutation.mutate({ id: apt.id, status: "enviada" });
+                                  registrarAlVolverDeWhatsApp(() => markSentMutation.mutate({ id: apt.id, status: "enviada" }));
                                 }}
                               >
                                 {markSentMutation.isPending

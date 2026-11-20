@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
+import { registrarAlVolverDeWhatsApp } from "@/lib/whatsappEnvio";
 
 // Sección «Seguimiento» de Cotizaciones: los mensajes que toca enviar HOY (ya redactados, cercanos y respetuosos) y los que vienen.
 // Un toque abre WhatsApp con el texto listo (se puede editar) y deja registrado el envío. Nunca se escribe solo al cliente.
@@ -38,10 +39,15 @@ function Tarjeta({ it, destacada, onAbrir }: { it: Item; destacada: boolean; onA
 
   const enviar = () => {
     if (!it.telefono) { toast.error("El cliente no tiene teléfono registrado"); return; }
-    // WhatsApp se abre en el mismo toque (si no, el navegador lo bloquea); luego se registra el envío
-    window.open(`https://wa.me/${it.telefono}?text=${encodeURIComponent(texto)}`, "_blank", "noopener,noreferrer");
-    registrar.mutate({ quotationId: it.quotationId, step: it.step, accion: "enviado", extender: it.step === "s4" ? ampliar : undefined });
+    // WhatsApp se abre en el mismo toque (si no, el navegador lo bloquea). El envío se registra al volver al CRM (ver whatsappEnvio.ts).
+    window.open(enlaceWhatsApp(), "_blank", "noopener,noreferrer");
+    registrarAlVolverDeWhatsApp(confirmarEnvio);
+    toast.info("Cuando termines en WhatsApp y vuelvas aquí, quedará registrado el envío");
   };
+  const enlaceWhatsApp = (dominio: "wa.me" | "api" = "wa.me") => dominio === "wa.me"
+    ? `https://wa.me/${it.telefono}?text=${encodeURIComponent(texto)}`
+    : `https://api.whatsapp.com/send?phone=${it.telefono}&text=${encodeURIComponent(texto)}`;
+  const confirmarEnvio = () => registrar.mutate({ quotationId: it.quotationId, step: it.step, accion: "enviado", extender: it.step === "s4" ? ampliar : undefined });
 
   const anticipo = it.tipo === "anticipo";
   return (
@@ -69,6 +75,7 @@ function Tarjeta({ it, destacada, onAbrir }: { it: Item; destacada: boolean; onA
                 {!ampliar && <span className="text-amber-300"> Si no la amplías, quita del mensaje la frase de la nueva fecha.</span>}</span>
             </label>
           )}
+          <p className="text-[11px] text-white/45">¿WhatsApp no carga? <button type="button" className="underline" onClick={() => window.open(enlaceWhatsApp("api"), "_blank", "noopener,noreferrer")}>Abrir enlace alterno</button></p>
           {!it.telefono && <p className="text-xs text-amber-300">Este cliente no tiene teléfono registrado: agrégalo en Clientes para poder escribirle.</p>}
           <div className="flex flex-wrap gap-2">
             <Button type="button" onClick={enviar} disabled={!it.telefono || registrar.isPending} className="h-9 bg-primary hover:bg-primary/90 text-white">💬 Enviar por WhatsApp</Button>

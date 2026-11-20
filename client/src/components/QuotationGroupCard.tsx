@@ -1,3 +1,4 @@
+import { registrarAlVolverDeWhatsApp } from "@/lib/whatsappEnvio";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -421,7 +422,7 @@ export function QuotationGroupCard({
                 const validStr = selectedVersion.validUntil ? new Date(selectedVersion.validUntil).toLocaleDateString('es-CO', { timeZone: 'America/Bogota' }) : '30 días';
                 const msg = `Hola ${client.name || 'Cliente'}, 👋\n\nLe enviamos la cotización *${group.quotationNumber}* de *Innovar Cocinas de Diseño* por un valor de *${totalFmt}*.\n\n📄 Vea el detalle y apruébela desde aquí:\n${publicLink}\n\n📋 Válida hasta: *${validStr}*\n⏱️ Entrega estimada: *3 a 4 semanas* desde aprobación.\n\n¡Gracias por confiar en Innovar Cocinas! 🙌`;
                 window.open(`https://wa.me/${ph}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
-                sendWhatsApp.mutate({ id: selectedVersion.id, publicToken: tok });
+                registrarAlVolverDeWhatsApp(() => sendWhatsApp.mutate({ id: selectedVersion.id, publicToken: tok }));
               }}
               disabled={isLocked || !client?.whatsappPhone || sendWhatsApp.isPending}
               title={client?.whatsappPhone ? "Enviar cotización por WhatsApp" : "Cliente sin teléfono registrado"}

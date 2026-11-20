@@ -4,6 +4,7 @@
  * a mano cuando alguien escribe por WhatsApp o redes. Desde aquí: escribir por
  * WhatsApp (313 680 2025), agendar la cita, programar seguimiento o descartar.
  */
+import { registrarAlVolverDeWhatsApp } from "@/lib/whatsappEnvio";
 import { useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
@@ -197,7 +198,7 @@ export default function Interesados() {
                   {l.status !== "descartado" && l.status !== "cita_agendada" && (
                     <div className="mt-3 grid grid-cols-3 gap-2">
                       <a href={whatsappUrl(l)} target="_blank" rel="noopener noreferrer"
-                        onClick={() => { if (l.status === "nuevo") update.mutate({ id: l.id, status: "contactado" }); }}
+                        onClick={() => { if (l.status === "nuevo") registrarAlVolverDeWhatsApp(() => update.mutate({ id: l.id, status: "contactado" })); }}
                         className="flex items-center justify-center gap-1.5 rounded-lg py-2.5 text-sm font-semibold text-white" style={{ background: "linear-gradient(135deg, #25D366, #128C7E)" }}>
                         <MessageCircle className="h-4 w-4" /> WhatsApp
                       </a>

@@ -729,8 +729,8 @@ function dropInRow(p: ModulePlan, t: number, row: PlanRow, target: DropTarget, s
   s = Math.max(prefix, s);
   // 4) lugar en el orden: según el centro
   const trailing = trailingBlockSize(arr);
-  const center = s + w / 2;
   let at = 0;
+  const center = s + w / 2;
   list.forEach((e, i) => { if (starts[i] + widthOf(e) / 2 < center) at = i + 1; });
   at = Math.max(0, Math.min(at, list.length - trailing));
   // El esquinero del final (y su compensación) conservan su lugar al final de la pared
@@ -783,7 +783,19 @@ export function setModuleLock(p: ModulePlan, t: number, row: PlanRow, id: string
 
 // Mueve un módulo a la posición `start` (m) de su fila sin afectar a los demás.
 export function dropModule(p: ModulePlan, t: number, row: PlanRow, id: string, start: number, config: any, byUser = false) {
-  if (byUser && row === "upper") { const m = p.tramos[t].upper.find(x => x.id === id); if (m) m.manual = true; }
+  if (byUser && row === "upper") {
+    const m = p.tramos[t].upper.find(x => x.id === id);
+    // Un superior automático (extractor sobre la estufa, platero sobre el lavaplatos) es parte de su inferior: moverlo mueve el mueble COMPLETO
+    if (m && m.autoOf?.length === 1 && m.alsoTramo === undefined && !CATALOG_BY_KEY[m.key]?.corner) {
+      const lo = p.tramos[t].lower.find(x => x.id === m.autoOf![0]);
+      const cu = rowItems(p, t, "upper", config).find(i => i.mod?.id === id);
+      const cl = lo && rowItems(p, t, "lower", config).find(i => i.mod?.id === lo.id);
+      if (lo && cu && cl) { dropModule(p, t, "lower", lo.id, round2(cl.start + (start - cu.start)), config, true); return; }
+    }
+    if (m) m.manual = true;
+  }
+  // Al mover un inferior, sus superiores automáticos lo acompañan (aunque antes se hubieran soltado a mano)
+  if (row === "lower") p.tramos[t].upper.forEach(u => { if (u.autoOf?.includes(id) && u.alsoTramo === undefined) delete u.manual; });
   const other: PlanRow = row === "upper" ? "lower" : "upper";
   const cuts = rowItems(p, t, other, config).map(i => round2(i.start + i.width));
   dropInRow(p, t, row, { kind: "mod", id }, start, config, cuts);

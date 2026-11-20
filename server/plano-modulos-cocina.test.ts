@@ -426,3 +426,29 @@ describe("Plano 3D: barra como bloque suelto y mover módulos entre paredes", ()
   });
 });
 
+
+describe("Estufa y su extractor se mueven juntos", () => {
+  const armar = () => {
+    const config: any = { shape: "premium", layout: "lineal", totalMeters: 4, mlPriceCode: "COCINA_ML_PREMIUM", specialModules: {}, countertop: { type: "quarzone" }, island: { enabled: false, meters: 0 }, bar: { enabled: false, meters: 0 }, paintedDoors: { enabled: true }, ledLighting: 0 };
+    const plan: any = normalizePlan({ enabled: true, tramos: [{ name: "A", length: 4, upper: [], lower: [] }], extras: {} }, config);
+    ["cajoneroTriple", "moduloEstufaHorno", "moduloLavaplatos", "cajoneroDoble"].forEach((k) => addModuleToPlan(plan, 0, "lower", k, config));
+    tidyPlan(plan, config);
+    return { plan, config };
+  };
+  const pos = (plan: any, config: any, row: "lower" | "upper", key: string) => rowItems(plan, 0, row, config).find((i) => i.key === key)!.start;
+  it("arrastrar el extractor mueve la estufa completa", () => {
+    const { plan, config } = armar();
+    const ext = plan.tramos[0].upper.find((m: any) => m.key === "moduloExtractor");
+    dropModule(plan, 0, "upper", ext.id, pos(plan, config, "upper", "moduloExtractor") + 1.0, config, true); tidyPlan(plan, config);
+    expect(pos(plan, config, "lower", "moduloEstufaHorno")).toBeGreaterThan(1.2);
+    expect(pos(plan, config, "upper", "moduloExtractor")).toBeCloseTo(pos(plan, config, "lower", "moduloEstufaHorno"), 2);
+  });
+  it("mover la estufa un paso a la derecha cambia de lugar con su vecino y el extractor la acompaña", () => {
+    const { plan, config } = armar();
+    const est = plan.tramos[0].lower.find((m: any) => m.key === "moduloEstufaHorno");
+    est.manual = true; plan.tramos[0].upper.forEach((u: any) => { u.manual = true; });
+    dropModule(plan, 0, "lower", est.id, pos(plan, config, "lower", "moduloEstufaHorno") + 0.5, config, true); tidyPlan(plan, config);
+    expect(pos(plan, config, "lower", "moduloEstufaHorno")).toBeCloseTo(1.4, 2);
+    expect(pos(plan, config, "upper", "moduloExtractor")).toBeCloseTo(1.4, 2);
+  });
+});

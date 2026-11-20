@@ -1,8 +1,16 @@
 import PDFDocument from "pdfkit";
-import { createWriteStream, existsSync } from "fs";
+import { createWriteStream, existsSync, readFileSync } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { drawSchemePages } from "./plan-scheme-pdf";
+
+/** Firma de Álvaro Ríos (representante de Innovar), impresa en todas las cotizaciones. Si el archivo no está, el PDF sale igual sin ella. */
+function leerFirmaInnovar(): Buffer | null {
+  for (const base of ["server/assets", "dist/server/assets", "assets"]) {
+    try { const f = path.resolve(process.cwd(), base, "firma-alvaro.png"); if (existsSync(f)) return readFileSync(f); } catch { /* prueba la siguiente ruta */ }
+  }
+  return null;
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -245,6 +253,25 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
 
       Y += 8;
 
+      // ── DETALLE DE VALORES (opcional, por ítem): cuánto cuesta cada parte, para que el total se entienda ─────────
+      for (const it of data.items) {
+        const filas: Array<{ label: string; amount: number }> = (it as any).desglose || [];
+        if (!filas.length) continue;
+        const H = filas.length * 15 + 8;
+        if (Y + 18 + H + 28 > PH - 48) { doc.addPage(); doc.rect(0, 0, PW, 4).fill(TEAL); Y = 28; }
+        doc.rect(ML, Y, CW, 18).fill(DGRAY);
+        doc.fontSize(8.5).fillColor(WHITE).font("Helvetica-Bold").text(`DETALLE DE VALORES${data.items.length > 1 ? ` · ÍTEM ${it.itemNumber}` : ""}`, ML + 8, Y + 5);
+        Y += 18;
+        doc.rect(ML, Y, CW, H).fill(WHITE).stroke(BORDER);
+        let ry = Y + 6;
+        for (const f of filas) {
+          doc.fontSize(8.5).fillColor(MGRAY).font("Helvetica").text(f.label, ML + 10, ry, { width: CW - 150, lineBreak: false });
+          doc.fontSize(8.5).fillColor(DGRAY).font("Helvetica-Bold").text(fmt(String(Math.round(f.amount))), ML + CW - 130, ry, { width: 120, align: "right", lineBreak: false });
+          ry += 15;
+        }
+        Y += H + 10;
+      }
+
       // ── TOTALES ────────────────────────────────────────────────────────────
       if (Y + 140 > PH - 48) { doc.addPage(); Y = 28; }
 
@@ -343,7 +370,8 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
            .text("OBSERVACIONES", ML + 8, Y + 5);
         Y += 18;
         // La garantía se dice una sola vez, en «Términos y condiciones»: se quita de las observaciones aunque venga en el texto guardado
-        const nLines = data.generalNotes.split("\n").filter((l: string) => l.trim() && !/^\s*[•\-*]?\s*garant[ií]a/i.test(l));
+        const nLines = data.generalNotes.split("\n").filter((l: string) => l.trim() && !/^\s*[•\-*]?\s*garant[ií]a/i.test(l))
+          .map((l: string) => l.replace(/Incluye fabricación e instalación/i, "Incluye fabricación, transporte e instalación"));
         // FIX: renderizar línea a línea con control explícito de páginas.
         // La versión anterior calculaba noteH y dibujaba un solo rect, pero si las notas
         // superaban la página, PDFKit auto-paginaba y ny quedaba desincronizado,
@@ -416,7 +444,12 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
       ], { fondo: WHITE, size: 8, juntoCon: 80 });
 
       // ── FIRMAS ─────────────────────────────────────────────────────────────
-      if (Y + 80 > PH - 38) { doc.addPage(); doc.rect(0, 0, PW, 4).fill(TEAL); Y = 36; }
+      if (Y + 108 > PH - 38) { doc.addPage(); doc.rect(0, 0, PW, 4).fill(TEAL); Y = 36; }
+      Y += 26;   // espacio para la firma impresa de Innovar sobre su línea
+      try {
+        const firma = leerFirmaInnovar();
+        if (firma) doc.image(firma, PW - MR - 190 + 55, Y + 29 - 52, { fit: [80, 52], align: "center", valign: "bottom" });
+      } catch (e) { console.error("[pdf] firma de Innovar:", e); }
       doc.moveTo(ML,            Y + 28).lineTo(ML + 190,        Y + 28).strokeColor("#9CA3AF").lineWidth(0.8).stroke();
       doc.moveTo(PW - MR - 190, Y + 28).lineTo(PW - MR,         Y + 28).strokeColor("#9CA3AF").lineWidth(0.8).stroke();
       doc.fontSize(8.5).fillColor(DGRAY).font("Helvetica-Bold")

@@ -93,7 +93,7 @@ interface QuotationItem {
 
 // ─── Notas estándar INNOVAR ───────────────────────────────────────────────────
 const INNOVAR_NOTAS_DEFAULT = `• Los precios están sujetos a cambio si los materiales sufren variación antes de la aprobación del diseño.
-• Incluye fabricación e instalación. No incluye obra civil, electricidad, plomería, instalación de gas, electrodomésticos ni grifos o llaves.
+• Incluye fabricación, transporte e instalación. No incluye obra civil, electricidad, plomería, instalación de gas, electrodomésticos ni grifos o llaves.
 • El color, veta y textura exacta del material pueden variar levemente según disponibilidad del proveedor.
 • La medición final se realizará después del anticipo. Pequeñas variaciones de medida no generan ajuste de precio.
 • El valor del mesón (Granito, Quarzone y Sinterizado) corresponde a modelos estándar nacionales. Vetas especiales, modelos importados o de colección tienen costos adicionales que se cotizan por separado según la selección del cliente.
@@ -1744,6 +1744,8 @@ export default function Quotations() {
 
     mark("Transporte e imprevistos");
     setKitchenBreakdown(prev => ({ ...prev, [index]: bd }));
+    // El desglose se guarda con la cocina: el PDF lo puede mostrar al cliente (solo si su suma coincide con el total)
+    (config as any).desglose = bd;
     // Actualizar total e descripción del item
     const finalItems = [...itemsArray];
     finalItems[index].totalPrice = total;
@@ -4496,7 +4498,14 @@ export default function Quotations() {
                               </p>
                               {(() => {
                                 const bd = kitchenBreakdown[index];
-                                if (!bd || bd.length === 0) return null;
+                                if (!bd || bd.length === 0) {
+                                  return (
+                                    <button type="button" onClick={() => calculateKitchenTotal(index)}
+                                      className="mt-2 text-xs underline text-primary hover:text-primary/80">
+                                      Calcular el desglose de valores (verifica que el total no cambie)
+                                    </button>
+                                  );
+                                }
                                 const sum = bd.reduce((a, b) => a + b.amount, 0);
                                 if (Math.abs(sum - item.totalPrice) > 1) {
                                   return <p className="text-xs text-amber-300 mt-1">Desglose desactualizado: cambia cualquier campo para recalcular.</p>;
@@ -4506,6 +4515,11 @@ export default function Quotations() {
                                     {bd.map((b, i) => (
                                       <div key={i} className="flex justify-between gap-4"><span>{b.label}</span><span>{formatPrice(b.amount)}</span></div>
                                     ))}
+                                    <label className="flex items-center gap-2 pt-2 text-xs text-white/80 cursor-pointer">
+                                      <input type="checkbox" className="h-4 w-4 accent-primary" checked={(item.kitchenConfig as any)?.mostrarDesglose !== false}
+                                        onChange={(e) => updateKitchenConfig(index, "mostrarDesglose", e.target.checked)} />
+                                      Mostrar este desglose de valores al cliente en el PDF
+                                    </label>
                                   </div>
                                 );
                               })()}

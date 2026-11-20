@@ -114,7 +114,7 @@ describe("Motor de cotización — punta a punta (servidor)", () => {
     expect(txt(2)).toMatch(/LED interior \(3 ml\)/);
     expect(txt(2)).toMatch(/Profundidad: 60 cm/);
     expect(txt(2)).not.toMatch(/Precio por/i);
-    expect(txt(2)).toMatch(/Transporte e imprevistos: \$\s*600\.000/);
+    expect(txt(2)).not.toMatch(/Transporte e imprevistos/i);   // el transporte va implícito en el precio, no se menciona como cobro aparte
     expect(txt(1)).not.toMatch(/(^|\n)Item\s*$/); // ya no sale la palabra «Item» suelta
     expect(txt(4)).not.toMatch(/Precio madera/);
     const frente = data.items.find((x: any) => x.itemNumber === 12);

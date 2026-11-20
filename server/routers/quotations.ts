@@ -253,9 +253,9 @@ function fzStable(v: any): string {
   };
   return JSON.stringify(walk(fzNorm(v)));
 }
-// El plano de módulos (kitchenConfig.modulePlan) y sus fotos en 3D (plano3d) son informativos: no deben cambiar la firma que congela precios.
+// El plano de módulos (kitchenConfig.modulePlan), sus fotos en 3D (plano3d) y el desglose de valores que se muestra al cliente son informativos: no deben cambiar la firma que congela precios.
 function fzStripPlan(k: any): any {
-  if (k && typeof k === "object" && !Array.isArray(k) && ("modulePlan" in k || "plano3d" in k)) { const { modulePlan, plano3d, ...rest } = k; return rest; }
+  if (k && typeof k === "object" && !Array.isArray(k) && ("modulePlan" in k || "plano3d" in k || "desglose" in k || "mostrarDesglose" in k)) { const { modulePlan, plano3d, desglose, mostrarDesglose, ...rest } = k; return rest; }
   return k;
 }
 function fzSignature(it: any): string {

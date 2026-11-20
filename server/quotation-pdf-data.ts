@@ -12,12 +12,24 @@ import { lineasFrentePieza, lineaPintadoPieza } from "@shared/piezasTexto";
 
 const r2 = (n: number) => (Math.round((Number(n) || 0) * 100 + 1e-9) / 100).toFixed(2); // 0.245 -> 0.25
 // Si el ítem lleva transporte e imprevistos (casilla del ítem), se dice en el texto con su valor.
-export function appendTransporte(description: string, item: any): string {
-  const valor = Number(item?.fixedCostsAmount);
-  if (!item?.includesFixedCosts || !(valor > 0)) return description;
-  if (/Transporte e imprevistos/i.test(description)) return description;
-  const f = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(valor);
-  return `${description}\nTransporte e imprevistos: ${f}`;
+/** Nombre del concepto del desglose, en palabras claras para el cliente */
+export function etiquetaDesglose(label: string): string {
+  if (/^Muebles inferiores y superiores/i.test(label)) return "Muebles en madera (inferiores y superiores)";
+  if (/^M[oó]dulos especiales/i.test(label)) return "Módulos de piso a techo (nevecón, nevera, alacena o torre)";
+  if (/^Mes[oó]n principal/i.test(label)) return "Mesón en piedra";
+  if (/^Isla/i.test(label)) return "Isla (muebles y mesón)";
+  if (/^Barra/i.test(label)) return "Barra";
+  if (/^Luz LED/i.test(label)) return "Luz LED";
+  if (/^Pintado/i.test(label)) return "Pintado alto brillo";
+  if (/^Acabados/i.test(label)) return "Acabados especiales";
+  if (/^Desmonte/i.test(label)) return "Desmonte de la cocina existente";
+  if (/^Transporte/i.test(label)) return "Transporte e imprevistos";
+  return label;
+}
+
+export function appendTransporte(description: string, _item: any): string {
+  // El transporte NO se menciona como cobro aparte: su valor ya va dentro del precio (en la madera) y los textos dicen que el trabajo incluye fabricación, transporte e instalación.
+  return description;
 }
 
 export async function buildQuotationPdfData(quotation: any, client: any, items: any[]) {
@@ -163,7 +175,7 @@ export async function buildQuotationPdfData(quotation: any, client: any, items: 
           // Transporte e imprevistos
           if (doorConfig.includeTransport && doorConfig.transportCost) {
             lines.push('');
-            lines.push(`Transporte e Imprevistos: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(doorConfig.transportCost)}`);
+            lines.push(`Entrega e instalación en obra: ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(doorConfig.transportCost)}`);
           }
         } else {
           // Estructura antigua: puerta única (compatibilidad)
@@ -267,7 +279,7 @@ export async function buildQuotationPdfData(quotation: any, client: any, items: 
           lines.push(`• Espacios para equipos: ${formatCurrency(tvCenterConfig.equipmentSpacesPrice)}`);
         }
         if (tvCenterConfig.includeTransport && tvCenterConfig.transportCost) {
-          lines.push(`• Transporte e imprevistos: ${formatCurrency(tvCenterConfig.transportCost)}`);
+          lines.push(`• Entrega e instalación en obra: ${formatCurrency(tvCenterConfig.transportCost)}`);
         }
         
         if (tvCenterConfig.notes && tvCenterConfig.notes.trim()) {
@@ -297,7 +309,7 @@ export async function buildQuotationPdfData(quotation: any, client: any, items: 
           });
           
           if (config.includeTransport && config.transportCost) {
-            lines.push(`Transporte e imprevistos: ${formatCurrency(config.transportCost)}`);
+            lines.push(`Entrega e instalación en obra: ${formatCurrency(config.transportCost)}`);
           }
           
           if (config.notes && config.notes.trim()) {
@@ -342,7 +354,7 @@ export async function buildQuotationPdfData(quotation: any, client: any, items: 
           }
           
           if (config.includeTransport && config.transportCost) {
-            lines.push(`• Transporte e imprevistos: ${formatCurrency(config.transportCost)}`);
+            lines.push(`• Entrega e instalación en obra: ${formatCurrency(config.transportCost)}`);
           }
           
           if (config.notes && config.notes.trim()) {
@@ -471,12 +483,35 @@ export async function buildQuotationPdfData(quotation: any, client: any, items: 
         pdfQuantity = String(doorConfig.quantity);
       }
     }
+      // Desglose de valores de la cocina (opcional): solo se muestra si está activo y su suma COINCIDE con el total del ítem (si no, mejor no mostrarlo)
+      let desglose: Array<{ label: string; amount: number }> | undefined;
+      try {
+        if (item.itemType === 'cocina' && item.kitchenConfig) {
+          const kc: any = typeof item.kitchenConfig === 'string' ? JSON.parse(item.kitchenConfig) : item.kitchenConfig;
+          if (Array.isArray(kc?.desglose) && kc.mostrarDesglose !== false) {
+            const filas = kc.desglose
+              .map((b: any) => ({ label: etiquetaDesglose(String(b?.label ?? '')), amount: Number(b?.amount) || 0 }))
+              .filter((b: any) => Math.abs(b.amount) >= 1);
+            // El transporte va implícito en la madera: no sale como renglón aparte (el total no cambia)
+            const iT = filas.findIndex((f: any) => /^Transporte/i.test(f.label));
+            if (iT >= 0) {
+              const t = filas[iT].amount;
+              filas.splice(iT, 1);
+              const iM = filas.findIndex((f: any) => /^Muebles en madera/i.test(f.label));
+              if (iM >= 0) filas[iM].amount += t; else if (filas.length) filas[0].amount += t; else filas.push({ label: "Muebles en madera (inferiores y superiores)", amount: t });
+            }
+            const suma = filas.reduce((a: number, b: any) => a + b.amount, 0);
+            if (filas.length > 0 && Math.abs(suma - (parseFloat(String(item.totalPrice)) || 0)) <= 1) desglose = filas;
+          }
+        }
+      } catch { /* sin desglose */ }
       return {
         itemNumber: item.itemNumber,
         description,
         quantity: pdfQuantity,
         unitPrice: item.unitPrice || '',
         totalPrice: item.totalPrice,
+        desglose,
       };
     }),
     // Esquemas del plano de módulos (última página del PDF); si algo falla, el PDF sale igual sin esquema

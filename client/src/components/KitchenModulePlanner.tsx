@@ -89,14 +89,46 @@ type Sel = { t: number; row: PlanRow; id: string } | { t: number; tall: string }
 // Medida con botones «−» y «+» SIEMPRE visibles (las flechitas del navegador solo salen al pasar el ratón y en la tablet no existen)
 function MedidaStepper({ valor, onCambio, paso = 0.05 }: { valor: number; onCambio: (v: number) => void; paso?: number }) {
   const cambiar = (v: number) => onCambio(Math.max(0, round2(v)));
+  // La medida se escribe LIBRE (46, 0,46 o 0.46): se aplica al terminar de escribir (Enter o salir del campo), no letra por letra,
+  // así se puede teclear cualquier medida real y no solo saltos de 5 cm.
+  const [texto, setTexto] = useState<string | null>(null);
+  const aplicar = () => {
+    if (texto === null) return;
+    const n = parseFloat(texto.trim().replace(",", "."));
+    setTexto(null);
+    if (!isFinite(n) || n <= 0) return;
+    cambiar(n > 5 ? n / 100 : n);   // un número grande (46) se toma como centímetros: ningún módulo mide más de 5 m
+  };
   return (
     <div className="flex items-center gap-1">
       <button type="button" onClick={() => cambiar(valor - paso)} aria-label="Restar 5 cm" className="w-10 h-10 shrink-0 rounded-lg bg-white/10 hover:bg-white/25 active:bg-white/30 text-lg font-bold text-white">−</button>
-      <input type="number" step={paso} min="0" value={valor} onChange={(e) => cambiar(parseFloat(e.target.value) || 0)}
-        className="w-[4.2rem] h-10 min-w-0 rounded-lg bg-black/40 border border-white/30 text-center font-mono text-sm text-white focus:outline-none focus:border-primary [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+      <input type="text" inputMode="decimal" value={texto ?? String(valor).replace(".", ",")} aria-label="Medida en metros (se puede escribir cualquier medida, por ejemplo 0,46 o 46 cm)"
+        onFocus={(e) => { setTexto(String(valor).replace(".", ",")); e.currentTarget.select(); }}
+        onChange={(e) => setTexto(e.target.value)}
+        onBlur={aplicar}
+        onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); aplicar(); (e.currentTarget as HTMLInputElement).blur(); } else if (e.key === "Escape") { setTexto(null); (e.currentTarget as HTMLInputElement).blur(); } }}
+        className="w-[4.2rem] h-10 min-w-0 rounded-lg bg-black/40 border border-white/30 text-center font-mono text-sm text-white focus:outline-none focus:border-primary" />
       <button type="button" onClick={() => cambiar(valor + paso)} aria-label="Sumar 5 cm" className="w-10 h-10 shrink-0 rounded-lg bg-white/10 hover:bg-white/25 active:bg-white/30 text-lg font-bold text-white">+</button>
       <span className="text-xs text-white/60">m</span>
     </div>
+  );
+}
+
+// Campo de medida suelto (metros): se escribe libre (0,46 o 46 cm) y se aplica al salir del campo o con Enter
+function MedidaCampo({ valor, onCambio, className, cero }: { valor: number; onCambio: (v: number) => void; className?: string; cero?: boolean }) {
+  const [texto, setTexto] = useState<string | null>(null);
+  const aplicar = () => {
+    if (texto === null) return;
+    const n = parseFloat(texto.trim().replace(",", "."));
+    setTexto(null);
+    if (!isFinite(n) || n < 0 || (n === 0 && !cero)) return;
+    onCambio(round2(n > 5 ? n / 100 : n));
+  };
+  return (
+    <input type="text" inputMode="decimal" value={texto ?? (valor || cero ? String(valor).replace(".", ",") : "")} className={className}
+      onFocus={(e) => { setTexto(valor ? String(valor).replace(".", ",") : ""); e.currentTarget.select(); }}
+      onChange={(e) => setTexto(e.target.value)} onBlur={aplicar}
+      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); (e.currentTarget as HTMLInputElement).blur(); } else if (e.key === "Escape") { setTexto(null); (e.currentTarget as HTMLInputElement).blur(); } }} />
   );
 }
 
@@ -414,8 +446,7 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
             <>
               <label className="flex items-center gap-1">
                 desde el borde izquierdo
-                <input type="number" step="0.05" min="0" value={round2(st)}
-                  onChange={(e) => edit(p => setModuleLock(p, sel.t, sel.row, mod.id, parseFloat(e.target.value) || 0, config))}
+                <MedidaCampo cero valor={round2(st)} onCambio={(v) => edit(p => setModuleLock(p, sel.t, sel.row, mod.id, v, config))}
                   className="w-16 bg-black/20 border-b border-blue-300/60 text-right font-mono text-sm focus:outline-none" />
                 m
               </label>
@@ -515,8 +546,7 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
                     <span className="text-xs font-mono text-white/60" title="Medida fija">🔒 {m2(o.width)} m</span>
                   ) : (
                     <label className="flex items-center gap-1 text-xs text-white/70">
-                      <input type="number" step="0.05" min="0" value={curW}
-                        onChange={(e) => edit(p => setDefaultWidth(p, o.key, parseFloat(e.target.value) || 0))}
+                      <MedidaCampo valor={curW} onCambio={(v) => edit(p => setDefaultWidth(p, o.key, v))}
                         className="w-14 bg-black/30 border-b border-white/40 text-right font-mono text-white focus:outline-none" />
                       m
                     </label>
@@ -894,12 +924,8 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
                 <span className="text-sm font-semibold text-white/85">{tr.name}</span>
                 <label className="flex items-center gap-1 text-xs text-white/60">
                   Largo
-                  <input
-                    type="number" step="0.05" min="0"
-                    value={tr.length || ""}
-                    onChange={(e) => edit(p => { p.tramos[t].length = round2(parseFloat(e.target.value) || 0); })}
-                    className="w-16 bg-transparent border-b border-white/30 text-right font-mono text-white focus:outline-none"
-                  />
+                  <MedidaCampo valor={tr.length || 0} onCambio={(v) => edit(p => { p.tramos[t].length = v; })}
+                    className="w-16 bg-transparent border-b border-white/30 text-right font-mono text-white focus:outline-none" />
                   m
                 </label>
                 <button type="button" onClick={() => edit(p => { packRow(p, t, "lower", config); })}
@@ -940,8 +966,7 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
                     <div className="flex items-center justify-between gap-1">
                       {o.editable ? (
                         <label className="flex items-center gap-1 text-xs text-white/70">
-                          <input type="number" step="0.05" min="0" value={w}
-                            onChange={(e) => edit(p => { p.alacenaEntrepanosWidth = round2(parseFloat(e.target.value) || 0); })}
+                          <MedidaCampo valor={w} onCambio={(v) => edit(p => { p.alacenaEntrepanosWidth = v; })}
                             className="w-14 bg-black/30 border-b border-white/40 text-right font-mono text-white focus:outline-none" />
                           m
                         </label>

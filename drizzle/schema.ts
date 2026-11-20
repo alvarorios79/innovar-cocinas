@@ -805,6 +805,7 @@ export const postventaReclamaciones = pgTable("postventaReclamaciones", {
 	resolvedAt: timestamp({ mode: 'string' }),
 	resolvedNotes: text(),
 	scheduledFor: timestamp({ mode: 'string' }), // fecha programada para seguimiento/revisión
+	avisadoAt: timestamp({ mode: 'string' }), // cuándo se avisó al equipo (una sola vez; no depende de que la campanita siga con el aviso)
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 },

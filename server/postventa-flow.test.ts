@@ -18,6 +18,7 @@ import { appRouter } from "./routers";
 import { getDb, getUsersByRole } from "./db";
 import { users, projects, clients, postventaReclamaciones, notifications } from "../drizzle/schema";
 import { sendDuePostventaReminders } from "./postventa-reminders";
+import { runMigrations } from "./migrations";
 import { warrantyInfo, splitClaimPhotos, followUp30Message, POSTVENTA_REF } from "@shared/postventa";
 
 const caller = (user: any) => appRouter.createCaller({ user, req: { ip: "test-postventa" } as any, res: {} as any } as any);
@@ -38,6 +39,7 @@ describe("Postventa — reglas", () => {
 
 describe("Postventa — avisos y reporte del cliente", () => {
   it("avisa el seguimiento vencido una sola vez y lo borra a todos cuando alguien lo hace", { timeout: 120000 }, async () => {
+    await runMigrations();
     const db = (await getDb())!;
     const [owner] = await db.select({ id: users.id }).from(users).where(eq(users.role, "super_admin")).limit(1);
     const [client] = await db.insert(clients).values({ name: "Cliente Postventa Prueba", whatsappPhone: "3001231234" } as any).returning({ id: clients.id });
@@ -57,6 +59,10 @@ describe("Postventa — avisos y reporte del cliente", () => {
     expect(primeros.some((n) => supers.includes(n.userId))).toBe(true); // Álvaro (super_admin) también recibe
     await sendDuePostventaReminders();
     expect((await avisos()).length).toBe(primeros.length); // no se repite
+    // Si alguien limpia la campanita, el aviso tampoco vuelve (queda guardado que ya se avisó)
+    await db.delete(notifications).where(and(eq(notifications.referenceType, POSTVENTA_REF), eq(notifications.referenceId, rec.id)));
+    await sendDuePostventaReminders();
+    expect((await avisos()).length).toBe(0);
 
     // Martha (admin) lo hace → se le borra a todos, también a Álvaro
     await caller({ id: owner.id, role: "admin", name: "Martha" }).postventa.update({ id: rec.id, status: "resuelto", resolvedNotes: "Todo bien" });

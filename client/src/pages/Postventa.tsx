@@ -26,6 +26,7 @@ import {
   warrantyInfo, followUp30Message, annualReviewMessage, claimReplyMessage, postventaWaPhone, splitClaimPhotos, clientPortalUrl,
 } from "@shared/postventa";
 import { useLocation } from "wouter";
+import { registrarAlVolverDeWhatsApp } from "@/lib/whatsappEnvio";
 
 // ── Tipos ────────────────────────────────────────────────────────────────────
 type ReclamacionType = "reclamacion" | "seguimiento_30d" | "revision_anual";
@@ -280,6 +281,7 @@ export default function Postventa() {
             </h2>
             <div>
               {todo.map((r: any) => <TodoRow key={r.id} rec={r} onDone={() => handleStatusChange(r, "resuelto")}
+                onWhatsApp={r.type === "reclamacion" ? undefined : () => registrarAlVolverDeWhatsApp(() => updateRec.mutate({ id: r.id, status: "resuelto", resolvedNotes: "Mensaje enviado por WhatsApp" }))}
                 onOpen={() => setLocation(`/projects/${r.projectId}`)} />)}
             </div>
           </CardContent>
@@ -643,7 +645,7 @@ function ClaimDetail({ description }: { description?: string | null }) {
 }
 
 // ── Fila de "Para hacer hoy" ─────────────────────────────────────────────────
-function TodoRow({ rec, onDone, onOpen }: { rec: any; onDone: () => void; onOpen: () => void }) {
+function TodoRow({ rec, onDone, onOpen, onWhatsApp }: { rec: any; onDone: () => void; onOpen: () => void; onWhatsApp?: () => void }) {
   const conf = TYPE_CONFIG[rec.type as ReclamacionType] ?? TYPE_CONFIG.reclamacion;
   const Icon = conf.icon;
   const wa = whatsAppFor(rec);
@@ -667,7 +669,7 @@ function TodoRow({ rec, onDone, onOpen }: { rec: any; onDone: () => void; onOpen
       <div className="flex gap-2 shrink-0">
         {wa ? (
           <Button asChild size="sm" className="h-8 bg-green-600 hover:bg-green-700 text-white">
-            <a href={wa} target="_blank" rel="noopener noreferrer"><MessageCircle className="h-3.5 w-3.5 mr-1.5" />WhatsApp</a>
+            <a href={wa} target="_blank" rel="noopener noreferrer" onClick={() => onWhatsApp?.()}><MessageCircle className="h-3.5 w-3.5 mr-1.5" />WhatsApp</a>
           </Button>
         ) : (
           <span className="text-[11px] text-muted-foreground self-center">Sin WhatsApp registrado</span>

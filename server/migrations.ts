@@ -258,6 +258,17 @@ export async function runMigrations() {
             WHERE "id" = 140 AND "quotationNumber" = 'COT-2026-1795139468378-2090886' AND "status" = 'draft' AND "sentAt" IS NULL
               AND NOT EXISTS (SELECT 1 FROM "quotations" WHERE "quotationNumber" = 'COT-2026-0140')`,
     },
+    {
+      // Postventa (20 nov 2026): se guarda cuándo se avisó cada seguimiento, para que NO se repita aunque se limpie la campanita.
+      // Los que ya estaban vencidos al crear la columna se marcan como ya avisados (no se avisan de nuevo).
+      name: "postventa_avisadoAt_1",
+      sql: `DO $$ BEGIN
+              IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'postventaReclamaciones' AND column_name = 'avisadoAt') THEN
+                ALTER TABLE "postventaReclamaciones" ADD COLUMN "avisadoAt" timestamp;
+                UPDATE "postventaReclamaciones" SET "avisadoAt" = NOW() WHERE "scheduledFor" IS NOT NULL AND "scheduledFor" <= NOW();
+              END IF;
+            END $$`,
+    },
   ];
 
   for (const m of migrations) {

@@ -6,7 +6,7 @@
  * - Cuando alguien lo atiende (Hecho / En revisión / No procede), se BORRA el aviso a todos
  *   (decisión de Álvaro: si Martha o comercial lo hacen, a él se le quita).
  */
-import { and, eq, inArray, lte } from "drizzle-orm";
+import { and, eq, inArray, isNull, lte } from "drizzle-orm";
 import * as db from "./db";
 import { notifications, postventaReclamaciones, projects, clients, accountingClosureProjects, accountingClosures } from "../drizzle/schema";
 import { POSTVENTA_NOTIFY_ROLES, POSTVENTA_REF } from "@shared/postventa";
@@ -53,14 +53,13 @@ export async function sendDuePostventaReminders(now = new Date()): Promise<numbe
       eq(postventaReclamaciones.status, "pendiente"),
       inArray(postventaReclamaciones.type, ["seguimiento_30d", "revision_anual"]),
       lte(postventaReclamaciones.scheduledFor, now.toISOString()),
+      isNull(postventaReclamaciones.avisadoAt), // un solo aviso por seguimiento, aunque se limpie la campanita
     ));
   if (!due.length) return 0;
-  const already = new Set((await d.select({ ref: notifications.referenceId }).from(notifications)
-    .where(and(eq(notifications.referenceType, POSTVENTA_REF), inArray(notifications.referenceId, due.map((r) => r.id)))))
-    .map((r) => r.ref));
   let count = 0;
   for (const r of due) {
-    if (already.has(r.id)) continue;
+    // Se marca ANTES de avisar: si algo falla a medias, mejor un aviso menos que repetirlo cada media hora
+    await d.update(postventaReclamaciones).set({ avisadoAt: now.toISOString() } as any).where(eq(postventaReclamaciones.id, r.id));
     const quien = r.clientName || r.projectName;
     if (r.type === "seguimiento_30d") {
       await notifyPostventa(r.id, `💬 Mensaje del mes: ${quien}`, `Envíale el WhatsApp de cómo le ha ido con su proyecto (con la reseña en Google). Toca para abrirlo.`);

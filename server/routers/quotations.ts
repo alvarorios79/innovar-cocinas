@@ -1,3 +1,4 @@
+import { fechaValidezCotizacion } from "@shared/validezCotizacion";
 import { COOKIE_NAME } from "@shared/const";
 import { projectWorkTypeFor } from "@shared/workTypes";
 import { getSessionCookieOptions } from "../_core/cookies";
@@ -362,9 +363,8 @@ export const quotationsRouter = router({
         const transportCost = 0; // No agregar transporte adicional
         const total = baseAfterDiscount + ivaAmount;
 
-        // Fecha de validez: 7 días desde hoy
-        const validUntil = new Date();
-        validUntil.setDate(validUntil.getDate() + 7);
+        // Fecha de validez: 15 días desde hoy, sin pasar del 15 de diciembre (en enero suben los precios)
+        const validUntil = fechaValidezCotizacion(new Date());
 
         // Crear cotización con items en transacción
         const quotationId = await withTransaction(async (tx) => {
@@ -1070,7 +1070,7 @@ export const quotationsRouter = router({
               <h2>Hola ${client.name},</h2>
               <p>Adjunto encontrarás la cotización <strong>${quotation.quotationNumber}</strong> para tu proyecto de <strong>${quotation.productType}</strong>.</p>
               <p><strong>Total:</strong> ${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(Number(quotation.total))}</p>
-              <p>Esta cotización tiene una validez de <strong>1 semana</strong>.</p>
+              <p>Esta cotización tiene una validez de <strong>15 días</strong> (nunca después del 15 de diciembre: en enero actualizamos los precios).</p>
               <br>
               <p>Quedamos atentos a cualquier consulta.</p>
               <p>Saludos cordiales,<br><strong>INNOVAR Cocinas Integrales</strong></p>

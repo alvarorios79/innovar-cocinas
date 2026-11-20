@@ -342,7 +342,8 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
         doc.fontSize(8.5).fillColor(WHITE).font("Helvetica-Bold")
            .text("OBSERVACIONES", ML + 8, Y + 5);
         Y += 18;
-        const nLines = data.generalNotes.split("\n").filter((l: string) => l.trim());
+        // La garantía se dice una sola vez, en «Términos y condiciones»: se quita de las observaciones aunque venga en el texto guardado
+        const nLines = data.generalNotes.split("\n").filter((l: string) => l.trim() && !/^\s*[•\-*]?\s*garant[ií]a/i.test(l));
         // FIX: renderizar línea a línea con control explícito de páginas.
         // La versión anterior calculaba noteH y dibujaba un solo rect, pero si las notas
         // superaban la página, PDFKit auto-paginaba y ny quedaba desincronizado,
@@ -387,8 +388,8 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
       const terms = [
         "Tiempo de entrega: 25 días hábiles a partir de la aprobación del render final.",
         "NO incluye obra civil, plomería, instalación de gas ni trabajos de albañilería.",
-        "Validez de la cotización: 1 semana desde la fecha de emisión.",
-        "Garantía: 1 año sobre madera y estructura y 6 meses sobre herrajes. Los materiales cuentan con garantía del fabricante.",
+        "Validez de la cotización: 15 días calendario desde la fecha de emisión. Por la actualización de precios de enero, ninguna cotización tiene validez en la segunda quincena de diciembre: las emitidas hasta el 15 de diciembre vencen, como máximo, ese día.",
+        "Garantía: 6 meses sobre la madera, la estructura y los herrajes. Los materiales cuentan además con la garantía del fabricante.",
         "Los diseños y renders son propiedad exclusiva de Innovar Cocinas de Diseño.",
       ];
       const tH = terms.length * 16 + 10;

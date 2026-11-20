@@ -1,3 +1,4 @@
+import { fechaValidezCotizacion } from "@shared/validezCotizacion";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation } from "wouter";
@@ -95,7 +96,6 @@ const INNOVAR_NOTAS_DEFAULT = `• Los precios están sujetos a cambio si los ma
 • Incluye fabricación e instalación. No incluye obra civil, electricidad, plomería, instalación de gas, electrodomésticos ni grifos o llaves.
 • El color, veta y textura exacta del material pueden variar levemente según disponibilidad del proveedor.
 • La medición final se realizará después del anticipo. Pequeñas variaciones de medida no generan ajuste de precio.
-• Garantía: 1 año sobre madera y estructura, 6 meses sobre herrajes.
 • El valor del mesón (Granito, Quarzone y Sinterizado) corresponde a modelos estándar nacionales. Vetas especiales, modelos importados o de colección tienen costos adicionales que se cotizan por separado según la selección del cliente.
 • El cliente se compromete a garantizar acceso al lugar de instalación en jornada completa (8:00 a.m. – 12:00 m. y 1:00 p.m. – 5:00 p.m.) durante todos los días requeridos para la instalación. Interrupciones, restricciones de horario o condiciones del sitio que impidan el trabajo normal podrán generar costos adicionales por desplazamiento, reprogramación o tiempos improductivos del equipo instalador.`;
 
@@ -595,7 +595,7 @@ export default function Quotations() {
     // isArchived=1 — descartadas manualmente (después de verificar approved)
     if (av.isArchived === 1) return 'sin_respuesta';
     const createdDate = new Date(av.createdAt);
-    const validUntilDate = av.validUntil ? new Date(av.validUntil) : new Date(createdDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const validUntilDate = av.validUntil ? new Date(av.validUntil) : fechaValidezCotizacion(createdDate);
     const isExpired = validUntilDate < new Date();
     if (isExpired) return 'sin_respuesta';
     return 'pendientes';
@@ -2697,12 +2697,11 @@ export default function Quotations() {
                   </div>
                   <p className="text-xs sm:text-sm font-semibold text-white/85">
                     {(() => {
-                      const validUntil = new Date();
-                      validUntil.setDate(validUntil.getDate() + 7);
+                      const validUntil = fechaValidezCotizacion(new Date());
                       return validUntil.toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
                     })()}
                   </p>
-                  <span className="text-xs text-amber-400">7 días</span>
+                  <span className="text-xs text-amber-400">15 días (máx. 15 dic.)</span>
                 </div>
                 <div className="bg-card rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)]">
                   <div className="flex items-center gap-2 mb-1 sm:mb-2">

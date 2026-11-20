@@ -355,10 +355,10 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
       // ── ¿QUÉ SIGUE? (primero se vende, luego se advierte) ──────────────────────────
       bloqueTexto("¿QUÉ SIGUE DESPUÉS DE ESTA COTIZACIÓN?", [
         "1.  Revisas la cotización desde el enlace que te enviamos y la apruebas (o nos cuentas qué quieres ajustar).",
-        "2.  Pagas el anticipo del 60 %. La aprobación y el anticipo van juntos: necesitamos las dos cosas para comenzar.",
+        "2.  Pagas el anticipo del 60 %. La aprobación de la cotización y el anticipo se requieren para dar inicio al proyecto.",
         "3.  Hacemos la medición final en tu espacio.",
         "4.  Desarrollamos contigo el diseño, el modelado 3D y el render, con los colores y detalles que definas, hasta que lo apruebes.",
-        "5.  Fabricamos en nuestra fábrica e instalamos en tu casa o negocio.",
+        "5.  Construimos en nuestra fábrica e instalamos en tu casa o negocio.",
         "6.  Entregamos el trabajo terminado y se paga el 40 % restante.",
       ], { fondo: LGRAY, size: 8 });
 
@@ -440,7 +440,7 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
       // ── ACEPTACIÓN, PAGOS Y VALOR LEGAL ──────────────────────────────────────────
       bloqueTexto("ACEPTACIÓN, PAGOS Y VALOR DE ESTE DOCUMENTO", [
         "• Al ser aprobada, esta cotización se convierte en el contrato oficial de la obra y en la factura del proyecto, porque contiene los precios de todo el trabajo.",
-        "• Para iniciar se requieren las dos cosas: la aprobación de la cotización y el pago del anticipo del 60 %. Sin ambas no es posible avanzar.",
+        "• La aprobación de la cotización y el pago del anticipo del 60 % se requieren para dar inicio al proyecto. Sin ambas no es posible avanzar.",
         "• El 40 % restante se paga el día de la entrega del trabajo terminado. El no pago de este saldo puede dar inicio a cobro jurídico por parte de Innovar Cocinas de Diseño.",
         "• Los diseños y distribuciones que se muestran con esta cotización son orientativos; el diseño definitivo se desarrolla y se aprueba después de la aprobación de la cotización.",
       ], { fondo: WHITE, size: 8, juntoCon: 80 });

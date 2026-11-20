@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactElement
 import {
   CATALOG, CATALOG_BY_KEY, FILL_KEYS, SPECIALS,
   normalizePlan, computePlan, rowItems, rowUsed, activeSpecials, lateralOn, isPainted,
-  addModuleToPlan, removeModuleFromPlan, setModuleWidth, moveModule, moveModuleToTramo, primerHueco, setDefaultWidth, esquinasDeLayout, girarEsquinero, espaciosLibres, ampliarMueble, pegarMueble, moveTall, dropModule, dropTall, tidyPlan, packRow, setModuleLock, setTypeWidth, alignEnd, rebuildAutoUpper,
+  addModuleToPlan, removeModuleFromPlan, setModuleWidth, moveModule, moveModuleToTramo, primerHueco, setDefaultWidth, esquinasDeLayout, girarEsquinero, espaciosLibres, ampliarMueble, pegarMueble, moveTall, dropModule, dropTall, moverValidando, tidyPlan, packRow, setModuleLock, setTypeWidth, alignEnd, rebuildAutoUpper,
   round2,
   specialWidth,
   type ModulePlan, type PlanModule, type PlanRow, type RowItem,
@@ -137,11 +137,11 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
     const dM = (e.clientX - d.startX) / PX;   // metros que se arrastró
     if (d.kind === "tall") {
       const cur = rowItems(plan, d.t, "lower", config).find(i => i.kind === "tall" && i.key === d.id);
-      if (cur) edit(p => dropTall(p, d.id, cur.start + dM, config));
+      if (cur) edit(p => { moverValidando(p, config, (q) => dropTall(q, d.id, cur.start + dM, config)); });
     } else if (d.row) {
       const row = d.row, t = d.t, id = d.id;
       const cur = rowItems(plan, t, row, config).find(i => i.kind === "mod" && !i.fromPrev && i.mod!.id === id);
-      if (cur) edit(p => dropModule(p, t, row, id, cur.start + dM, config, true));
+      if (cur) edit(p => { moverValidando(p, config, (q) => dropModule(q, t, row, id, cur.start + dM, config, true)); });
     }
   };
 
@@ -861,9 +861,9 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
                   resumen={plan.tramos.map((tt, i) => ({ nombre: tt.name, largo: tt.length, llevaAbajo: rowUsed(plan, i, "lower", config), llevaArriba: tt.isIsland ? null : rowUsed(plan, i, "upper", config), activa: i === tAct }))}
                   panel={<div className="space-y-4"><button type="button" onClick={deshacer} disabled={nHistorial === 0} className="w-full h-11 rounded-lg bg-amber-600 hover:bg-amber-500 disabled:opacity-35 text-white text-sm font-bold">↶ Deshacer el último cambio ({nHistorial})</button>{renderSelected()}{renderPasarA()}{renderPaletaUnica(true)}</div>}
                   moveTramo={(p, fromT, row, id, toT, start) => moveModuleToTramo(p, fromT, row, id, toT, start, config)}
-                  dropMod={(p, t, row, id, start) => dropModule(p, t, row, id, start, config, true)}
+                  dropMod={(p, t, row, id, start) => { moverValidando(p, config, (q) => dropModule(q, t, row, id, start, config, true)); }}
                   acomodar={(p) => { try { tidyPlan(p, config); } catch { /* */ } }}
-                  dropTallTo={(p, key, tramo, start) => { p.specialTramo = { ...(p.specialTramo || {}), [key]: tramo }; dropTall(p, key, start, config); }}
+                  dropTallTo={(p, key, tramo, start) => { moverValidando(p, config, (q) => { q.specialTramo = { ...(q.specialTramo || {}), [key]: tramo }; dropTall(q, key, start, config); }); }}
                 />
               </Suspense>
               {renderSelected()}

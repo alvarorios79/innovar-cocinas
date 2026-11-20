@@ -717,7 +717,13 @@ function dropInRow(p: ModulePlan, t: number, row: PlanRow, target: DropTarget, s
   const prefix = rowItems(p, t, row, config).filter(i => i.fromPrev).reduce((a, i) => a + i.width, 0);
   const starts: number[] = [], ends: number[] = [];
   let pos = prefix;
-  list.forEach(e => { if (e.kind === "mod" && e.mod.lockAt !== undefined) pos = e.mod.lockAt; else pos += gapOf(e); starts.push(pos); pos += widthOf(e); ends.push(pos); });
+  const trT = p.tramos[t];
+  list.forEach(e => {
+    if (e.kind === "mod" && e.mod.lockAt !== undefined) pos = e.mod.lockAt; else pos += gapOf(e);
+    // El esquinero del final va SIEMPRE en la esquina de la pared (igual que en rowItems): el espacio hasta él es libre para mover los demás
+    if (e.kind === "mod" && isTrailingCorner(e.mod) && trT && !trT.isIsland && trT.length > 0) pos = Math.max(pos, round2(trT.length - e.mod.width));
+    starts.push(pos); pos += widthOf(e); ends.push(pos);
+  });
   // 3) imán a cortes cercanos (borde izquierdo o derecho) y al inicio de la pared
   let s = Math.max(prefix, start);
   const snaps = [prefix, ...ends, ...cuts];
@@ -740,11 +746,17 @@ function dropInRow(p: ModulePlan, t: number, row: PlanRow, target: DropTarget, s
     else if (el.mod.autoRole === "cornerFill" && lastEl?.kind === "mod" && isTrailingCorner(lastEl.mod)) at = list.length - 1;
   }
   // 5) acomodar en el hueco
-  const prevEnd = at > 0 ? ends[at - 1] : prefix;
-  const nextStart = at < list.length ? starts[at] : Infinity;
   const tl = p.tramos[t].length;
-  // Límite derecho: el siguiente elemento o, si es el último, el largo de la pared
-  const limit = at < list.length ? nextStart : (tl > 0 && tl >= prevEnd + w - 1e-9 ? tl : Infinity);
+  const esFijo = (e?: OwnEl) => !!e && e.kind === "mod" && e.mod.lockAt !== undefined;   // ventana: no se mueve ni se atraviesa
+  const hueco = (a: number) => {
+    const pe = a > 0 ? ends[a - 1] : prefix;
+    const ns = a < list.length ? starts[a] : Infinity;
+    const lim = a < list.length ? ns : (tl > 0 && tl >= pe + w - 1e-9 ? tl : Infinity);
+    return { pe, ns, lim };
+  };
+  // Si el hueco elegido es más chico que el mueble y lo que sigue es una ventana, se salta al otro lado de ella (nunca se suelta encima)
+  { let h = hueco(at); let guard = 0; while (h.lim - h.pe < w - 1e-9 && esFijo(list[at]) && guard++ < 6) { at++; h = hueco(at); } }
+  const { pe: prevEnd, ns: nextStart, lim: limit } = hueco(at);
   const hole = limit - prevEnd;
   const fits = hole >= w - 1e-9;
   if (fits) {
@@ -756,7 +768,7 @@ function dropInRow(p: ModulePlan, t: number, row: PlanRow, target: DropTarget, s
     else if (right <= MAG && isFinite(limit)) s = limit - w;
   } else s = prevEnd;
   const nextEl = list[at];
-  if (nextEl) setGap(nextEl, fits ? nextStart - (s + w) : 0);
+  if (nextEl) setGap(nextEl, (nextEl.kind === "mod" && isTrailingCorner(nextEl.mod)) ? 0 : fits ? nextStart - (s + w) : 0);
   setGap(el, s - prevEnd);
   list.splice(at, 0, el);
   saveList(p, row, list, config);
@@ -801,6 +813,40 @@ export function dropModule(p: ModulePlan, t: number, row: PlanRow, id: string, s
   dropInRow(p, t, row, { kind: "mod", id }, start, config, cuts);
 }
 
+// ¿El plano quedó peor? Un movimiento del usuario NO puede: traslapar muebles (ni caer sobre una ventana), sacar de la pared lo que sí cabía,
+// ni dejar un módulo alto en lugares distintos arriba y abajo.
+function problemasDeMovimiento(p: ModulePlan, config: any): Set<string> {
+  const out = new Set<string>();
+  p.tramos.forEach((tr, t) => {
+    if (tr.isIsland) return;
+    (["lower", "upper"] as PlanRow[]).forEach(r => {
+      const its = rowItems(p, t, r, config).slice().sort((a, b) => a.start - b.start);
+      for (let i = 1; i < its.length; i++) if (its[i].start < its[i - 1].start + its[i - 1].width - 0.006) out.add(`cruce:${t}:${r}:${its[i - 1].key}/${its[i].key}`);
+      const suma = its.reduce((a, x) => a + x.width, 0);
+      if (tr.length > 0 && suma <= tr.length + 0.005 && its.some(x => x.start + x.width > tr.length + 0.01)) out.add(`afuera:${t}:${r}`);
+    });
+    activeSpecials(p, config).filter(s => s.tramo === t).forEach(s => {
+      const a = rowItems(p, t, "upper", config).find(i => i.kind === "tall" && i.key === s.key)?.start;
+      const b = rowItems(p, t, "lower", config).find(i => i.kind === "tall" && i.key === s.key)?.start;
+      if (a !== undefined && b !== undefined && Math.abs(a - b) > 0.02) out.add(`desalineado:${s.key}`);
+    });
+  });
+  return out;
+}
+
+/** Aplica un movimiento del usuario (arrastrar un módulo) y lo deja solo si no empeora el plano; si lo empeora, el plano vuelve a como estaba. Devuelve si se aplicó. */
+export function moverValidando(p: ModulePlan, config: any, mover: (q: ModulePlan) => void): boolean {
+  const copia = JSON.parse(JSON.stringify(p)) as ModulePlan;
+  const antes = problemasDeMovimiento(p, config);
+  mover(p);
+  try { tidyPlan(p, config); } catch { /* */ }
+  const nuevos = Array.from(problemasDeMovimiento(p, config)).filter(x => !antes.has(x));
+  if (nuevos.length === 0) return true;
+  Object.keys(p).forEach(k => { delete (p as any)[k]; });
+  Object.assign(p, copia);
+  return false;
+}
+
 // Los superiores automáticos (y los módulos altos en la fila de arriba) se alinean con lo que hay abajo:
 // cada superior queda sobre su inferior; lo que el usuario colocó a mano arriba se respeta.
 export function alignUppers(p: ModulePlan, config: any) {
@@ -832,11 +878,30 @@ export function alignUppers(p: ModulePlan, config: any) {
     const puestoPorUsuario = (e: OwnEl) => (e.kind === "tall" || !e.mod.autoOf) ? 0 : 1;
     const sorted = head.map((e, i) => ({ e, i, tg: target(e) })).sort((a, b) => a.tg - b.tg || puestoPorUsuario(a.e) - puestoPorUsuario(b.e) || a.i - b.i).map(x => x.e);
     const all = [...sorted, ...tail];
+    // Posición de cada elemento = su destino; luego se corrigen los que se pasarían del largo de la pared o chocarían con una ventana o un módulo alto
+    const fin = new Map<OwnEl, number>();
+    { let c = prefix;
+      all.forEach(e => {
+        if (e.kind === "mod" && e.mod.lockAt !== undefined) { fin.set(e, e.mod.lockAt); c = e.mod.lockAt + e.mod.width; return; }
+        const tg = Math.max(c, target(e));
+        fin.set(e, round2(tg)); c = tg + widthOf(e);
+      });
+      let tope = tr.length > 0 ? tr.length : Infinity;
+      for (let i = all.length - 1; i >= 0; i--) {
+        const e = all[i], w = widthOf(e);
+        if (tail.includes(e) || e.kind === "tall" || (e.kind === "mod" && e.mod.lockAt !== undefined)) { tope = Math.min(tope, fin.get(e)!); continue; }
+        const st = fin.get(e)!;
+        if (st + w > tope + 1e-9) fin.set(e, round2(Math.max(prefix, tope - w)));
+        tope = Math.min(tope, fin.get(e)!);
+      }
+      c = prefix;
+      all.forEach(e => { if (fin.get(e)! < c - 1e-9 && !(e.kind === "mod" && e.mod.lockAt !== undefined)) fin.set(e, round2(c)); c = Math.max(c, fin.get(e)! + widthOf(e)); });
+    }
     let cursor = prefix;
     all.forEach(e => {
       const isTail = tail.includes(e);
       if (e.kind === "mod" && e.mod.lockAt !== undefined) { delete e.mod.gap; cursor = e.mod.lockAt + e.mod.width; return; }
-      const tg = isTail ? Math.max(cursor, target(e)) : target(e);
+      const tg = isTail ? Math.max(cursor, target(e)) : (fin.get(e) ?? target(e));
       const g = Math.max(0, round2(tg - cursor));
       if (e.kind === "mod") { if (g > 0) e.mod.gap = g; else delete e.mod.gap; }
       else {
@@ -875,7 +940,10 @@ export function moveModuleToTramo(p: ModulePlan, fromT: number, row: PlanRow, id
 export function dropTall(p: ModulePlan, key: string, start: number, config: any) {
   const sp = activeSpecials(p, config).find(s => s.key === key);
   if (!sp) return;
-  (["upper", "lower"] as PlanRow[]).forEach(row => dropInRow(p, sp.tramo, row, { kind: "tall", key }, start, config, []));
+  dropInRow(p, sp.tramo, "upper", { kind: "tall", key }, start, config, []);
+  // Abajo se usa el lugar en que quedó arriba (el módulo alto ocupa el mismo sitio en las dos filas)
+  const arriba = rowItems(p, sp.tramo, "upper", config).find(i => i.kind === "tall" && i.key === key);
+  dropInRow(p, sp.tramo, "lower", { kind: "tall", key }, arriba ? arriba.start : start, config, []);
 }
 
 // Ancho de todos los módulos de un tipo en una fila de un tramo (y ancho para los próximos que se agreguen).

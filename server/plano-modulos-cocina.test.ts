@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { removeModuleFromPlan, normalizePlan, addModuleToPlan, setModuleWidth, moveModuleToTramo, primerHueco, esquinasDeLayout, girarEsquinero, tidyPlan, dropModule, setModuleWidth, setDefaultWidth, espaciosLibres, ampliarMueble, pegarMueble, rebuildAutoUpper, computePlan, ventanasDeLevantamiento, rowItems } from "../shared/kitchenModulePlan";
+import { removeModuleFromPlan, normalizePlan, addModuleToPlan, setModuleWidth, moveModuleToTramo, primerHueco, esquinasDeLayout, girarEsquinero, tidyPlan, dropModule, moverValidando, setModuleWidth, setDefaultWidth, espaciosLibres, ampliarMueble, pegarMueble, rebuildAutoUpper, computePlan, ventanasDeLevantamiento, rowItems } from "../shared/kitchenModulePlan";
 import { buildKitchenQuoteDescription } from "./kitchen-description";
 
 // ¿El plano de módulos describe de verdad la cocina? Se arma una cocina paralela de 2 paredes (3,0 m y 2,4 m),
@@ -450,5 +450,42 @@ describe("Estufa y su extractor se mueven juntos", () => {
     dropModule(plan, 0, "lower", est.id, pos(plan, config, "lower", "moduloEstufaHorno") + 0.5, config, true); tidyPlan(plan, config);
     expect(pos(plan, config, "lower", "moduloEstufaHorno")).toBeCloseTo(1.4, 2);
     expect(pos(plan, config, "upper", "moduloExtractor")).toBeCloseTo(1.4, 2);
+  });
+});
+
+describe("La estufa se puede pegar al esquinero", () => {
+  it("con espacio libre entre la estufa y el esquinero, arrastrarla hacia él la deja pegada (y el extractor con ella)", () => {
+    const config: any = { shape: "premium", layout: "L", totalMeters: 6, mlPriceCode: "COCINA_ML_PREMIUM", specialModules: {}, countertop: { type: "quarzone" }, island: { enabled: false, meters: 0 }, bar: { enabled: false, meters: 0 }, paintedDoors: { enabled: true }, ledLighting: 0 };
+    const plan: any = normalizePlan({ enabled: true, tramos: [{ name: "A", length: 3.5, upper: [], lower: [] }, { name: "B", length: 2.5, upper: [], lower: [] }], extras: {} }, config);
+    ["cajoneroTriple", "moduloEstufaHorno", "esquinero1x1"].forEach((k) => addModuleToPlan(plan, 0, "lower", k, config));
+    tidyPlan(plan, config);
+    const est = plan.tramos[0].lower.find((m: any) => m.key === "moduloEstufaHorno");
+    dropModule(plan, 0, "lower", est.id, 1.8, config, true); tidyPlan(plan, config);
+    const e = rowItems(plan, 0, "lower", config).find((i) => i.key === "moduloEstufaHorno")!, c = rowItems(plan, 0, "lower", config).find((i) => i.key === "esquinero1x1")!;
+    expect(e.start + e.width).toBeCloseTo(c.start, 2);
+    expect(rowItems(plan, 0, "upper", config).find((i) => i.key === "moduloExtractor")!.start).toBeCloseTo(e.start, 2);
+  });
+});
+
+describe("Un movimiento no puede dejar el plano peor", () => {
+  const armar = () => {
+    const config: any = { shape: "premium", layout: "lineal", totalMeters: 2.6, mlPriceCode: "COCINA_ML_PREMIUM", specialModules: {}, countertop: { type: "quarzone" }, island: { enabled: false, meters: 0 }, bar: { enabled: false, meters: 0 }, paintedDoors: { enabled: true }, ledLighting: 0 };
+    const plan: any = normalizePlan({ enabled: true, tramos: [{ name: "A", length: 2.6, upper: [{ id: "v1", key: "ventana", width: 0.9, lockAt: 1.4 }], lower: [] }], extras: {} }, config);
+    ["cajoneroDoble", "moduloEstufaHorno"].forEach((k) => addModuleToPlan(plan, 0, "lower", k, config));
+    tidyPlan(plan, config);
+    return { plan, config };
+  };
+  it("no deja soltar la estufa (con su extractor) donde el extractor quedaría sobre la ventana", () => {
+    const { plan, config } = armar();
+    const est = plan.tramos[0].lower.find((m: any) => m.key === "moduloEstufaHorno");
+    const antes = JSON.stringify(plan);
+    const ok = moverValidando(plan, config, (q) => dropModule(q, 0, "lower", est.id, 1.5, config, true));
+    expect(ok).toBe(false);
+    expect(JSON.stringify(plan)).toBe(antes);
+  });
+  it("sí deja un movimiento válido", () => {
+    const { plan, config } = armar();
+    const caj = plan.tramos[0].lower.find((m: any) => m.key === "cajoneroDoble");
+    expect(moverValidando(plan, config, (q) => dropModule(q, 0, "lower", caj.id, 0.5, config, true))).toBe(true);
   });
 });

@@ -3,6 +3,8 @@ import { createPortal } from "react-dom";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { crearMueble3D, crearEsquinero3D } from "./muebles3d";
+import { ColorFrentes, disenoPorNombre } from "./ColorFrentes";
+import { woodSwatchUrl } from "@shared/primaderaCatalog";
 import { geometriaParedes, ALTO_INFERIOR_CM, ARRANQUE_SUPERIOR_CM, FONDO_INFERIOR_CM, FONDO_SUPERIOR_CM, SEPARACION_PARALELA_POR_DEFECTO } from "@shared/cocinaParedes";
 import { CATALOG_BY_KEY, rowItems, isPainted, round2, type ModulePlan, type PlanRow } from "@shared/kitchenModulePlan";
 
@@ -64,6 +66,25 @@ const fm = (m: number) => (Math.round(m * 100) / 100).toFixed(2).replace(".", ",
 
 type Wall = { t: number; x1: number; z1: number; ux: number; uz: number; nx: number; nz: number; sg: number; largo: number; alto: number };
 
+// Materiales de los frentes según el color elegido: cada foto de muestra se baja UNA vez (solo las que se usan) y se reutiliza
+const MATS_COLOR = new Map<string, THREE.Material>();
+const CARGANDO = new Set<string>();
+function materialColor(nombre: string | undefined, alCargar: () => void): THREE.Material | null {
+  const d = disenoPorNombre(nombre);
+  if (!d) return null;
+  const hecho = MATS_COLOR.get(d.name);
+  if (hecho) return hecho;
+  if (!CARGANDO.has(d.name)) {
+    CARGANDO.add(d.name);
+    new THREE.TextureLoader().load(woodSwatchUrl(d), (t) => {
+      t.colorSpace = THREE.SRGBColorSpace;
+      MATS_COLOR.set(d.name, new THREE.MeshLambertMaterial({ map: t }));
+      CARGANDO.delete(d.name); alCargar();
+    }, undefined, () => { CARGANDO.delete(d.name); });
+  }
+  return null;   // mientras baja la foto se ve el tono claro de siempre
+}
+
 function formaDe(layout?: string): string {
   if (layout === "L") return "L";
   if (layout === "U") return "U";
@@ -101,7 +122,7 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
   ultimo.current = props;
   const cotasRef = useRef(true);
   cotasRef.current = verCotas;
-  const api = useRef<{ rebuild: () => void; vista: (v: "iso" | "arriba" | "frente") => void; capturar: (v?: "iso" | "arriba" | "frente") => string | null; mover: (t: number, along: number, away: number) => { x: number; z: number; rot: number } | null } | null>(null);
+  const api = useRef<{ rebuild: () => void; vista: (v: "iso" | "arriba" | "frente") => void; desplazar: (dx: number, dy: number) => void; acercar: (f: number) => void; capturar: (v?: "iso" | "arriba" | "frente") => string | null; mover: (t: number, along: number, away: number) => { x: number; z: number; rot: number } | null } | null>(null);
   useImperativeHandle(ref, () => ({ capturar: (v) => api.current?.capturar(v) ?? null, mover: (t, a, b) => api.current?.mover(t, a, b) ?? null }), []);
 
   useEffect(() => {
@@ -121,7 +142,7 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
     const sol = new THREE.DirectionalLight(0xffffff, 1.6); sol.position.set(4, 8, 6); scene.add(sol);
     const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
     const controls = new OrbitControls(camera, cv);
-    controls.enableDamping = false; controls.maxPolarAngle = Math.PI / 2 - 0.02; controls.minDistance = 1; controls.maxDistance = 25;
+    controls.enableDamping = false; controls.maxPolarAngle = Math.PI / 2 - 0.02; controls.minDistance = 0.5; controls.maxDistance = 25;
 
     let raf = 0;
     const dibujar = () => { if (raf) return; raf = requestAnimationFrame(() => { raf = 0; renderer.render(scene, camera); }); };
@@ -264,8 +285,10 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
         if (isBloque) {
           // Base amarilla = la huella real de la isla (largo × profundo del mesón), sin sobrar nada. El mesón sobresale por detrás de la madera.
           const zc = sgx * (profInf - profMeson / 2);
-          const losa = new THREE.Mesh(new THREE.BoxGeometry(largoVisible, 0.03, profMeson), new THREE.MeshLambertMaterial({ color: COLOR.losa, transparent: true, opacity: 0.85 }));
-          losa.position.set(0, 0.015, zc);
+          // Solo PINTADA a ras de suelo (sin relieve): los muebles ya traen su zócalo y su mesón; un pedestal haría creer que la isla va montada encima
+          const losa = new THREE.Mesh(new THREE.PlaneGeometry(largoVisible, profMeson), new THREE.MeshBasicMaterial({ color: COLOR.losa, transparent: true, opacity: 0.55, side: THREE.DoubleSide, depthWrite: false }));
+          losa.rotation.x = -Math.PI / 2;
+          losa.position.set(0, 0.004, zc);
           losa.userData = { pick: true, kind: "losa", t };
           grp.add(losa); pickables.push(losa);
           if (profMeson > profInf + 0.005) {
@@ -305,7 +328,7 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
         // Muebles: cada uno se dibuja como es (estufa con hornillas, lavaplatos con poceta y llave, gavetas…). Origen del grupo = centro de la base.
         const girar = sgx < 0 ? Math.PI : 0;
         const poner = (key: string, row: "upper" | "lower" | "tall", s0: number, w: number, y0: number, h: number, dIni0: number, prof: number, data: any, selected: boolean, fantasma: boolean, etiqueta: string) => {
-          const mu = crearMueble3D(key, row, w, h, prof, { seleccionado: selected, fantasma });
+          const mu = crearMueble3D(key, row, w, h, prof, { seleccionado: selected, fantasma, manijas: !!plan.conManijas, frente: materialColor(row === "upper" ? (plan.colorSup || plan.colorExt) : (plan.colorInf || plan.colorExt), () => api.current?.rebuild()) });
           mu.grupo.position.set(s0 + w / 2, y0, sgx * (dIni0 + prof / 2));
           mu.grupo.rotation.y = girar;
           mu.cuerpo.userData = data;
@@ -322,7 +345,7 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
           // El esquinero es UN solo mueble en «L» (una carcasa continua): se dibuja una vez, en la pared que lo lleva; el brazo en la pared vecina es parte del mismo mueble
           if (cat.corner && !isBloque) {
             if (it.fromPrev) return;
-            const ec = crearEsquinero3D("lower", it.width, hInf, profInf, sg, it.start + it.width, GROSOR / 2, { seleccionado: selected });
+            const ec = crearEsquinero3D("lower", it.width, hInf, profInf, sg, it.start + it.width, GROSOR / 2, { seleccionado: selected, manijas: !!plan.conManijas, frente: materialColor(plan.colorInf || plan.colorExt, () => api.current?.rebuild()) });
             ec.cuerpo.userData = { pick: true, kind: "mod", t, row: "lower", id: it.mod!.id, start: it.start, w: it.width, corner: true, painted: isPainted(plan, it.mod!, "lower") };
             pickables.push(ec.cuerpo); grp.add(ec.grupo);
             if (cotasRef.current) { const l = texto(`${cat.short} ${fm(it.width)}`, "#ffffff", 0.115); l.position.set(it.start + it.width - 0.3, hInf + 0.1, sg * (GROSOR / 2 + 0.3)); grp.add(l); }
@@ -346,7 +369,7 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
           if (cat.corner) {   // esquinero superior: UN solo mueble en «L» (0,60 × 0,60 m, 0,35 de fondo)
             if (it.fromPrev) return;
             const hs = Math.max(0.3, Math.min(ALTO_SUPERIOR_MAX, alto - arranque));
-            const ec = crearEsquinero3D("upper", it.width, hs, profSup, sg, it.start + it.width, GROSOR / 2, { seleccionado: selected });
+            const ec = crearEsquinero3D("upper", it.width, hs, profSup, sg, it.start + it.width, GROSOR / 2, { seleccionado: selected, manijas: !!plan.conManijas, frente: materialColor(plan.colorSup || plan.colorExt, () => api.current?.rebuild()) });
             ec.grupo.position.y = arranque;
             ec.cuerpo.userData = { pick: true, kind: "mod", t, row: "upper", id: it.mod!.id, start: it.start, w: it.width, corner: true, painted: isPainted(plan, it.mod!, "upper") };
             pickables.push(ec.cuerpo); grp.add(ec.grupo);
@@ -562,6 +585,19 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
         return { x: round2(base.x + w0.ux * along + w0.nx * w0.sg * away), z: round2(base.z + w0.uz * along + w0.nz * w0.sg * away), rot: base.rot };
       },
       vista,
+      // Botones de la pantalla: mover el encuadre (arriba/abajo/izquierda/derecha) y acercar o alejar, sin depender del dedo o del botón derecho del ratón
+      desplazar: (dx, dy) => {
+        camera.updateMatrixWorld();
+        const paso = camera.position.distanceTo(controls.target) * 0.14;
+        const der = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0), arr = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 1);
+        const v = der.multiplyScalar(dx * paso).add(arr.multiplyScalar(dy * paso));
+        camera.position.add(v); controls.target.add(v); movidoUsuario = true; controls.update(); dibujar();
+      },
+      acercar: (f) => {
+        const dir = camera.position.clone().sub(controls.target);
+        dir.setLength(Math.min(controls.maxDistance, Math.max(controls.minDistance, dir.length() * f)));
+        camera.position.copy(controls.target).add(dir); movidoUsuario = true; controls.update(); dibujar();
+      },
       // Foto del 3D (1200×800) para el PDF de la cotización y para el diseñador: sin selección, con las medidas puestas
       capturar: (v) => {
         const prev = { p: camera.position.clone(), t: controls.target.clone() };
@@ -621,8 +657,22 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
         {([["iso", "3D"], ["arriba", "Arriba"], ["frente", "Frente"]] as const).map(([v, t]) => (
           <button key={v} type="button" onClick={() => api.current?.vista(v)} className="px-2.5 py-1.5 rounded bg-black/60 text-white text-xs font-semibold border border-white/20 min-h-[32px]">{t}</button>
         ))}
+        <ColorFrentes plan={props.plan} onEdit={props.onEdit} />
         <button type="button" onClick={() => setVerCotas((x) => !x)} className={`px-2.5 py-1.5 rounded text-xs font-semibold border min-h-[32px] ${verCotas ? "bg-primary text-white border-primary" : "bg-black/60 text-white border-white/20"}`}>Medidas</button>
         <button type="button" onClick={() => void alternarPantalla()} className="px-2.5 py-1.5 rounded bg-black/60 text-white text-xs font-semibold border border-white/20 min-h-[32px]">{pantalla ? "Cerrar" : "Pantalla completa"}</button>
+      </div>
+      <div className="absolute bottom-7 right-2 flex flex-col items-center gap-1 select-none" aria-label="Mover el encuadre">
+        <div className="grid grid-cols-3 gap-1">
+          {([["", null, null], ["▲", 0, -1], ["", null, null], ["◀", -1, 0], ["●", "c", 0], ["▶", 1, 0], ["", null, null], ["▼", 0, 1], ["", null, null]] as const).map(([t, dx, dy], i) => t === "" ? <span key={i} /> : (
+            <button key={i} type="button" title={t === "●" ? "Volver al encuadre inicial" : "Mover el encuadre"} aria-label={t === "●" ? "Volver al encuadre inicial" : "Mover el encuadre"}
+              onClick={() => { if (dx === "c") api.current?.vista("iso"); else api.current?.desplazar(Number(dx), -Number(dy)); }}
+              className="w-9 h-9 rounded bg-black/65 text-white text-sm font-bold border border-white/25 active:bg-primary/60">{t}</button>
+          ))}
+        </div>
+        <div className="flex gap-1">
+          <button type="button" aria-label="Alejar" title="Alejar" onClick={() => api.current?.acercar(1.25)} className="w-14 h-9 rounded bg-black/65 text-white text-lg font-bold border border-white/25 active:bg-primary/60">−</button>
+          <button type="button" aria-label="Acercar" title="Acercar" onClick={() => api.current?.acercar(0.8)} className="w-14 h-9 rounded bg-black/65 text-white text-lg font-bold border border-white/25 active:bg-primary/60">+</button>
+        </div>
       </div>
       <p className="absolute bottom-1.5 left-2 right-2 text-[10px] text-white/50 pointer-events-none">Gira y acerca con los dedos · toca un módulo para elegirlo · arrástralo a la pared que quieras (se pega solo) · toca una pared para agregarle módulos · la isla y la barra se mueven por el piso</p>
      </div>

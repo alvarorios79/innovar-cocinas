@@ -5,7 +5,7 @@ import * as THREE from "three";
 // Son figuras simples (cajas y cilindros) para que no pese en la tablet. El «frente» del mueble mira hacia +z.
 // Origen: centro de la base del mueble. Ancho en x, alto en y, fondo en z.
 
-export interface OpcionesMueble { seleccionado?: boolean; fantasma?: boolean; claro?: boolean }
+export interface OpcionesMueble { seleccionado?: boolean; fantasma?: boolean; claro?: boolean; manijas?: boolean; frente?: THREE.Material | null }
 export interface MuebleConstruido { grupo: THREE.Group; cuerpo: THREE.Mesh }
 
 const MAT: Record<string, THREE.MeshLambertMaterial> = {};
@@ -19,8 +19,21 @@ const C = {
   nevera: 0xc7ced4, hornilla: 0x15181b, vidrio: 0x9fd8f0, sel: 0x00e5ff,
 };
 
+// Estilo de apertura: GOLA (por defecto, todas las cocinas Innovar): la misma madera deja un canal para meter los dedos, sin manijas ni tiradores.
+// Solo con manijas si el cliente lo pide. Se dibuja como una franja oscura (el canal) en el borde de la puerta.
+let CON_MANIJAS = false;
+// Color/textura elegida para los frentes (puertas y gavetas). Sin elegir: el tono claro de siempre. La gola toma la misma textura, más oscura.
+let FRENTE: THREE.Material | null = null;
+const GOLA_MATS = new WeakMap<THREE.Material, THREE.Material>();
+const golaDe = (f: THREE.Material): THREE.Material => {
+  let m = GOLA_MATS.get(f);
+  if (!m) { m = new THREE.MeshLambertMaterial({ map: (f as THREE.MeshLambertMaterial).map ?? null, color: 0x8a8a8a }); GOLA_MATS.set(f, m); }
+  return m;
+};
+const GOLA_COLOR = 0x6e5f4c;
 const caja = (g: THREE.Group, w: number, h: number, d: number, x: number, y: number, z: number, color: number, op = 1) => {
-  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(color, op));
+  const material = FRENTE && color === C.puerta ? FRENTE : FRENTE && color === GOLA_COLOR ? golaDe(FRENTE) : mat(color, op);
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
   m.position.set(x, y, z); g.add(m); return m;
 };
 const cilindro = (g: THREE.Group, rt: number, rb: number, h: number, x: number, y: number, z: number, color: number, seg = 12) => {
@@ -34,9 +47,14 @@ function puertas(g: THREE.Group, w: number, h: number, d: number, y0: number, n:
   for (let i = 0; i < n; i++) {
     const cx = -w / 2 + pw * (i + 0.5);
     caja(g, pw - 0.012, h - 0.012, 0.012, cx, y0 + h / 2, z, C.puerta);
-    // manija: barra vertical cerca del centro de la pared de al lado
-    const mx = cx + (i % 2 === 0 ? 1 : -1) * (pw / 2 - 0.045);
-    caja(g, 0.012, Math.min(0.2, h * 0.35), 0.014, n === 1 ? cx + pw / 2 - 0.05 : mx, y0 + (manijaArriba ? h - Math.min(0.2, h * 0.35) / 2 - 0.05 : Math.min(0.2, h * 0.35) / 2 + 0.05), z + 0.012, C.manija);
+    if (CON_MANIJAS) {
+      // manija: barra vertical cerca del centro de la pared de al lado
+      const mx = cx + (i % 2 === 0 ? 1 : -1) * (pw / 2 - 0.045);
+      caja(g, 0.012, Math.min(0.2, h * 0.35), 0.014, n === 1 ? cx + pw / 2 - 0.05 : mx, y0 + (manijaArriba ? h - Math.min(0.2, h * 0.35) / 2 - 0.05 : Math.min(0.2, h * 0.35) / 2 + 0.05), z + 0.012, C.manija);
+    } else {
+      // gola: canal en el borde superior de los inferiores y en el borde inferior de los superiores
+      caja(g, pw - 0.03, 0.03, 0.008, cx, manijaArriba ? y0 + h - 0.021 : y0 + 0.021, z + 0.008, GOLA_COLOR);
+    }
   }
 }
 function gavetas(g: THREE.Group, w: number, h: number, d: number, n: number) {
@@ -44,7 +62,8 @@ function gavetas(g: THREE.Group, w: number, h: number, d: number, n: number) {
   for (let i = 0; i < n; i++) {
     const cy = gh * (i + 0.5);
     caja(g, w - 0.012, gh - 0.012, 0.012, 0, cy, z, C.puerta);
-    caja(g, Math.min(0.28, w * 0.5), 0.012, 0.014, 0, cy + gh / 2 - 0.045, z + 0.012, C.manija);
+    if (CON_MANIJAS) caja(g, Math.min(0.28, w * 0.5), 0.012, 0.014, 0, cy + gh / 2 - 0.045, z + 0.012, C.manija);
+    else caja(g, w - 0.03, 0.03, 0.008, 0, cy + gh / 2 - 0.021, z + 0.008, GOLA_COLOR);   // gola en el borde de cada gaveta
   }
 }
 const nPuertas = (w: number) => (w <= 0.45 ? 1 : w <= 0.8 ? 2 : w <= 1.15 ? 3 : 4);
@@ -73,6 +92,7 @@ function lavaplatos(g: THREE.Group, w: number, d: number, yTop: number, doble: b
 }
 
 export function crearMueble3D(key: string, row: "upper" | "lower" | "tall", w: number, h: number, d: number, op: OpcionesMueble = {}): MuebleConstruido {
+  CON_MANIJAS = !!op.manijas; FRENTE = op.frente ?? null;
   const g = new THREE.Group();
   const sup = row === "upper";
   const color = op.seleccionado ? 0xbdeff5 : sup ? C.maderaSup : C.madera;
@@ -184,7 +204,7 @@ export function crearMueble3D(key: string, row: "upper" | "lower" | "tall", w: n
       case "torreHornos": {
         caja(g, w - 0.04, 0.4, 0.014, 0, h * 0.42, z, C.acero); caja(g, w - 0.14, 0.26, 0.018, 0, h * 0.42, z + 0.008, C.vidrioHorno);
         caja(g, w - 0.04, 0.4, 0.014, 0, h * 0.42 + 0.46, z, C.acero); caja(g, w - 0.14, 0.26, 0.018, 0, h * 0.42 + 0.46, z + 0.008, C.vidrioHorno);
-        caja(g, w - 0.04, 0.2, 0.014, 0, h * 0.42 - 0.34, z, C.puerta); caja(g, w * 0.4, 0.012, 0.016, 0, h * 0.42 - 0.26, z + 0.01, C.manija);
+        caja(g, w - 0.04, 0.2, 0.014, 0, h * 0.42 - 0.34, z, C.puerta); if (CON_MANIJAS) caja(g, w * 0.4, 0.012, 0.016, 0, h * 0.42 - 0.26, z + 0.01, C.manija); else caja(g, w - 0.06, 0.028, 0.008, 0, h * 0.42 - 0.26, z + 0.012, GOLA_COLOR);
         caja(g, w - 0.04, h * 0.3, 0.012, 0, h * 0.86, z, C.puerta);
         break;
       }
@@ -207,6 +227,7 @@ export function crearMueble3D(key: string, row: "upper" | "lower" | "tall", w: n
  * Se dibuja en el marco de la pared que lo lleva: x a lo largo de la pared, z hacia la cocina (por `sg`), la esquina al final de la pared (xFin) y la pared vecina a su derecha.
  */
 export function crearEsquinero3D(row: "lower" | "upper", ancho: number, alto: number, fondo: number, sg: number, xFin: number, z0: number, op: OpcionesMueble = {}): MuebleConstruido {
+  CON_MANIJAS = !!op.manijas; FRENTE = op.frente ?? null;
   const g = new THREE.Group();
   const xE = xFin - z0, X0 = xE - ancho;           // la cara de la pared vecina está en xE
   const lower = row === "lower";
@@ -227,13 +248,15 @@ export function crearEsquinero3D(row: "lower" | "upper", ancho: number, alto: nu
   // Los dos frentes del rincón de la L (cada uno de «ancho − fondo» de largo), con su puerta y su manija
   const largoF = ancho - fondo, yIni = zocalo + 0.012, hf = hCuerpo - zocalo - 0.024;
   const zf = (z: number) => sg * z;
-  const puerta = (w: number, h: number, d: number, x: number, y: number, z: number, color: number) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(color)); m.position.set(x, y, zf(z)); g.add(m); return m; };
+  const puerta = (w: number, h: number, d: number, x: number, y: number, z: number, color: number) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), FRENTE && color === C.puerta ? FRENTE : FRENTE && color === GOLA_COLOR ? golaDe(FRENTE) : mat(color)); m.position.set(x, y, zf(z)); g.add(m); return m; };
   // frente del brazo A (mira hacia la cocina): en z = z0 + fondo
   puerta(largoF - 0.012, hf, 0.012, X0 + largoF / 2, yIni + hf / 2, z0 + fondo + 0.006, C.puerta);
-  puerta(0.012, Math.min(0.2, hf * 0.35), 0.014, X0 + largoF - 0.05, yIni + (lower ? hf - 0.12 : 0.12), z0 + fondo + 0.016, C.manija);
+  if (CON_MANIJAS) puerta(0.012, Math.min(0.2, hf * 0.35), 0.014, X0 + largoF - 0.05, yIni + (lower ? hf - 0.12 : 0.12), z0 + fondo + 0.016, C.manija);
+  else puerta(largoF - 0.03, 0.03, 0.008, X0 + largoF / 2, yIni + (lower ? hf - 0.021 : 0.021), z0 + fondo + 0.016, GOLA_COLOR);
   // frente del brazo B (mira hacia la pared A… hacia el rincón): en x = xE − fondo
   const mB = puerta(0.012, hf, largoF - 0.012, xE - fondo - 0.006, yIni + hf / 2, z0 + fondo + largoF / 2, C.puerta); void mB;
-  puerta(0.014, Math.min(0.2, hf * 0.35), 0.012, xE - fondo - 0.016, yIni + (lower ? hf - 0.12 : 0.12), z0 + fondo + 0.05, C.manija);
+  if (CON_MANIJAS) puerta(0.014, Math.min(0.2, hf * 0.35), 0.012, xE - fondo - 0.016, yIni + (lower ? hf - 0.12 : 0.12), z0 + fondo + 0.05, C.manija);
+  else puerta(0.008, 0.03, largoF - 0.03, xE - fondo - 0.016, yIni + (lower ? hf - 0.021 : 0.021), z0 + fondo + largoF / 2, GOLA_COLOR);
   if (lower) { // un entrepaño insinuado en el rincón (se ve en el modelo de referencia)
     const e = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.01, 0.01), mat(C.madera)); e.visible = false; g.add(e);
   }

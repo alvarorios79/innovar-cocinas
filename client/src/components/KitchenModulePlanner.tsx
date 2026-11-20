@@ -879,6 +879,11 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
             El diseño lo marcan los inferiores: los superiores se arman solos
             <span className="text-white/35">(lavaplatos→platero, estufa→extractor, cajoneros→almacenamiento; botellero/basurero/especiero pegados al esquinero agrandan el de arriba)</span>
           </label>
+          <label className="flex items-center gap-2 text-xs text-white/70 cursor-pointer">
+            <input type="checkbox" className="h-4 w-4 accent-blue-500" checked={plan.conManijas === true}
+              onChange={(e) => edit(p => { p.conManijas = e.target.checked; })} />
+            <span>Con manijas <span className="text-white/45">(solo si el cliente lo pide; por defecto es sistema gola, sin manijas)</span></span>
+          </label>
 
           {vista3d && (
             <div className="space-y-2">

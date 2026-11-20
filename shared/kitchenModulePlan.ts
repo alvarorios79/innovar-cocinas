@@ -120,6 +120,8 @@ export interface ModulePlan {
   alacenaEntrepanosWidth?: number;
   specialWidths?: Record<string, number>;   // medida propia de un módulo de piso a techo (candado abierto); sin valor = medida estándar
   paintAll?: boolean;
+  colorExt?: string; colorSup?: string; colorInf?: string;   // color orientativo de los frentes en el 3D (nombre del diseño del catálogo): todo, superiores, inferiores. No cambia precios ni descripción
+  conManijas?: boolean;  // por defecto las cocinas son estilo gola (sin manijas); true = con manijas, solo si el cliente lo pide
   autoUpper?: boolean;   // al agregar un inferior, agregar su superior (por defecto sí)
   suppress?: string[];   // superiores automáticos que el usuario quitó a propósito ("idInferior:clave")
   specialPos?: Record<string, { u: number; l: number; ou?: number; ol?: number; gu?: number; gl?: number }>; // posición (índice) de cada módulo de piso a techo en cada fila
@@ -196,6 +198,8 @@ export function normalizePlan(raw: any, config: any): ModulePlan {
     alacenaEntrepanosWidth: base.alacenaEntrepanosWidth,
     specialWidths: base.specialWidths || {},
     paintAll: base.paintAll !== false,
+    conManijas: base.conManijas === true,
+    colorExt: base.colorExt || undefined, colorSup: base.colorSup || undefined, colorInf: base.colorInf || undefined,
     specialPos: base.specialPos || {},
     defaultWidth: base.defaultWidth || {},
     paintRows: base.paintRows || {},

@@ -1,5 +1,5 @@
 import { registrarAlVolverDeWhatsApp } from "@/lib/whatsappEnvio";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -49,6 +49,8 @@ export function QuotationGroupCard({
 }: QuotationGroupCardProps) {
   const utils = trpc.useUtils();
   const [selectedVersionId, setSelectedVersionId] = useState(group.activeVersion.id);
+  // Si aparece una versión nueva (o cambia la más reciente), la tarjeta pasa a mostrarla
+  useEffect(() => { setSelectedVersionId(group.activeVersion.id); }, [group.activeVersion.id]);
   const [showValues, setShowValues] = useState(false);
   const [showComparator, setShowComparator] = useState(false);
   // Celular: los botones menos usados van detrás de "Más"

@@ -1793,15 +1793,18 @@ export async function getAllQuotationsGroupedByBase(options?: { page?: number; l
 
   // Convertir a array y validar estructura
   let grouped = Array.from(groupedMap.values()).map(group => {
+    // Versiones de la más nueva a la más antigua (por número de versión, no por texto: "v10" va después de "v9")
+    const versionesOrdenadas = [...(group.versions ?? [])].sort((a: any, b: any) => (Number(b.versionNumber) || 1) - (Number(a.versionNumber) || 1) || (b.id - a.id));
     return {
       baseQuotationId: group.baseQuotationId ?? null,
       quotationNumber: group.quotationNumber ?? '',
       client: group.client ?? null,
-      status: group.status ?? 'pendiente',
+      status: versionesOrdenadas[0]?.status ?? group.status ?? 'pendiente',
       createdAt: group.createdAt ?? new Date(),
-      activeVersion: group.activeVersion ?? null,
-      versions: group.versions ?? [],
-      versionIds: group.versions?.map((v: any) => v.id) ?? [],
+      activeVersion: versionesOrdenadas[0] ?? group.activeVersion ?? null, // la versión más nueva
+      versions: versionesOrdenadas,
+      versionCount: versionesOrdenadas.length, // la tarjeta lo usa para mostrar V1/V2, el selector y el comparador
+      versionIds: versionesOrdenadas.map((v: any) => v.id),
       hasProject: false, // Se calculara despues
     };
   });

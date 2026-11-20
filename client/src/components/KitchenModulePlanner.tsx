@@ -120,6 +120,7 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
   const result = useMemo(() => computePlan(plan, config), [plan, config]);
   const specials = activeSpecials(plan, config);
   const [sel, setSel] = useState<Sel>(null);
+  const [altoAbierto, setAltoAbierto] = useState<string | null>(null);   // módulo alto cuyo candado se abrió para escribir su medida
   const [showExtras, setShowExtras] = useState(false);       // acercar / alejar el dibujo
   const [activaT, setActivaT] = useState(0);                // pared (tramo) a la que se agregan los módulos nuevos
   const [falla3d, setFalla3d] = useState(false);              // si el navegador no puede dibujar en 3D, las tarjetas se muestran directamente
@@ -423,16 +424,16 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
     // Candado de los módulos de piso a techo: cerrado = medida estándar; al tocarlo se abre y se puede ampliar o reducir (electrodoméstico especial, completar la pared)
     const renderMedidaAlta = (key: string, estandar: number) => {
       const propia = plan.specialWidths?.[key];
-      const abierto = !!propia && Math.abs(propia - estandar) > 0.001;
-      const actual = abierto ? propia! : estandar;
+      const abierto = (!!propia && Math.abs(propia - estandar) > 0.001) || altoAbierto === key;
+      const actual = propia && Math.abs(propia - estandar) > 0.001 ? propia : estandar;
       const poner = (v: number) => edit(p => { const sw = { ...(p.specialWidths || {}) }; if (v > 0 && Math.abs(v - estandar) > 0.001) sw[key] = round2(v); else delete sw[key]; p.specialWidths = sw; });
       return abierto ? (
         <div className="space-y-1.5">
           <MedidaStepper valor={actual} onCambio={poner} />
-          <button type="button" className="h-9 w-full rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold text-white" onClick={() => poner(estandar)}>🔒 Volver a {m2(estandar)} m</button>
+          <button type="button" className="h-9 w-full rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold text-white" onClick={() => { setAltoAbierto(null); poner(estandar); }}>🔒 Volver a {m2(estandar)} m</button>
         </div>
       ) : (
-        <button type="button" className="h-9 w-full rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold text-white" onClick={() => poner(round2(estandar + 0.05))}
+        <button type="button" className="h-9 w-full rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold text-white" onClick={() => setAltoAbierto(key)}
           title="Cambiar la medida de este módulo (electrodoméstico especial o para completar la pared)">🔒 Medida fija {m2(estandar)} m · tocar para cambiarla</button>
       );
     };
@@ -457,6 +458,34 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
       );
     };
     // Columnas según el ANCHO DEL PANEL (no el de la pantalla): en el panel de pantalla completa van 2 y dentro de la cotización 2 o 3
+    // Centímetros sueltos: si a una pared le faltan (o le sobran) unos centímetros, un toque se los suma (o resta) al módulo que pueda absorberlos
+    const candidatoAjuste = (t: number, row: PlanRow, delta: number): PlanModule | null => {
+      const lista = plan.tramos[t][row].filter(m => {
+        const c = CATALOG_BY_KEY[m.key];
+        if (!c || c.locked || c.corner || c.noPieces || m.alsoTramo !== undefined || m.lockAt !== undefined || (m.autoOf && !m.anchoManual)) return false;
+        const w = round2(m.width + delta);
+        return w >= (c.min ?? 0.1) - 1e-9 && (!c.max || w <= c.max + 1e-9);
+      });
+      const idSel = sel && "id" in sel && sel.t === t && sel.row === row ? sel.id : null;
+      lista.sort((a, b) => (a.id === idSel ? -1 : b.id === idSel ? 1 : 0) || (CATALOG_BY_KEY[b.key]?.flexible ? 1 : 0) - (CATALOG_BY_KEY[a.key]?.flexible ? 1 : 0) || b.width - a.width);
+      return lista[0] ?? null;
+    };
+    const completarFila = (t: number, row: PlanRow) => {
+      const tr = plan.tramos[t];
+      const delta = round2(tr.length - rowUsed(plan, t, row, config));
+      const m = candidatoAjuste(t, row, delta);
+      if (!m) return;
+      edit(p => { setModuleWidth(p, t, row, m.id, round2(m.width + delta), config); });
+    };
+    const ajustes: Array<{ t: number; row: PlanRow; delta: number; m: PlanModule | null }> = [];
+    plan.tramos.forEach((tt, i) => {
+      if (!(tt.length > 0)) return;
+      (tt.isIsland ? ["lower"] : ["lower", "upper"] as PlanRow[]).forEach((r) => {
+        const row = r as PlanRow;
+        const delta = round2(tt.length - rowUsed(plan, i, row, config));
+        if (Math.abs(delta) >= 0.005 && Math.abs(delta) <= 0.15) ajustes.push({ t: i, row, delta, m: candidatoAjuste(i, row, delta) });
+      });
+    });
     const rejilla = enPanel ? "grid grid-cols-2 gap-2.5" : "grid grid-cols-2 lg:grid-cols-3 gap-2.5";
     return (
       <div className="space-y-4">
@@ -497,6 +526,21 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
             })}
           </div>
           <p className="text-xs text-white/55">Toca una pared (aquí o en el 3D) para elegirla. Los módulos nuevos se agregan a la pared elegida y los puedes arrastrar a otra o tocarlos y usar «Pasar a…».</p>
+          {ajustes.length > 0 && (
+            <div className="rounded-lg border border-amber-400/40 bg-amber-900/15 p-2 space-y-1.5">
+              <p className="text-xs font-semibold text-amber-200">Centímetros sueltos: se pueden completar con un toque</p>
+              {ajustes.map(a => (
+                <div key={`${a.t}${a.row}`} className="flex flex-wrap items-center gap-2 text-xs text-white/80">
+                  <span className="flex-1 min-w-[150px]">{plan.tramos[a.t].name} · {a.row === "lower" ? "abajo" : "arriba"}: {a.delta > 0 ? `faltan ${m2(a.delta)} m` : `te pasas ${m2(-a.delta)} m`}</span>
+                  {a.m ? (
+                    <button type="button" onClick={() => completarFila(a.t, a.row)} className="h-8 px-3 rounded bg-amber-600 hover:bg-amber-500 text-white font-bold">
+                      {a.delta > 0 ? "Sumar" : "Restar"} {m2(Math.abs(a.delta))} m a {CATALOG_BY_KEY[a.m.key]?.short || a.m.key} ({m2(a.m.width)} → {m2(a.m.width + a.delta)})
+                    </button>
+                  ) : <span className="text-amber-300">Ningún módulo de esa fila se puede ajustar: cambia el largo de la pared o la medida de un módulo.</span>}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
         {renderControlesBloque()}
         <div className="rounded-lg px-3 py-2 bg-teal-900/60 border border-primary/50 text-sm font-bold uppercase tracking-wider text-teal-100">▼ Módulos inferiores</div>

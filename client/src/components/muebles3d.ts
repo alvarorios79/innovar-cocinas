@@ -100,7 +100,8 @@ export function crearMueble3D(key: string, row: "upper" | "lower" | "tall", w: n
   // Inferior terminado = 0,90 m desde el piso: zócalo de 10 cm + carcasa + losa de 4 cm. Los superiores y los altos no llevan zócalo ni losa.
   const ZOC = row === "lower" ? 0.10 : 0;
   const cuerpoAlto = row === "lower" ? h - 0.04 - ZOC : h;
-  const cuerpo = new THREE.Mesh(new THREE.BoxGeometry(w, cuerpoAlto, d), op.interior && !op.seleccionado ? op.interior : mat(color, 1));
+  // La carcasa se ve por los costados y por arriba: lleva el color EXTERIOR elegido (el interior solo se vería con las puertas abiertas)
+  const cuerpo = new THREE.Mesh(new THREE.BoxGeometry(w, cuerpoAlto, d), FRENTE && !op.seleccionado ? FRENTE : mat(color, 1));
   cuerpo.position.set(0, ZOC + cuerpoAlto / 2, 0); g.add(cuerpo);
 
   if (row === "lower") {
@@ -185,7 +186,7 @@ export function crearMueble3D(key: string, row: "upper" | "lower" | "tall", w: n
       case "nichoNevecon": case "nichoNevera": {
         const ancho = key === "nichoNevecon" ? w : w;
         const altoNev = Math.min(h - 0.35, 1.85);
-        cuerpo.material = mat(op.seleccionado ? 0xbdeff5 : 0x9a9488);
+        cuerpo.material = FRENTE && !op.seleccionado ? FRENTE : mat(op.seleccionado ? 0xbdeff5 : 0x9a9488);
         caja(g, ancho - 0.06, altoNev, d - 0.06, 0, altoNev / 2 + 0.03, 0.02, C.nevera);
         const hf = altoNev;
         if (key === "nichoNevecon") {
@@ -198,7 +199,7 @@ export function crearMueble3D(key: string, row: "upper" | "lower" | "tall", w: n
           caja(g, 0.016, hf * 0.45, 0.03, ancho * 0.36, hf * 0.3, d / 2, C.manija);
         }
         // gabinete superior sobre la nevera (hasta el techo)
-        caja(g, ancho - 0.02, h - altoNev - 0.06, d - 0.02, 0, altoNev + 0.06 + (h - altoNev - 0.06) / 2, 0, C.maderaSup);
+        caja(g, ancho - 0.02, h - altoNev - 0.066, d - 0.02, 0, altoNev + 0.06 + (h - altoNev - 0.066) / 2, 0, C.puerta);   // 6 mm más bajo que la carcasa: si llegara al mismo nivel, las dos tapas se «pelean» y se ve rayado
         caja(g, ancho - 0.04, h - altoNev - 0.08, 0.012, 0, altoNev + 0.07 + (h - altoNev - 0.08) / 2, z, C.puerta);
         break;
       }
@@ -237,7 +238,7 @@ export function crearEsquinero3D(row: "lower" | "upper", ancho: number, alto: nu
     const shape = new THREE.Shape(pts.map(([x, z]) => new THREE.Vector2(x, -sg * z)));
     const geo = new THREE.ExtrudeGeometry(shape, { depth: h, bevelEnabled: false });
     geo.rotateX(-Math.PI / 2); geo.translate(0, y0, 0);
-    const m = new THREE.Mesh(geo, MESON && color === C.losa ? MESON : op.interior && !op.seleccionado && (color === C.madera || color === C.maderaSup) ? op.interior : mat(color));
+    const m = new THREE.Mesh(geo, MESON && color === C.losa ? MESON : FRENTE && !op.seleccionado && (color === C.madera || color === C.maderaSup) ? FRENTE : mat(color));
     g.add(m); return m;
   };
   const L = (arm: number, th: number, extra = 0): Array<[number, number]> => [[X0, z0], [xE, z0], [xE, z0 + arm + extra], [xE - th - extra, z0 + arm + extra], [xE - th - extra, z0 + th + extra], [X0, z0 + th + extra]];

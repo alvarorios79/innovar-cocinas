@@ -105,6 +105,7 @@ export function ColorFrentes({ plan, onEdit, mesonTipo, mesonIslaTipo }: { plan:
               <button key={v} type="button" onClick={() => setDonde(v)} className={`px-2 py-1 rounded text-[11px] font-semibold border ${donde === v ? "bg-primary text-white border-primary" : "bg-white/5 text-white/70 border-white/15"}`}>{NOMBRE[v]}{plan[CAMPO[v]] ? " ●" : ""}</button>
             ))}
           </div>
+          {donde === "int" && <p className="text-[11px] text-white/55 leading-snug">El interior es el color de la carcasa por dentro: se guarda para el diseñador, pero con las puertas cerradas no se ve en el 3D.</p>}
           {esPiedra && (
             <p className={`text-[11px] leading-snug ${tipoDe ? "text-white/70" : "text-amber-300"}`}>
               {tipoDe ? <>Material de la cotización: <b>{tipoDe === "cuarzo" ? "Cuarzo" : tipoDe === "granito" ? "Granito" : "Sinterizado"}</b>. Solo cambia el color o la veta; el material es el real.</> : "Elige primero el «Tipo de mesón» en la cotización: el 3D usa ese material."}

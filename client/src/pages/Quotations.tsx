@@ -225,6 +225,8 @@ function buildKitchenDescription(config: KitchenConfig): string {
     if (ct.depthSurcharge === "30percent") mesonExtras.push("fondo 61-90cm (+30%)");
     if (ct.depthSurcharge === "double") mesonExtras.push("fondo 91-120cm (×2)");
     mesonText = ` Mesón en ${mesonNombre}${mesonExtras.length > 0 ? ' con ' + mesonExtras.join(', ') : ''}.`;
+  }  else if ((ct as any)?.sinMeson && !['solo_superiores', 'puertas_tapas', 'solo_acabados'].includes(config.shape)) {
+    mesonText = " Mesón no incluido.";
   }
 
   return `Cocina integral ${clase}${meters}. Material aglomerado tipo RH, color a elegir por el cliente.${modulosText}${mesonText} (Diseño por definir)`;
@@ -1108,6 +1110,7 @@ export default function Quotations() {
               type: item.kitchenConfig.countertop?.type ?? "",
               meters: item.kitchenConfig.countertop?.meters ?? 0,
               depthSurcharge: item.kitchenConfig.countertop?.depthSurcharge ?? "none",
+              sinMeson: (item.kitchenConfig.countertop as any)?.sinMeson ?? false,
             },
             island: {
               enabled: item.kitchenConfig.island?.enabled ?? false,
@@ -3665,7 +3668,7 @@ export default function Quotations() {
                                   <Label>Tipo de Mesón</Label>
                                   <Select 
                                     value={item.kitchenConfig?.countertop.type || "ninguno"} 
-                                    onValueChange={(value) => updateKitchenConfig(index, "countertop.type", value === "ninguno" ? "" : value)}
+                                    onValueChange={(value) => updateKitchenConfig(index, "__multi", { "countertop.type": value === "ninguno" ? "" : value, "countertop.sinMeson": value === "ninguno" })}
                                   >
                                     <SelectTrigger>
                                       <SelectValue placeholder="Selecciona tipo" />

@@ -225,6 +225,9 @@ export function buildKitchenQuoteDescription(rawConfig: any, manualDescription?:
     if (ct.incluyeLaterales) push(`  - ${ct.cantLaterales || 1} lateral${(ct.cantLaterales || 1) > 1 ? "es" : ""} en piedra (${((ct.cantLaterales || 1) * 0.9).toFixed(2)} ml)`);
     if (ct.incluyeRegrueso) push("  - Regrueso adicional (0.90 ml)");
     { const lv = textoLavaplatos(ct); if (lv) push(`  - ${lv}`); }
+  } else if (!isOnlyFinishes && ct && (ct as any).sinMeson && !['solo_superiores', 'puertas_tapas'].includes(config.shape)) {
+    section("MESÓN:");
+    push("• Mesón no incluido");
   }
 
   // ── Isla ────────────────────────────────────────────────────────────────

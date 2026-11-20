@@ -3662,15 +3662,16 @@ export default function Quotations() {
                               </Label>
                               <div className="grid grid-cols-1 gap-2 sm:gap-3">
                                 <div>
-                                  <Label>Tipo de Mesón *</Label>
+                                  <Label>Tipo de Mesón</Label>
                                   <Select 
-                                    value={item.kitchenConfig?.countertop.type || ""} 
-                                    onValueChange={(value) => updateKitchenConfig(index, "countertop.type", value)}
+                                    value={item.kitchenConfig?.countertop.type || "ninguno"} 
+                                    onValueChange={(value) => updateKitchenConfig(index, "countertop.type", value === "ninguno" ? "" : value)}
                                   >
                                     <SelectTrigger>
                                       <SelectValue placeholder="Selecciona tipo" />
                                     </SelectTrigger>
                                     <SelectContent>
+                                      <SelectItem value="ninguno">Sin mesón</SelectItem>
                                       <SelectItem value="granito">Granito ({formatPrice(precioPiedraML("granito"))}/ml)</SelectItem>
                                       <SelectItem value="quarzone">Cuarzo ({formatPrice(precioPiedraML("quarzone"))}/ml)</SelectItem>
                                       <SelectItem value="sinterizado">Sinterizado ({formatPrice(precioPiedraML("sinterizado"))}/ml)</SelectItem>

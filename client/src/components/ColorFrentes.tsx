@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   BRAND_OF_CATEGORY, PRIMADERA_CATEGORY_LABELS, PRIMADERA_DESIGNS, WOOD_BRANDS, woodHasPhoto, woodShortName, woodSwatchUrl,
@@ -28,6 +28,15 @@ const CAMPO: Record<Donde, "colorExt" | "colorSup" | "colorInf"> = { ext: "color
 
 export function ColorFrentes({ plan, onEdit }: { plan: ModulePlan; onEdit: (fn: (p: ModulePlan) => void) => void }) {
   const [abierto, setAbierto] = useState(false);
+  const boton = useRef<HTMLButtonElement>(null);
+  const [pos, setPos] = useState<{ top: number; right: number; max: number }>({ top: 0, right: 0, max: 400 });
+  const abrir = () => {
+    if (!abierto && boton.current) {
+      const r = boton.current.getBoundingClientRect();
+      setPos({ top: r.bottom + 4, right: Math.max(8, window.innerWidth - r.right), max: Math.max(220, window.innerHeight - r.bottom - 16) });
+    }
+    setAbierto((x) => !x);
+  };
   const [donde, setDonde] = useState<Donde>("ext");
   const [todos, setTodos] = useState(false);
   const [buscar, setBuscar] = useState("");
@@ -46,14 +55,27 @@ export function ColorFrentes({ plan, onEdit }: { plan: ModulePlan; onEdit: (fn: 
       {grande && <span className="block px-1 py-0.5 text-[10px] leading-tight text-white/80 truncate">{woodShortName(d)}</span>}
     </button>
   );
+  // Dentro de la ventana de la cotización un campo de texto fuera de ella pierde el foco (la ventana lo retiene): la búsqueda se escribe con el teclado, sin campo
+  useEffect(() => {
+    if (!(abierto && todos)) return;
+    const tecla = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (e.key === "Escape") { e.stopPropagation(); setTodos(false); return; }
+      if (e.key === "Backspace") { e.preventDefault(); setBuscar((b) => b.slice(0, -1)); return; }
+      if (e.key.length === 1) { e.preventDefault(); setBuscar((b) => (b + e.key).slice(0, 30)); }
+    };
+    window.addEventListener("keydown", tecla, true);
+    return () => window.removeEventListener("keydown", tecla, true);
+  }, [abierto, todos]);
   const q = buscar.trim().toLowerCase();
   const lista = conFoto.filter((d) => !q || d.name.toLowerCase().includes(q) || d.hint.toLowerCase().includes(q));
   return (
     <div className="relative">
-      <button type="button" onClick={() => setAbierto((x) => !x)} aria-expanded={abierto}
+      <button ref={boton} type="button" onClick={abrir} aria-expanded={abierto}
         className={`px-2.5 py-1.5 rounded text-xs font-semibold border min-h-[32px] ${hayColor ? "bg-primary text-white border-primary" : "bg-black/60 text-white border-white/20"}`}>🎨 Color</button>
-      {abierto && (
-        <div className="absolute right-0 top-full mt-1 z-30 w-[300px] max-w-[88vw] rounded-lg border border-white/20 bg-[#10181a] p-2.5 shadow-xl space-y-2" onPointerDown={(e) => e.stopPropagation()}>
+      {abierto && createPortal(
+        <div data-pantalla-completa className="fixed inset-0" style={{ pointerEvents: "auto", zIndex: 100001 }} onPointerDown={() => setAbierto(false)}>
+        <div className="fixed w-[300px] max-w-[88vw] overflow-y-auto rounded-lg border border-white/20 bg-[#10181a] p-2.5 shadow-xl space-y-2" style={{ top: pos.top, right: pos.right, maxHeight: pos.max }} onPointerDown={(e) => e.stopPropagation()} onWheel={(e) => e.stopPropagation()}>
           <p className="text-[11px] text-white/60 leading-snug">Color de los frentes <b>orientativo</b> para mostrar al cliente. El color definitivo se elige al aprobar el diseño.</p>
           <div className="flex gap-1">
             {([["ext", "Todo"], ["sup", "Superiores"], ["inf", "Inferiores"]] as const).map(([v, t]) => (
@@ -67,15 +89,19 @@ export function ColorFrentes({ plan, onEdit }: { plan: ModulePlan; onEdit: (fn: 
           {actual && <p className="text-[11px] text-cyan-200">{donde === "ext" ? "Todo" : donde === "sup" ? "Superiores" : "Inferiores"}: <b>{woodShortName(actual)}</b></p>}
           <button type="button" onClick={() => setTodos((x) => !x)} className="w-full px-2 py-1.5 rounded bg-white/10 hover:bg-white/20 text-xs font-semibold text-white">{todos ? "▲ Ocultar catálogo" : "▼ Ver todos"}</button>
         </div>
-      )}
+        </div>, document.body)}
       {abierto && todos && createPortal(
-        <div data-pantalla-completa className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 p-3" style={{ pointerEvents: "auto" }} onPointerDown={(e) => e.stopPropagation()} onClick={() => setTodos(false)}>
+        <div data-pantalla-completa className="fixed inset-0 flex items-center justify-center bg-black/60 p-3" style={{ pointerEvents: "auto", zIndex: 100002 }} onPointerDown={(e) => e.stopPropagation()} onClick={() => setTodos(false)}>
           <div className="w-full max-w-[640px] max-h-[88vh] rounded-xl border border-white/20 bg-[#10181a] p-3 space-y-2 flex flex-col" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center gap-2">
               <p className="flex-1 text-sm font-bold text-white">Todos los colores · {donde === "ext" ? "Todo" : donde === "sup" ? "Superiores" : "Inferiores"}</p>
               <button type="button" onClick={() => setTodos(false)} className="px-3 h-8 rounded bg-white/10 hover:bg-white/20 text-xs font-semibold text-white">Cerrar</button>
             </div>
-            <input value={buscar} onChange={(e) => setBuscar(e.target.value)} placeholder="Buscar color o madera…" className="w-full h-9 px-2 rounded bg-black/40 border border-white/20 text-sm text-white focus:outline-none" />
+            <div className="w-full h-9 px-2 rounded bg-black/40 border border-white/20 text-sm flex items-center gap-2">
+              <span aria-hidden>🔎</span>
+              <span className={buscar ? "text-white" : "text-white/40"}>{buscar || "Escribe para buscar un color o madera…"}</span>
+              {buscar && <button type="button" onClick={() => setBuscar("")} className="ml-auto text-xs text-white/60 hover:text-white">Borrar</button>}
+            </div>
             <div className="flex-1 overflow-y-auto overscroll-contain space-y-3 pr-1" onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()}>
               {WOOD_BRANDS.map((marca) => {
                 const cats = Array.from(new Set(lista.filter((d) => BRAND_OF_CATEGORY[d.category] === marca).map((d) => d.category)));

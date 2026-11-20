@@ -5,7 +5,7 @@ import * as THREE from "three";
 // Son figuras simples (cajas y cilindros) para que no pese en la tablet. El «frente» del mueble mira hacia +z.
 // Origen: centro de la base del mueble. Ancho en x, alto en y, fondo en z.
 
-export interface OpcionesMueble { seleccionado?: boolean; fantasma?: boolean; claro?: boolean; manijas?: boolean; frente?: THREE.Material | null }
+export interface OpcionesMueble { seleccionado?: boolean; fantasma?: boolean; claro?: boolean; manijas?: boolean; frente?: THREE.Material | null; interior?: THREE.Material | null; meson?: THREE.Material | null }
 export interface MuebleConstruido { grupo: THREE.Group; cuerpo: THREE.Mesh }
 
 const MAT: Record<string, THREE.MeshLambertMaterial> = {};
@@ -22,6 +22,7 @@ const C = {
 // Estilo de apertura: GOLA (por defecto, todas las cocinas Innovar): la misma madera deja un canal para meter los dedos, sin manijas ni tiradores.
 // Solo con manijas si el cliente lo pide. Se dibuja como una franja oscura (el canal) en el borde de la puerta.
 let CON_MANIJAS = false;
+let MESON: THREE.Material | null = null;   // piedra del mesón (el material es el real de la cotización; el color o la veta es orientativo)
 // Color/textura elegida para los frentes (puertas y gavetas). Sin elegir: el tono claro de siempre. La gola toma la misma textura, más oscura.
 let FRENTE: THREE.Material | null = null;
 const GOLA_MATS = new WeakMap<THREE.Material, THREE.Material>();
@@ -32,7 +33,7 @@ const golaDe = (f: THREE.Material): THREE.Material => {
 };
 const GOLA_COLOR = 0x6e5f4c;
 const caja = (g: THREE.Group, w: number, h: number, d: number, x: number, y: number, z: number, color: number, op = 1) => {
-  const material = FRENTE && color === C.puerta ? FRENTE : FRENTE && color === GOLA_COLOR ? golaDe(FRENTE) : mat(color, op);
+  const material = MESON && color === C.losa ? MESON : FRENTE && color === C.puerta ? FRENTE : FRENTE && color === GOLA_COLOR ? golaDe(FRENTE) : mat(color, op);
   const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
   m.position.set(x, y, z); g.add(m); return m;
 };
@@ -92,14 +93,14 @@ function lavaplatos(g: THREE.Group, w: number, d: number, yTop: number, doble: b
 }
 
 export function crearMueble3D(key: string, row: "upper" | "lower" | "tall", w: number, h: number, d: number, op: OpcionesMueble = {}): MuebleConstruido {
-  CON_MANIJAS = !!op.manijas; FRENTE = op.frente ?? null;
+  CON_MANIJAS = !!op.manijas; FRENTE = op.frente ?? null; MESON = op.meson ?? null;
   const g = new THREE.Group();
   const sup = row === "upper";
   const color = op.seleccionado ? 0xbdeff5 : sup ? C.maderaSup : C.madera;
   // Inferior terminado = 0,90 m desde el piso: zócalo de 10 cm + carcasa + losa de 4 cm. Los superiores y los altos no llevan zócalo ni losa.
   const ZOC = row === "lower" ? 0.10 : 0;
   const cuerpoAlto = row === "lower" ? h - 0.04 - ZOC : h;
-  const cuerpo = new THREE.Mesh(new THREE.BoxGeometry(w, cuerpoAlto, d), mat(color, 1));
+  const cuerpo = new THREE.Mesh(new THREE.BoxGeometry(w, cuerpoAlto, d), op.interior && !op.seleccionado ? op.interior : mat(color, 1));
   cuerpo.position.set(0, ZOC + cuerpoAlto / 2, 0); g.add(cuerpo);
 
   if (row === "lower") {
@@ -227,7 +228,7 @@ export function crearMueble3D(key: string, row: "upper" | "lower" | "tall", w: n
  * Se dibuja en el marco de la pared que lo lleva: x a lo largo de la pared, z hacia la cocina (por `sg`), la esquina al final de la pared (xFin) y la pared vecina a su derecha.
  */
 export function crearEsquinero3D(row: "lower" | "upper", ancho: number, alto: number, fondo: number, sg: number, xFin: number, z0: number, op: OpcionesMueble = {}): MuebleConstruido {
-  CON_MANIJAS = !!op.manijas; FRENTE = op.frente ?? null;
+  CON_MANIJAS = !!op.manijas; FRENTE = op.frente ?? null; MESON = op.meson ?? null;
   const g = new THREE.Group();
   const xE = xFin - z0, X0 = xE - ancho;           // la cara de la pared vecina está en xE
   const lower = row === "lower";
@@ -236,7 +237,7 @@ export function crearEsquinero3D(row: "lower" | "upper", ancho: number, alto: nu
     const shape = new THREE.Shape(pts.map(([x, z]) => new THREE.Vector2(x, -sg * z)));
     const geo = new THREE.ExtrudeGeometry(shape, { depth: h, bevelEnabled: false });
     geo.rotateX(-Math.PI / 2); geo.translate(0, y0, 0);
-    const m = new THREE.Mesh(geo, mat(color));
+    const m = new THREE.Mesh(geo, MESON && color === C.losa ? MESON : op.interior && !op.seleccionado && (color === C.madera || color === C.maderaSup) ? op.interior : mat(color));
     g.add(m); return m;
   };
   const L = (arm: number, th: number, extra = 0): Array<[number, number]> => [[X0, z0], [xE, z0], [xE, z0 + arm + extra], [xE - th - extra, z0 + arm + extra], [xE - th - extra, z0 + th + extra], [X0, z0 + th + extra]];
@@ -248,7 +249,7 @@ export function crearEsquinero3D(row: "lower" | "upper", ancho: number, alto: nu
   // Los dos frentes del rincón de la L (cada uno de «ancho − fondo» de largo), con su puerta y su manija
   const largoF = ancho - fondo, yIni = zocalo + 0.012, hf = hCuerpo - zocalo - 0.024;
   const zf = (z: number) => sg * z;
-  const puerta = (w: number, h: number, d: number, x: number, y: number, z: number, color: number) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), FRENTE && color === C.puerta ? FRENTE : FRENTE && color === GOLA_COLOR ? golaDe(FRENTE) : mat(color)); m.position.set(x, y, zf(z)); g.add(m); return m; };
+  const puerta = (w: number, h: number, d: number, x: number, y: number, z: number, color: number) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), MESON && color === C.losa ? MESON : FRENTE && color === C.puerta ? FRENTE : FRENTE && color === GOLA_COLOR ? golaDe(FRENTE) : mat(color)); m.position.set(x, y, zf(z)); g.add(m); return m; };
   // frente del brazo A (mira hacia la cocina): en z = z0 + fondo
   puerta(largoF - 0.012, hf, 0.012, X0 + largoF / 2, yIni + hf / 2, z0 + fondo + 0.006, C.puerta);
   if (CON_MANIJAS) puerta(0.012, Math.min(0.2, hf * 0.35), 0.014, X0 + largoF - 0.05, yIni + (lower ? hf - 0.12 : 0.12), z0 + fondo + 0.016, C.manija);

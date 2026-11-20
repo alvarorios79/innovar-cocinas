@@ -3,7 +3,8 @@ import { createPortal } from "react-dom";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { crearMueble3D, crearEsquinero3D } from "./muebles3d";
-import { ColorFrentes, disenoPorNombre } from "./ColorFrentes";
+import { ColorFrentes, disenoPorNombre, piedraPorNombre, tipoPiedra } from "./ColorFrentes";
+import { countertopSwatchUrl } from "@shared/countertopCatalog";
 import { woodSwatchUrl } from "@shared/primaderaCatalog";
 import { geometriaParedes, ALTO_INFERIOR_CM, ARRANQUE_SUPERIOR_CM, FONDO_INFERIOR_CM, FONDO_SUPERIOR_CM, SEPARACION_PARALELA_POR_DEFECTO } from "@shared/cocinaParedes";
 import { CATALOG_BY_KEY, rowItems, isPainted, round2, type ModulePlan, type PlanRow } from "@shared/kitchenModulePlan";
@@ -83,6 +84,31 @@ function materialColor(nombre: string | undefined, alCargar: () => void): THREE.
     }, undefined, () => { CARGANDO.delete(d.name); });
   }
   return null;   // mientras baja la foto se ve el tono claro de siempre
+}
+
+// Mesón: el MATERIAL es el real de la cotización (cuarzo, granito o sinterizado); el color o la veta es orientativo. Sin diseño elegido, un tono típico del material.
+const TONO_MATERIAL: Record<string, number> = { cuarzo: 0xdedbd5, granito: 0x30343a, sinterizado: 0xd2d5d7 };
+const MATS_PIEDRA = new Map<string, THREE.Material>();
+const CARGANDO_P = new Set<string>();
+function materialMeson(tipo: "granito" | "cuarzo" | "sinterizado" | null, nombre: string | undefined, alCargar: () => void): THREE.Material | null {
+  if (!tipo) return null;
+  const d = piedraPorNombre(nombre);
+  if (d && d.type === tipo && d.photo !== false) {
+    const hecho = MATS_PIEDRA.get(d.code);
+    if (hecho) return hecho;
+    if (!CARGANDO_P.has(d.code)) {
+      CARGANDO_P.add(d.code);
+      new THREE.TextureLoader().load(countertopSwatchUrl(d.code), (t) => {
+        t.colorSpace = THREE.SRGBColorSpace;
+        MATS_PIEDRA.set(d.code, new THREE.MeshLambertMaterial({ map: t }));
+        CARGANDO_P.delete(d.code); alCargar();
+      }, undefined, () => { CARGANDO_P.delete(d.code); });
+    }
+  }
+  const k = "t:" + tipo;
+  let m = MATS_PIEDRA.get(k);
+  if (!m) { m = new THREE.MeshLambertMaterial({ color: TONO_MATERIAL[tipo] }); MATS_PIEDRA.set(k, m); }
+  return m;
 }
 
 function formaDe(layout?: string): string {
@@ -273,6 +299,9 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
         } else return;
 
         const sgx = isBloque ? sgI : sg;
+        const cfg3 = ultimo.current.config;
+        const tipoMeson = tipoPiedra(isBloque ? ((tr.isBar ? cfg3?.bar?.countertopType : cfg3?.island?.countertopType) || cfg3?.countertop?.type) : cfg3?.countertop?.type);
+        const mesonMat = materialMeson(tipoMeson, isBloque ? (plan.colorMesonIsla || plan.colorMeson) : plan.colorMeson, () => api.current?.rebuild());
         const offX = isBloque ? -largoVisible / 2 : 0;
         // Isla/barra: se dibujan con el profundo y la altura que tomó el medidor (si los hay); si no, con las medidas estándar de los inferiores
         const pieza = isBloque ? (tr.isBar ? config?.fromLevantamiento?.barra : config?.fromLevantamiento?.isla) : undefined;
@@ -292,7 +321,7 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
           losa.userData = { pick: true, kind: "losa", t };
           grp.add(losa); pickables.push(losa);
           if (profMeson > profInf + 0.005) {
-            const meson = new THREE.Mesh(new THREE.BoxGeometry(largoVisible + 0.004, 0.04, profMeson), new THREE.MeshLambertMaterial({ color: 0x42464c }));
+            const meson = new THREE.Mesh(new THREE.BoxGeometry(largoVisible + 0.004, 0.04, profMeson), mesonMat ?? new THREE.MeshLambertMaterial({ color: 0x42464c }));
             meson.position.set(0, hInf - 0.02 + 0.002, zc); grp.add(meson);
           }
           const et = texto(`${tr.name} · ${fm(largoVisible)} × ${fm(profMeson)} m`, "#ffe082", 0.12); et.position.set(0, hInf + 0.3, zc); grp.add(et);
@@ -328,7 +357,7 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
         // Muebles: cada uno se dibuja como es (estufa con hornillas, lavaplatos con poceta y llave, gavetas…). Origen del grupo = centro de la base.
         const girar = sgx < 0 ? Math.PI : 0;
         const poner = (key: string, row: "upper" | "lower" | "tall", s0: number, w: number, y0: number, h: number, dIni0: number, prof: number, data: any, selected: boolean, fantasma: boolean, etiqueta: string) => {
-          const mu = crearMueble3D(key, row, w, h, prof, { seleccionado: selected, fantasma, manijas: !!plan.conManijas, frente: materialColor(row === "upper" ? (plan.colorSup || plan.colorExt) : (plan.colorInf || plan.colorExt), () => api.current?.rebuild()) });
+          const mu = crearMueble3D(key, row, w, h, prof, { seleccionado: selected, fantasma, manijas: !!plan.conManijas, frente: materialColor(isBloque ? (plan.colorIsla || plan.colorInf || plan.colorExt) : row === "upper" ? (plan.colorSup || plan.colorExt) : row === "tall" ? (plan.colorAlt || plan.colorExt) : (plan.colorInf || plan.colorExt), () => api.current?.rebuild()), interior: materialColor(plan.colorInt, () => api.current?.rebuild()) , meson: mesonMat });
           mu.grupo.position.set(s0 + w / 2, y0, sgx * (dIni0 + prof / 2));
           mu.grupo.rotation.y = girar;
           mu.cuerpo.userData = data;
@@ -345,7 +374,7 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
           // El esquinero es UN solo mueble en «L» (una carcasa continua): se dibuja una vez, en la pared que lo lleva; el brazo en la pared vecina es parte del mismo mueble
           if (cat.corner && !isBloque) {
             if (it.fromPrev) return;
-            const ec = crearEsquinero3D("lower", it.width, hInf, profInf, sg, it.start + it.width, GROSOR / 2, { seleccionado: selected, manijas: !!plan.conManijas, frente: materialColor(plan.colorInf || plan.colorExt, () => api.current?.rebuild()) });
+            const ec = crearEsquinero3D("lower", it.width, hInf, profInf, sg, it.start + it.width, GROSOR / 2, { seleccionado: selected, manijas: !!plan.conManijas, frente: materialColor(plan.colorInf || plan.colorExt, () => api.current?.rebuild()), interior: materialColor(plan.colorInt, () => api.current?.rebuild()) , meson: mesonMat });
             ec.cuerpo.userData = { pick: true, kind: "mod", t, row: "lower", id: it.mod!.id, start: it.start, w: it.width, corner: true, painted: isPainted(plan, it.mod!, "lower") };
             pickables.push(ec.cuerpo); grp.add(ec.grupo);
             if (cotasRef.current) { const l = texto(`${cat.short} ${fm(it.width)}`, "#ffffff", 0.115); l.position.set(it.start + it.width - 0.3, hInf + 0.1, sg * (GROSOR / 2 + 0.3)); grp.add(l); }
@@ -369,7 +398,7 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
           if (cat.corner) {   // esquinero superior: UN solo mueble en «L» (0,60 × 0,60 m, 0,35 de fondo)
             if (it.fromPrev) return;
             const hs = Math.max(0.3, Math.min(ALTO_SUPERIOR_MAX, alto - arranque));
-            const ec = crearEsquinero3D("upper", it.width, hs, profSup, sg, it.start + it.width, GROSOR / 2, { seleccionado: selected, manijas: !!plan.conManijas, frente: materialColor(plan.colorSup || plan.colorExt, () => api.current?.rebuild()) });
+            const ec = crearEsquinero3D("upper", it.width, hs, profSup, sg, it.start + it.width, GROSOR / 2, { seleccionado: selected, manijas: !!plan.conManijas, frente: materialColor(plan.colorSup || plan.colorExt, () => api.current?.rebuild()), interior: materialColor(plan.colorInt, () => api.current?.rebuild()) });
             ec.grupo.position.y = arranque;
             ec.cuerpo.userData = { pick: true, kind: "mod", t, row: "upper", id: it.mod!.id, start: it.start, w: it.width, corner: true, painted: isPainted(plan, it.mod!, "upper") };
             pickables.push(ec.cuerpo); grp.add(ec.grupo);
@@ -657,7 +686,7 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
         {([["iso", "3D"], ["arriba", "Arriba"], ["frente", "Frente"]] as const).map(([v, t]) => (
           <button key={v} type="button" onClick={() => api.current?.vista(v)} className="px-2.5 py-1.5 rounded bg-black/60 text-white text-xs font-semibold border border-white/20 min-h-[32px]">{t}</button>
         ))}
-        <ColorFrentes plan={props.plan} onEdit={props.onEdit} />
+        <ColorFrentes plan={props.plan} onEdit={props.onEdit} mesonTipo={props.config?.countertop?.type} mesonIslaTipo={(props.config?.bar?.enabled && !props.config?.island?.enabled ? props.config?.bar?.countertopType : props.config?.island?.countertopType) || props.config?.countertop?.type} />
         <button type="button" onClick={() => setVerCotas((x) => !x)} className={`px-2.5 py-1.5 rounded text-xs font-semibold border min-h-[32px] ${verCotas ? "bg-primary text-white border-primary" : "bg-black/60 text-white border-white/20"}`}>Medidas</button>
         <button type="button" onClick={() => void alternarPantalla()} className="px-2.5 py-1.5 rounded bg-black/60 text-white text-xs font-semibold border border-white/20 min-h-[32px]">{pantalla ? "Cerrar" : "Pantalla completa"}</button>
       </div>

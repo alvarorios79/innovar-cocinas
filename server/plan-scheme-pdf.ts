@@ -67,13 +67,13 @@ export function drawSchemePages(doc: any, schemes: SchemeData[], g: Geo, newPage
       const [iso, ...otras] = sc.imagenes3d;
       doc.fontSize(9).fillColor(DARK).font("Helvetica-Bold").text(`${sc.title}${sc.layout ? ` — cocina ${sc.layout}` : ""}`, ML, Y, { width: CW, lineBreak: false });
       Y += 14;
-      const hGrande = Math.min(300, CW / 1.5);
+      const hGrande = Math.min(250, CW / 1.5);
       need(hGrande + 6);
       try { doc.image(iso, ML, Y, { fit: [CW, hGrande], align: "center" }); } catch (e) { console.error("[pdf] imagen 3D:", e); }
       doc.rect(ML, Y, CW, hGrande).lineWidth(0.4).strokeColor(BORDER).stroke();
       Y += hGrande + 6;
       if (otras.length) {
-        const wC = (CW - 8) / Math.min(2, otras.length), hC = wC / 1.5;
+        const wC = (CW - 8) / Math.min(2, otras.length), hC = Math.min(wC / 1.5, 125);
         need(hC + 6);
         otras.slice(0, 2).forEach((im: any, k: number) => {
           const x = ML + k * (wC + 8);
@@ -83,17 +83,18 @@ export function drawSchemePages(doc: any, schemes: SchemeData[], g: Geo, newPage
         Y += hC + 8;
       }
       if (sc.modules.length) {
-        need(14 + Math.ceil(sc.modules.length / 2) * 10);
+        const nCol = 3, filasMod = Math.ceil(sc.modules.length / nCol);
+        need(14 + filasMod * 10);
         doc.fontSize(8).fillColor(DARK).font("Helvetica-Bold").text("Módulos de la cocina", ML, Y, { width: CW, lineBreak: false });
         Y += 12;
-        const mitad = Math.ceil(sc.modules.length / 2);
-        [sc.modules.slice(0, mitad), sc.modules.slice(mitad)].forEach((col: any[], k: number) => {
-          col.forEach((m, i) => {
-            doc.fontSize(7).fillColor(DGRAY).font("Helvetica")
-              .text(`• ${m.qty > 1 ? `${m.qty} × ` : ""}${m.label} (${m.widths.map((w: number) => w.toFixed(2)).join(" + ")} m)`, ML + k * (CW / 2), Y + i * 10, { width: CW / 2 - 6, lineBreak: false });
+        const porCol = Math.ceil(sc.modules.length / nCol);
+        for (let k = 0; k < nCol; k++) {
+          sc.modules.slice(k * porCol, (k + 1) * porCol).forEach((m: any, i: number) => {
+            doc.fontSize(6.8).fillColor(DGRAY).font("Helvetica")
+              .text(`• ${m.qty > 1 ? `${m.qty} × ` : ""}${m.label} (${m.widths.map((w: number) => w.toFixed(2)).join(" + ")} m)`, ML + k * (CW / nCol), Y + i * 10, { width: CW / nCol - 6, lineBreak: false });
           });
-        });
-        Y += mitad * 10 + 6;
+        }
+        Y += filasMod * 10 + 6;
       }
       // Colores y piedra sugeridos, con su nombre y una muestra pequeña (orientativos)
       if (sc.colores && sc.colores.length) {

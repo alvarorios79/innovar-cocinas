@@ -1,5 +1,5 @@
 import PDFDocument from "pdfkit";
-import { createWriteStream, existsSync, readFileSync } from "fs";
+import { createWriteStream, existsSync, readFileSync, renameSync, unlinkSync } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { drawSchemePages } from "./plan-scheme-pdf";
@@ -79,9 +79,11 @@ function fmt(v: string | number): string {
   return isNaN(n) ? "$0" : `$${n.toLocaleString("es-CO", { minimumFractionDigits: 0 })}`;
 }
 
-export async function generateQuotationPDF(data: QuotationData, outputPath: string): Promise<void> {
+/** Dibuja el PDF con el texto del cuerpo `D` puntos más grande. Devuelve el número de hojas. */
+async function renderQuotationPDF(data: QuotationData, outputPath: string, D = 0): Promise<number> {
   return new Promise((resolve, reject) => {
     try {
+      const FSB = (n: number) => n + D;   // tamaño de letra del cuerpo (títulos, logo y pie no cambian)
       const doc = new PDFDocument({ size: "LETTER", margins: { top: 0, bottom: 0, left: 0, right: 0 }, bufferPages: true });
       const stream = createWriteStream(outputPath);
       doc.pipe(stream);
@@ -207,7 +209,7 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
         const lines = String(item.description || "").split("\n");
         const meas = lines.map((l) => {
           const head = isHeadingLine(l);
-          doc.fontSize(8.5).font(head ? "Helvetica-Bold" : "Helvetica");
+          doc.fontSize(FSB(8.5)).font(head ? "Helvetica-Bold" : "Helvetica");
           const h = l.trim() === "" ? 4 : doc.heightOfString(l, { width: 336, lineGap: 1.5 }) + (head ? 3 : 0);
           return { l, head, h: h + (head ? 0 : 0.5) };
         });
@@ -232,7 +234,7 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
           for (let k = i; k < j; k++) {
             const m = meas[k];
             if (m.l.trim() === "") { ly += m.h; continue; }
-            doc.fontSize(8.5).fillColor(m.head ? TEAL : DGRAY).font(m.head ? "Helvetica-Bold" : "Helvetica")
+            doc.fontSize(FSB(8.5)).fillColor(m.head ? TEAL : DGRAY).font(m.head ? "Helvetica-Bold" : "Helvetica")
                .text(m.l, ML + 30, m.head ? ly + 2 : ly, { width: 336, lineGap: 1.5 });
             ly += m.h;
           }
@@ -257,7 +259,8 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
       for (const it of data.items) {
         const filas: Array<{ label: string; amount: number }> = (it as any).desglose || [];
         if (!filas.length) continue;
-        const H = filas.length * 15 + 8;
+        const rowH = 15 + D;
+        const H = filas.length * rowH + 8;
         if (Y + 18 + H + 28 > PH - 48) { doc.addPage(); doc.rect(0, 0, PW, 4).fill(TEAL); Y = 28; }
         doc.rect(ML, Y, CW, 18).fill(DGRAY);
         doc.fontSize(8.5).fillColor(WHITE).font("Helvetica-Bold").text(`DETALLE DE VALORES${data.items.length > 1 ? ` · ÍTEM ${it.itemNumber}` : ""}`, ML + 8, Y + 5);
@@ -265,9 +268,9 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
         doc.rect(ML, Y, CW, H).fill(WHITE).stroke(BORDER);
         let ry = Y + 6;
         for (const f of filas) {
-          doc.fontSize(8.5).fillColor(MGRAY).font("Helvetica").text(f.label, ML + 10, ry, { width: CW - 150, lineBreak: false });
-          doc.fontSize(8.5).fillColor(DGRAY).font("Helvetica-Bold").text(fmt(String(Math.round(f.amount))), ML + CW - 130, ry, { width: 120, align: "right", lineBreak: false });
-          ry += 15;
+          doc.fontSize(FSB(8.5)).fillColor(MGRAY).font("Helvetica").text(f.label, ML + 10, ry, { width: CW - 150, lineBreak: false });
+          doc.fontSize(FSB(8.5)).fillColor(DGRAY).font("Helvetica-Bold").text(fmt(String(Math.round(f.amount))), ML + CW - 130, ry, { width: 120, align: "right", lineBreak: false });
+          ry += rowH;
         }
         Y += H + 10;
       }
@@ -336,7 +339,7 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
 
       // Bloque de texto con encabezado (se pasa de página solo si no cabe)
       const bloqueTexto = (titulo: string, lineas: string[], opts: { fondo?: string; size?: number; juntoCon?: number } = {}) => {
-        const size = opts.size ?? 8.5;
+        const size = opts.size ?? FSB(8.5);
         const hLineas = lineas.map((l) => doc.fontSize(size).font("Helvetica").heightOfString(l, { width: CW - 20, lineGap: 1.5 }) + 4);
         const H = hLineas.reduce((a, b) => a + b, 0) + 12;
         if (Y + 18 + H + (opts.juntoCon || 0) + 10 > PH - 48) { doc.addPage(); doc.rect(0, 0, PW, 4).fill(TEAL); Y = 28; }   // juntoCon: espacio que debe caber debajo (las firmas no quedan solas en otra hoja)
@@ -360,7 +363,7 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
         "4.  Desarrollamos contigo el diseño, el modelado 3D y el render, con los colores y detalles que definas, hasta que lo apruebes.",
         "5.  Construimos en nuestra fábrica e instalamos en tu casa o negocio.",
         "6.  Entregamos el trabajo terminado y se paga el 40 % restante.",
-      ], { fondo: LGRAY, size: 8 });
+      ], { fondo: LGRAY, size: FSB(8) });
 
       // ── OBSERVACIONES ──────────────────────────────────────────────────────
       if (data.generalNotes && data.generalNotes.trim()) {
@@ -376,6 +379,7 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
         // La versión anterior calculaba noteH y dibujaba un solo rect, pero si las notas
         // superaban la página, PDFKit auto-paginaba y ny quedaba desincronizado,
         // generando páginas en blanco y líneas duplicadas.
+        doc.fontSize(FSB(8.5)).font("Helvetica");   // las alturas se miden con la misma letra con la que se dibuja
         let obsStartY = Y;
         let obsPageStart = doc.page;
         // Calcular si todo cabe en la página actual
@@ -400,7 +404,7 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
             if (remFit > 0) doc.rect(ML, ny, CW, remFit).fill(LGRAY).stroke(BORDER);
           }
           const pageBefore = doc.page;
-          doc.fontSize(8.5).fillColor(MGRAY).font("Helvetica")
+          doc.fontSize(FSB(8.5)).fillColor(MGRAY).font("Helvetica")
              .text(l, ML + 8, ny, { width: CW - 16, lineGap: 1.5 });
           // FIX Bug 1 (obs): sincronizar ny con posición real de PDFKit
           if (doc.page !== pageBefore) {
@@ -421,7 +425,7 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
         "Los diseños y renders son propiedad exclusiva de Innovar Cocinas de Diseño.",
       ];
       // Cada condición se mide con su alto real (las largas ocupan 2 líneas): así no se montan unas sobre otras
-      const hTerm = terms.map((t) => doc.fontSize(8).font("Helvetica").heightOfString(`• ${t}`, { width: CW - 16 }) + 6);
+      const hTerm = terms.map((t) => doc.fontSize(FSB(8)).font("Helvetica").heightOfString(`• ${t}`, { width: CW - 16 }) + 6);
       const tH = hTerm.reduce((a, b) => a + b, 0) + 10;
       if (Y + 18 + tH + 10 > PH - 48) { doc.addPage(); Y = 28; }
       doc.rect(ML, Y, CW, 18).fill(DGRAY);
@@ -431,7 +435,7 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
       doc.rect(ML, Y, CW, tH).fill(WHITE).stroke(BORDER);
       let ty = Y + 8;
       terms.forEach((t, i) => {
-        doc.fontSize(8).fillColor(MGRAY).font("Helvetica")
+        doc.fontSize(FSB(8)).fillColor(MGRAY).font("Helvetica")
            .text(`• ${t}`, ML + 8, ty, { width: CW - 16 });
         ty += hTerm[i];
       });
@@ -443,7 +447,7 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
         "• La aprobación de la cotización y el pago del anticipo del 60 % se requieren para dar inicio al proyecto. Sin ambas no es posible avanzar.",
         "• El 40 % restante se paga el día de la entrega del trabajo terminado. El no pago de este saldo puede dar inicio a cobro jurídico por parte de Innovar Cocinas de Diseño.",
         "• Los diseños y distribuciones que se muestran con esta cotización son orientativos; el diseño definitivo se desarrolla y se aprueba después de la aprobación de la cotización.",
-      ], { fondo: WHITE, size: 8, juntoCon: 80 });
+      ], { fondo: WHITE, size: FSB(8), juntoCon: 80 });
 
       // ── FIRMAS ─────────────────────────────────────────────────────────────
       if (Y + 108 > PH - 38) { doc.addPage(); doc.rect(0, 0, PW, 4).fill(TEAL); Y = 36; }
@@ -487,9 +491,26 @@ export async function generateQuotationPDF(data: QuotationData, outputPath: stri
            .text("Gracias por confiar en nosotros", ML, FY + 7, { width: CW, align: "right" });
       }
 
+      const paginas = doc.bufferedPageRange().count;
       doc.end();
-      stream.on("finish", resolve);
+      stream.on("finish", () => resolve(paginas));
       stream.on("error", reject);
     } catch (e: any) { reject(e); }
   });
+}
+
+/**
+ * Genera el PDF con la letra lo más grande posible SIN agregar hojas: primero con la letra normal (referencia de hojas) y luego
+ * prueba +2, +1,5, +1 y +0,5 puntos; se queda con el primero que no necesita más hojas que la referencia.
+ */
+export async function generateQuotationPDF(data: QuotationData, outputPath: string): Promise<void> {
+  const base = await renderQuotationPDF(data, outputPath, 0);
+  for (const d of [2, 1.5, 1, 0.5]) {
+    const tmp = `${outputPath}.d${d}.tmp`;
+    try {
+      const n = await renderQuotationPDF(data, tmp, d);
+      if (n <= base) { renameSync(tmp, outputPath); return; }
+    } catch (e) { console.error("[pdf] prueba de letra +" + d + ":", e); }
+    try { if (existsSync(tmp)) unlinkSync(tmp); } catch { /* temporal */ }
+  }
 }

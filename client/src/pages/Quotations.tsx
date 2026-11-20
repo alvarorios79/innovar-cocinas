@@ -53,6 +53,7 @@ import { descriptiveFromPlan, computePlan, kitchenModulesFromPlan, ventanasDeLev
 
 
 import { confirmAction } from "@/lib/confirm";
+import { SeguimientoCotizaciones, usePorEnviarSeguimiento } from "@/components/SeguimientoCotizaciones";
 interface HardwareSelection {
   hardwareId: number;
   name: string;
@@ -394,7 +395,9 @@ export default function Quotations() {
   const [filterAmountMin, setFilterAmountMin] = useState<string>("");
   const [filterAmountMax, setFilterAmountMax] = useState<string>("");
   const [filterHasProject, setFilterHasProject] = useState<string>("all"); // all | yes | no
-  const [activeGroup, setActiveGroup] = useState<"activas" | "pendientes" | "completadas" | "rechazadas" | "sin_respuesta" | "cerradas">("activas");
+  const [activeGroup, setActiveGroup] = useState<"activas" | "pendientes" | "completadas" | "rechazadas" | "sin_respuesta" | "cerradas" | "seguimiento">(() => (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("seguimiento") ? "seguimiento" : "activas"));
+  const porEnviarSeguimiento = usePorEnviarSeguimiento();
+  const [destacarSeguimiento] = useState<number | null>(() => { try { const v = new URLSearchParams(window.location.search).get("seguimiento"); return v ? Number(v) || null : null; } catch { return null; } });
   const [showFilters, setShowFilters] = useState(false);
   const [modulosOpenSet, setModulosOpenSet] = useState<Set<number>>(new Set());
   
@@ -2533,6 +2536,18 @@ export default function Quotations() {
         <div>
           {/* Pestañas de navegación */}
           <div className="flex gap-1 flex-wrap mb-6 bg-white/[0.04] p-1 rounded-xl w-fit">
+            <button
+              onClick={() => setActiveGroup('seguimiento')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
+                porEnviarSeguimiento > 0
+                  ? "bg-amber-500/25 text-amber-100 border border-amber-400/70 animate-pulse ring-2 ring-amber-400/40"
+                  : activeGroup === 'seguimiento' ? "bg-card text-foreground border border-white/[0.08] shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-white/[0.04]"
+              }`}
+              title={porEnviarSeguimiento > 0 ? "Hay mensajes de seguimiento por enviar" : "Seguimiento de cotizaciones"}
+            >
+              💬 Seguimiento
+              <span className={`text-xs px-1.5 py-0.5 rounded-full ${porEnviarSeguimiento > 0 ? "bg-amber-400 text-black font-bold" : "bg-white/[0.06] text-white/40"}`}>{porEnviarSeguimiento}</span>
+            </button>
             {([
               { key: 'activas',       label: 'Activas',        dot: 'bg-primary'  },
               { key: 'pendientes',    label: 'Pendientes',     dot: 'bg-blue-400'  },
@@ -2564,7 +2579,10 @@ export default function Quotations() {
           </div>
 
           {/* Contenido de la pestaña activa */}
-          <div className="grid gap-4">
+          {activeGroup === 'seguimiento' && (
+            <SeguimientoCotizaciones destacarId={destacarSeguimiento} onAbrir={(_numero, cliente, tipo) => { setFilterClient(cliente); setQuotationPage(1); setActiveGroup(tipo === 'anticipo' ? 'activas' : 'pendientes'); }} />
+          )}
+          {activeGroup !== 'seguimiento' && <div className="grid gap-4">
             {groupedQuotations[activeGroup].length === 0 ? (
               <Card>
                 <CardContent className="py-8 text-center text-muted-foreground">
@@ -2601,7 +2619,7 @@ export default function Quotations() {
                 />
               ))
             )}
-          </div>
+          </div>}
         </div>
       )}
 

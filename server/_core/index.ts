@@ -21,6 +21,7 @@ import { startPeriodicCleanup } from "../tmp-cleanup";
 import { startWhatsAppTokenMonitor } from "../whatsapp-token-monitor";
 import { startLeadsDailySummary } from "../leads-daily-summary";
 import { startPostventaReminders } from "../postventa-reminders";
+import { startQuotationFollowUps } from "../quotation-followup-service";
 import { apiRateLimiter, authRateLimiter, uploadRateLimiter } from "../rate-limiter";
 import cors from "cors";
 import quotationPdfRouter from "../routes/quotation-pdf";
@@ -233,6 +234,7 @@ async function startServer() {
     // Resumen diario de interesados (8 a. m. Colombia)
     startLeadsDailySummary();
     startPostventaReminders();
+    startQuotationFollowUps();
 
     // Recordatorio de publicar en redes: APAGADO desde Deploy #315 (16 nov 2026). Las publicaciones ahora salen solas por
     // Metricool y el CRM no se entera, así que el aviso «Hoy toca publicar… descarga y publica» ya era engañoso.

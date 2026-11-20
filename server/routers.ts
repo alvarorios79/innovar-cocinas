@@ -4,6 +4,7 @@ import { clientsRouter } from "./routers/clients";
 import { appointmentsRouter, availabilityRouter } from "./routers/appointments";
 import { leadsRouter } from "./routers/leads";
 import { elenaRouter } from "./routers/elena";
+import { seguimientoCotizacionesRouter } from "./routers/seguimientoCotizaciones";
 import { quotationsRouter } from "./routers/quotations";
 import { quotationsDebugRouter } from "./routers/quotations-debug";
 import { userManagementRouter } from "./routers/userManagement";
@@ -43,6 +44,7 @@ export const appRouter = router({
   availability: availabilityRouter,
   leads: leadsRouter,
   elena: elenaRouter,
+  seguimientoCot: seguimientoCotizacionesRouter,
   quotations: quotationsRouter,
   quotationsDebug: quotationsDebugRouter,
   userManagement: userManagementRouter,

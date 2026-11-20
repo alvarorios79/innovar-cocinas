@@ -481,7 +481,11 @@ export function NotificationBell() {
                           // Navegar según el tipo de notificación y rol del usuario
                           const isClient = user?.role === "user";
                           // Avisos de interesados (tipo "cita" con referenceType "lead" / "lead_resumen")
-                          if (String((notification as any).referenceType || "").startsWith("postventa")) {
+                          if (String((notification as any).referenceType || "").startsWith("cotizacion_seguimiento") && notification.referenceId) {
+                            // Seguimiento de cotizaciones: abre la sección «Seguimiento» con esa cotización resaltada y el mensaje listo
+                            setOpen(false);
+                            setLocation(`/quotations?seguimiento=${notification.referenceId}`);
+                          } else if (String((notification as any).referenceType || "").startsWith("postventa")) {
                             // Avisos de postventa (mensaje del mes, revisión del año, reporte del cliente, resúmenes)
                             setOpen(false);
                             setLocation("/postventa");

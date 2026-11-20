@@ -217,9 +217,16 @@ export function QuotationGroupCard({
                   Con proyecto
                 </Badge>
               ) : (
-                <Badge className="bg-red-500/15 text-red-300 text-xs py-0 px-2 border border-red-500/40">
-                  Sin proyecto
-                </Badge>
+                selectedVersion?.status === "approved" ? (
+                  // Aprobada pero aún sin proyecto: el proyecto se crea cuando el cliente registra el anticipo y se comprueba el pago
+                  <Badge className="bg-green-500/25 text-green-100 text-xs py-0 px-2 border border-green-400/70 animate-pulse ring-2 ring-green-400/40" title="El cliente la aprobó. Falta el anticipo: cuando se registre y se compruebe el pago, se crea el proyecto.">
+                    ✅ Aprobada · falta el anticipo
+                  </Badge>
+                ) : (
+                  <Badge className="bg-red-500/15 text-red-300 text-xs py-0 px-2 border border-red-500/40">
+                    Sin proyecto
+                  </Badge>
+                )
               )}
               {group.hasProject && selectedVersion.id === group.activeProjectQuotationId && (
                 <Badge className="bg-indigo-500/15 text-indigo-300 text-xs py-0 px-2 border border-indigo-200 flex items-center gap-1">

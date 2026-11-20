@@ -1141,6 +1141,8 @@ export const quotationsRouter = router({
           await db.updateQuotation(input.id, {
             status: "sent",
             publicToken,
+            // La fecha de envío manda el calendario del seguimiento: se guarda la PRIMERA vez que se envía
+            ...(quotation.sentAt ? {} : { sentAt: new Date().toISOString() }),
           });
 
           // ── PASO 2: Generar PDF y subir a S3 (independiente del token)

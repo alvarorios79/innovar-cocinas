@@ -1089,3 +1089,15 @@ export const elenaConocimiento = pgTable("elenaConocimiento", {
 	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
 });
+
+// Seguimiento de cotizaciones (20 nov 2026): cada mensaje enviado u omitido, el cierre y las ampliaciones de validez
+export const quotationFollowUps = pgTable("quotationFollowUps", {
+	id: serial('id').primaryKey(),
+	quotationId: integer().notNull().references(() => quotations.id, { onDelete: "cascade" }),
+	step: varchar({ length: 20 }).notNull(),            // s1…s5, a1…a3 o «cierre»
+	action: varchar({ length: 20 }).default('enviado').notNull(),   // enviado | omitido | cierre
+	sentBy: integer().references(() => users.id),
+	note: text(),
+	extendedUntil: timestamp({ mode: 'string' }),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+});

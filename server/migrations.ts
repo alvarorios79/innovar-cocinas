@@ -246,6 +246,12 @@ export async function runMigrations() {
       END $$`,
     },
     {
+      // Seguimiento de cotizaciones (20 nov 2026): registro de los mensajes enviados/omitidos y de las ampliaciones de validez
+      name: "quotation_followups_1",
+      sql: `CREATE TABLE IF NOT EXISTS "quotationFollowUps" ("id" serial PRIMARY KEY, "quotationId" integer NOT NULL REFERENCES "quotations"("id") ON DELETE CASCADE, "step" varchar(20) NOT NULL, "action" varchar(20) NOT NULL DEFAULT 'enviado', "sentBy" integer REFERENCES "users"("id"), "note" text, "extendedUntil" timestamp, "createdAt" timestamp NOT NULL DEFAULT now());
+            CREATE INDEX IF NOT EXISTS "quotationFollowUps_quotationId_idx" ON "quotationFollowUps" ("quotationId")`,
+    },
+    {
       // Cotización de Adriana Abonce (la última hecha, aún sin enviar): pasa al número corto igual que las nuevas. Solo si sigue en borrador, sin enviar y con su número largo original.
       name: "cotizacion_140_numero_corto",
       sql: `UPDATE "quotations" SET "quotationNumber" = 'COT-2026-0140'

@@ -185,6 +185,11 @@ export function QuotationGroupCard({
               <p className="text-xs text-white/45 truncate">
                 {group.quotationNumber}
               </p>
+              {group.versionCount > 1 && (
+                <Badge className="bg-primary text-white text-xs font-bold py-0 px-2 border-0" title={`Está viendo la versión ${selectedVersion.versionNumber} de ${group.versionCount}`}>
+                  V{selectedVersion.versionNumber}
+                </Badge>
+              )}
               {isActiveVersion && group.versionCount > 1 && (
                 <Badge className="bg-primary text-white text-xs py-0 px-2">
                   Versión actual

@@ -19,6 +19,7 @@ const APP_URL = () => process.env.APP_URL || "https://innovar-cocinas.onrender.c
 export interface ItemSeguimiento {
   quotationId: number;
   numero: string;
+  version: number;
   cliente: string;
   telefono: string | null;        // en formato internacional (solo dígitos)
   tipoTexto: string;
@@ -90,7 +91,7 @@ function aItem(f: Awaited<ReturnType<typeof cargar>>[number], hoy: Date): ItemSe
   const enviados = f.logs.filter(l => l.action === "enviado");
   const ultimo = f.logs.map(l => aFecha(l.createdAt)).filter((x): x is Date => !!x).sort((a, b) => b.getTime() - a.getTime())[0] || null;
   return {
-    quotationId: q.id, numero: q.quotationNumber, cliente: f.clienteNombre || "Cliente", telefono: telefonoIntl(f.clienteTel),
+    quotationId: q.id, numero: q.quotationNumber, version: Number((q as any).versionNumber) || 1, cliente: f.clienteNombre || "Cliente", telefono: telefonoIntl(f.clienteTel),
     tipoTexto: ctx.tipo, total: Number(q.total), estado: q.status === "approved" ? "approved" : "sent", tipo: p.tipo, step: p.step,
     etiqueta: ETIQUETA_PASO[p.step], due: p.due.toISOString(), porEnviar: p.porEnviar, validUntil: vence ? vence.toISOString() : null,
     extension: p.extension ? p.extension.toISOString() : null, mensaje, enlace, contactos: enviados.length, ultimoContacto: ultimo ? ultimo.toISOString() : null,

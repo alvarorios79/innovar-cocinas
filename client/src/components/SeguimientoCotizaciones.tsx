@@ -12,7 +12,7 @@ const fecha = (iso: string) => new Date(iso).toLocaleDateString("es-CO", { weekd
 const pesos = (n: number) => new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", minimumFractionDigits: 0 }).format(n);
 
 type Item = {
-  quotationId: number; numero: string; cliente: string; telefono: string | null; tipoTexto: string; total: number; estado: "sent" | "approved";
+  quotationId: number; numero: string; version?: number; cliente: string; telefono: string | null; tipoTexto: string; total: number; estado: "sent" | "approved";
   tipo: "seguimiento" | "anticipo"; step: string; etiqueta: string; due: string; porEnviar: boolean; validUntil: string | null; extension: string | null;
   mensaje: string; enlace: string | null; contactos: number; ultimoContacto: string | null;
 };
@@ -54,7 +54,7 @@ function Tarjeta({ it, destacada, onAbrir }: { it: Item; destacada: boolean; onA
     <div ref={ref} className={`rounded-xl border p-3 sm:p-4 space-y-3 ${destacada ? "border-amber-400 ring-2 ring-amber-400/40" : anticipo ? "border-green-500/40 bg-green-500/[0.06]" : "border-white/10 bg-white/[0.03]"}`}>
       <div className="flex flex-wrap items-start gap-2">
         <div className="flex-1 min-w-[200px]">
-          <p className="font-semibold text-white">{it.cliente} <span className="text-xs font-normal text-white/50">· {it.numero}</span></p>
+          <p className="font-semibold text-white">{it.cliente} <span className="text-xs font-normal text-white/50">· {it.numero}</span>{(it.version ?? 1) > 1 && <span className="ml-1.5 rounded bg-primary px-1.5 py-0.5 text-[10px] font-bold text-white">V{it.version}</span>}</p>
           <p className="text-xs text-white/60">
             {anticipo ? "✅ Aprobada · falta el anticipo" : `Enviada · vigente hasta ${it.validUntil ? fecha(it.validUntil) : "—"}`} · {pesos(it.total)}
             {it.contactos > 0 ? ` · ${it.contactos} mensaje${it.contactos > 1 ? "s" : ""} enviado${it.contactos > 1 ? "s" : ""}` : " · primer mensaje"}

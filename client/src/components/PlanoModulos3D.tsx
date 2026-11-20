@@ -23,6 +23,8 @@ export interface PlanoModulos3DRef {
   capturar(vista?: "iso" | "arriba" | "frente"): string | null;
   /** Dónde está hoy un bloque suelto (isla/barra) y cómo quedaría moviéndolo `along` m a lo largo de la pared A y `away` m alejándolo de ella */
   mover(t: number, along: number, away: number): { x: number; z: number; rot: number } | null;
+  /** Abre el editor en pantalla completa (con las tarjetas de módulos al lado) */
+  abrirPantalla(): void;
 }
 /** Resumen por pared para el recuadro fijo del 3D: lo que lleva y lo que FALTA para llenar el muro */
 export interface ResumenPared { nombre: string; largo: number; llevaAbajo: number; llevaArriba: number | null; activa: boolean }
@@ -149,7 +151,7 @@ const PlanoModulos3D = forwardRef<PlanoModulos3DRef, Props>(function PlanoModulo
   const cotasRef = useRef(true);
   cotasRef.current = verCotas;
   const api = useRef<{ rebuild: () => void; vista: (v: "iso" | "arriba" | "frente") => void; desplazar: (dx: number, dy: number) => void; acercar: (f: number) => void; capturar: (v?: "iso" | "arriba" | "frente") => string | null; mover: (t: number, along: number, away: number) => { x: number; z: number; rot: number } | null } | null>(null);
-  useImperativeHandle(ref, () => ({ capturar: (v) => api.current?.capturar(v) ?? null, mover: (t, a, b) => api.current?.mover(t, a, b) ?? null }), []);
+  useImperativeHandle(ref, () => ({ capturar: (v) => api.current?.capturar(v) ?? null, mover: (t, a, b) => api.current?.mover(t, a, b) ?? null, abrirPantalla: () => setPantalla(true) }), []);
 
   useEffect(() => {
     const el = host.current;

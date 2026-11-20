@@ -1,11 +1,11 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactElement, type CSSProperties, type PointerEvent as RPointerEvent } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactElement } from "react";
 import {
-  CATALOG, CATALOG_BY_KEY, FILL_KEYS, SPECIALS,
+  CATALOG, CATALOG_BY_KEY, SPECIALS,
   normalizePlan, computePlan, rowItems, rowUsed, activeSpecials, lateralOn, isPainted,
   addModuleToPlan, removeModuleFromPlan, setModuleWidth, moveModule, moveModuleToTramo, primerHueco, setDefaultWidth, esquinasDeLayout, girarEsquinero, espaciosLibres, ampliarMueble, pegarMueble, moveTall, dropModule, dropTall, moverValidando, tidyPlan, packRow, setModuleLock, setTypeWidth, alignEnd, rebuildAutoUpper,
   round2,
   specialWidth,
-  type ModulePlan, type PlanModule, type PlanRow, type RowItem,
+  type ModulePlan, type PlanModule, type PlanRow,
 } from "@shared/kitchenModulePlan";
 
 // Plano de módulos por tramos, visto de frente: superiores arriba, inferiores abajo,
@@ -28,11 +28,6 @@ interface Props {
   capturaRef?: { current: null | (() => string[]) };
 }
 
-let PX = 120;        // píxeles por metro en el dibujo
-const LANE_H = 76;     // alto de cada línea (superiores / inferiores)
-const DIV_H = 14;      // alto de la franja que divide
-// Fondo rayado para lo que NO va pintado
-const NO_PAINT_BG: CSSProperties = { backgroundImage: "repeating-linear-gradient(135deg, rgba(255,255,255,0.10) 0 4px, transparent 4px 9px)" };
 const m2 = (n: number) => (Number(n) || 0).toFixed(2);
 
 // Iconos simples por tipo de módulo (trazo, sin dependencias)
@@ -68,19 +63,6 @@ function ModuleIcon({ k, size = 28, className = "" }: { k: string; size?: number
     <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
       {g || <rect x="4" y="4" width="16" height="16" rx="2" />}
     </svg>
-  );
-}
-
-// Cota: línea con topes y la medida en metros, centrada bajo el icono
-function Cota({ w }: { w: number }) {
-  return (
-    <div className="absolute left-1 right-1 bottom-0.5 flex flex-col items-center pointer-events-none">
-      <span className="text-[10px] leading-none font-mono text-white/85">{(Number(w) || 0).toFixed(2)}</span>
-      <div className="relative w-full h-[5px] border-t border-white/50 mt-[1px]">
-        <span className="absolute left-0 -top-[3px] h-[5px] border-l border-white/60" />
-        <span className="absolute right-0 -top-[3px] h-[5px] border-l border-white/60" />
-      </div>
-    </div>
   );
 }
 
@@ -138,45 +120,9 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
   const result = useMemo(() => computePlan(plan, config), [plan, config]);
   const specials = activeSpecials(plan, config);
   const [sel, setSel] = useState<Sel>(null);
-  const ZOOMS = [70, 95, 120, 170, 220];   // píxeles por metro
-  const [zoom, setZoom] = useState(2);
   const [showExtras, setShowExtras] = useState(false);       // acercar / alejar el dibujo
   const [activaT, setActivaT] = useState(0);                // pared (tramo) a la que se agregan los módulos nuevos
-  const [vista3d, setVista3d] = useState(true);              // el 3D es la vista de trabajo; el dibujo de frente 2D queda oculto como «vista clásica»
-  PX = ZOOMS[zoom];
-  // Arrastre con puntero (funciona con dedo y con ratón)
-  const dragRef = useRef<{ kind: "mod" | "tall"; t: number; row?: PlanRow; id: string; startX: number; moved: boolean; locked?: boolean; box: HTMLElement | null } | null>(null);
-  const [dragDx, setDragDx] = useState<{ id: string; dx: number } | null>(null);
-
-  const startDrag = (e: RPointerEvent<HTMLElement>, info: { kind: "mod" | "tall"; t: number; row?: PlanRow; id: string; locked?: boolean }) => {
-    e.currentTarget.setPointerCapture(e.pointerId);
-    dragRef.current = { ...info, startX: e.clientX, moved: false, box: e.currentTarget.closest("[data-elev]") as HTMLElement | null };
-  };
-  const moveDrag = (e: RPointerEvent<HTMLElement>) => {
-    const d = dragRef.current;
-    if (!d) return;
-    const dx = e.clientX - d.startX;
-    if (Math.abs(dx) > 5) d.moved = true;
-    if (d.moved && !d.locked) setDragDx({ id: d.id, dx });
-  };
-  const endDrag = (e: RPointerEvent<HTMLElement>, onClick: () => void) => {
-    const d = dragRef.current;
-    dragRef.current = null;
-    setDragDx(null);
-    if (!d) return;
-    if (d.locked && d.moved) return;   // ubicación bloqueada: no se arrastra
-    if (!d.moved || !d.box) { onClick(); return; }
-    const dM = (e.clientX - d.startX) / PX;   // metros que se arrastró
-    if (d.kind === "tall") {
-      const cur = rowItems(plan, d.t, "lower", config).find(i => i.kind === "tall" && i.key === d.id);
-      if (cur) edit(p => { moverValidando(p, config, (q) => dropTall(q, d.id, cur.start + dM, config)); });
-    } else if (d.row) {
-      const row = d.row, t = d.t, id = d.id;
-      const cur = rowItems(plan, t, row, config).find(i => i.kind === "mod" && !i.fromPrev && i.mod!.id === id);
-      if (cur) edit(p => { moverValidando(p, config, (q) => dropModule(q, t, row, id, cur.start + dM, config, true)); });
-    }
-  };
-
+  const [falla3d, setFalla3d] = useState(false);              // si el navegador no puede dibujar en 3D, las tarjetas se muestran directamente
   useEffect(() => {
     if (!capturaRef) return;
     capturaRef.current = () => (["iso", "arriba", "frente"] as const).map((v) => visor3d.current?.capturar(v) || "").filter(Boolean);
@@ -226,138 +172,8 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
     onPlanSpecial(p, key, true);
   };
 
-  const fillRemaining = (t: number, key: string) => {
-    const rem0 = round2(plan.tramos[t].length - rowUsed(plan, t, "lower", config));
-    if (rem0 <= 0.01) return;
-    edit(p => {
-      let rem = rem0;
-      while (rem > 0.01) {
-        const w = round2(Math.min(0.90, rem));
-        const mod = addModuleToPlan(p, t, "lower", key);
-        if (mod) mod.width = w;
-        rem = round2(rem - w);
-      }
-      rebuildAutoUpper(p, t);
-    });
-  };
-
   const enabled = !!config?.modulePlan?.enabled;
   const box = "bg-card rounded-lg p-3 sm:p-4 border border-[rgba(106,207,199,0.12)] space-y-3";
-
-  // ── Dibujo de la cocina de frente (solo iconos) ──────────────────────────
-  const renderElevation = (t: number) => {
-    const tr = plan.tramos[t];
-    const up: RowItem[] = tr.isIsland ? [] : rowItems(plan, t, "upper", config);
-    const lo: RowItem[] = rowItems(plan, t, "lower", config);
-    const total = Math.max(tr.length, ...up.map(i => i.start + i.width), ...lo.map(i => i.start + i.width), 1);
-    const widthPx = Math.ceil(total * PX);
-    const upCuts = up.map(i => round2(i.start + i.width));
-    const loCuts = lo.map(i => round2(i.start + i.width));
-    const near = (arr: number[], x: number) => arr.some(y => Math.abs(y - x) < 0.025);
-    const allCuts = Array.from(new Set([...upCuts, ...loCuts])).filter(x => x > 0.02 && x < total - 0.02);
-    const ticks: number[] = [];
-    for (let x = 0; x <= total + 0.001; x += 0.5) ticks.push(round2(x));
-    const talls = lo.filter(i => i.kind === "tall");
-    const heightPx = tr.isIsland ? LANE_H : LANE_H * 2 + DIV_H;
-
-    const tile = (it: RowItem, row: PlanRow, idx: number) => {
-      const w = Math.max(it.width * PX, 8);
-      if (it.kind === "tall") return null;
-      const mod = it.mod!;
-      const cat = CATALOG_BY_KEY[it.key];
-      const mine = !it.fromPrev;
-      const isSel = !!sel && "id" in sel && sel.t === t && sel.row === row && sel.id === mod.id;
-      const painted = isPainted(plan, mod, row);
-      const out = (!!cat.min && mod.width < cat.min - 1e-9) || (!!cat.max && mod.width > cat.max + 1e-9);
-      const color = cat.key === "ventana" ? "bg-blue-500/25 border-blue-300/80 text-blue-100"
-        : out ? "bg-red-900/40 border-red-500/60 text-red-100"
-        : it.fromPrev ? "bg-teal-900/20 border-primary/20 text-teal-200/60"
-        : row === "upper" ? (mod.autoOf ? "bg-purple-900/30 border-purple-400/30 text-purple-100" : "bg-purple-900/50 border-purple-400/50 text-purple-100")
-        : "bg-teal-900/50 border-primary/50 text-teal-100";
-      return (
-        <div key={`${row}-${mod.id}${it.fromPrev ? "p" : ""}`} className="absolute p-[2px]" style={{ left: it.start * PX, top: 0, width: w, height: LANE_H }}>
-          <div
-            role="button"
-            onPointerDown={(e) => mine && startDrag(e, { kind: "mod", t, row, id: mod.id, locked: mod.lockAt !== undefined })}
-            onPointerMove={moveDrag}
-            onPointerUp={(e) => mine && endDrag(e, () => setSel(isSel ? null : { t, row, id: mod.id }))}
-            onPointerCancel={() => { dragRef.current = null; setDragDx(null); }}
-            title={`${cat.label} · ${m2(mod.width)} m${cat.locked ? " · fijo" : ""}${painted ? "" : " · sin pintar"}`}
-            style={{ touchAction: "none", transform: dragDx?.id === mod.id ? `translateX(${dragDx.dx}px)` : undefined, zIndex: dragDx?.id === mod.id ? 30 : undefined, ...(!painted && !cat.noPieces ? NO_PAINT_BG : {}) }}
-            className={`relative h-full w-full rounded border flex items-center justify-center select-none ${color} ${!painted && !cat.noPieces ? "border-dashed opacity-60" : ""} ${isSel ? "ring-2 ring-white" : ""} ${mine ? "cursor-grab" : "cursor-default"} ${dragDx?.id === mod.id ? "opacity-80 shadow-lg" : ""}`}
-          >
-            <ModuleIcon k={it.key} size={Math.max(12, Math.min(30, w - 14))} className="-mt-3" />
-            <Cota w={mod.width} />
-            {mod.lockAt !== undefined && <span className="absolute top-0.5 left-0.5 text-[10px] leading-none" title="Ubicación bloqueada">🔒</span>}
-            {painted && !cat.noPieces && <span className="absolute top-0.5 right-0.5 text-[11px] leading-none drop-shadow" title="Va pintado">🎨</span>}
-          </div>
-        </div>
-      );
-    };
-
-    return (
-      <div className="overflow-x-auto pb-1">
-        <div className="flex items-center gap-4 text-[11px] text-white/60 pb-1">
-          <span>🎨 = va pintado</span>
-          <span className="flex items-center gap-1"><span className="inline-block w-4 h-3 rounded-sm border border-dashed border-white/50" style={NO_PAINT_BG} /> rayado = sin pintar</span>
-          <span className="text-white/35">Toca un módulo y usa «Pintar» / «Quitar pintura»</span>
-        </div>
-        <div className="relative" data-elev style={{ width: widthPx, height: heightPx + 20 }}>
-          {/* líneas */}
-          {!tr.isIsland && (
-            <div className="absolute left-0 top-0 rounded bg-purple-950/40" style={{ height: LANE_H, width: widthPx }}>
-              {up.map((it, i) => tile(it, "upper", i))}
-            </div>
-          )}
-          {!tr.isIsland && (
-            <div className="absolute left-0 flex items-center justify-center rounded-full bg-gradient-to-r from-purple-500/60 via-white/30 to-primary/60 text-[9px] font-bold tracking-widest text-white/80"
-              style={{ top: LANE_H + 1, height: DIV_H - 2, width: widthPx }}>
-              ▲ SUPERIORES · INFERIORES ▼
-            </div>
-          )}
-          <div className="absolute left-0 rounded bg-teal-950/40" style={{ top: tr.isIsland ? 0 : LANE_H + DIV_H, height: LANE_H, width: widthPx }}>
-            {lo.map((it, i) => tile(it, "lower", i))}
-          </div>
-
-          {/* guías de corte: verde = coincide arriba y abajo, ámbar = solo en una línea */}
-          {!tr.isIsland && allCuts.map(x => {
-            const both = near(upCuts, x) && near(loCuts, x);
-            return (
-              <div key={`g${x}`} className={`absolute pointer-events-none ${both ? "border-l border-green-400/50" : "border-l border-dashed border-amber-400/60"}`}
-                style={{ left: x * PX, top: both ? 0 : (near(upCuts, x) ? 0 : LANE_H + DIV_H), height: both ? heightPx : LANE_H }} />
-            );
-          })}
-
-          {/* módulos de piso a techo: un solo bloque largo que cruza las dos líneas */}
-          {talls.map(it => {
-            const s = it.special!;
-            const isSel = !!sel && "tall" in sel && sel.t === t && sel.tall === s.key;
-            return (
-              <div key={`tall-${s.key}`} role="button"
-                onPointerDown={(e) => startDrag(e, { kind: "tall", t, id: s.key })}
-                onPointerMove={moveDrag}
-                onPointerUp={(e) => endDrag(e, () => setSel(isSel ? null : { t, tall: s.key }))}
-                onPointerCancel={() => { dragRef.current = null; setDragDx(null); }}
-                title={`${s.label} · ${m2(s.w)} m · piso a techo`}
-                className={`absolute rounded border flex flex-col items-center justify-center gap-1 select-none cursor-grab bg-amber-900/60 border-amber-400/70 text-amber-100 ${isSel ? "ring-2 ring-white" : ""} ${dragDx?.id === s.key ? "opacity-80 shadow-lg" : ""}`}
-                style={{ left: it.start * PX + 2, top: 2, width: Math.max(it.width * PX - 4, 10), height: heightPx - 4, touchAction: "none", zIndex: dragDx?.id === s.key ? 30 : 5, transform: dragDx?.id === s.key ? `translateX(${dragDx.dx}px)` : undefined }}>
-                <ModuleIcon k={s.key} size={Math.max(16, Math.min(40, it.width * PX - 14))} />
-                {plan.paintKeys?.[s.key] !== false && <span className="absolute top-0.5 right-0.5 text-[11px] leading-none drop-shadow" title="Va pintado">🎨</span>}
-                <Cota w={s.w} />
-              </div>
-            );
-          })}
-
-          {/* regla en metros */}
-          <div className="absolute left-0 text-[9px] text-white/40" style={{ top: heightPx + 3, width: widthPx }}>
-            {ticks.map(x => (
-              <span key={x} className="absolute" style={{ left: x * PX - 6 }}>{x % 1 === 0 ? `${x} m` : "·"}</span>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   // ── Barra del módulo seleccionado ────────────────────────────────────────
   const renderSelected = () => {
@@ -504,74 +320,6 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
       </div>
     );
   };
-
-  // ── Tarjetas de módulos: icono + nombre + medida + cantidad ─────────────
-  const renderPalette = (t: number, row: PlanRow) => {
-    const tr = plan.tramos[t];
-    const own = tr[row];
-    const options = CATALOG.filter(c => c.row === row);
-    const rem = round2(tr.length - rowUsed(plan, t, row, config));
-    const over = tr.length > 0 && rem < -0.005;
-    const used = rowUsed(plan, t, row, config);
-    const fillOpts = FILL_KEYS.lower.map(k => CATALOG_BY_KEY[k]);
-    return (
-      <div className="space-y-2">
-        <div className={`flex flex-wrap items-center gap-2 text-xs rounded px-3 py-1.5 ${row === "upper" ? "bg-purple-900/50 border border-purple-400/40" : "bg-teal-900/50 border border-primary/40"}`}>
-          <span className={`font-bold uppercase tracking-widest ${row === "upper" ? "text-purple-200" : "text-teal-200"}`}>{row === "upper" ? "▲ Módulos superiores" : "▼ Módulos inferiores"}</span>
-          <span className={over ? "text-red-400 font-semibold" : "text-white/60"}>
-            llevas {m2(used)} de {m2(tr.length)} m{tr.length > 0 && (over ? ` · te pasas ${m2(-rem)}` : ` · faltan ${m2(rem)}`)}
-          </span>
-          {row === "lower" && rem > 0.01 && (
-            <select className="h-8 rounded bg-background border border-primary/40 text-xs text-teal-200 px-2 ml-auto" value=""
-              onChange={(e) => { if (e.target.value) fillRemaining(t, e.target.value); }}>
-              <option value="">Completar {m2(rem)} m con…</option>
-              {fillOpts.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
-            </select>
-          )}
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5">
-          {options.map(o => {
-            const mods = own.filter(m => m.key === o.key);
-            const count = mods.length;
-            const curW = count > 0 ? mods[0].width : ((!o.locked && plan.defaultWidth?.[o.key]) || o.width);
-            return (
-              <div key={o.key} className={`rounded border p-2 flex flex-col gap-1.5 ${count > 0 ? (row === "upper" ? "bg-purple-900/30 border-purple-400/50" : "bg-teal-900/40 border-primary/50") : "bg-white/[0.03] border-white/10"}`}>
-                <button type="button" className="flex items-center gap-2 text-left" title="Tocar para agregar uno"
-                  onClick={() => edit(p => { addModuleToPlan(p, t, row, o.key, config); })}>
-                  <ModuleIcon k={o.key} size={34} className="shrink-0 text-white/80" />
-                  <span className="text-xs font-semibold text-white/85 leading-tight">{o.label}</span>
-                </button>
-                <div className="flex items-center justify-between gap-1">
-                  {o.locked ? (
-                    <span className="text-xs font-mono text-white/60" title="Medida fija">🔒 {m2(o.width)} m</span>
-                  ) : (
-                    <label className="flex items-center gap-1 text-xs text-white/70">
-                      <MedidaCampo valor={curW} onCambio={(v) => edit(p => setDefaultWidth(p, o.key, v))}
-                        className="w-14 bg-black/30 border-b border-white/40 text-right font-mono text-white focus:outline-none" />
-                      m
-                    </label>
-                  )}
-                  <span className="flex items-center gap-1">
-                    <button type="button" className="w-7 h-7 rounded bg-white/10 hover:bg-white/25 disabled:opacity-30" disabled={count === 0}
-                      onClick={() => edit(p => { const last = [...own].reverse().find(m => m.key === o.key); if (last) removeModuleFromPlan(p, t, row, last.id); })}>−</button>
-                    <span className={`w-5 text-center font-mono text-sm ${count > 0 ? "text-white font-bold" : "text-white/40"}`}>{count}</span>
-                    <button type="button" className="w-7 h-7 rounded bg-white/10 hover:bg-white/25"
-                      onClick={() => edit(p => { addModuleToPlan(p, t, row, o.key, config); })}>+</button>
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  };
-
-  // Tipos de módulo presentes en el plano (para las excepciones de pintura)
-  const typeKeys = Array.from(new Set([
-    ...plan.tramos.flatMap(tt => [...tt.upper, ...tt.lower]).map(mm => mm.key).filter(k => !CATALOG_BY_KEY[k]?.noPieces),
-    ...specials.map(s => s.key),
-  ]));
 
   const P = result.pieces;
   const pieceRows: Array<[string, number]> = [
@@ -841,6 +589,19 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
     );
   };
 
+  // Laterales de los módulos altos (pieza grande que se cobra aparte)
+  const renderLaterales = () => specials.filter(sp => sp.lateral).length > 0 ? (
+    <div className="flex flex-wrap items-center gap-3 text-[11px] text-amber-100/80">
+      {specials.filter(sp => sp.lateral).map(sp => (
+        <label key={sp.key} className="flex items-center gap-1 cursor-pointer">
+          <input type="checkbox" className="h-3.5 w-3.5 accent-amber-500" checked={lateralOn(plan, sp.key)}
+            onChange={(e) => edit(p => { p.specialLateral = { ...(p.specialLateral || {}), [sp.key]: e.target.checked }; })} />
+          {sp.label}: con lateral (pieza grande)
+        </label>
+      ))}
+    </div>
+  ) : null;
+
   const content = (
     <div className={box}>
       <div className="flex items-center gap-2">
@@ -856,15 +617,6 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
         <label htmlFor="modulePlanEnabled" className={`text-xs sm:text-sm font-semibold text-white/85 ${enabled ? "" : "cursor-pointer"}`}>
           Plano de módulos de la cocina <span className="font-normal text-white/40">(cuenta módulos y piezas; alimenta la descripción, el PDF y la pintura)</span>
         </label>
-        {enabled && (
-          <span className="ml-auto shrink-0 flex items-center gap-1 text-xs text-white/70">
-            Zoom
-            <button type="button" disabled={zoom <= 0} onClick={() => setZoom(z => Math.max(0, z - 1))}
-              className="w-8 h-8 rounded bg-white/10 hover:bg-white/20 disabled:opacity-30 text-base font-bold" title="Alejar (ver la pared completa)">−</button>
-            <button type="button" disabled={zoom >= ZOOMS.length - 1} onClick={() => setZoom(z => Math.min(ZOOMS.length - 1, z + 1))}
-              className="w-8 h-8 rounded bg-white/10 hover:bg-white/20 disabled:opacity-30 text-base font-bold" title="Acercar (trabajar con más detalle)">+</button>
-          </span>
-        )}
       </div>
 
       {enabled && (
@@ -885,43 +637,38 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
             <span>Con manijas <span className="text-white/45">(solo si el cliente lo pide; por defecto es sistema gola, sin manijas)</span></span>
           </label>
 
-          {vista3d && (
-            <div className="space-y-2">
-              <Suspense fallback={<div className="h-[420px] rounded-lg bg-black/20 border border-white/10 flex items-center justify-center text-xs text-gray-400">Cargando el plano en 3D…</div>}>
-                <PlanoModulos3D
-                  ref={visor3d}
-                  plan={plan} config={config} sel={sel} onSelect={(x) => { setSel(x); if (x && typeof (x as any).t === "number") setActivaT((x as any).t); }} onEdit={edit} onFalla={() => setVista3d(false)}
-                  activa={tAct} onPickPared={setActivaT}
-                  onDeshacer={deshacer} puedeDeshacer={nHistorial > 0}
-                  resumen={plan.tramos.map((tt, i) => ({ nombre: tt.name, largo: tt.length, llevaAbajo: rowUsed(plan, i, "lower", config), llevaArriba: tt.isIsland ? null : rowUsed(plan, i, "upper", config), activa: i === tAct }))}
-                  panel={<div className="space-y-4"><button type="button" onClick={deshacer} disabled={nHistorial === 0} className="w-full h-11 rounded-lg bg-amber-600 hover:bg-amber-500 disabled:opacity-35 text-white text-sm font-bold">↶ Deshacer el último cambio ({nHistorial})</button>{renderSelected()}{renderPasarA()}{renderPaletaUnica(true)}</div>}
-                  moveTramo={(p, fromT, row, id, toT, start) => moveModuleToTramo(p, fromT, row, id, toT, start, config)}
-                  dropMod={(p, t, row, id, start) => { moverValidando(p, config, (q) => dropModule(q, t, row, id, start, config, true)); }}
-                  acomodar={(p) => { try { tidyPlan(p, config); } catch { /* */ } }}
-                  dropTallTo={(p, key, tramo, start) => { moverValidando(p, config, (q) => { q.specialTramo = { ...(q.specialTramo || {}), [key]: tramo }; dropTall(q, key, start, config); }); }}
-                />
-              </Suspense>
-              {renderSelected()}
-              {renderPasarA()}
-              {renderPaletaUnica()}
-              {/* laterales de los módulos altos (pieza grande que se cobra aparte) */}
-              {specials.filter(sp => sp.lateral).length > 0 && (
-                <div className="flex flex-wrap items-center gap-3 text-[11px] text-amber-100/80">
-                  {specials.filter(sp => sp.lateral).map(sp => (
-                    <label key={sp.key} className="flex items-center gap-1 cursor-pointer">
-                      <input type="checkbox" className="h-3.5 w-3.5 accent-amber-500" checked={lateralOn(plan, sp.key)}
-                        onChange={(e) => edit(p => { p.specialLateral = { ...(p.specialLateral || {}), [sp.key]: e.target.checked }; })} />
-                      {sp.label}: con lateral (pieza grande)
-                    </label>
-                  ))}
+          <div className="space-y-2">
+            {!falla3d ? (
+              <>
+                <Suspense fallback={<div className="h-[420px] rounded-lg bg-black/20 border border-white/10 flex items-center justify-center text-xs text-gray-400">Cargando el plano en 3D…</div>}>
+                  <PlanoModulos3D
+                    ref={visor3d}
+                    plan={plan} config={config} sel={sel} onSelect={(x) => { setSel(x); if (x && typeof (x as any).t === "number") setActivaT((x as any).t); }} onEdit={edit} onFalla={() => setFalla3d(true)}
+                    activa={tAct} onPickPared={setActivaT}
+                    onDeshacer={deshacer} puedeDeshacer={nHistorial > 0}
+                    resumen={plan.tramos.map((tt, i) => ({ nombre: tt.name, largo: tt.length, llevaAbajo: rowUsed(plan, i, "lower", config), llevaArriba: tt.isIsland ? null : rowUsed(plan, i, "upper", config), activa: i === tAct }))}
+                    panel={<div className="space-y-4"><button type="button" onClick={deshacer} disabled={nHistorial === 0} className="w-full h-11 rounded-lg bg-amber-600 hover:bg-amber-500 disabled:opacity-35 text-white text-sm font-bold">↶ Deshacer el último cambio ({nHistorial})</button>{renderSelected()}{renderPasarA()}{renderPaletaUnica(true)}{renderLaterales()}</div>}
+                    moveTramo={(p, fromT, row, id, toT, start) => moveModuleToTramo(p, fromT, row, id, toT, start, config)}
+                    dropMod={(p, t, row, id, start) => { moverValidando(p, config, (q) => dropModule(q, t, row, id, start, config, true)); }}
+                    acomodar={(p) => { try { tidyPlan(p, config); } catch { /* */ } }}
+                    dropTallTo={(p, key, tramo, start) => { moverValidando(p, config, (q) => { q.specialTramo = { ...(q.specialTramo || {}), [key]: tramo }; dropTall(q, key, start, config); }); }}
+                  />
+                </Suspense>
+                <div className="flex flex-wrap items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2">
+                  <p className="flex-1 min-w-[200px] text-xs text-white/70">Para agregar módulos, cambiar sus medidas, moverlos entre paredes o ver las piezas, abre el editor en pantalla completa.</p>
+                  <button type="button" onClick={() => visor3d.current?.abrirPantalla()} className="h-9 px-4 rounded-lg bg-primary text-white text-xs font-bold">Abrir editor de módulos</button>
                 </div>
-              )}
-              <button type="button" onClick={() => setVista3d(false)} className="text-[11px] text-white/35 hover:text-white/70 underline">Vista clásica 2D</button>
-            </div>
-          )}
-          {!vista3d && (
-            <button type="button" onClick={() => setVista3d(true)} className="text-xs px-3 py-2 rounded border border-primary/40 text-primary min-h-[36px]">Ver el plano en 3D</button>
-          )}
+              </>
+            ) : (
+              <>
+                <p className="text-xs text-amber-200">Este equipo no pudo dibujar el plano en 3D. Los módulos se agregan y se editan con estas tarjetas.</p>
+                {renderSelected()}
+                {renderPasarA()}
+                {renderPaletaUnica()}
+                {renderLaterales()}
+              </>
+            )}
+          </div>
 
           {plan.tramos.map((tr, t) => (
             <div key={t} className="rounded-lg border border-white/10 p-3 space-y-3 bg-black/10">
@@ -939,80 +686,8 @@ export function KitchenModulePlanner({ config, onChange, onSpecialToggle, onPlan
                 </button>
               </div>
 
-              {!vista3d && renderElevation(t)}
-              {!vista3d && renderSelected()}
-              {!vista3d && renderPalette(t, "lower")}
-              {!vista3d && !tr.isIsland && renderPalette(t, "upper")}
             </div>
           ))}
-
-          {/* Módulos de piso a techo: misma presentación que superiores e inferiores (en 3D van en la lista única) */}
-          {!vista3d && <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-2 text-xs rounded px-3 py-1.5 bg-amber-900/40 border border-amber-400/40">
-              <span className="font-bold uppercase tracking-widest text-amber-200">▮ Módulos de piso a techo</span>
-              <span className="text-white/60">
-                {specials.length === 0 ? "ninguno" : `llevas ${specials.length} · ocupan ${m2(specials.reduce((a, s) => a + s.w, 0))} m de la pared`}
-              </span>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5">
-              {SPECIALS.map(o => {
-                const act = specials.find(s => s.key === o.key);
-                const count = act ? 1 : 0;
-                const w = act ? act.w : specialWidth(plan, o.key);
-                const canToggle = !!onSpecialToggle;
-                return (
-                  <div key={o.key} className={`rounded border p-2 flex flex-col gap-1.5 ${count > 0 ? "bg-amber-900/30 border-amber-400/50" : "bg-white/[0.03] border-white/10"}`}>
-                    <button type="button" className="flex items-center gap-2 text-left disabled:cursor-default" disabled={!canToggle || count > 0}
-                      title={count > 0 ? "Ya está en la cotización" : "Tocar para agregarlo"}
-                      onClick={() => onSpecialToggle?.(o.key, true)}>
-                      <ModuleIcon k={o.key} size={34} className="shrink-0 text-white/80" />
-                      <span className="text-xs font-semibold text-white/85 leading-tight">{o.label}</span>
-                    </button>
-                    <div className="flex items-center justify-between gap-1">
-                      {o.editable ? (
-                        <label className="flex items-center gap-1 text-xs text-white/70">
-                          <MedidaCampo valor={w} onCambio={(v) => edit(p => { p.alacenaEntrepanosWidth = v; })}
-                            className="w-14 bg-black/30 border-b border-white/40 text-right font-mono text-white focus:outline-none" />
-                          m
-                        </label>
-                      ) : (
-                        <span className="text-xs font-mono text-white/60" title="Medida fija">🔒 {m2(o.width)} m</span>
-                      )}
-                      <span className="flex items-center gap-1">
-                        <button type="button" className="w-7 h-7 rounded bg-white/10 hover:bg-white/25 disabled:opacity-30" disabled={!canToggle || count === 0}
-                          onClick={() => onSpecialToggle?.(o.key, false)}>−</button>
-                        <span className={`w-5 text-center font-mono text-sm ${count > 0 ? "text-white font-bold" : "text-white/40"}`}>{count}</span>
-                        <button type="button" className="w-7 h-7 rounded bg-white/10 hover:bg-white/25 disabled:opacity-30" disabled={!canToggle || count > 0}
-                          onClick={() => onSpecialToggle?.(o.key, true)}>+</button>
-                      </span>
-                    </div>
-                    {act && (act.lateral || plan.tramos.length > 1) && (
-                      <div className="flex flex-wrap items-center gap-2 text-[11px] text-amber-100/80">
-                        {act.lateral && (
-                          <label className="flex items-center gap-1 cursor-pointer">
-                            <input type="checkbox" className="h-3.5 w-3.5 accent-amber-500" checked={lateralOn(plan, o.key)}
-                              onChange={(e) => edit(p => { p.specialLateral = { ...(p.specialLateral || {}), [o.key]: e.target.checked }; })} />
-                            con lateral (pieza grande)
-                          </label>
-                        )}
-                        {plan.tramos.length > 1 && (
-                          <label className="flex items-center gap-1">
-                            en
-                            <select className="h-6 rounded bg-background border border-white/15 px-1"
-                              value={act.tramo}
-                              onChange={(e) => edit(p => { p.specialTramo = { ...(p.specialTramo || {}), [o.key]: parseInt(e.target.value) || 0 }; })}>
-                              {plan.tramos.map((tt, i) => <option key={i} value={i}>{tt.name}</option>)}
-                            </select>
-                          </label>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-            <p className="text-[11px] text-amber-200/50">Ocupan las dos líneas del tramo. Para moverlos, arrástralos en el dibujo o usa ◀ ▶ al tocarlos. Marcarlos o quitarlos cambia la cotización igual que su casilla de siempre.</p>
-          </div>}
 
           {result.warnings.length > 0 && (
             <div className="rounded-lg border border-amber-500/40 bg-amber-900/10 p-3 text-xs text-amber-200 space-y-1">

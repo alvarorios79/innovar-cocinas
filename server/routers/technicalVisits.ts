@@ -712,6 +712,8 @@ export const technicalVisitsRouter = router({
       fileName: z.string(),
       fileData: z.string(), // base64
       category: z.string().optional(),
+      // true = PDF de la pizarra: hay UNO solo por levantamiento; si ya existe se actualiza en vez de crear otro
+      reemplazarPizarra: z.boolean().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
@@ -768,6 +770,26 @@ export const technicalVisitsRouter = router({
       console.log(`[compressPdf] Guardando en base de datos...`);
       let pdf: any;
       try {
+        // PDF de la pizarra: se reconoce por su nombre (el de la pizarra o el del plano del levantamiento).
+        // Si ya hay uno(s), el más reciente se actualiza y los repetidos se borran: queda 1 solo.
+        let previos: any[] = [];
+        if (input.reemplazarPizarra) {
+          const todos = await db.select().from(technicalVisitPdfs).where(eq(technicalVisitPdfs.visitId, input.visitId));
+          previos = todos
+            .filter((x: any) => /^(Levantamiento_|plano-levantamiento-)/i.test(String(x.originalFileName ?? "")))
+            .sort((a: any, b: any) => Number(b.id) - Number(a.id));
+        }
+        if (previos.length > 0) {
+          const [actual, ...repetidos] = previos;
+          const [upd] = await db
+            .update(technicalVisitPdfs)
+            .set({ url, s3Key: fileKey, originalFileName: input.fileName, originalSizeBytes: originalSize, compressedSizeBytes: compressedBuffer.length, savedPercent, uploadedBy: ctx.user.id, createdAt: now })
+            .where(eq(technicalVisitPdfs.id, actual.id))
+            .returning();
+          for (const r of repetidos) await db.delete(technicalVisitPdfs).where(eq(technicalVisitPdfs.id, r.id));
+          pdf = upd;
+          console.log(`[compressPdf] Pizarra actualizada id=${pdf.id} (se quitaron ${repetidos.length} repetidos)`);
+        } else {
         const [inserted] = await db
           .insert(technicalVisitPdfs)
           .values({
@@ -783,6 +805,7 @@ export const technicalVisitsRouter = router({
           })
           .returning();
         pdf = inserted;
+        }
         console.log(`[compressPdf] DB OK: id=${pdf.id}`);
       } catch (dbErr: any) {
         console.error(`[compressPdf] Error DB:`, dbErr);

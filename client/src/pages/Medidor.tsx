@@ -867,15 +867,16 @@ export default function Medidor() {
       }
       const result = await compressPdf.mutateAsync({
         visitId,
-        fileName: pdf.name,
+        fileName: `plano-levantamiento-${visitId}.pdf`,
         fileData: pdf.dataUrl,
         category: "pdf_plano",
+        reemplazarPizarra: true,
       });
       toast.success(`Pizarra guardada (${pdf.mb} MB)`);
       // Actualizar visitDetail de inmediato sin esperar el refetch
       setVisitDetail(prev => prev ? {
         ...prev,
-        pdfs: [...(prev.pdfs ?? []), { id: result.id, url: result.url, fileName: pdf.name } as any],
+        pdfs: [...(prev.pdfs ?? []).filter((x: any) => !/^(Levantamiento_|plano-levantamiento-)/i.test(String(x.fileName ?? x.originalFileName ?? ""))), { id: result.id, url: result.url, fileName: `plano-levantamiento-${visitId}.pdf` } as any],
       } : prev);
       // Invalidar la query para que se refresque en background (funciona aunque la query esté disabled)
       utils.technicalVisits.getById.invalidate({ visitId: Number(visitId) });
@@ -925,7 +926,7 @@ export default function Medidor() {
           toast.info("Guardando el plano del levantamiento…");
           const pdf = await pizarraRef.current?.requestPdf();
           if (pdf) {
-            await compressPdf.mutateAsync({ visitId: visitDetail.id, fileName: `plano-levantamiento-${visitDetail.id}.pdf`, fileData: pdf.dataUrl, category: "pdf_plano" });
+            await compressPdf.mutateAsync({ visitId: visitDetail.id, fileName: `plano-levantamiento-${visitDetail.id}.pdf`, fileData: pdf.dataUrl, category: "pdf_plano", reemplazarPizarra: true });
           }
         } catch (errPlano) {
           console.warn("[plano del levantamiento → PDF]", errPlano);

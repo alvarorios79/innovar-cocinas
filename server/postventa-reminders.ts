@@ -6,10 +6,13 @@
  * - Cuando alguien lo atiende (Hecho / En revisión / No procede), se BORRA el aviso a todos
  *   (decisión de Álvaro: si Martha o comercial lo hacen, a él se le quita).
  */
-import { and, eq, inArray, isNull, lte } from "drizzle-orm";
+import { and, eq, gte, inArray, isNull, lte } from "drizzle-orm";
 import * as db from "./db";
 import { notifications, postventaReclamaciones, projects, clients, accountingClosureProjects, accountingClosures } from "../drizzle/schema";
 import { POSTVENTA_NOTIFY_ROLES, POSTVENTA_REF } from "@shared/postventa";
+
+/** Días mínimos entre dos mensajes iguales (mensaje del mes / revisión anual) al mismo cliente. */
+export const DIAS_ENTRE_MENSAJES = 60;
 
 async function teamIds(): Promise<number[]> {
   const ids = new Set<number>();
@@ -45,6 +48,7 @@ export async function sendDuePostventaReminders(now = new Date()): Promise<numbe
   if (!d) return 0;
   const due = await d.select({
     id: postventaReclamaciones.id, type: postventaReclamaciones.type, projectName: projects.name, clientName: clients.name,
+    clientId: projects.clientId, scheduledFor: postventaReclamaciones.scheduledFor,
   })
     .from(postventaReclamaciones)
     .innerJoin(projects, eq(projects.id, postventaReclamaciones.projectId))
@@ -56,10 +60,21 @@ export async function sendDuePostventaReminders(now = new Date()): Promise<numbe
       isNull(postventaReclamaciones.avisadoAt), // un solo aviso por seguimiento, aunque se limpie la campanita
     ));
   if (!due.length) return 0;
+  // UN mensaje por CLIENTE, no por proyecto: si tiene varios proyectos, solo se avisa uno (el más reciente) y los demás
+  // quedan marcados como avisados sin molestar. Tampoco se avisa si a ese cliente ya se le avisó lo mismo en los últimos 60 días.
+  const hace60 = new Date(now.getTime() - DIAS_ENTRE_MENSAJES * 86400000).toISOString();
+  const recientes = await d.select({ clientId: projects.clientId, type: postventaReclamaciones.type })
+    .from(postventaReclamaciones).innerJoin(projects, eq(projects.id, postventaReclamaciones.projectId))
+    .where(and(inArray(postventaReclamaciones.type, ["seguimiento_30d", "revision_anual"]), gte(postventaReclamaciones.avisadoAt, hace60)));
+  const yaAvisado = new Set(recientes.map((r) => `${r.clientId}|${r.type}`));
+  const ordenados = [...due].sort((a, b) => String(b.scheduledFor).localeCompare(String(a.scheduledFor)));
   let count = 0;
-  for (const r of due) {
+  for (const r of ordenados) {
     // Se marca ANTES de avisar: si algo falla a medias, mejor un aviso menos que repetirlo cada media hora
     await d.update(postventaReclamaciones).set({ avisadoAt: now.toISOString() } as any).where(eq(postventaReclamaciones.id, r.id));
+    const clave = `${r.clientId}|${r.type}`;
+    if (yaAvisado.has(clave)) continue; // este cliente ya tiene su aviso (de otro proyecto o reciente)
+    yaAvisado.add(clave);
     const quien = r.clientName || r.projectName;
     if (r.type === "seguimiento_30d") {
       await notifyPostventa(r.id, `💬 Mensaje del mes: ${quien}`, `Envíale el WhatsApp de cómo le ha ido con su proyecto (con la reseña en Google). Toca para abrirlo.`);
@@ -123,4 +138,32 @@ export async function isInConfirmedClosure(projectId: number): Promise<boolean> 
     .where(and(eq(accountingClosureProjects.projectId, projectId), eq(accountingClosures.status, "confirmed")))
     .limit(1);
   return rows.length > 0;
+}
+
+
+/**
+ * Se cerró el mensaje del mes / la revisión de UN proyecto: los de los OTROS proyectos del mismo cliente (mismo tipo, aún
+ * pendientes y con fecha dentro de los próximos 60 días o ya vencidos) quedan «cubiertos» por ese mismo mensaje.
+ */
+export async function cubrirSeguimientosDelCliente(recId: number, resueltoPor: number | null): Promise<number> {
+  const d = await db.getDb();
+  if (!d) return 0;
+  const [rec] = await d.select({ type: postventaReclamaciones.type, clientId: projects.clientId })
+    .from(postventaReclamaciones).innerJoin(projects, eq(projects.id, postventaReclamaciones.projectId))
+    .where(eq(postventaReclamaciones.id, recId)).limit(1);
+  if (!rec || (rec.type !== "seguimiento_30d" && rec.type !== "revision_anual")) return 0;
+  const limite = new Date(Date.now() + DIAS_ENTRE_MENSAJES * 86400000).toISOString();
+  const otros = await d.select({ id: postventaReclamaciones.id })
+    .from(postventaReclamaciones).innerJoin(projects, eq(projects.id, postventaReclamaciones.projectId))
+    .where(and(eq(projects.clientId, rec.clientId), eq(postventaReclamaciones.type, rec.type), eq(postventaReclamaciones.status, "pendiente"),
+      lte(postventaReclamaciones.scheduledFor, limite)));
+  let n = 0;
+  for (const o of otros) {
+    if (o.id === recId) continue;
+    await d.update(postventaReclamaciones).set({ status: "resuelto", resolvedAt: new Date().toISOString(), resolvedBy: resueltoPor,
+      resolvedNotes: "Cubierto por el mensaje enviado a este cliente por otro de sus proyectos" } as any).where(eq(postventaReclamaciones.id, o.id));
+    await clearPostventaNotifications(o.id);
+    n++;
+  }
+  return n;
 }

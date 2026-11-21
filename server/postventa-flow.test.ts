@@ -81,4 +81,34 @@ describe("Postventa — avisos y reporte del cliente", () => {
     await db.delete(notifications).where(and(eq(notifications.referenceType, POSTVENTA_REF), inArray(notifications.referenceId, ids)));
     await db.delete(postventaReclamaciones).where(inArray(postventaReclamaciones.id, ids));
   });
+
+  it("un cliente con varios proyectos recibe UN solo aviso y al resolverlo quedan cubiertos los demás", { timeout: 120000 }, async () => {
+    await runMigrations();
+    const db = (await getDb())!;
+    const [owner] = await db.select({ id: users.id }).from(users).where(eq(users.role, "super_admin")).limit(1);
+    const [client] = await db.insert(clients).values({ name: "Cliente Dos Proyectos", whatsappPhone: "3001239999" } as any).returning({ id: clients.id });
+    const ps: number[] = [];
+    const recs: number[] = [];
+    for (const [i, n] of ["Cocina", "Closet"].entries()) {
+      const [p] = await db.insert(projects).values({ clientId: client.id, name: `${n} Prueba Dos`, workType: "cocina", status: "entregado", createdBy: owner.id, publicToken: `tok-dos-${i}-${Date.now()}` } as any).returning({ id: projects.id });
+      ps.push(p.id);
+      const [r] = await db.insert(postventaReclamaciones).values({ projectId: p.id, title: "Mensaje del mes", type: "seguimiento_30d", status: "pendiente", priority: "media",
+        scheduledFor: new Date(Date.now() - (i + 1) * 86400000).toISOString(), createdBy: owner.id } as any).returning({ id: postventaReclamaciones.id });
+      recs.push(r.id);
+    }
+    try {
+      await sendDuePostventaReminders();
+      const avisos = await db.select().from(notifications).where(and(eq(notifications.referenceType, POSTVENTA_REF), inArray(notifications.referenceId, recs)));
+      expect(new Set(avisos.map((a) => a.referenceId)).size).toBe(1); // solo un proyecto avisa
+      // Se resuelve el avisado → el otro queda cubierto
+      await caller({ id: owner.id, role: "admin", name: "Martha" }).postventa.update({ id: avisos[0].referenceId as number, status: "resuelto", resolvedNotes: "ok" });
+      const filas = await db.select().from(postventaReclamaciones).where(inArray(postventaReclamaciones.id, recs));
+      expect(filas.every((f) => f.status === "resuelto")).toBe(true);
+    } finally {
+      await db.delete(notifications).where(and(eq(notifications.referenceType, POSTVENTA_REF), inArray(notifications.referenceId, recs)));
+      await db.delete(postventaReclamaciones).where(inArray(postventaReclamaciones.id, recs));
+      await db.delete(projects).where(inArray(projects.id, ps));
+      await db.delete(clients).where(eq(clients.id, client.id));
+    }
+  });
 });

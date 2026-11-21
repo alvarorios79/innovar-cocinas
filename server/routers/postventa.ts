@@ -1,7 +1,7 @@
 import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { randomBytes } from "crypto";
 import { storagePut } from "../storage";
-import { clearPostventaNotifications, notifyPostventa } from "../postventa-reminders";
+import { clearPostventaNotifications, notifyPostventa, cubrirSeguimientosDelCliente } from "../postventa-reminders";
 import { z } from "zod";
 import * as db from "../db";
 import { TRPCError } from "@trpc/server";
@@ -200,6 +200,10 @@ export const postventaRouter = router({
       // Alguien ya lo está atendiendo o lo cerró: se borra el aviso a todo el equipo (también a Álvaro)
       if (input.status && input.status !== "pendiente") {
         try { await clearPostventaNotifications(id); } catch (e) { console.error("[Postventa] No se pudo borrar el aviso:", e); }
+      }
+      // Un mensaje por CLIENTE: si lo resolvió, los de sus otros proyectos quedan cubiertos
+      if (input.status === "resuelto") {
+        try { await cubrirSeguimientosDelCliente(id, ctx.user.id); } catch (e) { console.error("[Postventa] No se pudo cubrir los otros proyectos del cliente:", e); }
       }
       return { success: true };
     }),

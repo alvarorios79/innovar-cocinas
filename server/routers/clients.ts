@@ -123,8 +123,8 @@ export const clientsRouter = router({
 
         // Si ya existe un cliente con ese WhatsApp, retornarlo en vez de crear duplicado
         const existingClient = await db.getClientByWhatsApp(input.whatsappPhone);
-        if (existingClient) {
-          return { ...existingClient, alreadyExisted: true };
+        if (existingClient && !existingClient.deletedAt && existingClient.dataOrigin === "manual") {
+          return { success: true, client: existingClient, credentials: null, isInternalManagement: true, alreadyExisted: true };
         }
 
         let userId: number | undefined = undefined;

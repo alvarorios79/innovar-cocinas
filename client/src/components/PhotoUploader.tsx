@@ -36,6 +36,18 @@ interface PhotoUploaderProps {
   className?: string;
 }
 
+// Algunos celulares (Android, archivos compartidos por WhatsApp) entregan la foto sin tipo: se deduce por la extensión
+function tipoArchivo(file: File): string {
+  if (file.type) return file.type;
+  const ext = file.name.split(".").pop()?.toLowerCase() || "";
+  if (ext === "pdf") return "application/pdf";
+  if (["jpg", "jpeg", "jfif"].includes(ext)) return "image/jpeg";
+  if (ext === "png") return "image/png";
+  if (ext === "webp") return "image/webp";
+  if (["heic", "heif"].includes(ext)) return "image/heic";
+  return "";
+}
+
 // Comprimir imagen en el cliente
 async function compressImage(file: File, maxWidth = 1920, quality = 0.8): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -64,7 +76,7 @@ async function compressImage(file: File, maxWidth = 1920, quality = 0.8): Promis
         ctx.drawImage(img, 0, 0, width, height);
         
         // Convertir a base64 con compresión
-        const dataUrl = canvas.toDataURL(file.type || "image/jpeg", quality);
+        const dataUrl = canvas.toDataURL("image/jpeg", quality);
         resolve(dataUrl);
       };
       img.onerror = () => reject(new Error("Error al cargar la imagen"));
@@ -109,8 +121,9 @@ export function PhotoUploader({
 
     for (const file of filesToAdd) {
       // Validar tipo (imágenes y PDFs)
-      const isImage = file.type.startsWith("image/");
-      const isPdf = file.type === "application/pdf";
+      const tipo = tipoArchivo(file);
+      const isImage = tipo.startsWith("image/");
+      const isPdf = tipo === "application/pdf";
       if (!isImage && !isPdf) {
         toast.error(`${file.name} no es un archivo válido (solo imágenes y PDF)`);
         continue;
@@ -191,7 +204,7 @@ export function PhotoUploader({
         );
         
         let fileData: string;
-        const isPdf = photoFile.file.type === "application/pdf";
+        const isPdf = tipoArchivo(photoFile.file) === "application/pdf";
         
         if (isPdf) {
           // Para PDFs, convertir a base64 sin compresión
@@ -216,7 +229,7 @@ export function PhotoUploader({
         const result = await uploadMutation.mutateAsync({
           fileName: photoFile.file.name,
           fileData,
-          contentType: photoFile.file.type,
+          contentType: isPdf ? "application/pdf" : (tipoArchivo(photoFile.file).startsWith("image/") ? "image/jpeg" : tipoArchivo(photoFile.file)),
           projectId,
           stage,
           category,
@@ -233,6 +246,7 @@ export function PhotoUploader({
         uploadedUrls.push(result.url);
         uploadedNames.push(photoFile.file.name);
       } catch (error: any) {
+        toast.error(`No se pudo subir ${photoFile.file.name}: ${error?.message || "error desconocido"}`);
         setFiles((prev) =>
           prev.map((f) =>
             f.id === photoFile.id
@@ -275,7 +289,7 @@ export function PhotoUploader({
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
-        onClick={() => fileInputRef.current?.click()}
+        onClick={() => { fileInputRef.current?.removeAttribute("capture"); fileInputRef.current?.click(); }}
       >
         <input
           ref={fileInputRef}
@@ -283,7 +297,7 @@ export function PhotoUploader({
           accept={accept}
           multiple
           className="hidden"
-          onChange={(e) => handleFileSelect(e.target.files)}
+          onChange={(e) => { handleFileSelect(e.target.files); e.target.value = ""; }}
         />
         
         <div className="flex flex-col items-center gap-2">
@@ -309,7 +323,7 @@ export function PhotoUploader({
                 e.stopPropagation();
                 // En móviles, abrir cámara
                 if (fileInputRef.current) {
-                  fileInputRef.current.capture = "environment";
+                  fileInputRef.current.setAttribute("capture", "environment");
                   fileInputRef.current.click();
                 }
               }}
@@ -342,7 +356,7 @@ export function PhotoUploader({
                 <CardContent className="p-0">
                   {/* Preview de imagen o PDF */}
                   <div className="relative aspect-square">
-                    {photoFile.file.type === "application/pdf" ? (
+                    {tipoArchivo(photoFile.file) === "application/pdf" ? (
                       <div className={`w-full h-full flex flex-col items-center justify-center bg-muted ${
                         photoFile.status === "uploading" ? "opacity-50" : ""
                       }`}>

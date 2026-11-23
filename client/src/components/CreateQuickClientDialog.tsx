@@ -53,6 +53,12 @@ export function CreateQuickClientDialog({ trigger, onClientCreated }: CreateQuic
 
   const createQuickMutation = trpc.clients.createQuick.useMutation({
     onSuccess: (data) => {
+      if ((data as any).alreadyExisted && data.client) {
+        toast.info(`Ese WhatsApp ya estaba registrado a nombre de «${data.client.name}». Se seleccionó ese cliente.`);
+        if (onClientCreated) onClientCreated(data.client);
+        handleClose();
+        return;
+      }
       if (data.isInternalManagement || !data.credentials) {
         // Cliente con gestión interna: no mostrar credenciales
         toast.success("¡Cliente creado! (Gestión interna - sin acceso al portal)");

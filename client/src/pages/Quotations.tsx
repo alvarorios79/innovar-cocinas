@@ -40,6 +40,7 @@ import { Plus, Trash2, FileText, Send, Eye, Pencil, Mail, Search, X, UserPlus, F
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/formatters";
 import { CreateQuickClientDialog } from "@/components/CreateQuickClientDialog";
+import { ClientCombobox } from "@/components/ClientCombobox";
 import { usePricing, getPriceFromMap } from "@/hooks/usePricing";
 import { QuotationGroupCard } from "@/components/QuotationGroupCard";
 import { ArchiveFilterTabs } from "@/components/ArchiveFilterTabs";
@@ -2660,21 +2661,7 @@ export default function Quotations() {
                     Cliente
                   </Label>
                   <div className="flex gap-2">
-                    <Select
-                      value={selectedClient?.toString() || ""}
-                      onValueChange={(value) => setSelectedClient(parseInt(value))}
-                    >
-                      <SelectTrigger className="flex-1 bg-card border-[rgba(106,207,199,0.18)] hover:border-[oklch(0.72_0.14_180)] transition-colors">
-                        <SelectValue placeholder="Seleccionar cliente" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {clients.map((client: any) => (
-                          <SelectItem key={client.id} value={client.id.toString()}>
-                            {client.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <ClientCombobox clients={clients as any[]} value={selectedClient} onChange={setSelectedClient} />
                     <CreateQuickClientDialog
                       trigger={
                         <Button type="button" variant="outline" size="icon" title="Crear nuevo cliente" className="border-[oklch(0.72_0.14_180)] text-[oklch(0.72_0.14_180)] hover:bg-[oklch(0.72_0.14_180)] hover:text-white transition-colors">

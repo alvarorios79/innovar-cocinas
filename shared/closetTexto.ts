@@ -1,7 +1,9 @@
+import { componentesMarcados } from "./closetComponentes";
+
 // Texto de un closet para el PDF y el enlace público (una sola redacción, antes estaba duplicada y con errores).
 export function lineasCloset(cc: any): string[] {
   const labels: Record<string, string> = { estandar: "Closet Estándar", premium: "Closet Premium", deluxe: "Closet Deluxe", especial: "Closet Especial", empotrado: "Closet Premium" };
-  const doorLabels: Record<string, string> = { corredizas: "Puertas corredizas", batientes: "Puertas batientes" };
+  const doorLabels: Record<string, string> = { corredizas: "Puertas corredizas", batientes: "Puertas batientes", abierto: "Concepto abierto: sin puertas, con regrueso en los cantos" };
   const lines: string[] = [];
   lines.push((labels[cc.type] || `Closet ${String(cc.type || "").toUpperCase()}`).toUpperCase());
   lines.push(`Dimensiones: ${cc.width} m (ancho) x ${cc.height} m (alto)`);
@@ -13,13 +15,7 @@ export function lineasCloset(cc: any): string[] {
   const hayMarcados = Object.values(a).some(Boolean);
   const incluye: string[] = [];
   if (hayMarcados) {
-    if (a.maletero) incluye.push("Maletero");
-    if (a.divisor) incluye.push("Divisor de ropa");
-    if (a.entrepanos) incluye.push("Entrepaños");
-    if (a.doubleCajonero) incluye.push("Doble cajonero");
-    if (a.zapatero) incluye.push("Zapatero");
-    if (a.dobleColgadero) incluye.push("Doble colgadero");
-    if (a.espejo) incluye.push("Espejo en puertas");
+    incluye.push(...componentesMarcados(a, cc.cantidades));
   } else {
     // cotizaciones antiguas sin casillas: el closet siempre incluía esto
     incluye.push("Maletero", "Divisor", "Doble colgadero", "Entrepaños", "Doble cajonero", "Zapatero");

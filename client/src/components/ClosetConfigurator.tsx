@@ -13,12 +13,13 @@ import {
 } from "@/components/ui/select";
 import { LayoutGrid, DoorOpen, Truck } from "lucide-react";
 import { usePricing } from "@/hooks/usePricing";
+import { COMPONENTES_CLOSET } from "@shared/closetComponentes";
 
 export interface ClosetConfig {
   type: "estandar" | "premium" | "deluxe" | "especial";
   width: number;
   height: number;
-  doorType: "corredizas" | "batientes";
+  doorType: "corredizas" | "batientes" | "abierto"; // abierto = concepto abierto: sin puertas y con regrueso en los cantos
   squareMeters: number;
   pricePerSquareMeter: number;
   subtotal: number;
@@ -30,15 +31,8 @@ export interface ClosetConfig {
   incluyeLed?: boolean;   // luz LED interior del closet
   ledML?: number;         // metros de LED (precio único del Motor: LED_ML)
   ledPrice?: number;
-  accessories?: {
-    maletero?: boolean;
-    divisor?: boolean;
-    entrepanos?: boolean;
-    doubleCajonero?: boolean;
-    zapatero?: boolean;
-    dobleColgadero?: boolean;
-    espejo?: boolean;
-  };
+  accessories?: Record<string, boolean | undefined>; // claves en shared/closetComponentes.ts (las antiguas se conservan)
+  cantidades?: Record<string, number>;                  // cuántos de cada componente (cajoneros, colgaderos…)
 }
 
 interface ClosetConfiguratorProps {
@@ -93,13 +87,8 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
   const ledPriceNow = getPrice("LED_ML");
 
   // Accesorios del closet
-  const [accMaletero, setAccMaletero] = useState<boolean>(config?.accessories?.maletero ?? false);
-  const [accDivisor, setAccDivisor] = useState<boolean>(config?.accessories?.divisor ?? false);
-  const [accEntrepanos, setAccEntrepanos] = useState<boolean>(config?.accessories?.entrepanos ?? false);
-  const [accDoubleCajonero, setAccDoubleCajonero] = useState<boolean>(config?.accessories?.doubleCajonero ?? false);
-  const [accZapatero, setAccZapatero] = useState<boolean>(config?.accessories?.zapatero ?? false);
-  const [accDobleColgadero, setAccDobleColgadero] = useState<boolean>(config?.accessories?.dobleColgadero ?? false);
-  const [accEspejo, setAccEspejo] = useState<boolean>(config?.accessories?.espejo ?? false);
+  const [acc, setAcc] = useState<Record<string, boolean | undefined>>({ ...(config?.accessories || {}) });
+  const [cantidades, setCantidades] = useState<Record<string, number>>({ ...(config?.cantidades || {}) });
 
   useEffect(() => {
     const widthNum = parseFloat(width) || 0;
@@ -134,20 +123,13 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
       incluyeLed,
       ledML: incluyeLed ? ledMetros : 0,
       ledPrice: incluyeLed ? ledPriceNow : 0,
-      accessories: {
-        maletero: accMaletero,
-        divisor: accDivisor,
-        entrepanos: accEntrepanos,
-        doubleCajonero: accDoubleCajonero,
-        zapatero: accZapatero,
-        dobleColgadero: accDobleColgadero,
-        espejo: accEspejo,
-      },
+      accessories: acc,
+      cantidades,
     };
 
     onChange(newConfig);
   }, [type, width, height, doorType, notes, includeTransport, transportCost, includeDismantle, dismantlePriceNow, incluyeLed, ledMetros, ledPriceNow, getPrice(CLOSET_CODES[type]),
-      accMaletero, accDivisor, accEntrepanos, accDoubleCajonero, accZapatero, accDobleColgadero, accEspejo]);
+      acc, cantidades]);
 
   const squareMeters = (parseFloat(width) || 0) * (parseFloat(height) || 0);
   const closetBase = CLOSET_TYPES[type] || CLOSET_TYPES.estandar;
@@ -171,7 +153,7 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
           {/* Tipo de Closet */}
           <div className="bg-blue-500/10 p-4 rounded-lg border border-blue-500/25">
             <h5 className="font-semibold text-blue-300 mb-3">Tipo de Closet</h5>
-            <Select value={type} onValueChange={(value) => setType(value as ClosetConfig["type"])}>
+            <Select value={type} disabled={doorType === "abierto"} onValueChange={(value) => setType(value as ClosetConfig["type"])}>
               <SelectTrigger className="h-10 bg-card">
                 <SelectValue placeholder="Selecciona el tipo" />
               </SelectTrigger>
@@ -183,12 +165,15 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
                 ))}
               </SelectContent>
             </Select>
+            {doorType === "abierto" && (
+              <p className="mt-2 text-xs text-amber-300">Concepto abierto (vestier): sin puertas y con regrueso, siempre se cobra en la gama más alta (Deluxe). La luz LED se cobra aparte.</p>
+            )}
             <div className="mt-3 p-3 bg-blue-500/15 rounded">
               <p className="text-sm text-blue-300">
                 <strong>Profundidad:</strong> {closetType.depth}
               </p>
               <p className="text-sm text-blue-300 mt-1">
-                <strong>Incluye:</strong> Maletero, divisor, doble colgadero, entrepaños, doble cajonero, zapatero y puertas
+                <strong>Incluye:</strong> {doorType === "abierto" ? "Interior del closet con regrueso en los cantos (sin puertas)" : "Maletero, divisor, doble colgadero, entrepaños, doble cajonero, zapatero y puertas"}
               </p>
             </div>
           </div>
@@ -236,13 +221,17 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
               <DoorOpen className="h-4 w-4 text-white/60" />
               <h5 className="font-semibold text-white/85">Tipo de Puertas</h5>
             </div>
-            <Select value={doorType} onValueChange={(value) => setDoorType(value as ClosetConfig["doorType"])}>
+            <Select value={doorType} onValueChange={(value) => {
+              setDoorType(value as ClosetConfig["doorType"]);
+              if (value === "abierto") setType("deluxe"); // el concepto abierto (vestier) siempre se cobra en la gama más alta
+            }}>
               <SelectTrigger className="h-10 bg-card">
                 <SelectValue placeholder="Selecciona el tipo" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="corredizas">Puertas Corredizas</SelectItem>
                 <SelectItem value="batientes">Puertas Batientes</SelectItem>
+                <SelectItem value="abierto">Concepto abierto (sin puertas y regruesado)</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -251,26 +240,28 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
           <div className="bg-blue-500/10 p-4 rounded-lg border border-blue-500/25">
             <h5 className="font-semibold text-blue-300 mb-3">Componentes (para descripción)</h5>
             <p className="text-xs text-blue-400 mb-3">Selecciona los componentes que lleva este closet — se generará la descripción automáticamente.</p>
-            <div className="grid grid-cols-2 gap-2">
-              {([
-                { state: accMaletero,       setState: setAccMaletero,       label: "Maletero" },
-                { state: accDivisor,        setState: setAccDivisor,        label: "Divisor de ropa" },
-                { state: accEntrepanos,     setState: setAccEntrepanos,     label: "Entrepaños" },
-                { state: accDoubleCajonero, setState: setAccDoubleCajonero, label: "Doble cajonero" },
-                { state: accZapatero,       setState: setAccZapatero,       label: "Zapatero" },
-                { state: accDobleColgadero, setState: setAccDobleColgadero, label: "Doble colgadero" },
-                { state: accEspejo,         setState: setAccEspejo,         label: "Espejo en puertas" },
-              ]).map(({ state, setState, label }) => (
-                <div key={label} className="flex items-center gap-2 p-2 bg-card rounded border border-blue-100 hover:border-blue-300 transition-colors">
-                  <Checkbox
-                    id={`acc-${label}`}
-                    checked={state}
-                    onCheckedChange={(c) => setState(c === true)}
-                  />
-                  <Label htmlFor={`acc-${label}`} className="cursor-pointer text-sm text-white/85">{label}</Label>
+            <p className="text-xs text-amber-300 mb-3">Elevador de colgadero, pantaloneros, corbateros, joyeros y demás accesorios son herrajes: se cobran aparte en el ítem «Herrajes».</p>
+            {Array.from(new Set(COMPONENTES_CLOSET.map((c) => c.grupo))).map((grupo) => (
+              <div key={grupo} className="mb-3 last:mb-0">
+                <p className="text-xs font-semibold uppercase tracking-wide text-blue-300/80 mb-1.5">{grupo}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {COMPONENTES_CLOSET.filter((c) => c.grupo === grupo).map((c) => (
+                    <div key={c.key} className="p-2 bg-card rounded border border-blue-100 hover:border-blue-300 transition-colors">
+                      <div className="flex items-center gap-2">
+                        <Checkbox id={`acc-${c.key}`} checked={!!acc[c.key]} onCheckedChange={(v) => setAcc((a) => ({ ...a, [c.key]: v === true }))} />
+                        <Label htmlFor={`acc-${c.key}`} className="cursor-pointer text-sm text-white/85 flex-1">{c.uno}</Label>
+                        {c.conCantidad && acc[c.key] && (
+                          <Input type="number" min={1} step={1} value={cantidades[c.key] ?? 1} aria-label={`Cantidad: ${c.uno}`}
+                            onChange={(e) => setCantidades((q) => ({ ...q, [c.key]: Math.max(1, Math.floor(Number(e.target.value) || 1)) }))}
+                            className="h-8 w-16 text-center" />
+                        )}
+                      </div>
+                      {c.ayuda && acc[c.key] && <p className="text-[11px] text-blue-300/80 mt-1 pl-6">{c.ayuda}</p>}
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
 
           {/* Luz LED interior (opcional) */}

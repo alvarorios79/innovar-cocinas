@@ -11,6 +11,7 @@ import type { KitchenConfig } from "@/components/kitchenTypes";
 import { DESCRIPTIVE_UPPER_MODULES, DESCRIPTIVE_LOWER_MODULES } from "@/components/kitchenTypes";
 import { CountertopConfigurator, CountertopConfig, defaultCountertopConfig } from "@/components/CountertopConfigurator";
 import { cocinaDeLevantamiento } from "@shared/cocinaParedes";
+import { componentesMarcados } from "@shared/closetComponentes";
 import { piedraMesonPrincipal, piedraIsla, piedraBarra, hierrosBarra, precioHerrajeBarra, textoLavaplatos, PIEDRA_NOMBRE, normalizarPiedra, cantLateralesIsla, precioPiedraML } from "@shared/mesonPrecios";
 import { LavaplatosSelector } from "@/components/LavaplatosSelector";
 import { MuebleCocinaConfigurator, MuebleCocinaConfig, defaultMuebleCocinaConfig, calcularMuebleCocina, applyPiezaPrices } from "@/components/MuebleCocinaConfigurator";
@@ -242,15 +243,9 @@ function buildClosetDescription(config: import("@/components/ClosetConfigurator"
   };
   const dims = config.width > 0 && config.height > 0 ? ` ${config.width}m × ${config.height}m` : "";
   const parts: string[] = [];
-  if (config.accessories?.maletero)       parts.push("maletero");
-  if (config.accessories?.divisor)        parts.push("divisor de ropa");
-  if (config.accessories?.entrepanos)     parts.push("entrepaños");
-  if (config.accessories?.doubleCajonero) parts.push("doble cajonero");
-  if (config.accessories?.zapatero)       parts.push("zapatero");
-  if (config.accessories?.dobleColgadero) parts.push("doble colgadero");
-  if (config.accessories?.espejo)         parts.push("espejo en puertas");
+  parts.push(...componentesMarcados(config.accessories as any, (config as any).cantidades).map((x) => x.charAt(0).toLowerCase() + x.slice(1)));
   const accesText = parts.length > 0 ? ` Incluye: ${parts.join(", ")}.` : "";
-  const doorText = config.doorType === "corredizas" ? " Puertas corredizas." : " Puertas batientes.";
+  const doorText = config.doorType === "corredizas" ? " Puertas corredizas." : config.doorType === "abierto" ? " Concepto abierto: sin puertas, con regrueso en los cantos." : " Puertas batientes.";
   const ledText = config.incluyeLed && (config.ledML || 0) > 0 ? ` Iluminación LED interior (${config.ledML} ml).` : "";
   const dismantleText = config.includeDismantle ? " Incluye desmonte y desarmado del closet existente (no incluye el retiro de escombros del domicilio)." : "";
   return `Closet ${typeNames[config.type] || config.type}${dims}. Material aglomerado tipo RH, color a elegir por el cliente.${accesText}${doorText}${ledText}${dismantleText} (Diseño por definir)`;
@@ -1004,15 +999,8 @@ export default function Quotations() {
             incluyeLed: item.closetConfig.incluyeLed ?? false,
             ledML: item.closetConfig.ledML ?? 0,
             ledPrice: item.closetConfig.ledPrice ?? 0,
-            accessories: {
-              maletero: item.closetConfig.accessories?.maletero ?? false,
-              divisor: item.closetConfig.accessories?.divisor ?? false,
-              entrepanos: item.closetConfig.accessories?.entrepanos ?? false,
-              doubleCajonero: item.closetConfig.accessories?.doubleCajonero ?? false,
-              zapatero: item.closetConfig.accessories?.zapatero ?? false,
-              dobleColgadero: item.closetConfig.accessories?.dobleColgadero ?? false,
-              espejo: item.closetConfig.accessories?.espejo ?? false,
-            },
+            accessories: { ...(item.closetConfig.accessories || {}) },
+            cantidades: { ...((item.closetConfig as any).cantidades || {}) },
           } : undefined,
           tvCenterConfig: item.tvCenterConfig ? {
             ...item.tvCenterConfig, // conserva pricingVersion y campos de la versión 2

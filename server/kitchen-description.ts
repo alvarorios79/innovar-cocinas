@@ -393,8 +393,10 @@ export function appendHouseStandards(itemType: string | undefined | null, descri
       // Bisagras solo con puertas batientes (las corredizas no llevan); acero inoxidable únicamente en Deluxe.
       const corredizas = cc?.doorType === "corredizas";
       const closetHinges = t === "deluxe" ? "• Bisagras en acero inoxidable de cierre lento" : hinges;
-      lines = [mat, color, ...(corredizas ? [] : [closetHinges]), closetRails].filter((x): x is string => !!x);
+      const abierto = cc?.doorType === "abierto";
+      lines = [mat, color, ...(corredizas || abierto ? [] : [closetHinges]), closetRails].filter((x): x is string => !!x);
       if (corredizas) lines.push("• Herraje y sistema de puertas corredizas incluido");
+      if (abierto) lines.push("• Concepto abierto: sin puertas, con regrueso en los cantos");
       break;
     }
     case "mueble_cocina":

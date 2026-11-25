@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { precioMuebleBano, precioMesonBano, precioExcavadoBano, factorFondoMueble } from "../shared/banoPrecios";
+import { conservarDescripcionBano, precioMuebleBano, precioMesonBano, precioExcavadoBano, factorFondoMueble } from "../shared/banoPrecios";
 
 describe("Mueble de baño: precio proporcional", () => {
   it("la medida de referencia (60 × 45) cuesta el precio base", () => {
@@ -30,5 +30,14 @@ describe("Mueble de baño: precio proporcional", () => {
     expect(dos.total).toBe(uno.total + 400000);
     expect(precioExcavadoBano(1500000, 100, 55, 2).segunda).toBe(0); // menos de 1,30 m: una sola poceta
     expect(precioExcavadoBano(1500000, 255, 55, 2, 450000).segunda).toBe(450000); // el valor sale del Motor
+  });
+
+  it("la descripción se regenera sola salvo que se haya editado a mano", () => {
+    expect(conservarDescripcionBano("", undefined)).toBe(false);
+    expect(conservarDescripcionBano("Mueble de Baño Flotante — 2,55 m… Para lavamanos de excavado.", undefined)).toBe(false); // guardada antes, parte del texto automático
+    expect(conservarDescripcionBano("2 unidades — Mueble de Baño Flotante — …", undefined)).toBe(false);
+    expect(conservarDescripcionBano("Texto propio del vendedor", undefined)).toBe(true);
+    expect(conservarDescripcionBano("Mueble de Baño Flotante — editado", true)).toBe(true);   // marcada como manual
+    expect(conservarDescripcionBano("Mueble de Baño Flotante — …", false)).toBe(false);       // se pidió regenerar
   });
 });

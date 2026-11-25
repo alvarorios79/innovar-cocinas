@@ -31,6 +31,7 @@ export interface BathroomConfig {
   gola?: boolean;         // sistema gola (sin manijas)
   caladoU?: boolean;      // calado en U en los cajones superiores para desagües y llaves de paso
   rielesFull?: boolean;   // rieles de extensión total
+  descripcionManual?: boolean; // la descripción del ítem se editó a mano: no se regenera sola (lo maneja la cotización)
 }
 
 export interface BathroomConfiguratorProps {

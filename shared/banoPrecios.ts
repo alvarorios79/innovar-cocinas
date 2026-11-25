@@ -48,3 +48,16 @@ export function precioExcavadoBano(precioMl: number, anchoCm: number, fondoCm: n
   const segunda = pocetas >= 2 && a >= ANCHO_MIN_DOS_POCETAS ? Math.round(precioPocetaExtra) : 0;
   return { uno, segunda, total: uno + segunda };
 }
+
+/**
+ * ¿La descripción del mueble de baño se conserva (el vendedor la editó a mano) o se regenera sola con el cambio?
+ * `marca` = bathroomConfig.descripcionManual. Sin marca (cotizaciones guardadas antes), se considera automática si
+ * empieza con el texto del mueble («Mueble de Baño…» o «2 unidades — Mueble de Baño…»).
+ */
+export function conservarDescripcionBano(descripcion: string | null | undefined, marca: boolean | undefined): boolean {
+  const d = String(descripcion || "").trim();
+  if (!d) return false;
+  if (marca === true) return true;
+  if (marca === false) return false;
+  return !/^(\d+ unidades — )?Mueble de Baño/i.test(d);
+}

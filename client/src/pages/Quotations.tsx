@@ -12,6 +12,7 @@ import { DESCRIPTIVE_UPPER_MODULES, DESCRIPTIVE_LOWER_MODULES } from "@/componen
 import { CountertopConfigurator, CountertopConfig, defaultCountertopConfig } from "@/components/CountertopConfigurator";
 import { cocinaDeLevantamiento } from "@shared/cocinaParedes";
 import { componentesMarcados } from "@shared/closetComponentes";
+import { conservarDescripcionBano } from "@shared/banoPrecios";
 import { TEXTO_VESTIER, TEXTO_CLOSET } from "@shared/closetTexto";
 import { piedraMesonPrincipal, piedraIsla, piedraBarra, hierrosBarra, precioHerrajeBarra, textoLavaplatos, PIEDRA_NOMBRE, normalizarPiedra, cantLateralesIsla, precioPiedraML } from "@shared/mesonPrecios";
 import { LavaplatosSelector } from "@/components/LavaplatosSelector";
@@ -5023,12 +5024,12 @@ export default function Quotations() {
                               onChange={(config: BathroomConfig) => {
                                 const newItems = [...items];
                                 const cur = newItems[index];
-                                // La descripción se regenera sola, salvo que el vendedor la haya editado a mano
-                                const prevAuto = cur.bathroomConfig ? buildBathroomDescription(cur.bathroomConfig) : "";
-                                const keepManual = !!cur.description?.trim() && cur.description !== prevAuto;
+                                // La descripción se regenera sola con cada cambio, salvo que el vendedor la haya EDITADO A MANO (queda marcado en la
+                                // configuración). Las cotizaciones guardadas sin esa marca se tratan como automáticas si empiezan con el texto del mueble.
+                                const keepManual = conservarDescripcionBano(cur.description, (cur.bathroomConfig as any)?.descripcionManual);
                                 const next = {
                                   ...cur,
-                                  bathroomConfig: config,
+                                  bathroomConfig: { ...config, descripcionManual: keepManual },
                                   quantity: String(config.quantity || 1),
                                   description: keepManual ? cur.description : buildBathroomDescription(config),
                                 };
@@ -5039,12 +5040,30 @@ export default function Quotations() {
                             />
                             {renderTransporte(index)}
                             <div className="mt-4">
-                              <Label className="text-sm font-medium text-muted-foreground block mb-1">
-                                Descripción del ítem <span className="text-xs text-gray-400 font-normal">(auto-generada — editable)</span>
-                              </Label>
+                              <div className="flex items-center justify-between gap-2 mb-1">
+                                <Label className="text-sm font-medium text-muted-foreground block">
+                                  Descripción del ítem <span className="text-xs text-gray-400 font-normal">({(item.bathroomConfig as any)?.descripcionManual ? "editada a mano" : "auto-generada — editable"})</span>
+                                </Label>
+                                {item.bathroomConfig && (
+                                  <Button type="button" variant="outline" size="sm" className="h-7 text-xs"
+                                    onClick={() => {
+                                      const newItems = [...items];
+                                      const cur = newItems[index];
+                                      newItems[index] = { ...cur, description: buildBathroomDescription(cur.bathroomConfig!), bathroomConfig: { ...cur.bathroomConfig!, descripcionManual: false } as any };
+                                      setItems(newItems);
+                                    }}>
+                                    ↻ Regenerar descripción
+                                  </Button>
+                                )}
+                              </div>
                               <Textarea
                                 value={item.description}
-                                onChange={(e) => updateItem(index, "description", e.target.value)}
+                                onChange={(e) => {
+                                  const newItems = [...items];
+                                  const cur = newItems[index];
+                                  newItems[index] = { ...cur, description: e.target.value, ...(cur.bathroomConfig ? { bathroomConfig: { ...cur.bathroomConfig, descripcionManual: true } as any } : {}) };
+                                  setItems(newItems);
+                                }}
                                 rows={3}
                                 className="text-sm bg-card border-[rgba(106,207,199,0.18)] text-white/85"
                               />

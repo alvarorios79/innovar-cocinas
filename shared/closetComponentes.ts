@@ -29,13 +29,17 @@ export const COMPONENTES_CLOSET: ComponenteCloset[] = [
   { key: "espejo", grupo: "Zapatos y otros", uno: "Espejo en puertas" },
 ];
 
-/** Líneas de «Incluye» de los componentes marcados (con su cantidad si la tienen). */
-export function componentesMarcados(a: Record<string, any> | undefined, cantidades?: Record<string, number>): string[] {
+const metros = (cm: number) => (Math.round(cm) / 100).toFixed(2).replace(".", ",");
+
+/** Líneas de «Incluye» de los componentes marcados: con su cantidad y, si se escribió, su ancho (en cm guardado; sale en metros). */
+export function componentesMarcados(a: Record<string, any> | undefined, cantidades?: Record<string, number>, medidasCm?: Record<string, number>): string[] {
   const out: string[] = [];
   for (const c of COMPONENTES_CLOSET) {
     if (!a?.[c.key]) continue;
     const n = Math.max(1, Math.floor(Number(cantidades?.[c.key]) || 1));
-    out.push(c.conCantidad && n > 1 && c.varios ? `${n} ${c.varios}` : c.uno);
+    const w = Number(medidasCm?.[c.key]) || 0;
+    const nombre = c.conCantidad && n > 1 && c.varios ? `${n} ${c.varios}` : c.uno;
+    out.push(w > 0 ? `${nombre} (${metros(w)} m de ancho${n > 1 ? " cada uno" : ""})` : nombre);
   }
   return out;
 }

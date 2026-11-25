@@ -394,9 +394,10 @@ export function appendHouseStandards(itemType: string | undefined | null, descri
       const corredizas = cc?.doorType === "corredizas";
       const closetHinges = t === "deluxe" ? "• Bisagras en acero inoxidable de cierre lento" : hinges;
       const abierto = cc?.doorType === "abierto";
-      lines = [mat, color, ...(corredizas || abierto ? [] : [closetHinges]), closetRails].filter((x): x is string => !!x);
-      if (corredizas) lines.push("• Herraje y sistema de puertas corredizas incluido");
-      if (abierto) lines.push("• Concepto abierto: sin puertas, con regrueso en los cantos");
+      // Vestier abierto: el material y el color ya van en su texto fijo; sin puertas no hay bisagras ni sistema corredizo
+      lines = (abierto ? [closetRails] : [mat, color, ...(corredizas ? [] : [closetHinges]), closetRails]).filter((x): x is string => !!x);
+      // Deluxe: el sistema corredizo es Ducasse (parte del plus de la gama, junto con el espaldar)
+      if (corredizas) lines.push(t === "deluxe" ? "• Herraje y sistema de puertas corredizas Ducasse incluido" : "• Herraje y sistema de puertas corredizas incluido");
       break;
     }
     case "mueble_cocina":

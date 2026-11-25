@@ -14,6 +14,7 @@ import {
 import { LayoutGrid, DoorOpen, Truck } from "lucide-react";
 import { usePricing } from "@/hooks/usePricing";
 import { COMPONENTES_CLOSET } from "@shared/closetComponentes";
+import { InputM } from "@/components/InputMetros";
 
 export interface ClosetConfig {
   type: "estandar" | "premium" | "deluxe" | "especial";
@@ -32,7 +33,8 @@ export interface ClosetConfig {
   ledML?: number;         // metros de LED (precio único del Motor: LED_ML)
   ledPrice?: number;
   accessories?: Record<string, boolean | undefined>; // claves en shared/closetComponentes.ts (las antiguas se conservan)
-  cantidades?: Record<string, number>;                  // cuántos de cada componente (cajoneros, colgaderos…)
+  cantidades?: Record<string, number>;
+  medidasCm?: Record<string, number>;                   // ancho de cada componente (cm guardado; se escribe en metros)                  // cuántos de cada componente (cajoneros, colgaderos…)
 }
 
 interface ClosetConfiguratorProps {
@@ -89,6 +91,7 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
   // Accesorios del closet
   const [acc, setAcc] = useState<Record<string, boolean | undefined>>({ ...(config?.accessories || {}) });
   const [cantidades, setCantidades] = useState<Record<string, number>>({ ...(config?.cantidades || {}) });
+  const [medidasCm, setMedidasCm] = useState<Record<string, number>>({ ...(config?.medidasCm || {}) });
 
   useEffect(() => {
     const widthNum = parseFloat(width) || 0;
@@ -125,11 +128,12 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
       ledPrice: incluyeLed ? ledPriceNow : 0,
       accessories: acc,
       cantidades,
+      medidasCm,
     };
 
     onChange(newConfig);
   }, [type, width, height, doorType, notes, includeTransport, transportCost, includeDismantle, dismantlePriceNow, incluyeLed, ledMetros, ledPriceNow, getPrice(CLOSET_CODES[type]),
-      acc, cantidades]);
+      acc, cantidades, medidasCm]);
 
   const squareMeters = (parseFloat(width) || 0) * (parseFloat(height) || 0);
   const closetBase = CLOSET_TYPES[type] || CLOSET_TYPES.estandar;
@@ -256,6 +260,13 @@ export function ClosetConfigurator({ config, onChange }: ClosetConfiguratorProps
                             className="h-8 w-16 text-center" />
                         )}
                       </div>
+                      {acc[c.key] && (
+                        <div className="flex items-center gap-2 mt-1.5 pl-6">
+                          <span className="text-[11px] text-white/55">Ancho (m):</span>
+                          <InputM valorCm={medidasCm[c.key]} onCm={(cm) => setMedidasCm((m) => { const n = { ...m }; if (cm) n[c.key] = cm; else delete n[c.key]; return n; })}
+                            placeholder="opcional" className="h-8 w-24" />
+                        </div>
+                      )}
                       {c.ayuda && acc[c.key] && <p className="text-[11px] text-blue-300/80 mt-1 pl-6">{c.ayuda}</p>}
                     </div>
                   ))}

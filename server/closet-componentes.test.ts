@@ -29,4 +29,13 @@ describe("Closet: componentes, cantidades y concepto abierto", () => {
     expect(de).toContain("corredizas Ducasse");
     expect(es).not.toContain("Ducasse");
   });
+  it("el closet con puertas lleva su frase fija y no repite material ni color", async () => {
+    const { appendHouseStandards } = await import("./kitchen-description");
+    const cc: any = { type: "premium", doorType: "batientes", width: 2.5, height: 2.4, squareMeters: 6, accessories: { entrepanos: true } };
+    const t = appendHouseStandards("closet", lineasCloset(cc).join("\n"), { closetConfig: cc });
+    expect(t).toContain("Closet en madera aglomerada de alta presión tipo RH color a elegir por el cliente (diseño final por definir).");
+    expect(t).toContain("Puertas batientes");
+    expect(t.match(/color a elegir/gi)?.length).toBe(1);
+    expect(t).not.toContain("15 mm");
+  });
 });

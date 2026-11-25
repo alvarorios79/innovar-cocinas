@@ -2,6 +2,8 @@ import { componentesMarcados } from "./closetComponentes";
 
 // Texto de un closet para el PDF y el enlace público (una sola redacción, antes estaba duplicada y con errores).
 /** Texto fijo del vestier en concepto abierto: lo demás sale de las casillas de componentes que se marquen. */
+/** Texto fijo del closet con puertas (corredizas o batientes). */
+export const TEXTO_CLOSET = "Closet en madera aglomerada de alta presión tipo RH color a elegir por el cliente (diseño final por definir).";
 export const TEXTO_VESTIER = "Madera aglomerado de alta presión tipo RH, color a elegir por el cliente, con regruesos en los paneles, zócalo, base y techo.";
 
 export function lineasCloset(cc: any): string[] {
@@ -15,7 +17,10 @@ export function lineasCloset(cc: any): string[] {
   lines.push(`Profundidad: ${cc.type === "especial" ? "menos de 40 cm" : "60 cm"}`);
   lines.push(`Área: ${Number(cc.squareMeters || 0).toFixed(2)} m²`);
   if (abierto) lines.push(TEXTO_VESTIER);
-  else if (doorLabels[cc.doorType]) lines.push(doorLabels[cc.doorType]);
+  else {
+    lines.push(TEXTO_CLOSET);
+    if (doorLabels[cc.doorType]) lines.push(doorLabels[cc.doorType]);
+  }
   lines.push("");
   const a = cc.accessories || {};
   const hayMarcados = Object.values(a).some(Boolean);

@@ -12,7 +12,7 @@ import { DESCRIPTIVE_UPPER_MODULES, DESCRIPTIVE_LOWER_MODULES } from "@/componen
 import { CountertopConfigurator, CountertopConfig, defaultCountertopConfig } from "@/components/CountertopConfigurator";
 import { cocinaDeLevantamiento } from "@shared/cocinaParedes";
 import { componentesMarcados } from "@shared/closetComponentes";
-import { TEXTO_VESTIER } from "@shared/closetTexto";
+import { TEXTO_VESTIER, TEXTO_CLOSET } from "@shared/closetTexto";
 import { piedraMesonPrincipal, piedraIsla, piedraBarra, hierrosBarra, precioHerrajeBarra, textoLavaplatos, PIEDRA_NOMBRE, normalizarPiedra, cantLateralesIsla, precioPiedraML } from "@shared/mesonPrecios";
 import { LavaplatosSelector } from "@/components/LavaplatosSelector";
 import { MuebleCocinaConfigurator, MuebleCocinaConfig, defaultMuebleCocinaConfig, calcularMuebleCocina, applyPiezaPrices } from "@/components/MuebleCocinaConfigurator";
@@ -249,8 +249,8 @@ function buildClosetDescription(config: import("@/components/ClosetConfigurator"
   const doorText = config.doorType === "corredizas" ? " Puertas corredizas." : " Puertas batientes.";
   const ledText = config.incluyeLed && (config.ledML || 0) > 0 ? ` Iluminación LED interior (${config.ledML} ml).` : "";
   const dismantleText = config.includeDismantle ? " Incluye desmonte y desarmado del closet existente (no incluye el retiro de escombros del domicilio)." : "";
-  if (config.doorType === "abierto") return `Vestier en concepto abierto (Closet ${typeNames[config.type] || config.type})${dims}. ${TEXTO_VESTIER}${accesText}${ledText}${dismantleText} (Diseño por definir)`;
-  return `Closet ${typeNames[config.type] || config.type}${dims}. Material aglomerado tipo RH, color a elegir por el cliente.${accesText}${doorText}${ledText}${dismantleText} (Diseño por definir)`;
+  if (config.doorType === "abierto") return `Vestier en concepto abierto (Closet ${typeNames[config.type] || config.type})${dims}. ${TEXTO_VESTIER}${accesText}${ledText}${dismantleText}`;
+  return `Closet ${typeNames[config.type] || config.type}${dims}. ${TEXTO_CLOSET}${accesText}${doorText}${ledText}${dismantleText}`;
 }
 
 function buildDoorDescription(config: import("@/components/DoorConfigurator").DoorConfig): string {

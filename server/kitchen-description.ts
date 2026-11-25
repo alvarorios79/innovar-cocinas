@@ -400,9 +400,19 @@ export function appendHouseStandards(itemType: string | undefined | null, descri
       if (corredizas) lines.push(t === "deluxe" ? "• Herraje y sistema de puertas corredizas Ducasse incluido" : "• Herraje y sistema de puertas corredizas incluido");
       break;
     }
+    case "baño": {
+      // Cajones llevan rieles; las puertas de almacenamiento llevan bisagras en acero inoxidable de cierre lento.
+      // Las cotizaciones anteriores (sin cajones/puertas) conservan sus dos líneas de siempre.
+      let bc: any = item?.bathroomConfig;
+      if (typeof bc === "string") { try { bc = JSON.parse(bc); } catch { bc = null; } }
+      const cajones = Number(bc?.cajones) || 0, puertas = Number(bc?.puertas) || 0;
+      const nuevo = bc && (bc.cajones !== undefined || bc.puertas !== undefined || bc.entrepanos !== undefined);
+      const bisagras = puertas > 0 || bc?.bisagrasInox ? "• Bisagras en acero inoxidable de cierre lento" : (nuevo ? null : hinges);
+      const rieles = nuevo && cajones === 0 && !bc?.rielesFull ? null : rails;
+      lines = [mat, color, bisagras, rieles].filter((x): x is string => !!x); break;
+    }
     case "mueble_cocina":
     case "centro_tv":
-    case "baño":
       lines = [mat, color, hinges, rails].filter((x): x is string => !!x); break;
     case "puerta":
       lines = [mat, color, ...(/omega/i.test(base) ? [] : ["• Bisagras omega", "• Tope de puerta", "• Chapa gama alta"])].filter((x): x is string => !!x); break;

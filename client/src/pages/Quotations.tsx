@@ -294,9 +294,19 @@ function buildBathroomDescription(config: BathroomConfig): string {
     desc += 'Madera aglomerada tipo RH de alta presión, cantos rígidos en puertas y tapas. ';
   }
   // Detalles opcionales (casillas del cotizador): solo se escribe lo que se marcó
-  if (config.frentes && config.frentes > 0) desc += `${config.frentes} frente${config.frentes > 1 ? 's' : ''} (cajones o puertas). `;
+  const cajones = Number(config.cajones) || 0, puertas = Number(config.puertas) || 0, entrepanos = Number(config.entrepanos) || 0;
+  if (cajones > 0 || puertas > 0 || entrepanos > 0) {
+    const partes: string[] = [];
+    if (cajones > 0) partes.push(`${cajones} cajón${cajones > 1 ? 'es' : ''}`);
+    if (puertas > 0) partes.push(`${puertas} puerta${puertas > 1 ? 's' : ''} de almacenamiento`);
+    if (entrepanos > 0) partes.push(`${entrepanos} entrepaño${entrepanos > 1 ? 's' : ''}`);
+    desc += `Distribución: ${partes.join(', ')}. `;
+  } else if (config.frentes && config.frentes > 0) {
+    desc += `${config.frentes} frente${config.frentes > 1 ? 's' : ''} (cajones o puertas). `; // cotizaciones anteriores
+  }
   if (config.gola) desc += 'Sistema gola (sin manijas). ';
   if (config.rielesFull) desc += 'Rieles de extensión total (full extension). ';
+  if (puertas > 0 || config.bisagrasInox) desc += 'Puertas con bisagras en acero inoxidable de cierre lento. ';
   if (config.hasExcavado && config.excavadoMaterial) {
     const n = config.pocetas === 2 ? 'dos lavamanos excavados' : 'lavamanos excavado';
     desc += `Con ${n} en ${piedraNombre[config.excavadoMaterial] || config.excavadoMaterial}, integrados en la piedra, con regrueso en los vistos y salpicadero de 10 cm. Llave/grifería no incluida. `;

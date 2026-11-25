@@ -276,6 +276,19 @@ export async function runMigrations() {
             SELECT 'otros', 'BANO_POCETA_EXTRA', 'Baño: 2.ª poceta del excavado', 'Valor fijo de la segunda poceta cuando el excavado mide 1,30 m o más.', 400000, 'unidad', 41
             WHERE NOT EXISTS (SELECT 1 FROM "pricingConfig" WHERE "code" = 'BANO_POCETA_EXTRA')`,
     },
+    {
+      // Mueble de baño (25 nov 2026): mueble = valor fijo + valor por metro de ancho; excavado = piedra + poceta (valores editables en el Motor)
+      name: "bano_mueble_poceta_1",
+      sql: `INSERT INTO "pricingConfig" ("category", "code", "name", "description", "value", "unit", "sortOrder")
+              SELECT 'otros', 'BANO_MUEBLE_FIJO', 'Baño: mueble de madera, valor fijo', 'Se suma al valor por metro de ancho (0,60 m de ancho × 0,45 de fondo = 750.000).', 240000, 'fijo', 42
+              WHERE NOT EXISTS (SELECT 1 FROM "pricingConfig" WHERE "code" = 'BANO_MUEBLE_FIJO');
+            INSERT INTO "pricingConfig" ("category", "code", "name", "description", "value", "unit", "sortOrder")
+              SELECT 'otros', 'BANO_MUEBLE_ML', 'Baño: mueble de madera, por metro de ancho', 'Valor por cada metro de ancho (fondo de referencia 45 cm).', 850000, 'ml', 43
+              WHERE NOT EXISTS (SELECT 1 FROM "pricingConfig" WHERE "code" = 'BANO_MUEBLE_ML');
+            INSERT INTO "pricingConfig" ("category", "code", "name", "description", "value", "unit", "sortOrder")
+              SELECT 'otros', 'BANO_POCETA', 'Baño: poceta excavada (1.ª)', 'Se suma a la piedra del excavado (precio por ml de los mesones de cocina).', 440000, 'unidad', 44
+              WHERE NOT EXISTS (SELECT 1 FROM "pricingConfig" WHERE "code" = 'BANO_POCETA')`,
+    },
   ];
 
   for (const m of migrations) {

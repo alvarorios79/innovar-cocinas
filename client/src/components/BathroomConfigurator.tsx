@@ -8,7 +8,7 @@ import { Bath } from "lucide-react";
 import { usePricing } from "@/hooks/usePricing";
 import { InputM, fm } from "@/components/InputMetros";
 import { precioPiedraML } from "@shared/mesonPrecios";
-import { precioMuebleBano, precioMesonBano, precioExcavadoBano, ANCHO_MIN_DOS_POCETAS, POCETA_EXTRA_RESPALDO } from "@shared/banoPrecios";
+import { precioMuebleBano, precioMesonBano, precioExcavadoBano, ANCHO_MIN_DOS_POCETAS, POCETA_EXTRA_RESPALDO, POCETA_RESPALDO, MUEBLE_FIJO_RESPALDO, MUEBLE_ML_RESPALDO } from "@shared/banoPrecios";
 
 export interface BathroomConfig {
   furnitureType: "flotante" | "piso_con_pata";
@@ -27,10 +27,14 @@ export interface BathroomConfig {
   subtotal: number;
   notes?: string;
   pocetas?: 1 | 2;        // excavado: desde 1,30 m puede llevar 2 pocetas (la segunda cobra el 30 %)
-  frentes?: number;       // cantidad de frentes (cajones / puertas), para la descripción
+  frentes?: number;       // (cotizaciones anteriores) cantidad de frentes sin distinguir cajones y puertas
+  cajones?: number;       // cantidad de cajones (llevan rieles)
+  puertas?: number;       // cantidad de puertas de almacenamiento (llevan bisagras en acero inoxidable de cierre lento)
+  entrepanos?: number;    // cantidad de entrepaños (repisas internas)
   gola?: boolean;         // sistema gola (sin manijas)
   caladoU?: boolean;      // calado en U en los cajones superiores para desagües y llaves de paso
   rielesFull?: boolean;   // rieles de extensión total
+  bisagrasInox?: boolean; // (cotizaciones anteriores) bisagras en acero inoxidable; ahora salen solas cuando hay puertas
   descripcionManual?: boolean; // la descripción del ítem se editó a mano: no se regenera sola (lo maneja la cotización)
 }
 
@@ -77,13 +81,14 @@ export function BathroomConfigurator({ config, onChange }: BathroomConfiguratorP
     }
   }, []);
 
-  const basePrice = getPrice("BANO_50_60") || 750000; // mueble de 60 × 45 cm
-  const getBathroomPrice = (width: number, depth: number): number => precioMuebleBano(basePrice, width, depth);
+  const muebleFijo = getPrice("BANO_MUEBLE_FIJO") || MUEBLE_FIJO_RESPALDO;
+  const muebleMl = getPrice("BANO_MUEBLE_ML") || MUEBLE_ML_RESPALDO;
+  const pocetaPrecio = getPrice("BANO_POCETA") || POCETA_RESPALDO;
+  const getBathroomPrice = (width: number, depth: number): number => precioMuebleBano(muebleFijo, muebleMl, width, depth);
 
   const excavadoDe = (next: BathroomConfig) => {
     if (!next.hasExcavado || !next.excavadoMaterial) return { uno: 0, segunda: 0, total: 0 };
-    const ml = getPrice(`BANO_EXCAVADO_${next.excavadoMaterial.toUpperCase()}`) || 0;
-    return precioExcavadoBano(ml, next.width, next.depth, next.pocetas === 2 ? 2 : 1, getPrice("BANO_POCETA_EXTRA") || POCETA_EXTRA_RESPALDO);
+    return precioExcavadoBano(next.excavadoMaterial, next.width, next.depth, next.pocetas === 2 ? 2 : 1, pocetaPrecio, getPrice("BANO_POCETA_EXTRA") || POCETA_EXTRA_RESPALDO);
   };
   const calcExcavadoTotal = (next: BathroomConfig): number => excavadoDe(next).total * next.quantity;
   const calcMesonTotal = (next: BathroomConfig): number =>
@@ -168,7 +173,7 @@ export function BathroomConfigurator({ config, onChange }: BathroomConfiguratorP
             <p className="text-xs text-amber-300 -mt-2">Revise las medidas: un mueble de baño de menos de 0,30 m de ancho o de fondo es poco común.</p>
           )}
           <p className="text-xs text-muted-foreground -mt-2">
-            Las medidas van en metros (ej. 2,55). El mueble de 0,60 × 0,45 m cuesta ${basePrice.toLocaleString()}; el precio sube proporcional al ancho y al fondo (hasta 0,60 m de fondo; de 0,61 a 0,90 m, +30 %).
+            Las medidas van en metros (ej. 2,55). Mueble de madera: ${muebleFijo.toLocaleString()} fijos + ${muebleMl.toLocaleString()} por metro de ancho (0,60 × 0,45 m = ${precioMuebleBano(muebleFijo, muebleMl, 60, 45).toLocaleString()}); el fondo suma proporcional hasta 0,60 m y +30 % de 0,61 a 0,90 m. El alto no cambia el precio.
             El alto no cambia el precio.
           </p>
 
@@ -222,7 +227,7 @@ export function BathroomConfigurator({ config, onChange }: BathroomConfiguratorP
                   </Select>
                   <p className="text-xs text-muted-foreground">
                     {lavabo === "excavado"
-                      ? `$${(getPrice(`BANO_EXCAVADO_${(cfg.excavadoMaterial || "granito").toUpperCase()}`) || 0).toLocaleString()}/ml × ${(cfg.width / 100).toFixed(2)} m · ${fondoPiedraTxt}`
+                      ? `Piedra $${precioPiedraML(cfg.excavadoMaterial || "granito").toLocaleString()}/ml × ${(cfg.width / 100).toFixed(2)} m (${fondoPiedraTxt}) + poceta $${pocetaPrecio.toLocaleString()}`
                       : `$${precioPiedraML(cfg.mesonMaterial || "granito").toLocaleString()}/ml (igual que los mesones de cocina) × ${(cfg.width / 100).toFixed(2)} m · ${fondoPiedraTxt}`}
                     {" "}— incluye regrueso en los vistos y salpicadero de 10 cm.
                   </p>
@@ -250,12 +255,23 @@ export function BathroomConfigurator({ config, onChange }: BathroomConfiguratorP
           {/* Detalles que salen en la descripción (no cambian el precio) */}
           <div className="border border-white/[0.12] rounded-lg p-3 space-y-3">
             <p className="text-xs font-medium text-white/50 uppercase tracking-wide">Detalles del mueble (salen en la descripción)</p>
-            <div className="flex items-center gap-2">
-              <Label className="text-sm">Frentes (cajones o puertas):</Label>
-              <Input type="number" min="0" step="1" value={cfg.frentes ?? ""} placeholder="Ej: 6"
-                onChange={(e) => update({ frentes: e.target.value === "" ? undefined : Math.max(0, parseInt(e.target.value) || 0) })}
-                className="h-9 w-24" />
+            <div className="grid grid-cols-3 gap-3">
+              {([
+                { k: "cajones", label: "Cajones", ph: "Ej: 6" },
+                { k: "puertas", label: "Puertas", ph: "Ej: 2" },
+                { k: "entrepanos", label: "Entrepaños", ph: "Ej: 1" },
+              ] as Array<{ k: "cajones" | "puertas" | "entrepanos"; label: string; ph: string }>).map(({ k, label, ph }) => (
+                <div key={k}>
+                  <Label className="text-sm block mb-1">{label}</Label>
+                  <Input type="number" min="0" step="1" value={cfg[k] ?? ""} placeholder={ph}
+                    onChange={(e) => update({ [k]: e.target.value === "" ? undefined : Math.max(0, parseInt(e.target.value) || 0) } as any)}
+                    className="h-9" />
+                </div>
+              ))}
             </div>
+            <p className="text-xs text-muted-foreground -mt-1">
+              Los cajones llevan rieles. Las puertas de almacenamiento llevan bisagras en acero inoxidable de cierre lento (salen solas en la descripción).
+            </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {([
                 { k: "gola", label: "Sistema gola (sin manijas)" },
@@ -295,7 +311,7 @@ export function BathroomConfigurator({ config, onChange }: BathroomConfiguratorP
               {cfg.hasExcavado && excTotal > 0 && (
                 <>
                   <div className="flex justify-between">
-                    <span>Excavado en {cfg.excavadoMaterial}{cfg.pocetas === 2 ? " (1.ª poceta)" : ""}:</span>
+                    <span>Excavado en {cfg.excavadoMaterial} (piedra + poceta):</span>
                     <span className="font-medium">${(exc.uno * cfg.quantity).toLocaleString()}</span>
                   </div>
                   {exc.segunda > 0 && (

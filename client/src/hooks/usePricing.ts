@@ -72,6 +72,9 @@ const DEFAULT_PRICES: Record<string, { value: number; unit: string | null }> = {
   BANO_MESON_CUARZO:           { value: 1000000, unit: "ml" },
   BANO_MESON_SINTERIZADO:      { value: 1400000, unit: "ml" },
   BANO_POCETA_EXTRA:           { value: 400000,  unit: "unidad" }, // 2.ª poceta del excavado (desde 1,30 m de ancho)
+  BANO_POCETA:                 { value: 440000,  unit: "unidad" }, // 1.ª poceta excavada (se suma a la piedra)
+  BANO_MUEBLE_FIJO:            { value: 240000,  unit: "fijo" },   // mueble de baño: valor fijo
+  BANO_MUEBLE_ML:              { value: 850000,  unit: "ml" },     // mueble de baño: por metro de ancho
   PUERTA_SUP_70:        { value: 120000,  unit: "unidad" },
   PUERTA_SUP_90:        { value: 150000,  unit: "unidad" },
   PUERTA_SUP_100:       { value: 180000,  unit: "unidad" },
@@ -146,7 +149,7 @@ export const CODIGOS_NECESARIOS = [
   "PINTADO_SUP", "PINTADO_INF", "PINTADO_ALACENA", "PINTADO_CAJON", "PINTADO_ESPECIERO", "PINTADO_GOLA", "PINTADO_LATERAL",
   "CLOSET_ESTANDAR_M2", "CLOSET_PREMIUM_M2", "CLOSET_DELUXE_M2", "CLOSET_ESPECIAL_M2",
   "PUERTA_BATIENTE_50_85", "PUERTA_BATIENTE_85_110", "PUERTA_CORREDIZA_50_85", "PUERTA_CORREDIZA_85_110",
-  "BANO_50_60", "BANO_60_80", "BANO_80_100", "BANO_100_120", "BANO_POCETA_EXTRA", "TV2_BASE", "TV2_PER_20CM",
+  "BANO_50_60", "BANO_60_80", "BANO_80_100", "BANO_100_120", "BANO_POCETA_EXTRA", "BANO_POCETA", "BANO_MUEBLE_FIJO", "BANO_MUEBLE_ML", "TV2_BASE", "TV2_PER_20CM",
   "ACABADO_ALUMINIO_VIDRIO_M2", "ACABADO_BISAGRA_PAR", "DESMONTE_COCINA", "DESMONTE_CLOSET",
 ];
 

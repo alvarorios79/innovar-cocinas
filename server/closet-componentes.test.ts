@@ -38,4 +38,16 @@ describe("Closet: componentes, cantidades y concepto abierto", () => {
     expect(t.match(/color a elegir/gi)?.length).toBe(1);
     expect(t).not.toContain("15 mm");
   });
+  it("mueble de baño: cajones llevan rieles y puertas llevan bisagras en acero inoxidable de cierre lento", async () => {
+    const { appendHouseStandards } = await import("./kitchen-description");
+    const puertas = appendHouseStandards("baño", "Mueble de Baño", { bathroomConfig: { puertas: 2, entrepanos: 1 } });
+    expect(puertas).toContain("Bisagras en acero inoxidable de cierre lento");
+    expect(puertas).not.toContain("Rieles"); // sin cajones no hay rieles
+    const cajones = appendHouseStandards("baño", "Mueble de Baño", { bathroomConfig: { cajones: 6 } });
+    expect(cajones).toContain("Rieles telescópicos");
+    expect(cajones).not.toContain("Bisagras"); // sin puertas no hay bisagras
+    const viejo = appendHouseStandards("baño", "Mueble de Baño", { bathroomConfig: { frentes: 3 } });
+    expect(viejo).toContain("Bisagras de cierre lento");
+    expect(viejo).toContain("Rieles telescópicos");
+  });
 });

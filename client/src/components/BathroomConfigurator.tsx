@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Bath } from "lucide-react";
 import { usePricing } from "@/hooks/usePricing";
+import { InputM, fm } from "@/components/InputMetros";
 import { precioPiedraML } from "@shared/mesonPrecios";
 import { precioMuebleBano, precioMesonBano, precioExcavadoBano, ANCHO_MIN_DOS_POCETAS, POCETA_EXTRA_RESPALDO } from "@shared/banoPrecios";
 
@@ -112,7 +113,7 @@ export function BathroomConfigurator({ config, onChange }: BathroomConfiguratorP
   const exc = excavadoDe(cfg);
   const excTotal = exc.total * cfg.quantity;
   const mesTotal = calcMesonTotal(cfg);
-  const fondoPiedraTxt = cfg.depth > 90 ? "×2 (más de 90 cm de fondo)" : cfg.depth > 60 ? "+30 % (fondo de 61 a 90 cm)" : "fondo normal (hasta 60 cm)";
+  const fondoPiedraTxt = cfg.depth > 90 ? "×2 (más de 0,90 m de fondo)" : cfg.depth > 60 ? "+30 % (fondo de 0,61 a 0,90 m)" : "fondo normal (hasta 0,60 m)";
 
   return (
     <Card className="mt-4 border-white/[0.15]">
@@ -129,8 +130,8 @@ export function BathroomConfigurator({ config, onChange }: BathroomConfiguratorP
               <Select value={cfg.furnitureType} onValueChange={(v) => update({ furnitureType: v as any })}>
                 <SelectTrigger className="h-10 bg-card"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="flotante">Flotante (alto ≈ 55 cm)</SelectItem>
-                  <SelectItem value="piso_con_pata">De piso con pata (alto ≈ 75 cm)</SelectItem>
+                  <SelectItem value="flotante">Flotante (alto ≈ 0,55 m)</SelectItem>
+                  <SelectItem value="piso_con_pata">De piso con pata (alto ≈ 0,75 m)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -150,26 +151,23 @@ export function BathroomConfigurator({ config, onChange }: BathroomConfiguratorP
           {/* Medidas */}
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <Label className="text-sm font-medium text-white/85 block mb-2">Ancho (cm)</Label>
-              <Input type="number" min="30" step="1" value={cfg.width || ""}
-                onChange={(e) => update({ width: parseFloat(e.target.value) || 0 })}
-                className="h-10 bg-card" placeholder="Ej: 60" />
+              <Label className="text-sm font-medium text-white/85 block mb-2">Ancho (m)</Label>
+              <InputM valorCm={cfg.width || undefined} onCm={(cm) => update({ width: cm || 0 })} placeholder="Ej: 0,60" className="h-10 bg-card" />
             </div>
             <div>
-              <Label className="text-sm font-medium text-white/85 block mb-2">Fondo (cm)</Label>
-              <Input type="number" min="30" step="1" value={cfg.depth || ""}
-                onChange={(e) => update({ depth: parseFloat(e.target.value) || 0 })}
-                className="h-10 bg-card" placeholder="Ej: 45" />
+              <Label className="text-sm font-medium text-white/85 block mb-2">Fondo (m)</Label>
+              <InputM valorCm={cfg.depth || undefined} onCm={(cm) => update({ depth: cm || 0 })} placeholder="Ej: 0,45" className="h-10 bg-card" />
             </div>
             <div>
-              <Label className="text-sm font-medium text-white/85 block mb-2">Alto (cm)</Label>
-              <Input type="number" step="1" value={cfg.height || ""}
-                onChange={(e) => update({ height: parseFloat(e.target.value) || 0 })}
-                className="h-10 bg-card" placeholder="Ej: 55" />
+              <Label className="text-sm font-medium text-white/85 block mb-2">Alto (m)</Label>
+              <InputM valorCm={cfg.height || undefined} onCm={(cm) => update({ height: cm || 0 })} placeholder="Ej: 0,55" className="h-10 bg-card" />
             </div>
           </div>
+          {((cfg.width > 0 && cfg.width < 30) || (cfg.depth > 0 && cfg.depth < 30)) && (
+            <p className="text-xs text-amber-300 -mt-2">Revise las medidas: un mueble de baño de menos de 0,30 m de ancho o de fondo es poco común.</p>
+          )}
           <p className="text-xs text-muted-foreground -mt-2">
-            El mueble de 60 × 45 cm cuesta ${basePrice.toLocaleString()}; el precio sube proporcional al ancho y al fondo (hasta 60 cm de fondo; de 61 a 90 cm, +30 %).
+            Las medidas van en metros (ej. 2,55). El mueble de 0,60 × 0,45 m cuesta ${basePrice.toLocaleString()}; el precio sube proporcional al ancho y al fondo (hasta 0,60 m de fondo; de 0,61 a 0,90 m, +30 %).
             El alto no cambia el precio.
           </p>
 
@@ -199,7 +197,7 @@ export function BathroomConfigurator({ config, onChange }: BathroomConfiguratorP
               </div>
               {cfg.includeMadera !== false && (
                 <p className="text-xs text-muted-foreground ml-6">
-                  {cfg.width} × {cfg.depth} cm = ${cfg.pricePerUnit.toLocaleString()} por mueble × {cfg.quantity} ud
+                  {fm(cfg.width)} × {fm(cfg.depth)} m = ${cfg.pricePerUnit.toLocaleString()} por mueble × {cfg.quantity} ud
                 </p>
               )}
             </div>
@@ -284,7 +282,7 @@ export function BathroomConfigurator({ config, onChange }: BathroomConfiguratorP
             <h5 className="font-semibold text-foreground mb-3">Resumen del Precio</h5>
             <div className="space-y-1 text-sm">
               <div className="flex justify-between text-white/60">
-                <span>{cfg.width} cm ancho × {cfg.depth} cm fondo × {cfg.height} cm alto</span>
+                <span>{fm(cfg.width)} m ancho × {fm(cfg.depth)} m fondo × {fm(cfg.height)} m alto</span>
                 <span>× {cfg.quantity} ud</span>
               </div>
               {cfg.includeMadera !== false && (

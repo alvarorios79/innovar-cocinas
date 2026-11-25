@@ -287,7 +287,8 @@ function buildBathroomDescription(config: BathroomConfig): string {
   const typeLabel = config.furnitureType === 'flotante' ? 'Mueble de Baño Flotante' : 'Mueble de Baño de Piso con Pata';
   const qty = config.quantity > 1 ? `${config.quantity} unidades — ` : '';
   const piedraNombre: Record<string, string> = { granito: 'granito', cuarzo: 'cuarzo', sinterizado: 'sinterizado' };
-  let desc = `${qty}${typeLabel} — ${config.width}cm ancho × ${config.depth}cm fondo × ${config.height}cm alto. `;
+  const mts = (cm: number) => (Math.round(Number(cm) || 0) / 100).toFixed(2).replace('.', ',');
+  let desc = `${qty}${typeLabel} — ${mts(config.width)} m ancho × ${mts(config.depth)} m fondo × ${mts(config.height)} m alto. `;
   if (config.includeMadera !== false) {
     desc += 'Madera aglomerada tipo RH de alta presión, cantos rígidos en puertas y tapas. ';
   }

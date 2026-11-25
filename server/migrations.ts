@@ -269,6 +269,13 @@ export async function runMigrations() {
               END IF;
             END $$`,
     },
+    {
+      // Mueble de baño (24 nov 2026): la 2.ª poceta del excavado (desde 1,30 m de ancho) se cobra con un valor fijo editable en el Motor
+      name: "bano_poceta_extra_1",
+      sql: `INSERT INTO "pricingConfig" ("category", "code", "name", "description", "value", "unit", "sortOrder")
+            SELECT 'otros', 'BANO_POCETA_EXTRA', 'Baño: 2.ª poceta del excavado', 'Valor fijo de la segunda poceta cuando el excavado mide 1,30 m o más.', 400000, 'unidad', 41
+            WHERE NOT EXISTS (SELECT 1 FROM "pricingConfig" WHERE "code" = 'BANO_POCETA_EXTRA')`,
+    },
   ];
 
   for (const m of migrations) {

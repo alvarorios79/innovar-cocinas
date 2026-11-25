@@ -286,16 +286,26 @@ function buildTVDescription(_config: import("@/components/TVCenterConfigurator")
 function buildBathroomDescription(config: BathroomConfig): string {
   const typeLabel = config.furnitureType === 'flotante' ? 'Mueble de Baño Flotante' : 'Mueble de Baño de Piso con Pata';
   const qty = config.quantity > 1 ? `${config.quantity} unidades — ` : '';
-  let desc = `${qty}${typeLabel} — ${config.width}cm ancho × ${config.depth}cm prof. × ${config.height}cm alto. `;
+  const piedraNombre: Record<string, string> = { granito: 'granito', cuarzo: 'cuarzo', sinterizado: 'sinterizado' };
+  let desc = `${qty}${typeLabel} — ${config.width}cm ancho × ${config.depth}cm fondo × ${config.height}cm alto. `;
   if (config.includeMadera !== false) {
     desc += 'Madera aglomerada tipo RH de alta presión, cantos rígidos en puertas y tapas. ';
   }
-  desc += config.sinkType === 'excavado' ? 'Con lavamanos excavado integrado. ' : 'Para lavamanos de sobreponer. ';
+  // Detalles opcionales (casillas del cotizador): solo se escribe lo que se marcó
+  if (config.frentes && config.frentes > 0) desc += `${config.frentes} frente${config.frentes > 1 ? 's' : ''} (cajones o puertas). `;
+  if (config.gola) desc += 'Sistema gola (sin manijas). ';
+  if (config.rielesFull) desc += 'Rieles de extensión total (full extension). ';
   if (config.hasExcavado && config.excavadoMaterial) {
-    desc += `Excavado en ${config.excavadoMaterial} — incluye salpicadero 10cm, llave/grifo no incluida. `;
+    const n = config.pocetas === 2 ? 'dos lavamanos excavados' : 'lavamanos excavado';
+    desc += `Con ${n} en ${piedraNombre[config.excavadoMaterial] || config.excavadoMaterial}, integrados en la piedra, con regrueso en los vistos y salpicadero de 10 cm. Llave/grifería no incluida. `;
+    if (config.caladoU) desc += 'Cajones superiores con calado en U para desagües y llaves de paso. ';
+  } else if (config.sinkType === 'excavado') {
+    desc += 'Con lavamanos excavado integrado. ';
+  } else if (!(config.hasMeson && config.mesonMaterial)) {
+    desc += 'Para lavamanos de sobreponer. ';
   }
   if (config.hasMeson && config.mesonMaterial) {
-    desc += `Mesón en ${config.mesonMaterial} — incluye salpicadero 10cm, llave/grifo y lavamanos no incluidos. `;
+    desc += `Mesón en ${piedraNombre[config.mesonMaterial] || config.mesonMaterial} para lavamanos de sobreponer, con regrueso en los vistos, salpicadero de 10 cm y perforación para el lavamanos. Lavamanos y grifería no incluidos. `;
   }
   return desc.trim();
 }

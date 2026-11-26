@@ -1152,7 +1152,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                                   {(user?.role === "super_admin" || user?.role === "admin" ||
                                     ((user?.role === "jefe_taller" || user?.role === "operario") && photo.uploadedBy === user?.id)) && (
                                     <button
-                                      className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow-md"
+                                      className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 opacity-100 xl:opacity-0 xl:group-hover:opacity-100 transition-opacity z-10 shadow-md"
                                       onClick={(e) => { e.stopPropagation(); setPhotoToDelete({ id: photo.id, description: photo.description }); }}
                                     >
                                       <Trash2 className="h-4 w-4" />
@@ -1981,7 +1981,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                                   {(user?.role === "super_admin" || user?.role === "admin" ||
                                     ((user?.role === "jefe_taller" || user?.role === "operario") && photo.uploadedBy === user?.id)) && (
                                     <button
-                                      className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow-md"
+                                      className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 opacity-100 xl:opacity-0 xl:group-hover:opacity-100 transition-opacity z-10 shadow-md"
                                       onClick={(e) => { e.stopPropagation(); setPhotoToDelete({ id: photo.id, description: photo.description }); }}
                                     >
                                       <Trash2 className="h-4 w-4" />
@@ -2206,7 +2206,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
 
       {/* Diálogos */}
       <Dialog open={showPhotoDialog} onOpenChange={(o) => { setShowPhotoDialog(o); if (!o) setPhotoFolderLocked(false); }}>
-        <DialogContent className="w-full max-w-[95vw] sm:max-w-[85vw] md:max-w-2xl p-3 sm:p-6">
+        <DialogContent className="w-full max-w-[95vw] sm:max-w-[85vw] md:max-w-2xl p-3 sm:p-6 max-h-[90dvh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Subir Archivos (JPG / PDF)</DialogTitle>
             <DialogDescription>
@@ -2384,7 +2384,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
       </Dialog>
 
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
-        <DialogContent>
+        <DialogContent className="max-h-[90dvh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Agregar Detalle</DialogTitle>
             <DialogDescription>Agrega una nota o detalle importante</DialogDescription>

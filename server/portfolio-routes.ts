@@ -24,7 +24,7 @@ import { getDb } from "./db";
 import { projectPhotos, projects, projectVideos } from "../drizzle/schema";
 import { storagePut, storagePutStream } from "./storage";
 import {
-  MAX_PHOTO_BYTES, MAX_VIDEO_BYTES, SECTION_UPLOAD_TARGET, canEditPortfolio, canViewPortfolio, type PortfolioSection,
+  MAX_PHOTO_BYTES, MAX_VIDEO_BYTES, SECTION_UPLOAD_TARGET, canEditPortfolio, canUploadPortfolioVideo, canViewPortfolio, type PortfolioSection,
 } from "@shared/portfolio";
 
 const ALLOWED_MEDIA_HOSTS = ["firebasestorage.googleapis.com", "storage.googleapis.com"];
@@ -112,7 +112,7 @@ export function registerPortfolioRoutes(app: Express) {
   app.post("/api/portfolio/videos", async (req: Request, res: Response) => {
     const user: any = await userOf(req);
     if (!user) return reject(res, 401, "Inicia sesión de nuevo", `Video proyecto ${req.query.projectId}`);
-    if (!canEditPortfolio(user.role)) return reject(res, 403, "No tienes permisos para subir videos", `Video proyecto ${req.query.projectId}`);
+    if (!canUploadPortfolioVideo(user.role)) return reject(res, 403, "No tienes permisos para subir videos", `Video proyecto ${req.query.projectId}`);
 
     const projectId = Number(req.query.projectId);
     const contentType = String(req.headers["content-type"] || "").split(";")[0].trim().toLowerCase() || "video/mp4";

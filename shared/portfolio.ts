@@ -14,6 +14,10 @@ export const PORTFOLIO_VIEW_ROLES = ["super_admin", "admin", "comercial", "disen
 /** Marcan estrellas, suben videos y registran publicaciones en redes. */
 export const PORTFOLIO_EDIT_ROLES = ["super_admin", "admin", "comercial"];
 
+/** Quien está en obra (taller) también puede subir videos desde el proyecto → Instalación; solo los sube, no maneja el portafolio. */
+export const PORTFOLIO_VIDEO_UPLOAD_ROLES = [...PORTFOLIO_EDIT_ROLES, "jefe_taller", "operario"];
+export const canUploadPortfolioVideo = (role?: string | null) => !!role && PORTFOLIO_VIDEO_UPLOAD_ROLES.includes(role);
+
 export const canViewPortfolio = (role?: string | null) => !!role && PORTFOLIO_VIEW_ROLES.includes(role);
 export const canEditPortfolio = (role?: string | null) => !!role && PORTFOLIO_EDIT_ROLES.includes(role);
 

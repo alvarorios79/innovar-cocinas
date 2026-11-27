@@ -1,3 +1,5 @@
+import { uploadProjectVideo } from "@/lib/portfolioMedia";
+import { MAX_VIDEO_BYTES, canUploadPortfolioVideo } from "@shared/portfolio";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -45,7 +47,8 @@ import {
   Lock,
   Unlock,
   CreditCard,
-  Pencil
+  Pencil,
+  Video
 } from "lucide-react";
 import { useEffect } from "react";
 import { useFileViewer, FileViewer } from "@/components/FileViewer";
@@ -107,6 +110,25 @@ export default function ProjectDetail() {
   const [showEditDateDialog, setShowEditDateDialog] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
   
+  // Video de la obra → Portafolio (sección «Después»), para aprovechar en redes
+  const [videoUpload, setVideoUpload] = useState<{ name: string; pct: number } | null>(null);
+  const onPickPortfolioVideos = async (input: HTMLInputElement) => {
+    const list = Array.from(input.files || []);
+    input.value = "";
+    for (const file of list) {
+      if (file.type && !file.type.startsWith("video/")) { toast.error(`${file.name} no es un video`); continue; }
+      if (file.size > MAX_VIDEO_BYTES) { toast.error(`${file.name} pesa más de 1 GB`); continue; }
+      setVideoUpload({ name: file.name, pct: 0 });
+      try {
+        await uploadProjectVideo(projectId, file, (pct) => setVideoUpload({ name: file.name, pct }));
+        toast.success("Video subido al Portafolio");
+      } catch (e: any) {
+        toast.error(e.message || "No se pudo subir el video", { duration: 10000 });
+      }
+    }
+    setVideoUpload(null);
+  };
+
   const [photoForm, setPhotoForm] = useState({
     category: "medidas" as "cotizacion" | "medidas" | "disenos" | "avance" | "instalacion" | "entrega",
     subcategory: "" as string,
@@ -1943,7 +1965,23 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
             {Object.entries(instalacionFolders).map(([category, subcategories]) => (
               <Card key={category}>
                 <CardHeader className="py-3 bg-gradient-to-r from-teal-600 to-primary">
-                  <CardTitle className="text-base font-bold text-white">{categoryLabels[category] || category}</CardTitle>
+                  <div className="flex items-center justify-between gap-2">
+                    <CardTitle className="text-base font-bold text-white">{categoryLabels[category] || category}</CardTitle>
+                    {category === "instalacion" && canUploadPortfolioVideo(user?.role) && (
+                      <label className={`relative inline-flex items-center gap-1.5 rounded-md bg-white/20 hover:bg-white/30 px-3 py-1.5 text-xs font-semibold text-white overflow-hidden ${videoUpload ? "opacity-60 pointer-events-none" : "cursor-pointer"}`}>
+                        <Video className="h-4 w-4" />
+                        {videoUpload ? `Subiendo ${videoUpload.pct}%` : "Subir video al Portafolio"}
+                        <input
+                          type="file"
+                          accept="video/*"
+                          aria-label="Subir video al Portafolio"
+                          disabled={!!videoUpload}
+                          className="absolute inset-0 h-full w-full opacity-0 cursor-pointer"
+                          onChange={(e) => onPickPortfolioVideos(e.currentTarget)}
+                        />
+                      </label>
+                    )}
+                  </div>
                 </CardHeader>
                 <CardContent className="pt-4">
                   <div className="space-y-4">

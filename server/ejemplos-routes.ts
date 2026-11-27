@@ -7,6 +7,7 @@ import type { Express, Request, Response } from "express";
 
 const EJEMPLOS: Record<string, string> = {
   "tv-1": "https://firebasestorage.googleapis.com/v0/b/innovar-app-70e13.firebasestorage.app/o/redes%2F2026-11%2Fd7419e575851-tv1.jpg?alt=media&token=9f118a0e-0963-43b2-ab81-90dc73a5552a",
+  "tv-2": "https://firebasestorage.googleapis.com/v0/b/innovar-app-70e13.firebasestorage.app/o/redes%2F2026-11%2F78ae57808dbc-tv2.jpg?alt=media&token=e5eb538d-8ab8-46bd-ad7c-7e63e86b8ea3",
   "closet-1": "https://firebasestorage.googleapis.com/v0/b/innovar-app-70e13.firebasestorage.app/o/redes%2F2026-11%2F3f3b81efac4d-closet1.jpg?alt=media&token=5ae8923c-1cb9-451d-abf8-51446e3d9815",
   "closet-2": "https://firebasestorage.googleapis.com/v0/b/innovar-app-70e13.firebasestorage.app/o/redes%2F2026-11%2Fff62cbf7a103-closet2.jpg?alt=media&token=492814b8-577d-4c24-8d6f-8fa4079684d5",
   "cocina-1": "https://firebasestorage.googleapis.com/v0/b/innovar-app-70e13.firebasestorage.app/o/redes%2F2026-11%2F739106c56386-cocina1.jpg?alt=media&token=9f27d996-00c0-47c6-98d8-e4419eff13d8",

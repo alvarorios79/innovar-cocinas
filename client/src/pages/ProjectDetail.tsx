@@ -825,14 +825,16 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
               <Truck className="h-3.5 w-3.5 mr-1" />
               <span>Instalación</span>
             </TabsTrigger>
-            <TabsTrigger
-              value="postventa"
-              className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 transition-colors rounded-md whitespace-nowrap"
-            >
-              <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
-              <span>Postventa</span>
-            </TabsTrigger>
-            {user?.role !== "jefe_taller" && user?.role !== "operario" && (
+            {user?.role !== "disenador" && (
+              <TabsTrigger
+                value="postventa"
+                className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 transition-colors rounded-md whitespace-nowrap"
+              >
+                <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
+                <span>Postventa</span>
+              </TabsTrigger>
+            )}
+            {user?.role !== "jefe_taller" && user?.role !== "operario" && user?.role !== "disenador" && (
               <TabsTrigger
                 value="history"
                 className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 text-muted-foreground transition-colors rounded-md whitespace-nowrap"
@@ -2075,7 +2077,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
           </TabsContent>
 
           {/* Tab Historial — oculto para jefe_taller y operario */}
-          {user?.role !== "jefe_taller" && user?.role !== "operario" && (
+          {user?.role !== "jefe_taller" && user?.role !== "operario" && user?.role !== "disenador" && (
           <TabsContent value="history" className="space-y-4">
             <Card>
               <CardHeader className="py-3 bg-gradient-to-r from-gray-600 to-gray-700">

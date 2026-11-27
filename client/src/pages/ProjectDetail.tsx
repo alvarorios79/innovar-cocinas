@@ -1969,7 +1969,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
                 <CardHeader className="py-3 bg-gradient-to-r from-teal-600 to-primary">
                   <div className="flex items-center justify-between gap-2">
                     <CardTitle className="text-base font-bold text-white">{categoryLabels[category] || category}</CardTitle>
-                    {category === "instalacion" && canUploadPortfolioVideo(user?.role) && (
+                    {(category === "instalacion" || category === "entrega") && canUploadPortfolioVideo(user?.role) && (
                       <label className={`relative inline-flex items-center gap-1.5 rounded-md bg-white/20 hover:bg-white/30 px-3 py-1.5 text-xs font-semibold text-white overflow-hidden ${videoUpload ? "opacity-60 pointer-events-none" : "cursor-pointer"}`}>
                         <Video className="h-4 w-4" />
                         {videoUpload ? `Subiendo ${videoUpload.pct}%` : "Subir video al Portafolio"}

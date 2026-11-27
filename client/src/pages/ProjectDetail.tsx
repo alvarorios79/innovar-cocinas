@@ -825,7 +825,7 @@ Por favor envie la notificacion al cliente desde el numero oficial de Innovar.${
               <Truck className="h-3.5 w-3.5 mr-1" />
               <span>Instalación</span>
             </TabsTrigger>
-            {user?.role !== "disenador" && (
+            {user?.role !== "disenador" && user?.role !== "jefe_taller" && user?.role !== "operario" && (
               <TabsTrigger
                 value="postventa"
                 className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-2 transition-colors rounded-md whitespace-nowrap"

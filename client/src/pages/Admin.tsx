@@ -290,6 +290,7 @@ export default function Admin() {
         workTypes: crearCitaForm.workTypes as any[],
         scheduledDateStr: crearCitaForm.date || undefined,
         scheduledTimeStr: crearCitaForm.time || undefined,
+        bypassDayRestriction: true, // esta pantalla es solo de admin y super_admin: pueden agendar cualquier día
       });
       if (crearCitaMedidorId && (result as any)?.id) {
         await assignMedidorMutation.mutateAsync({ appointmentId: (result as any).id, medidorId: crearCitaMedidorId });

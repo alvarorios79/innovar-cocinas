@@ -639,7 +639,8 @@ export const appointmentsRouter = router({
         }
         
         // Validar disponibilidad del nuevo horario
-        const isAvailable = await isTimeSlotAvailable(input.scheduledDateStr, input.scheduledTimeStr, input.id);
+        // Solo admin y super_admin llegan aquí: pueden mover la cita a cualquier día (bypass, como al crear)
+        const isAvailable = await isTimeSlotAvailable(input.scheduledDateStr, input.scheduledTimeStr, input.id, true);
         if (!isAvailable) {
           throw new TRPCError({
             code: "CONFLICT",

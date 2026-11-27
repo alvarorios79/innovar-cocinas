@@ -452,7 +452,7 @@ export default function AppointmentsCalendar() {
         scheduledDateStr: newAptDate || undefined,
         scheduledTimeStr: newAptTime || undefined,
         notes: newNotes || undefined,
-        bypassDayRestriction: user?.role === "super_admin",
+        bypassDayRestriction: user?.role === "super_admin" || user?.role === "admin",
       });
       if (newMedidorId && result?.id) {
         await assignMedidorMutation.mutateAsync({
@@ -1118,7 +1118,7 @@ export default function AppointmentsCalendar() {
                   selectedTime={newAptTime}
                   onDateChange={(date) => { setNewAptDate(date); setNewAptTime(""); }}
                   onTimeChange={(time) => setNewAptTime(time)}
-                  bypassDayRestriction={user?.role === "super_admin"}
+                  bypassDayRestriction={user?.role === "super_admin" || user?.role === "admin"}
                 />
               </div>
             </div>
@@ -1412,7 +1412,7 @@ export default function AppointmentsCalendar() {
                 }}
                 onTimeChange={(time) => setNewTime(time)}
                 excludeId={editingAppointment?.id}
-                bypassDayRestriction={user?.role === "super_admin"}
+                bypassDayRestriction={user?.role === "super_admin" || user?.role === "admin"}
               />
 
               {/* Selector de medidor */}

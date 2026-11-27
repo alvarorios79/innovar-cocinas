@@ -57,14 +57,22 @@ const prettyPhone = (p: string) => (p.startsWith("57") && p.length === 12 ? `${p
 function whatsappUrl(l: Lead) {
   const first = l.name.trim().split(/\s+/)[0];
   const trabajo = leadWorkTypesText(l.workTypes).toLowerCase();
-  const esTv = (l.workTypes || "").split(",").map(s => s.trim()).includes("centro_tv");
+  const tipos = (l.workTypes || "").split(",").map(s => s.trim());
+  const EJ: Record<string, [string, string]> = {
+    centro_tv: ["Mira dos centros de TV que hicimos hace poco:", "tv"],
+    cocina: ["Mira dos cocinas que hicimos hace poco:", "cocina"],
+    closet: ["Mira dos closets que hicimos hace poco:", "closet"],
+    mueble_bano: ["Mira dos muebles de baño que hicimos hace poco:", "bano"],
+  };
   const lineas = [
     `Hola ${first} 👋, te saludamos de Innovar Cocinas de Diseño.${trabajo ? ` Recibimos tu solicitud para ${trabajo}.` : ""}`,
     "",
     "Fabricamos en nuestro taller en Pereira, con garantía, y te mostramos el diseño en 3D antes de fabricar.",
   ];
-  if (esTv) {
-    lineas.push("", "Mira dos centros de TV que hicimos hace poco:", `📺 ${window.location.origin}/ejemplos/tv-1`, `📺 ${window.location.origin}/ejemplos/tv-2`);
+  // Ejemplos de los (máximo 2) trabajos que pidió
+  for (const t of tipos.filter(t => EJ[t]).slice(0, 2)) {
+    const [titulo, clave] = EJ[t];
+    lineas.push("", titulo, `📸 ${window.location.origin}/ejemplos/${clave}-1`, `📸 ${window.location.origin}/ejemplos/${clave}-2`);
   }
   lineas.push(
     "", "Más trabajos en Instagram: instagram.com/cocinasintegralesenpereira",

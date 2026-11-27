@@ -4,6 +4,7 @@
  * a mano cuando alguien escribe por WhatsApp o redes. Desde aquí: escribir por
  * WhatsApp (313 680 2025), agendar la cita, programar seguimiento o descartar.
  */
+import { EJEMPLOS_POR_TRABAJO } from "@shared/ejemplos";
 import { registrarAlVolverDeWhatsApp } from "@/lib/whatsappEnvio";
 import { useMemo, useState } from "react";
 import { useLocation } from "wouter";
@@ -58,21 +59,16 @@ function whatsappUrl(l: Lead) {
   const first = l.name.trim().split(/\s+/)[0];
   const trabajo = leadWorkTypesText(l.workTypes).toLowerCase();
   const tipos = (l.workTypes || "").split(",").map(s => s.trim());
-  const EJ: Record<string, [string, string]> = {
-    centro_tv: ["Mira dos centros de TV que hicimos hace poco:", "tv"],
-    cocina: ["Mira dos cocinas que hicimos hace poco:", "cocina"],
-    closet: ["Mira dos closets que hicimos hace poco:", "closet"],
-    mueble_bano: ["Mira dos muebles de baño que hicimos hace poco:", "bano"],
-  };
   const lineas = [
     `Hola ${first} 👋, te saludamos de Innovar Cocinas de Diseño.${trabajo ? ` Recibimos tu solicitud para ${trabajo}.` : ""}`,
     "",
     "Fabricamos en nuestro taller en Pereira, con garantía, y te mostramos el diseño en 3D antes de fabricar.",
   ];
   // Ejemplos de los (máximo 2) trabajos que pidió
-  for (const t of tipos.filter(t => EJ[t]).slice(0, 2)) {
-    const [titulo, clave] = EJ[t];
-    lineas.push("", titulo, `📸 ${window.location.origin}/ejemplos/${clave}-1`, `📸 ${window.location.origin}/ejemplos/${clave}-2`);
+  for (const t of tipos.filter(t => EJEMPLOS_POR_TRABAJO[t]).slice(0, 2)) {
+    const e = EJEMPLOS_POR_TRABAJO[t];
+    lineas.push("", e.titulo);
+    for (let i = 1; i <= e.cantidad; i++) lineas.push(`📸 ${window.location.origin}/ejemplos/${e.clave}-${i}`);
   }
   lineas.push(
     "", "Más trabajos en Instagram: instagram.com/cocinasintegralesenpereira",

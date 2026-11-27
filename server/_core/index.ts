@@ -30,6 +30,7 @@ import { registerPortfolioRoutes } from "../portfolio-routes";
 import { registerFileDownloadRoutes } from "../file-download-routes";
 import { registerWebIntakeRoutes } from "../web-intake-routes";
 import { registerPortfolioExportRoutes } from "../portfolio-export-routes";
+import { registerEjemplosRoutes } from "../ejemplos-routes";
 import { registerRedesSubidaRoutes } from "../redes-subida-routes";
 import { registerWebPricesRoutes } from "../web-prices-routes";
 
@@ -63,6 +64,7 @@ async function startServer() {
   registerWebIntakeRoutes(app);
   registerWebPricesRoutes(app);
   registerPortfolioExportRoutes(app);
+  registerEjemplosRoutes(app);
   registerRedesSubidaRoutes(app);
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));

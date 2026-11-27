@@ -57,8 +57,21 @@ const prettyPhone = (p: string) => (p.startsWith("57") && p.length === 12 ? `${p
 function whatsappUrl(l: Lead) {
   const first = l.name.trim().split(/\s+/)[0];
   const trabajo = leadWorkTypesText(l.workTypes).toLowerCase();
-  const text = `Hola ${first}, te saludamos de Innovar Cocinas de Diseño.${trabajo ? ` Recibimos tu solicitud para ${trabajo}.` : ""} ¿Qué día te queda bien para la visita?`;
-  return `https://wa.me/${l.whatsappPhone}?text=${encodeURIComponent(text)}`;
+  const esTv = (l.workTypes || "").split(",").map(s => s.trim()).includes("centro_tv");
+  const lineas = [
+    `Hola ${first} 👋, te saludamos de Innovar Cocinas de Diseño.${trabajo ? ` Recibimos tu solicitud para ${trabajo}.` : ""}`,
+    "",
+    "Fabricamos en nuestro taller en Pereira, con garantía, y te mostramos el diseño en 3D antes de fabricar.",
+  ];
+  if (esTv) {
+    lineas.push("", "Mira dos centros de TV que hicimos hace poco:", `📺 ${window.location.origin}/ejemplos/tv-1`, `📺 ${window.location.origin}/ejemplos/tv-2`);
+  }
+  lineas.push(
+    "", "Más trabajos en Instagram: instagram.com/cocinasintegralesenpereira",
+    "Y en nuestra página: cocinasintegralespereira.co",
+    "", "La visita para tomar medidas es gratis en Pereira, Dosquebradas y Barrio Cuba. ¿Qué día te queda bien?",
+  );
+  return `https://wa.me/${l.whatsappPhone}?text=${encodeURIComponent(lineas.join("\n"))}`;
 }
 
 const STATUS_STYLE: Record<string, string> = {
